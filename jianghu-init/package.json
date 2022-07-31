@@ -1,0 +1,59 @@
+{
+  "name": "@jianghujs/jianghu-init",
+  "version": "2.0.1",
+  "description": "Init jianghu app helper tools.",
+  "main": "lib/entry.js",
+  "scripts": {
+    "autod": "autod"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "jianghu-init": "bin/jianghu-init.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "template"
+  ],
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "colors": "^1.3.3",
+    "compressing": "^1.4.0",
+    "dayjs": "^1.10.7",
+    "globby": "^9.0.0",
+    "inquirer": "^7.0.0",
+    "is-type-of": "^1.2.1",
+    "istextorbinary": "^2.5.1",
+    "knex": "^0.95.11",
+    "log-symbols": "^3.0.0",
+    "mkdirp": "^0.5.1",
+    "mysql-import": "^5.0.21",
+    "mz-modules": "^2.1.0",
+    "node-homedir": "^1.1.1",
+    "npm-updater": "^3.0.3",
+    "nunjucks": "^3.2.3",
+    "ora": "^4.0.2",
+    "proxy-agent": "^2.3.1",
+    "urllib": "^2.33.0",
+    "yargs": "^11.1.0"
+  },
+  "devDependencies": {
+    "autod": "^3.0.1",
+    "coffee": "^3.3.0",
+    "egg-bin": "^1.11.1",
+    "eslint": "^4.19.1",
+    "eslint-config-egg": "^6.0.0",
+    "mm": "^2.4.1",
+    "power-assert": "^1.4.4",
+    "proxy": "^0.2.4"
+  },
+  "keywords": [
+    "jianghu",
+    "jianghu-init",
+    "egg",
+    "egg-init"
+  ],
+  "engines": {
+    "node": ">=10.0.0"
+  }
+}

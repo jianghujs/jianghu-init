@@ -1,0 +1,40 @@
+{
+  "name": "@jianghujs/jianghu-init-config",
+  "version": "2.0.1",
+  "description": "jianghu init boilerplate config",
+  "files": [
+    "index.js"
+  ],
+  "config": {
+    "boilerplate": {
+      "multi": {
+        "package": "jianghu-boilerplate-multi",
+        "description": "Jianghu multi app boilerplate"
+      },
+      "xiaoapp-in-multi": {
+        "package": "jianghu-boilerplate-xiaoapp-in-multi",
+        "description": "Jianghu xiaoapp of multi app boilerplate"
+      },
+      "xiaoapp": {
+        "package": "jianghu-boilerplate-xiaoapp",
+        "description": "Jianghu single app boilerplate"
+      },
+      "xiaochengxu": {
+        "package": "jianghu-boilerplate-xiaochengxu",
+        "description": "Duoxing xiaochengxu"
+      },
+      "workflow": {
+        "package": "jianghu-boilerplate-workflow",
+        "description": "Jianghu workflow app boilerplate"
+      }
+    }
+  },
+  "keywords": [
+    "jianghu",
+    "jianghu-init"
+  ],
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "author": "illuz <iilluzen@gmail.com>"
+}

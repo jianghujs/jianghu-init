@@ -1,0 +1,233 @@
+{% extends 'template/jhTemplate.html'%}
+
+{% block vue_template %}
+
+<jh-layout>
+
+<v-divider></v-divider>
+
+<!-- 页面主要内容 -->
+<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+  <v-row class="ma-0 pa-xs-4 align-center flex-none pb-0 pt-0 pa-4">
+
+    <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+      <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)">新增</v-btn>
+      <span class="body-2">共{{ tableData.length }}条记录</span>
+    </v-col>
+
+    <v-spacer></v-spacer>
+
+    <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+      <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense outlined></v-text-field>
+    </v-col>
+
+  </v-row>
+  <v-data-table fixed-header
+                :headers="headers"
+                :items="tableData"
+                :search="searchInput"
+                :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                :items-per-page="-1"
+                :loading="isTableLoading"
+                checkbox-color="success"
+                class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+    <template v-slot:item.appType="{ item }">
+      {{ (constantCollection.appType.find(({value}) => value === item.appType) || {}).text }}
+    </template>
+    <template v-slot:item.action="{ item }">
+      <v-btn small class="mr-2" color="success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
+      <v-btn small class="mr-2" color="" @click="jump(`/${appInfo.appId}/page/userManagementOfOneApp?id=${item.appId}&title=${item.appName}`)">APP的用户管理</v-btn>
+    </template>
+  </v-data-table>
+</v-container>
+
+<!-- 编辑抽屉 -->
+<v-navigation-drawer v-model="isEditDrawerShow" absolute temporary right width="80%" hide-overlay
+                     class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+    <v-row>
+      <span class="title pa-6">{{ currentClickButton.title }}信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-7 mr-8 elevation-0" fab x-small @click="isEditDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none">
+      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
+        <v-text-field class="cus-v-input mr-2" :disabled="currentClickButton.action !== 'add'" dense outlined label="应用ID" v-model="editItem.appId"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
+        <v-text-field class="cus-v-input mr-2" dense outlined label="应用名" v-model="editItem.appName" :rules="requireRules"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
+        <v-select class="cus-v-input mr-2" dense outlined clearable label="应用类型" v-model="editItem.appType" :items="constantCollection.appType"></v-select>
+      </v-col>
+    </v-row>
+    <v-row class="justify-end pr-6">
+      <v-btn width="200" color="success" @click="doUiAction(dialogSaveInfoAction)" :style="{width: '200px'}">保存</v-btn>
+      <v-btn width="200" class="ml-2" @click="isEditDrawerShow = false" :style="{width: '200px'}">取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+
+</jh-layout>
+
+{% endblock %}
+
+{% block vue_body %}
+{% include 'layout/jhLayout.html' %}
+{% include 'common/resetTableMaxHeight.html' %}
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  mixins: [window.jianghuUiActionMixins],
+  data: {
+    // 表格相关数据
+    isFormValid: true,
+    requireRules: [
+      v => !!v || 'This is required',
+    ],
+    constantCollection: {
+      appType: [{"value": "internal", "text": "内部应用"}, {"value": "external", "text": "外部应用"}],
+    },
+
+    appInfo: window.appInfo,
+    isEditDrawerShow: false,
+    searchInput: null,
+    isTableLoading: true,
+    tableDataFromBackend: [],
+    headers: [
+      {text: "应用ID", value: "appId", align: "start", sortable: true, width: 120},
+      {text: "应用名", value: "appName", align: "start", sortable: true, width: 120},
+      {text: "应用类型", value: "appType", align: "start", sortable: true, width: 120},
+      {text: "操作人", value: "operationByUser", align: "start", sortable: true, width: 120},
+      {text: "操作时间", value: "operationAt", align: "start", sortable: true, width: 250},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+    ],
+
+    currentClickButton: {title: '新增', action: 'add'},
+    editItem: {},
+    dialogSaveInfoAction: ''
+  },
+  computed: {
+    tableData() {
+      return this.tableDataFromBackend
+    },
+  },
+  watch: {},
+  async created() {
+  },
+  mounted() {
+    this.doUiAction('refreshTableData');
+  },
+  methods: {
+    /**
+     * 获取表格数据
+     */
+    async refreshTableData() {
+      this.isTableLoading = true;
+      const { data: { appData: { rows } } } = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'appManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {},
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    },
+
+    // startCreateItem
+    async clearItemData() {
+      this.editItem = {};
+    },
+
+    async openCreateItemDialog() {
+      this.currentClickButton = {action: 'add', title: '新增'};
+      this.isEditDrawerShow = true;
+      this.dialogSaveInfoAction = 'createItem';
+    },
+
+    // createItem
+    async prepareValidate() {
+      return this.$refs.form.validate();
+    },
+
+    // createItem
+    async confirmCreateItemDialog() {
+      return window.confirmDialog({title: '新增', content: '确定新增吗？'})
+    },
+    /**
+     * 新增学生
+     */
+    async doCreateItem() {
+      const { id, ...data } = this.editItem;
+      await window.vtoast.loading("新增应用");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'appManagement',
+            actionId: 'insertItem',
+            actionData: data
+          }
+        }
+      })
+      await window.vtoast.success("新增应用成功");
+    },
+    async closeDrawerShow() {
+      this.isEditDrawerShow = false;
+    },
+
+    // startUpdateItem
+    async prepareItemData({item}) {
+      console.log('prepareItemData')
+      this.editItem = {...item};
+    },
+
+    async openUpdateDialog() {
+      this.currentClickButton = {action: 'edit', title: '修改'};
+      this.isEditDrawerShow = true;
+      this.dialogSaveInfoAction = 'updateItem';
+    },
+
+    // updateItem
+    async confirmUpdateItemDialog() {
+      console.log('confirmUpdateItemDialog')
+      return window.confirmDialog({title: '修改', content: '确定修改吗？'});
+    },
+    /**
+     * 保存学生
+     */
+    async doUpdateItem() {
+      const { id, ...data } = this.editItem;
+      await window.vtoast.loading("修改应用信息");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'appManagement',
+            actionId: 'updateItem',
+            actionData: data,
+            where: { id }
+          }
+        }
+      })
+      await window.vtoast.success("修改应用信息成功");
+    },
+    jump(url) {
+      window.location.href = url;
+    },
+  }
+})
+</script>
+
+<style scoped>
+</style>
+{% endblock %}
