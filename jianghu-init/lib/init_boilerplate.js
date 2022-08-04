@@ -120,9 +120,9 @@ module.exports = class InitBoilerplate {
    * 检查项目目录
    */
   checkProjectDirectory(name) {
-    if (name === 'xiaoapp-in-multi') {
+    if (['xiaoapp-in-multi', '1table-enterprise'].includes(name)) {
       // 多应用下增加应用需要验证目录
-      console.log(symbols.success, chalk.blue('xiaoapp-in-multi 模式目录验证'));
+      console.log(symbols.success, chalk.blue(`${name} 模式目录验证`));
       const dirList = fs.readdirSync(process.cwd());
       // 多应用，三者缺一不可
       if (dirList.indexOf('data_repository') === -1
@@ -131,7 +131,7 @@ module.exports = class InitBoilerplate {
         console.log(symbols.success, chalk.red('请切换到多应用模式的项目目录下'));
         return false;
       }
-      console.log(symbols.success, chalk.green('xiaoapp-in-multi 模式目录验证 成功'));
+      console.log(symbols.success, chalk.green(`${name} 模式目录验证 成功`));
       return true;
     }
     return true;

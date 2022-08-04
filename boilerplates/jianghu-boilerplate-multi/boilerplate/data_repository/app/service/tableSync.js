@@ -3,7 +3,7 @@
 const Service = require('egg').Service;
 const { tableEnum } = require('../constant/constant');
 const dayjs = require('dayjs');
-const validateUtil = require('egg-jianghu/app/common/validateUtil');
+const validateUtil = require("@jianghujs/jianghu/app/common/validateUtil");
 const _ = require('lodash');
 const { BizError, errorInfoEnum } = require('../constant/error');
 const actionDataScheme = Object.freeze({

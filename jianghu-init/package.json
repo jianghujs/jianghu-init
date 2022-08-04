@@ -1,6 +1,6 @@
 {
-  "name": "@jianghujs/jianghu-init",
-  "version": "2.0.1",
+  "name": "jianghu-init",
+  "version": "1.1.19",
   "description": "Init jianghu app helper tools.",
   "main": "lib/entry.js",
   "scripts": {
@@ -41,6 +41,7 @@
     "autod": "^3.0.1",
     "coffee": "^3.3.0",
     "egg-bin": "^1.11.1",
+    "egg-ci": "^1.11.0",
     "eslint": "^4.19.1",
     "eslint-config-egg": "^6.0.0",
     "mm": "^2.4.1",

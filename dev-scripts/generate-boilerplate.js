@@ -147,4 +147,8 @@ process('xiaoapp-in-multi');
 process('xiaoapp');
 process('xiaochengxu');
 process('workflow');
+process('1table');
+process('3table');
+process('1table-enterprise');
+process('enterprise');
 

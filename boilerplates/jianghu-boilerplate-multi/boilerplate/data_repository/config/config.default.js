@@ -3,10 +3,10 @@
 const path = require('path');
 const assert = require('assert');
 
-const { middleware, middlewareMatch } = require('egg-jianghu/config/middlewareConfig');
+const { middleware, middlewareMatch } = require('@jianghujs/jianghu/config/middlewareConfig');
 
-const eggJianghuPathTemp = require.resolve('egg-jianghu');
-const eggJianghuPath = path.join(eggJianghuPathTemp, '../');
+const jianghuPathTemp = require.resolve('@jianghujs/jianghu');
+const jianghuPath = path.join(jianghuPathTemp, '../');
 
 module.exports = appInfo => {
   assert(appInfo);
@@ -34,7 +34,7 @@ module.exports = appInfo => {
       maxFiles: 0,
       dir: [
         { prefix: `/${appId}/public/`, dir: path.join(appInfo.baseDir, 'app/public') },
-        { prefix: `/${appId}/public/`, dir: path.join(eggJianghuPath, 'app/public') },
+        { prefix: `/${appId}/public/`, dir: path.join(jianghuPath, 'app/public') },
         { prefix: `/${appId}/upload/`, dir: uploadDir },
       ],
     },
@@ -43,7 +43,7 @@ module.exports = appInfo => {
       mapping: { '.html': 'nunjucks' },
       root: [
         path.join(appInfo.baseDir, 'app/view'),
-        path.join(eggJianghuPath, 'app/view'),
+        path.join(jianghuPath, 'app/view'),
       ].join(','),
     },
     middleware,

@@ -1,6 +1,6 @@
 {
-  "name": "@jianghujs/jianghu-init-config",
-  "version": "2.0.1",
+  "name": "jianghu-init-config",
+  "version": "1.0.3",
   "description": "jianghu init boilerplate config",
   "files": [
     "index.js"
@@ -26,6 +26,22 @@
       "workflow": {
         "package": "jianghu-boilerplate-workflow",
         "description": "Jianghu workflow app boilerplate"
+      },
+      "1table": {
+        "package": "jianghu-boilerplate-1table",
+        "description": "Jianghu 1table crud"
+      },
+      "1table-enterprise": {
+        "package": "jianghu-boilerplate-1table-enterprise",
+        "description": "Jianghu 1table in enterprise"
+      },
+      "3table": {
+        "package": "jianghu-boilerplate-3table",
+        "description": "Jianghu 3table crud"
+      },
+      "enterprise": {
+        "package": "jianghu-boilerplate-enterprise",
+        "description": "Jianghu multi enterprise"
       }
     }
   },

@@ -12,9 +12,11 @@ const Knex = require('knex');
  * 基本类，包括一些操作 DB 的命令
  */
 module.exports = class CommandBase {
-
   constructor() {
     this.knex = null;
+    this.multiDemoProject = ['multi', 'enterprise'];
+    this.inMultiDemoProject = ['xiaoapp-in-multi', '1table-enterprise'];
+    this.demoProject = ['xiaoapp', 'xiaochengxu', 'workflow', '1table', '3table'];
   }
 
   /**

@@ -64,7 +64,7 @@ module.exports = class InitProjectCommand extends CommandBase {
    */
   async getDbSetting(boilerplate, projectName) {
     let dbSetting = {};
-    if (boilerplate.name === 'xiaoapp-in-multi' && fs.existsSync('user_app_management')) {
+    if (this.inMultiDemoProject.includes(boilerplate.name) && fs.existsSync('user_app_management')) {
       // 读取 example 中的数据库前缀
       process.chdir('user_app_management');
       dbSetting = this.readDbConfigFromFile();
@@ -72,7 +72,7 @@ module.exports = class InitProjectCommand extends CommandBase {
     } else {
       dbSetting.dbPrefix = this.tryGetDbPrefix();
       dbSetting.host = await this.readlineMethod('数据库IP：', '127.0.0.1');
-      if (boilerplate.name !== 'multi') {
+      if (!this.multiDemoProject.includes(boilerplate.name)) {
         const databaseName = projectName.replace(new RegExp('-', 'g'), '_');
         dbSetting.defaultDatabase = await this.readlineMethod('数据库名称：', databaseName);
       }
@@ -89,7 +89,7 @@ module.exports = class InitProjectCommand extends CommandBase {
   async initDb(boilerplate, projectName, dbPrefix) {
     // 确认要处理的 app
     const apps = [];
-    if (boilerplate.name === 'multi') {
+    if (this.multiDemoProject.includes(boilerplate.name)) {
       apps.push('data_repository', 'user_app_management', 'directory'); // , 'simple_xiaoapp'
       process.chdir(projectName);
     } else {
@@ -99,7 +99,7 @@ module.exports = class InitProjectCommand extends CommandBase {
     // 获取数据库配置
     const dbSetting = await this.getDbSetting(boilerplate, projectName);
     dbSetting.dbPrefix = dbSetting.dbPrefix || dbPrefix || '';
-    if (['xiaoapp', 'xiaochengxu', 'workflow'].includes(boilerplate.name)) {
+    if (this.demoProject.includes(boilerplate.name)) {
       dbSetting.dbPrefix = '';
     }
 
@@ -126,7 +126,7 @@ module.exports = class InitProjectCommand extends CommandBase {
    * print usage guide
    */
   printGuide(targetDir, boilerplate) {
-    if (boilerplate.name === 'multi') {
+    if (this.multiDemoProject.includes(boilerplate.name)) {
       this.success(`usage:
       - cd ${targetDir}
       - ls

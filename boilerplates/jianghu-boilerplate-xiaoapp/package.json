@@ -1,6 +1,6 @@
 {
   "name": "jianghu-boilerplate-xiaoapp",
-  "version": "1.0.25",
+  "version": "1.0.28",
   "description": "boilerplate for jianghu quickstart",
   "scripts": {
     "autod": "autod",

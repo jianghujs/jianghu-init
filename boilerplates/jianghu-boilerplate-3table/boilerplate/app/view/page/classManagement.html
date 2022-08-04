@@ -1,0 +1,372 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+
+<!-- 3 table 下 class 的单表 crud 页面 -->
+
+
+
+<jh-layout-v3>
+<template slot="serverSearch">
+  <v-row class="ma-0 align-center" :class="{'pa-0': isMobile, 'pa-2': !isMobile}" style="justify-content: end">
+    <v-col cols="12" sm="12" xs="5" md="3" xl="2" class="pb-3" :class="{'pl-0': isMobile, 'pt-0': isMobile}">
+      <v-text-field v-model="serverSearchInput.classId" color="success"  prefix="班级ID：" class="cus-v-input" :class="{'mr-2': !isMobile}" dense filled single-line></v-text-field>
+    </v-col>
+    <v-col class="pl-0 pr-0" :class="{'pt-0': isMobile}" style="max-width: 57px">
+      <v-btn
+          class="elevation-0"
+          color="success"
+          dark
+          @click="refreshTableData"
+      >
+        查询
+      </v-btn>
+    </v-col>
+  </v-row>
+</template>
+
+<!-- 页面主要内容 -->
+<v-container class="fullScreen d-flex flex-column pa-0">
+
+
+  <v-card :class="{'px-2': isMobile}">
+    <v-row class="ma-0 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+
+      <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0">
+        <v-btn color="success"  dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem')">新增</v-btn>
+        <span class="body-2">共{{ tableData.length }}条记录</span>
+      </v-col>
+
+      <v-spacer></v-spacer>
+
+      <v-col cols="12" xs="12" sm="4" md="3" xl="3" class="px-0">
+        <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+      </v-col>
+
+    </v-row>
+    <v-data-table fixed-header
+                  :headers="headers"
+                  :items="tableData"
+                  :search="searchInput"
+                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                  :items-per-page="20"
+                  mobile-breakpoint="0"
+                  :loading="isTableLoading"
+                  :class="{'mx-2': isMobile}"
+                  checkbox-color="success"
+                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      <template v-slot:item.action="{ item }">
+        <v-btn small class="mr-2" :class="tableButton.color" v-for="tableButton of tableButtonList" @click="doUiAction(tableButton.action, {item, button: tableButton})">
+          {{ tableButton.text }}
+        </v-btn>
+      </template>
+    </v-data-table>
+  </v-card>
+</v-container>
+<v-overlay app :value="isAddDrawerShow || isEditDrawerShow"></v-overlay>
+<!-- 新增抽屉 -->
+<v-navigation-drawer v-model="isAddDrawerShow" fixed temporary right width="80%" hide-overlay
+                     class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-8': isMobile}">新增信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-7 mr-8 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isAddDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">班级ID</span>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="班级ID" v-model="addItem['classId']"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">门派ID</span>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="门派ID" v-model="addItem['menPaiId']"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">门派名</span>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="门派名" v-model="addItem['menPaiName']"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">备注</span>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="备注" v-model="addItem['remarks']"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">班级状态</span>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="班级状态" v-model="addItem['classStatus']"></v-text-field>
+      </v-col>
+    </v-row>
+    <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+      <v-btn color="success"  @click="doUiAction('createItem')">保存</v-btn>
+      <v-btn class="elevation-0 mr-2 ml-2"  @click="isAddDrawerShow = false">取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+<!-- 编辑抽屉 -->
+<v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="80%" hide-overlay
+                     class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-8': isMobile}">编辑信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-7 mr-8 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">班级ID</span>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="班级ID" v-model="editItem['classId']"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">门派ID</span>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="门派ID" v-model="editItem['menPaiId']"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">门派名</span>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="门派名" v-model="editItem['menPaiName']"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">备注</span>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="备注" v-model="editItem['remarks']"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">班级状态</span>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="班级状态" v-model="editItem['classStatus']"></v-text-field>
+      </v-col>
+    </v-row>
+    <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+      <v-btn color="success"  @click="doUiAction('updateItem')">保存</v-btn>
+      <v-btn class="elevation-0 mr-2 ml-2"  @click="isEditDrawerShow = false">取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  mixins: [window.jianghuUiActionMixins],
+  data: () => ({
+    // 表格相关数据
+    isFormValid: true,
+    requireRules: [
+      v => !!v || 'This is required',
+    ],
+    constantCollection: {
+    },
+    serverSearchInput: {
+      studentId: null,
+      classId: null
+    },
+    searchInput: null,
+    isTableLoading: true,
+    tableDataFromBackend: [],
+    headers: [
+      {text: "ID", value: "id", width: 120, class: 'fixed', cellClass: 'fixed'},
+
+      {text: "班级ID", value: "classId", width: 120},
+      {text: "门派ID", value: "menPaiId", width: 120},
+      {text: "门派名", value: "menPaiName", width: 120},
+      {text: "备注", value: "remarks", width: 120},
+      {text: "班级状态", value: "classStatus", width: 120},
+      {text: "操作者", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 250},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 240, class: 'fixed', cellClass: 'fixed'},
+    ],
+    isEditDrawerShow: false,
+    editItem: {},
+    isAddDrawerShow: false,
+    addItem: {},
+    tableButtonList: [
+      {text: '修改', buttonType: 'edit', color: 'success', action: 'startUpdateItem'},
+      {text: '删除', buttonType: 'delete', color: 'error', action: 'deleteItem'},
+      { text: '学生', buttonType: 'path', color: 'warning', path: 'studentManagementOfOneClass', action: 'redirect'}
+    ],
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataFromBackend;
+    },
+  },
+  watch: {},
+  async created() {
+    await this.doUiAction('refreshTableData');
+  },
+  mounted() {},
+  methods: {
+    /**
+     * uiActionId:  refreshTableData
+     * description: ✅获取表格数据
+     * main:   [{"function":"refreshTableData"}]
+    */
+    async refreshTableData() {
+      this.isTableLoading = true;
+      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
+      const { data: { appData: { rows } } } = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'classManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {},
+            whereLike: serverSearchInput,
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    },
+
+    /**
+     * uiActionId:  startCreateItem
+     * description: ✅获取表格数据
+     * main:   [{"function":"clearItemData"},{"function":"openCreateItemDialog"}]
+    */
+    async clearItemData() {
+      this.addItem = {};
+    },
+
+    async openCreateItemDialog() {
+      this.isAddDrawerShow = true;
+    },
+
+    /**
+     * uiActionId:  createItem
+     * description: ✅获取表格数据
+     * before: [{"function":"confirmCreateItemDialog"}]
+     * main:   [{"function":"doCreateItem"},{"function":"refreshTableData"}]
+     * after:  [{"function":"closeDrawerShow"}]
+    */
+    async confirmCreateItemDialog() {
+      return window.confirmDialog({title: '新增', content: '确定新增吗？'})
+    },
+
+    async doCreateItem() {
+      const { id, ...data } = this.addItem;
+      await window.vtoast.loading("新增数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'classManagement',
+            actionId: 'insertItem',
+            actionData: data
+          }
+        }
+      })
+      await window.vtoast.success("新增数据成功");
+    },
+
+    async closeDrawerShow() {
+      this.isEditDrawerShow = false;
+      this.isAddDrawerShow = false;
+    },
+
+    /**
+     * uiActionId:  startUpdateItem
+     * description: ✅获取表格数据
+     * main:   [{"function":"prepareItemData"},{"function":"openUpdateDialog"}]
+    */
+    async prepareItemData({item}) {
+      this.editItem = {...item};
+    },
+
+    async openUpdateDialog() {
+      this.isEditDrawerShow = true;
+    },
+
+    /**
+     * uiActionId:  updateItem
+     * description: ✅获取表格数据
+     * before: [{"function":"confirmUpdateItemDialog"}]
+     * main:   [{"function":"doUpdateItem"},{"function":"refreshTableData"}]
+     * after:  [{"function":"closeDrawerShow"}]
+    */
+    async confirmUpdateItemDialog() {
+      return window.confirmDialog({title: '修改', content: '确定修改吗？'});
+    },
+
+    async doUpdateItem() {
+      const { id, ...data } = this.editItem;
+      await window.vtoast.loading("修改数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'classManagement',
+            actionId: 'updateItem',
+            actionData: data,
+            where: {id}
+          }
+        }
+      })
+      await window.vtoast.success("修改数据成功");
+    },
+
+    /**
+     * uiActionId:  deleteItem
+     * description: ✅获取表格数据
+     * before: [{"function":"confirmDeleteItemDialog"}]
+     * main:   [{"function":"doDeleteItem"},{"function":"refreshTableData"}]
+    */
+    async confirmDeleteItemDialog() {
+      return window.confirmDialog({title: '删除', content: '确定删除吗？'});
+    },
+
+    async doDeleteItem({item}) {
+      const { id } = item;
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'classManagement',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: { id: id }
+          }
+        }
+      });
+      await window.vtoast.success("删除数据成功");
+    },
+
+    /**
+     * uiActionId:  doRedirect
+     * description: ✅获取表格数据
+     * main:   [{"function":"doRedirect"}]
+    */
+    async doRedirect({item, button}) {
+      // todo：请在生成后将下列的 title 参数改成获取你要展示的字段，如 className
+      if (button.path.startsWith('http')) {
+        window.location.href = `${button.path}?classId=${item.classId}&title=${item.classId}`
+      } else {
+        window.location.href = `/{{name}}/page/${button.path}?classId=${item.classId}&title=${item.classId}`
+      }
+    },
+    getConstantCollectionItemText(key, _value) {
+      const constantCollectionItemFind = this.constantCollection[key].find(({value}) => value === _value);
+      if(constantCollectionItemFind) {
+        return constantCollectionItemFind.text;
+      }
+      return value;
+    }
+  }
+})
+</script>
+
+<style scoped>
+</style>
+{% endblock %}

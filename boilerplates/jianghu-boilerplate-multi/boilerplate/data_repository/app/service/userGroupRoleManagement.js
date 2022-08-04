@@ -1,8 +1,8 @@
 'use strict';
 
 // ========================================常用 require start===========================================
-const validateUtil = require("egg-jianghu/app/common/validateUtil");
-const idGenerateUtil = require("egg-jianghu/app/common/idGenerateUtil");
+const validateUtil = require("@jianghujs/jianghu/app/common/validateUtil");
+const idGenerateUtil = require("@jianghujs/jianghu/app/common/idGenerateUtil");
 const { BizError, errorInfoEnum } = require('../constant/error');
 const Service = require('egg').Service;
 // ========================================常用 require end=============================================
