@@ -279,9 +279,9 @@ CREATE TABLE `_table_sync_config` (
 # DATA DUMP FOR TABLE: _table_sync_config
 # ------------------------------------------------------------
 
-INSERT INTO `_table_sync_config` (`id`,`sourceDatabase`,`sourceTable`,`syncTimeSlot`,`syncDesc`,`lastSyncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (200,'jianghujs_demo_enterprise_user_app_management','_app','6','正常','2022-05-02T23:27:37+08:00','update','admin','系统管理员','2022-05-02T23:27:40+08:00');
-INSERT INTO `_table_sync_config` (`id`,`sourceDatabase`,`sourceTable`,`syncTimeSlot`,`syncDesc`,`lastSyncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (201,'jianghujs_demo_enterprise_user_app_management','_user_app','5','正常','2022-05-02T23:27:37+08:00','update','admin','系统管理员','2022-05-02T23:27:40+08:00');
-INSERT INTO `_table_sync_config` (`id`,`sourceDatabase`,`sourceTable`,`syncTimeSlot`,`syncDesc`,`lastSyncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (202,'jianghujs_demo_enterprise_user_app_management','_user','1','正常','2022-05-02T23:27:37+08:00','update','admin','系统管理员','2022-05-02T23:27:40+08:00');
+INSERT INTO `_table_sync_config` (`id`,`sourceDatabase`,`sourceTable`,`syncTimeSlot`,`syncDesc`,`lastSyncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (200,'{{dbPrefix}}user_app_management','_app','6','正常','2022-05-02T23:27:37+08:00','update','admin','系统管理员','2022-05-02T23:27:40+08:00');
+INSERT INTO `_table_sync_config` (`id`,`sourceDatabase`,`sourceTable`,`syncTimeSlot`,`syncDesc`,`lastSyncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (201,'{{dbPrefix}}user_app_management','_user_app','5','正常','2022-05-02T23:27:37+08:00','update','admin','系统管理员','2022-05-02T23:27:40+08:00');
+INSERT INTO `_table_sync_config` (`id`,`sourceDatabase`,`sourceTable`,`syncTimeSlot`,`syncDesc`,`lastSyncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (202,'{{dbPrefix}}user_app_management','_user','1','正常','2022-05-02T23:27:37+08:00','update','admin','系统管理员','2022-05-02T23:27:40+08:00');
 
 
 
@@ -309,18 +309,18 @@ CREATE TABLE `_table_sync_log` (
 # DATA DUMP FOR TABLE: _table_sync_log
 # ------------------------------------------------------------
 
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4108,'jianghujs_demo_enterprise_directory','test','表覆盖','【表覆盖】数据不一致; 触发覆盖目标表逻辑;','2022-02-20T20:59:14+08:00','insert',NULL,NULL,NULL);
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4109,'jianghujs_demo_enterprise_directory','test','触发器覆盖','delete 触发器覆盖','2022-02-20T20:59:14+08:00','insert',NULL,NULL,NULL);
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4110,'jianghujs_demo_enterprise_directory','test','触发器覆盖','insert 触发器覆盖','2022-02-20T20:59:15+08:00','insert',NULL,NULL,NULL);
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4111,'jianghujs_demo_enterprise_directory','test','触发器覆盖','insert 触发器覆盖','2022-02-20T20:59:15+08:00','insert',NULL,NULL,NULL);
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4112,'jianghujs_demo_enterprise_user_app_management','_app','触发器覆盖','insert 触发器覆盖','2022-02-26T18:34:35+08:00','insert',NULL,NULL,'2022-02-26T18:34:35+08:00');
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4113,'jianghujs_demo_enterprise_user_app_management','_app','触发器覆盖','delete 触发器覆盖','2022-02-26T18:34:35+08:00','insert',NULL,NULL,'2022-02-26T18:34:35+08:00');
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4114,'jianghujs_demo_enterprise_user_app_management','_user_app','触发器覆盖','insert 触发器覆盖','2022-02-26T18:34:35+08:00','insert',NULL,NULL,'2022-02-26T18:34:35+08:00');
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4115,'jianghujs_demo_enterprise_user_app_management','_user_app','触发器覆盖','insert 触发器覆盖','2022-02-26T18:34:35+08:00','insert',NULL,NULL,'2022-02-26T18:34:35+08:00');
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4116,'jianghujs_demo_enterprise_user_app_management','_user_app','触发器覆盖','delete 触发器覆盖','2022-02-26T18:34:36+08:00','insert',NULL,NULL,'2022-02-26T18:34:36+08:00');
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4117,'jianghujs_demo_enterprise_user_app_management','_user','触发器覆盖','insert 触发器覆盖','2022-02-26T18:34:36+08:00','insert',NULL,NULL,'2022-02-26T18:34:36+08:00');
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4118,'jianghujs_demo_enterprise_user_app_management','_user','触发器覆盖','insert 触发器覆盖','2022-02-26T18:34:36+08:00','insert',NULL,NULL,'2022-02-26T18:34:36+08:00');
-INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4119,'jianghujs_demo_enterprise_user_app_management','_user','触发器覆盖','delete 触发器覆盖','2022-02-26T18:34:36+08:00','insert',NULL,NULL,'2022-02-26T18:34:36+08:00');
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4108,'{{dbPrefix}}directory','test','表覆盖','【表覆盖】数据不一致; 触发覆盖目标表逻辑;','2022-02-20T20:59:14+08:00','insert',NULL,NULL,NULL);
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4109,'{{dbPrefix}}directory','test','触发器覆盖','delete 触发器覆盖','2022-02-20T20:59:14+08:00','insert',NULL,NULL,NULL);
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4110,'{{dbPrefix}}directory','test','触发器覆盖','insert 触发器覆盖','2022-02-20T20:59:15+08:00','insert',NULL,NULL,NULL);
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4111,'{{dbPrefix}}directory','test','触发器覆盖','insert 触发器覆盖','2022-02-20T20:59:15+08:00','insert',NULL,NULL,NULL);
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4112,'{{dbPrefix}}user_app_management','_app','触发器覆盖','insert 触发器覆盖','2022-02-26T18:34:35+08:00','insert',NULL,NULL,'2022-02-26T18:34:35+08:00');
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4113,'{{dbPrefix}}user_app_management','_app','触发器覆盖','delete 触发器覆盖','2022-02-26T18:34:35+08:00','insert',NULL,NULL,'2022-02-26T18:34:35+08:00');
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4114,'{{dbPrefix}}user_app_management','_user_app','触发器覆盖','insert 触发器覆盖','2022-02-26T18:34:35+08:00','insert',NULL,NULL,'2022-02-26T18:34:35+08:00');
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4115,'{{dbPrefix}}user_app_management','_user_app','触发器覆盖','insert 触发器覆盖','2022-02-26T18:34:35+08:00','insert',NULL,NULL,'2022-02-26T18:34:35+08:00');
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4116,'{{dbPrefix}}user_app_management','_user_app','触发器覆盖','delete 触发器覆盖','2022-02-26T18:34:36+08:00','insert',NULL,NULL,'2022-02-26T18:34:36+08:00');
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4117,'{{dbPrefix}}user_app_management','_user','触发器覆盖','insert 触发器覆盖','2022-02-26T18:34:36+08:00','insert',NULL,NULL,'2022-02-26T18:34:36+08:00');
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4118,'{{dbPrefix}}user_app_management','_user','触发器覆盖','insert 触发器覆盖','2022-02-26T18:34:36+08:00','insert',NULL,NULL,'2022-02-26T18:34:36+08:00');
+INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4119,'{{dbPrefix}}user_app_management','_user','触发器覆盖','delete 触发器覆盖','2022-02-26T18:34:36+08:00','insert',NULL,NULL,'2022-02-26T18:34:36+08:00');
 INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4120,'jianghujs_demo_basic_3table','student','表覆盖','【表覆盖】数据不一致; 触发覆盖目标表逻辑;','2022-04-29T14:02:46+08:00','insert',NULL,NULL,'2022-04-29T14:02:46+08:00');
 INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4121,'jianghujs_demo_basic_3table','student','触发器覆盖','insert 触发器覆盖','2022-04-29T14:02:46+08:00','insert',NULL,NULL,'2022-04-29T14:02:46+08:00');
 INSERT INTO `_table_sync_log` (`id`,`sourceDatabase`,`sourceTable`,`syncAction`,`syncDesc`,`syncTime`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4122,'jianghujs_demo_basic_3table','student','触发器覆盖','insert 触发器覆盖','2022-04-29T14:02:47+08:00','insert',NULL,NULL,'2022-04-29T14:02:47+08:00');
@@ -616,11 +616,11 @@ INSERT INTO `jianghujs_demo_basic_3table__student` (`id`,`studentId`,`menPaiId`,
 
 
 # ------------------------------------------------------------
-# SCHEMA DUMP FOR TABLE: jianghujs_demo_enterprise_user_app_management___app
+# SCHEMA DUMP FOR TABLE: {{dbPrefix}}user_app_management___app
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `jianghujs_demo_enterprise_user_app_management___app`;
-CREATE TABLE `jianghujs_demo_enterprise_user_app_management___app` (
+DROP TABLE IF EXISTS `{{dbPrefix}}user_app_management___app`;
+CREATE TABLE `{{dbPrefix}}user_app_management___app` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `appId` varchar(255) DEFAULT NULL COMMENT 'appId',
   `appGroup` varchar(255) DEFAULT NULL COMMENT 'app组',
@@ -640,24 +640,24 @@ CREATE TABLE `jianghujs_demo_enterprise_user_app_management___app` (
 
 
 # ------------------------------------------------------------
-# DATA DUMP FOR TABLE: jianghujs_demo_enterprise_user_app_management___app
+# DATA DUMP FOR TABLE: {{dbPrefix}}user_app_management___app
 # ------------------------------------------------------------
 
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (12,'user_app_management','base','账号权限管理',NULL,NULL,NULL,'internal','insert',NULL,NULL,NULL,NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (13,'data_repository','base','数据中心管理',NULL,NULL,NULL,'internal','insert',NULL,NULL,NULL,NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (14,'directory','base','APP目录',NULL,NULL,NULL,'internal','insert',NULL,NULL,NULL,NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (18,'demo_xiaoapp',NULL,'小APPDemo项目',NULL,NULL,NULL,'internal','jhInsert','admin','系统管理员','2022-02-24T20:18:14+08:00',NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (19,'test',NULL,'uiAction test123',NULL,NULL,NULL,'internal','jhUpdate','admin','系统管理员','2022-04-28T21:58:09+08:00',NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (20,NULL,NULL,'123',NULL,NULL,NULL,'internal','jhInsert','admin','系统管理员','2022-05-03T16:21:36+08:00',NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (12,'user_app_management','base','账号权限管理',NULL,NULL,NULL,'internal','insert',NULL,NULL,NULL,NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (13,'data_repository','base','数据中心管理',NULL,NULL,NULL,'internal','insert',NULL,NULL,NULL,NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (14,'directory','base','APP目录',NULL,NULL,NULL,'internal','insert',NULL,NULL,NULL,NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (18,'demo_xiaoapp',NULL,'小APPDemo项目',NULL,NULL,NULL,'internal','jhInsert','admin','系统管理员','2022-02-24T20:18:14+08:00',NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (19,'test',NULL,'uiAction test123',NULL,NULL,NULL,'internal','jhUpdate','admin','系统管理员','2022-04-28T21:58:09+08:00',NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___app` (`id`,`appId`,`appGroup`,`appName`,`appDesc`,`appUrl`,`appMenu`,`appType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`sort`) VALUES (20,NULL,NULL,'123',NULL,NULL,NULL,'internal','jhInsert','admin','系统管理员','2022-05-03T16:21:36+08:00',NULL);
 
 
 
 # ------------------------------------------------------------
-# SCHEMA DUMP FOR TABLE: jianghujs_demo_enterprise_user_app_management___user
+# SCHEMA DUMP FOR TABLE: {{dbPrefix}}user_app_management___user
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `jianghujs_demo_enterprise_user_app_management___user`;
-CREATE TABLE `jianghujs_demo_enterprise_user_app_management___user` (
+DROP TABLE IF EXISTS `{{dbPrefix}}user_app_management___user`;
+CREATE TABLE `{{dbPrefix}}user_app_management___user` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `idSequence` varchar(255) DEFAULT NULL COMMENT '自增id; 用于生成userId',
   `userId` varchar(255) DEFAULT NULL COMMENT '主键id',
@@ -679,26 +679,26 @@ CREATE TABLE `jianghujs_demo_enterprise_user_app_management___user` (
 
 
 # ------------------------------------------------------------
-# DATA DUMP FOR TABLE: jianghujs_demo_enterprise_user_app_management___user
+# DATA DUMP FOR TABLE: {{dbPrefix}}user_app_management___user
 # ------------------------------------------------------------
 
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (42,'111','admin','系统管理员','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active','common',NULL,'update',NULL,NULL,'2022-02-19T15:02:24+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (43,NULL,'W00001','张三丰','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'update','admin','系统管理员','2022-02-19T15:18:42+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (44,NULL,'W00002','张无忌','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'update','admin','系统管理员','2022-02-19T15:45:14+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (45,NULL,'G00001','洪七公','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (46,NULL,'G00002','郭靖','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'update','admin','系统管理员','2022-05-03T13:45:14+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (47,NULL,'H00001','岳不群','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (48,NULL,'H00002','令狐冲','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (58,'112','U223P','uiaction123','12345678','31166f44402dedbf27c9b2d4bcfa90cb','ajGTYtmy4cNH','active','common',NULL,'update','admin','系统管理员','2022-05-03T16:00:16+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (42,'111','admin','系统管理员','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active','common',NULL,'update',NULL,NULL,'2022-02-19T15:02:24+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (43,NULL,'W00001','张三丰','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'update','admin','系统管理员','2022-02-19T15:18:42+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (44,NULL,'W00002','张无忌','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'update','admin','系统管理员','2022-02-19T15:45:14+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (45,NULL,'G00001','洪七公','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'insert',NULL,NULL,NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (46,NULL,'G00002','郭靖','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'update','admin','系统管理员','2022-05-03T13:45:14+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (47,NULL,'H00001','岳不群','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'insert',NULL,NULL,NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (48,NULL,'H00002','令狐冲','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'insert',NULL,NULL,NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`userConfig`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (58,'112','U223P','uiaction123','12345678','31166f44402dedbf27c9b2d4bcfa90cb','ajGTYtmy4cNH','active','common',NULL,'update','admin','系统管理员','2022-05-03T16:00:16+08:00');
 
 
 
 # ------------------------------------------------------------
-# SCHEMA DUMP FOR TABLE: jianghujs_demo_enterprise_user_app_management___user_app
+# SCHEMA DUMP FOR TABLE: {{dbPrefix}}user_app_management___user_app
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `jianghujs_demo_enterprise_user_app_management___user_app`;
-CREATE TABLE `jianghujs_demo_enterprise_user_app_management___user_app` (
+DROP TABLE IF EXISTS `{{dbPrefix}}user_app_management___user_app`;
+CREATE TABLE `{{dbPrefix}}user_app_management___user_app` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userId` varchar(255) DEFAULT NULL COMMENT '用户id',
   `appId` varchar(255) DEFAULT NULL COMMENT 'appId',
@@ -711,32 +711,32 @@ CREATE TABLE `jianghujs_demo_enterprise_user_app_management___user_app` (
 
 
 # ------------------------------------------------------------
-# DATA DUMP FOR TABLE: jianghujs_demo_enterprise_user_app_management___user_app
+# DATA DUMP FOR TABLE: {{dbPrefix}}user_app_management___user_app
 # ------------------------------------------------------------
 
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (55,'W00001','test','jhInsert','admin','系统管理员','2022-04-28T22:18:16+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (56,'U223P','demo_xiaoapp','jhInsert','admin','系统管理员','2022-04-28T22:34:42+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (62,'admin','data_repository','insert',NULL,NULL,NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (63,'admin','directory','insert',NULL,NULL,NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (64,'admin','user_app_management','insert',NULL,NULL,NULL);
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (68,'0','test','jhInsert','admin','系统管理员','2022-04-28T22:53:46+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (69,'1','test','jhInsert','admin','系统管理员','2022-04-28T22:53:47+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (70,'2','test','jhInsert','admin','系统管理员','2022-04-28T22:53:49+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (71,'0','test','jhInsert','admin','系统管理员','2022-04-28T22:55:10+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (72,'1','test','jhInsert','admin','系统管理员','2022-04-28T22:55:12+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (73,'2','test','jhInsert','admin','系统管理员','2022-04-28T22:55:13+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (74,'0','test','jhInsert','admin','系统管理员','2022-04-28T22:56:34+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (75,'1','test','jhInsert','admin','系统管理员','2022-04-28T22:56:35+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (76,'2','test','jhInsert','admin','系统管理员','2022-04-28T22:56:36+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (77,'0','test','jhInsert','admin','系统管理员','2022-04-28T22:57:51+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (78,'1','test','jhInsert','admin','系统管理员','2022-04-28T22:57:52+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (79,'2','test','jhInsert','admin','系统管理员','2022-04-28T22:57:53+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (80,'admin','test','jhInsert','admin','系统管理员','2022-04-28T22:58:44+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (83,'U223P','user_app_management','jhInsert','admin','系统管理员','2022-04-28T23:04:25+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (86,'G00002','test','jhInsert','admin','系统管理员','2022-04-28T23:05:54+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (87,'H00001','test','jhInsert','admin','系统管理员','2022-04-28T23:05:55+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (88,'admin','demo_xiaoapp','jhInsert','admin','系统管理员','2022-04-28T23:26:04+08:00');
-INSERT INTO `jianghujs_demo_enterprise_user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (89,'U223P','test','jhInsert','admin','系统管理员','2022-05-03T16:26:16+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (55,'W00001','test','jhInsert','admin','系统管理员','2022-04-28T22:18:16+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (56,'U223P','demo_xiaoapp','jhInsert','admin','系统管理员','2022-04-28T22:34:42+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (62,'admin','data_repository','insert',NULL,NULL,NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (63,'admin','directory','insert',NULL,NULL,NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (64,'admin','user_app_management','insert',NULL,NULL,NULL);
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (68,'0','test','jhInsert','admin','系统管理员','2022-04-28T22:53:46+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (69,'1','test','jhInsert','admin','系统管理员','2022-04-28T22:53:47+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (70,'2','test','jhInsert','admin','系统管理员','2022-04-28T22:53:49+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (71,'0','test','jhInsert','admin','系统管理员','2022-04-28T22:55:10+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (72,'1','test','jhInsert','admin','系统管理员','2022-04-28T22:55:12+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (73,'2','test','jhInsert','admin','系统管理员','2022-04-28T22:55:13+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (74,'0','test','jhInsert','admin','系统管理员','2022-04-28T22:56:34+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (75,'1','test','jhInsert','admin','系统管理员','2022-04-28T22:56:35+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (76,'2','test','jhInsert','admin','系统管理员','2022-04-28T22:56:36+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (77,'0','test','jhInsert','admin','系统管理员','2022-04-28T22:57:51+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (78,'1','test','jhInsert','admin','系统管理员','2022-04-28T22:57:52+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (79,'2','test','jhInsert','admin','系统管理员','2022-04-28T22:57:53+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (80,'admin','test','jhInsert','admin','系统管理员','2022-04-28T22:58:44+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (83,'U223P','user_app_management','jhInsert','admin','系统管理员','2022-04-28T23:04:25+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (86,'G00002','test','jhInsert','admin','系统管理员','2022-04-28T23:05:54+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (87,'H00001','test','jhInsert','admin','系统管理员','2022-04-28T23:05:55+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (88,'admin','demo_xiaoapp','jhInsert','admin','系统管理员','2022-04-28T23:26:04+08:00');
+INSERT INTO `{{dbPrefix}}user_app_management___user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (89,'U223P','test','jhInsert','admin','系统管理员','2022-05-03T16:26:16+08:00');
 
 
 
