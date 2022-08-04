@@ -142,13 +142,13 @@ function process(type) {
   moveBoilerplateAndPackToTgz(`../boilerplates/jianghu-boilerplate-${type}`, './dist', `jianghu-boilerplate-${type}`);
 }
 
-process('multi');
-process('xiaoapp-in-multi');
-process('xiaoapp');
+// process('multi');
+// process('xiaoapp-in-multi');
+// process('xiaoapp');
+process('1table-crud');
+process('1table-crud-enterprise');
+process('3table-crud');
+process('enterprise');
 process('xiaochengxu');
 process('workflow');
-process('1table');
-process('3table');
-process('1table-enterprise');
-process('enterprise');
 

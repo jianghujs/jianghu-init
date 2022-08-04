@@ -120,7 +120,7 @@ module.exports = class InitBoilerplate {
    * 检查项目目录
    */
   checkProjectDirectory(name) {
-    if (['xiaoapp-in-multi', '1table-enterprise'].includes(name)) {
+    if (['1table-crud-enterprise'].includes(name)) {
       // 多应用下增加应用需要验证目录
       console.log(symbols.success, chalk.blue(`${name} 模式目录验证`));
       const dirList = fs.readdirSync(process.cwd());

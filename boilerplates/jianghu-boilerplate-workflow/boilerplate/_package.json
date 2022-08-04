@@ -1,5 +1,5 @@
 {
-  "name": "xianfeng-v1",
+  "name": "{{name}}",
   "version": "1.0.0",
   "description": "",
   "private": true,

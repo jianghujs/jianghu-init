@@ -14,9 +14,9 @@ const Knex = require('knex');
 module.exports = class CommandBase {
   constructor() {
     this.knex = null;
-    this.multiDemoProject = ['multi', 'enterprise'];
-    this.inMultiDemoProject = ['xiaoapp-in-multi', '1table-enterprise'];
-    this.demoProject = ['xiaoapp', 'xiaochengxu', 'workflow', '1table', '3table'];
+    this.multiDemoProject = ['enterprise'];
+    this.inMultiDemoProject = ['1table-crud-enterprise'];
+    this.demoProject = ['xiaochengxu', 'workflow', '1table-crud', '3table-crud'];
   }
 
   /**

@@ -1,23 +1,27 @@
 {
   "name": "jianghu-init-config",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "jianghu init boilerplate config",
   "files": [
     "index.js"
   ],
   "config": {
     "boilerplate": {
-      "multi": {
-        "package": "jianghu-boilerplate-multi",
-        "description": "Jianghu multi app boilerplate"
+      "1table-crud": {
+        "package": "jianghu-boilerplate-1table-crud",
+        "description": "Jianghu 1table crud"
       },
-      "xiaoapp-in-multi": {
-        "package": "jianghu-boilerplate-xiaoapp-in-multi",
-        "description": "Jianghu xiaoapp of multi app boilerplate"
+      "1table-crud-enterprise": {
+        "package": "jianghu-boilerplate-1table-crud-enterprise",
+        "description": "Jianghu 1table in enterprise"
       },
-      "xiaoapp": {
-        "package": "jianghu-boilerplate-xiaoapp",
-        "description": "Jianghu single app boilerplate"
+      "3table-crud": {
+        "package": "jianghu-boilerplate-3table-crud",
+        "description": "Jianghu 3table crud"
+      },
+      "enterprise": {
+        "package": "jianghu-boilerplate-enterprise",
+        "description": "Jianghu multi enterprise"
       },
       "xiaochengxu": {
         "package": "jianghu-boilerplate-xiaochengxu",
@@ -26,22 +30,6 @@
       "workflow": {
         "package": "jianghu-boilerplate-workflow",
         "description": "Jianghu workflow app boilerplate"
-      },
-      "1table": {
-        "package": "jianghu-boilerplate-1table",
-        "description": "Jianghu 1table crud"
-      },
-      "1table-enterprise": {
-        "package": "jianghu-boilerplate-1table-enterprise",
-        "description": "Jianghu 1table in enterprise"
-      },
-      "3table": {
-        "package": "jianghu-boilerplate-3table",
-        "description": "Jianghu 3table crud"
-      },
-      "enterprise": {
-        "package": "jianghu-boilerplate-enterprise",
-        "description": "Jianghu multi enterprise"
       }
     }
   },
