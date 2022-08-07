@@ -15,9 +15,7 @@ const path = require('path');
 module.exports = class InitPageTestPage extends CommandBase {
 
   async run(cwd, args) {
-    const argv = this.argv = this.getParser().parse(args || []);
     this.cwd = cwd;
-    // console.log('%j', argv);
 
     // 检查当前目录是否是在项目中
     await this.checkPath();
@@ -42,31 +40,6 @@ module.exports = class InitPageTestPage extends CommandBase {
     await this.generateCrud();
 
     this.success('init testPage is success');
-  }
-
-  /**
-   * get argv parser
-   * @return {Object} yargs instance
-   */
-  getParser() {
-    return yargs
-      .usage('init jianghu testPage .\nUsage: $0 testPage')
-      .options(this.getParserOptions())
-      .alias('h', 'help')
-      .help();
-  }
-
-  /**
-   * get yargs options
-   * @return {Object} opts
-   */
-  getParserOptions() {
-    return {
-      type: {
-        type: 'string',
-        description: 'boilerplate type',
-      },
-    };
   }
 
   /**
@@ -96,7 +69,7 @@ module.exports = class InitPageTestPage extends CommandBase {
   async modifyTable(table) {
     const knex = await this.getKnex();
 
-    const templatePath = `${path.join(__dirname, '../')}page-template`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template`;
     let sql = fs.readFileSync(`${templatePath}/testPage.sql`).toString();
 
     // 替换一些变量
@@ -159,7 +132,7 @@ module.exports = class InitPageTestPage extends CommandBase {
     }
 
     // 读取文件
-    const templatePath = `${path.join(__dirname, '../')}page-template`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template`;
     let listTemplate = fs.readFileSync(`${templatePath}/testPage.html.njk`).toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
     listTemplate = listTemplate.replace(/\/\/===\/\//g, '');

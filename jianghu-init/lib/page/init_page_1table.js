@@ -72,7 +72,7 @@ module.exports = class InitPage1Table extends CommandBase {
   async modifyTable(table, pageId) {
     const knex = await this.getKnex();
 
-    const templatePath = `${path.join(__dirname, '../')}page-template`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template`;
     let sql = fs.readFileSync(`${templatePath}/crud.sql`).toString();
 
     sql = sql.replace(/\{\{pageId}}/g, pageId);
@@ -131,7 +131,7 @@ module.exports = class InitPage1Table extends CommandBase {
     }
 
     // 读取文件
-    const templatePath = `${path.join(__dirname, '../')}page-template`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template`;
     let listTemplate = fs.readFileSync(`${templatePath}/crud.html.njk`).toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
     listTemplate = listTemplate.replace(/\/\/===\/\//g, '');

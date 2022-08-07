@@ -33,6 +33,8 @@ module.exports = class Entry {
         pageSize: initTypes.length,
       });
       initType = answer.initType;
+    } else {
+      passArgv = passArgv.slice(1);
     }
 
     if (initType === 'project') {

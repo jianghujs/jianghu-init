@@ -1,0 +1,285 @@
+{% extends 'template/xiaochengxuTemplate.html'%}
+
+{% block vue_template %}
+
+<xiaochengxu-layout>
+
+  <!-- 页面主要内容 -->
+  <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+    <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+
+      <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+        <v-btn color="success" small dark class="elevation-0 mr-2" @click="handleTableButton({ text: '新增', buttonType: 'add' }, null)">新增
+        </v-btn>
+        <span class="body-2">共{{ tableData.length }}条记录</span>
+      </v-col>
+
+      <v-spacer></v-spacer>
+
+      <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+        <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense outlined></v-text-field>
+      </v-col>
+
+    </v-row>
+    <v-data-table fixed-header
+                  :headers="headers"
+                  :items="tableData"
+                  :search="searchInput"
+                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                  :items-per-page="20"
+                  :loading="isTableLoading"
+                  checkbox-color="success"
+                  mobile-breakpoint="0"
+                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      <template v-slot:item.downloadPath="{ item }">
+        <a>{{item.downloadPath}}</a>
+        <v-btn small class="mr-2 primary" @click="downloadFile(item)">下载</v-btn>
+      </template>
+      <template v-slot:item.action="{ item }">
+        <v-btn small class="mr-2" :class="tableButton.color" v-for="tableButton of tableButtonList" @click="handleTableButton(tableButton, item)">
+          {{ tableButton.text }}
+        </v-btn>
+      </template>
+    </v-data-table>
+  </v-container>
+
+  <!-- 编辑抽屉 -->
+  <v-navigation-drawer v-model="isEditDrawerShow" absolute temporary right width="80%" hide-overlay class="elevation-24">
+    <v-form v-model="isFormValid" ref="form" lazy-validation>
+      <v-row>
+        <span class="title pa-6">{{ currentClickButton.title }}文件</span>
+        <v-spacer></v-spacer>
+        <v-btn class="mt-7 mr-8 elevation-0" fab x-small @click="isEditDrawerShow = false">
+          <v-icon dark>mdi-close</v-icon>
+        </v-btn>
+      </v-row>
+      <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none" v-if="isEditDrawerShow">
+        <template v-if="currentClickButton.action === 'add'">
+          <v-col cols="12" sm="12" md="6" xl="6" class="pa-xs-0 pb-xs-4 pb-3">
+            <v-file-input v-model="inputFile" class="cus-v-input mr-2" dense outlined chips label="请选择文件" ></v-file-input>
+          </v-col>
+          <v-col cols="12" sm="12" md="12" xl="12" class="pa-xs-0 pb-xs-4 pb-3">
+            <v-textarea class="cus-v-input mr-2" dense outlined label="文件描述" v-model="editItem.fileDesc"></v-textarea>
+          </v-col>
+        </template>
+        <template  v-if="currentClickButton.action === 'edit'">
+          <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
+            <v-text-field class="cus-v-input mr-2" dense outlined label="文件ID" v-model="editItem.fileId" disabled></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
+            <v-text-field class="cus-v-input mr-2" dense outlined label="文件存储位置" v-model="editItem.fileDirectory" disabled></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
+            <v-text-field class="cus-v-input mr-2" dense outlined label="文件名" v-model="editItem.filename" disabled></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
+            <v-text-field class="cus-v-input mr-2" dense outlined label="文件保存名" v-model="editItem.filenameStorage" disabled></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
+            <v-text-field class="cus-v-input mr-2" dense outlined label="文件下载路径" v-model="editItem.downloadPath" disabled></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
+            <v-text-field class="cus-v-input mr-2" dense outlined label="文件大小" v-model="editItem.binarySize" disabled></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="12" xl="12" class="pa-xs-0 pb-xs-4 pb-3">
+            <v-textarea class="cus-v-input mr-2" dense outlined label="文件描述" v-model="editItem.fileDesc" :rules="requireRules"></v-textarea>
+          </v-col>
+        </template>
+      </v-row>
+      <v-row class="justify-end pr-6">
+        <v-btn color="success" small @click="saveInfo" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">保存</v-btn>
+        <v-btn class="ml-2" small @click="isEditDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
+      </v-row>
+    </v-form>
+  </v-navigation-drawer>
+
+</xiaochengxu-layout>
+
+{% endblock %}
+
+{% block vue_body %}
+
+{% include 'layout/xiaochengxuLayout.html' %}
+{% include 'common/resetTableMaxHeight.html' %}
+
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: () => ({
+      // 表格相关数据
+      isFormValid: true,
+      requireRules: [ v => !!v || 'This is required' ],
+      isEditDrawerShow: false,
+      searchInput: null,
+      isTableLoading: true,
+      tableDataFromBackend: [],
+      headers: [
+        {text: "文件ID", value: "fileId", width: 120, required: true, class: 'fixed', cellClass: 'fixed'},
+        {text: "文件存储位置", value: "fileDirectory", width: 120, required: true},
+        {text: "文件名", value: "filename", width: 120},
+        {text: "文件保存名", value: "filenameStorage", width: 120},
+        {text: "文件下载路径", value: "downloadPath", width: 650},
+        {text: "文件大小", value: "binarySize", width: 120},
+        {text: "文件描述", value: "fileDesc", width: 120},
+        {text: "操作人", value: "operationByUser", width: 120},
+        {text: "操作时间", value: "operationAt", width: 250},
+        {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'}
+      ],
+
+      currentClickButton: {title: '新增', action: 'add'},
+      editItem: {},
+      tableButtonList: [
+        {text: '修改', buttonType: 'edit', color: 'success',},
+        {text: '删除', buttonType: 'delete', color: 'error',},
+      ],
+      inputFile: null,
+      downloadPrefix: `${window.location.origin}/<$ ctx.app.config.appId $>/upload`,
+    }),
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+      tableData() {
+        return this.tableDataFromBackend;
+      },
+    },
+    watch: {},
+    async created() {
+      await this.getTableData();
+    },
+    mounted() {
+    },
+    methods: {
+      /**
+       * 获取表格数据
+       */
+      async getTableData() {
+        this.isTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'fileManagement',
+              actionId: 'selectItemList',
+              orderBy: [{column: 'operationAt', order: 'desc'}]
+            }
+          }
+        });
+
+        this.tableDataFromBackend = result.data.appData.resultData.rows;
+        this.isTableLoading = false;
+      },
+
+      /**
+       * 点击表格数据按钮
+       */
+      async handleTableButton(button, item) {
+        const buttonType = button.buttonType;
+        this.editItem = {...item};
+        switch (buttonType) {
+          case 'edit':
+            this.currentClickButton = {action: 'edit', title: '修改'};
+            this.isEditDrawerShow = true;
+            break;
+          case 'add':
+            this.currentClickButton = {action: 'add', title: '新增'};
+            this.editItem = {};
+            this.isEditDrawerShow = true;
+            break;
+          case 'delete':
+            if (await window.confirmDialog({content: "确定要删除吗？"})) {
+              window.vtoast.loading('正在删除')
+              await this.deleteFile();
+              window.vtoast.success('删除成功')
+              await this.getTableData();
+            }
+            break;
+        }
+      },
+      /**
+       * 删除数据
+       */
+      async deleteFile() {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'fileManagement',
+              actionId: 'deleteItem',
+              where: {fileId: this.editItem.fileId}
+            }
+          }
+        });
+      },
+      /**
+       * 下载文件
+       */      
+      async downloadFile(item) {
+        const { downloadPath, filename } = item;
+        window.vtoast.loading('文件下载开始');
+        const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename, 
+          onProgress: (total, loaded)=> {
+            let progress = Number((loaded * 100 / total).toFixed(2))
+            window.vtoast.loading(`文件下载进度${progress}%`);
+            if (progress === 100) {
+              window.vtoast.success('文件下载成功');
+            }
+          } 
+        });
+        window.jianghuAxios.downloadBase64ToChrome({ base64: fileBase64, filename})
+      },
+      /**
+       * 保存数据
+       */
+      async saveInfo() {
+        if (!this.$refs.form.validate()) return false;
+        if (this.currentClickButton.action === 'add') {
+          await this.insertFile();
+        }
+        if (this.currentClickButton.action === 'edit') {
+          await this.updateFile();
+          await window.vtoast.success("修改成功");
+        }
+      },
+      /**
+       * 新增数据
+       */
+      async insertFile() {
+        const fileDesc = this.editItem.fileDesc;
+        const _this = this;
+        window.vtoast.loading("文件上传开始");
+        await window.jianghuAxios.socketUploadByBase64({ file: this.inputFile, fileDirectory: 'testFile', fileDesc, 
+          onProgress: (total, loaded) => {
+            let progress = Number((loaded * 100 / total).toFixed(2))
+            window.vtoast.loading(`文件上传进度${progress}%`);
+            if (progress === 100) {
+              window.vtoast.success('文件上传成功');
+              _this.isEditDrawerShow = false;
+              _this.getTableData();
+            }
+          }  
+        })       
+      },
+      /**
+       * 保存学生
+       */
+      async updateFile() {
+        const id = this.editItem.id;
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'fileManagement',
+              actionId: 'updateItem',
+              actionData: {fileDesc: this.editItem.fileDesc},
+              where: {id}
+            }
+          }
+        })
+      }
+    }
+  })
+</script>
+
+<style scoped>
+</style>
+{% endblock %}

@@ -10,16 +10,16 @@ const inquirer = require('inquirer');
 const pageTypes = [
   {
     value: '1table-page',
-    name: 'generate pages from a table',
+    name: '1table-page - generate pages from a table',
   }, {
-    value: '2table-crud',
-    name: 'generate pages from 2 related table',
+    value: '2table-page',
+    name: '2table-page - generate pages from 2 related table',
   }, {
-    value: '3table-crud',
-    name: 'generate pages from 3 related table',
+    value: '3table-page',
+    name: '3table-page - generate pages from 3 related table',
   }, {
     value: 'test-page',
-    name: 'generate test page',
+    name: 'test-page - generate test page from a table',
   }];
 
 
@@ -42,11 +42,11 @@ module.exports = class InitPageCommand extends CommandBase {
       pageType = await this.askForPageType();
     }
 
-    if (pageType === '1table-crud') {
+    if (pageType === '1table-page') {
       await new InitPage1Table().run(process.cwd(), this.argv);
-    } else if (pageType === '2table-crud') {
+    } else if (pageType === '2table-page') {
       await new InitPage2Table().run(process.cwd(), this.argv);
-    } else if (pageType === '3table-crud') {
+    } else if (pageType === '3table-page') {
       await new InitPage3Table().run(process.cwd(), this.argv);
     } else if (pageType === 'test-page') {
       await new InitPageTestPage().run(process.cwd(), this.argv);

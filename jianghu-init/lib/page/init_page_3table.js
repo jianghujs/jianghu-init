@@ -219,7 +219,7 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
     }
 
     // 读取文件
-    const templatePath = `${path.join(__dirname, '../')}page-template`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template`;
     let listTemplate = fs.readFileSync(`${templatePath}/${template}`).toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
     listTemplate = listTemplate.replace(/\/\/===\/\//g, '');

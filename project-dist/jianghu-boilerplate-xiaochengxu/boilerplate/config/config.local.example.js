@@ -13,37 +13,35 @@ module.exports = appInfo => {
     },
     logger: {
       outputJSON: true,
-      consoleLevel: 'DEBUG',
-      level: 'DEBUG',
-      dir: path.join(appInfo.baseDir, 'logs'),
+      consoleLevel: "DEBUG",
+      level: "DEBUG",
+      dir: path.join(appInfo.baseDir, "logs"),
       contextFormatter(meta) {
         return `[${meta.date}] [${meta.level}] [${meta.ctx.method} ${meta.ctx.url}] ${meta.message}`;
-      }
+      },
     },
     knex: {
       client: {
-        dialect: 'mysql',
+        dialect: "mysql",
         connection: {
-          host: '127.0.0.1',
+          host: "127.0.0.1",
           port: 3306,
-          user: 'root',
-          password: '123456',
-          database: '{{database}}'
+          user: "root",
+          password: "123456",
+          database: "{{name}}",
         },
         pool: { min: 0, max: 10 },
-        acquireConnectionTimeout: 30000
+        acquireConnectionTimeout: 30000,
       },
-      app: true
+      app: true,
     },
     duoxingBot: {
-      server: "https://duoxing.xxx.xxx",
+      server: "https://duoxing-v5.openjianghu.org",
       userId: "userId",
       password: "123456",
       serverAppId: "duoxing",
-      deviceType: "bot_xiaochengxu",
-      xiaochengxuIndexPage: "studentManagement",
-      enableSyncXiaochengxuUser: false,
-      syncXiaochengxuUserInterval: '60s',
+      deviceType: "bot_xiaochengxu", // bot_databot, bot_chatbot, bot_xiaochengxu
+      xiaochengxuIndexPage: "uiActionDemo", // 默认页面 index
     },
   };
 

@@ -1,0 +1,35 @@
+{% extends 'template/xiaochengxuTemplate.html'%}
+
+<!-- vue template 代码块 -->
+{% block vue_template %}
+
+<xiaochengxu-layout>
+  <h1>
+    操作手册
+  </h1>
+</xiaochengxu-layout>
+
+
+{% endblock %}
+
+{% block vue_body %}
+
+{% include 'layout/xiaochengxuLayout.html' %}
+
+<script type="module">
+
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    appInfo: window.appInfo,
+  }),
+  computed: {},
+  watch: {},
+  created() {},
+  mounted() {},
+  methods: {}
+})
+</script>
+{% endblock %}

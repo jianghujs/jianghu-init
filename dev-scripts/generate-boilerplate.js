@@ -145,10 +145,10 @@ function process(type) {
 // process('multi');
 // process('xiaoapp-in-multi');
 // process('xiaoapp');
-process('1table-crud');
-process('1table-crud-enterprise');
-process('3table-crud');
-process('enterprise');
+// process('1table-crud');
+// process('1table-crud-enterprise');
+// process('3table-crud');
+// process('enterprise');
 process('xiaochengxu');
-process('workflow');
+// process('workflow');
 
