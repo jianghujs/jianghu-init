@@ -1,6 +1,6 @@
 'use strict';
 const yargs = require('yargs');
-const CommandBase = require('./command_base');
+const CommandBase = require('../command_base');
 
 require('colors');
 const inquirer = require('inquirer');
@@ -12,7 +12,7 @@ const path = require('path');
 /**
  * 根据 table 定义生成 testPage 页面
  */
-module.exports = class InitCrudCommand extends CommandBase {
+module.exports = class InitPageTestPage extends CommandBase {
 
   async run(cwd, args) {
     const argv = this.argv = this.getParser().parse(args || []);
@@ -96,7 +96,7 @@ module.exports = class InitCrudCommand extends CommandBase {
   async modifyTable(table) {
     const knex = await this.getKnex();
 
-    const templatePath = `${path.join(__dirname, '../')}template`;
+    const templatePath = `${path.join(__dirname, '../')}page-template`;
     let sql = fs.readFileSync(`${templatePath}/testPage.sql`).toString();
 
     // 替换一些变量
@@ -159,7 +159,7 @@ module.exports = class InitCrudCommand extends CommandBase {
     }
 
     // 读取文件
-    const templatePath = `${path.join(__dirname, '../')}template`;
+    const templatePath = `${path.join(__dirname, '../')}page-template`;
     let listTemplate = fs.readFileSync(`${templatePath}/testPage.html.njk`).toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
     listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
@@ -196,7 +196,7 @@ module.exports = class InitCrudCommand extends CommandBase {
       TABLE_NAME: table,
     });
     return result.filter(column => {
-      return ![ 'id', 'operation', 'operationByUserId', 'operationByUser', 'operationAt' ].includes(column.COLUMN_NAME);
+      return !['id', 'operation', 'operationByUserId', 'operationByUser', 'operationAt'].includes(column.COLUMN_NAME);
     }).map(column => {
       return {
         COLUMN_NAME: column.COLUMN_NAME,

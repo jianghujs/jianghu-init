@@ -1,6 +1,6 @@
 'use strict';
 const yargs = require('yargs');
-const CommandBase = require('./command_base');
+const CommandBase = require('../command_base');
 
 require('colors');
 const inquirer = require('inquirer');
@@ -12,12 +12,10 @@ const path = require('path');
 /**
  * 根据 table 定义生成 crud 页面
  */
-module.exports = class InitCrudCommand extends CommandBase {
+module.exports = class InitPage1Table extends CommandBase {
 
-  async run(cwd, args) {
-    const argv = this.argv = this.getParser().parse(args || []);
+  async run(cwd, argv) {
     this.cwd = cwd;
-    // console.log('%j', argv);
 
     // 检查当前目录是否是在项目中
     await this.checkPath();
@@ -45,31 +43,6 @@ module.exports = class InitCrudCommand extends CommandBase {
   }
 
   /**
-   * get argv parser
-   * @return {Object} yargs instance
-   */
-  getParser() {
-    return yargs
-      .usage('init jianghu crud .\nUsage: $0 crud')
-      .options(this.getParserOptions())
-      .alias('h', 'help')
-      .help();
-  }
-
-  /**
-   * get yargs options
-   * @return {Object} opts
-   */
-  getParserOptions() {
-    return {
-      type: {
-        type: 'string',
-        description: 'boilerplate type',
-      },
-    };
-  }
-
-  /**
    * 生成 crud
    */
   async generateCrud() {
@@ -87,7 +60,7 @@ module.exports = class InitCrudCommand extends CommandBase {
       // 生成 vue
       if (await this.renderVue(table, pageId)) {
         this.success(`生成 ${table} 的 vue 文件完成`);
-        
+
         // 数据库
         this.info(`开始生成 ${table} 的相关数据`);
         await this.modifyTable(table, pageId);
@@ -99,7 +72,7 @@ module.exports = class InitCrudCommand extends CommandBase {
   async modifyTable(table, pageId) {
     const knex = await this.getKnex();
 
-    const templatePath = `${path.join(__dirname, '../')}template`;
+    const templatePath = `${path.join(__dirname, '../')}page-template`;
     let sql = fs.readFileSync(`${templatePath}/crud.sql`).toString();
 
     sql = sql.replace(/\{\{pageId}}/g, pageId);
@@ -158,7 +131,7 @@ module.exports = class InitCrudCommand extends CommandBase {
     }
 
     // 读取文件
-    const templatePath = `${path.join(__dirname, '../')}template`;
+    const templatePath = `${path.join(__dirname, '../')}page-template`;
     let listTemplate = fs.readFileSync(`${templatePath}/crud.html.njk`).toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
     listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
@@ -195,7 +168,7 @@ module.exports = class InitCrudCommand extends CommandBase {
       TABLE_NAME: table,
     });
 
-    const defaultColumn = [ 'operation', 'operationByUserId', 'operationByUser', 'operationAt' ];
+    const defaultColumn = ['operation', 'operationByUserId', 'operationByUser', 'operationAt'];
     for (const column of defaultColumn) {
       await knex.schema.hasColumn(table, column).then(exists => {
         if (!exists) {

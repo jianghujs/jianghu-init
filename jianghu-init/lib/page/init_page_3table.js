@@ -1,6 +1,6 @@
 'use strict';
 const yargs = require('yargs');
-const CommandBase = require('./command_base');
+const CommandBase = require('../command_base');
 
 require('colors');
 const inquirer = require('inquirer');
@@ -12,12 +12,10 @@ const path = require('path');
 /**
  * 根据 table 定义生成 crud 页面（3 table）
  */
-module.exports = class InitCrudCommand3Table extends CommandBase {
+module.exports = class InitPage3Table extends CommandBase {
 
-  async run(cwd, args) {
-    const argv = this.argv = this.getParser().parse(args || []);
+  async run(cwd, argv) {
     this.cwd = cwd;
-    // console.log('%j', argv);
 
     // 检查当前目录是否是在项目中
     await this.checkPath();
@@ -42,31 +40,6 @@ module.exports = class InitCrudCommand3Table extends CommandBase {
     await this.generateCrud();
 
     this.success('init crud is success');
-  }
-
-  /**
-   * get argv parser
-   * @return {Object} yargs instance
-   */
-  getParser() {
-    return yargs
-      .usage('init jianghu crud .\nUsage: $0 crud')
-      .options(this.getParserOptions())
-      .alias('h', 'help')
-      .help();
-  }
-
-  /**
-   * get yargs options
-   * @return {Object} opts
-   */
-  getParserOptions() {
-    return {
-      type: {
-        type: 'string',
-        description: 'boilerplate type',
-      },
-    };
   }
 
   // 创建 view
@@ -235,7 +208,7 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
    * 生成 vue
    */
   async renderVue(template, pageId, renderContext = {}) {
-    // 写文件前确认是否覆盖
+  // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
     if (fs.existsSync(filepath)) {
       const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
@@ -246,7 +219,7 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
     }
 
     // 读取文件
-    const templatePath = `${path.join(__dirname, '../')}template`;
+    const templatePath = `${path.join(__dirname, '../')}page-template`;
     let listTemplate = fs.readFileSync(`${templatePath}/${template}`).toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
     listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
@@ -283,7 +256,7 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
         const line = lines[i];
         if (line.startsWith('INSERT')) {
           await this.knex.schema.raw(line);
-          console.log(`执行 SQL:\n${line}`)
+          console.log(`执行 SQL:\n${line}`);
         }
       }
       result = result.replace(/<!--SQL START([\s\S]*)SQL END!-->/, '');
@@ -302,7 +275,7 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
       TABLE_SCHEMA: this.dbSetting.database,
       TABLE_NAME: table,
     });
-    
+
     const defaultColumn = [ 'operation', 'operationByUserId', 'operationByUser', 'operationAt' ];
     for (const column of defaultColumn) {
       await knex.schema.hasColumn(table, column).then(exists => {
@@ -316,7 +289,7 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
     }
 
     return result.filter(column => {
-      return ![...defaultColumn, 'id'].includes(column.COLUMN_NAME);
+      return ![ ...defaultColumn, 'id' ].includes(column.COLUMN_NAME);
     }).map(column => {
       return {
         COLUMN_NAME: column.COLUMN_NAME,

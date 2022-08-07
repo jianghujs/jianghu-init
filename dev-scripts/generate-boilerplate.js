@@ -127,8 +127,8 @@ function moveBoilerplateAndPackToTgz(compressFolder, distFolder, fileName) {
  * 处理不同类型的 boilerplate
  */
 function process(type) {
-  const targetDir = `../boilerplates/jianghu-boilerplate-${type}/boilerplate`;
-  const sourceDir = `../demo/demo_${type}`;
+  const targetDir = `../project-dist/jianghu-boilerplate-${type}/boilerplate`;
+  const sourceDir = `../project-src/demo_${type}`;
 
   // 删除 boilerplate
   console.log(`开始删除旧模板，type=${type}`);
@@ -139,7 +139,7 @@ function process(type) {
   processFiles(targetDir, sourceDir);
 
   // 打包，包中结构为 package/boilerplate/*
-  moveBoilerplateAndPackToTgz(`../boilerplates/jianghu-boilerplate-${type}`, './dist', `jianghu-boilerplate-${type}`);
+  moveBoilerplateAndPackToTgz(`../project-dist/jianghu-boilerplate-${type}`, './dist', `jianghu-boilerplate-${type}`);
 }
 
 // process('multi');

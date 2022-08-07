@@ -94,10 +94,10 @@ let replace = [
 
 (async () => {
     // multi
-    await dumpSql('jianghujs_demo_enterprise_data_repository', noDataTables, clearFields, '../demo/demo_multi/data_repository/sql/init.sql', replace)
-    await dumpSql('jianghujs_demo_enterprise_user_app_management', noDataTables, clearFields, '../demo/demo_multi/user_app_management/sql/init.sql', replace)
-    await dumpSql('jianghujs_demo_enterprise_directory', noDataTables, clearFields, '../demo/demo_multi/directory/sql/init.sql', replace)
-    await dumpSql('jianghujs_demo_enterprise_demo_xiaoapp', noDataTables, clearFields, '../demo/demo_xiaoapp-in-multi/sql/init.sql', replace)
+    await dumpSql('jianghujs_demo_enterprise_data_repository', noDataTables, clearFields, '../project-src/demo_multi/data_repository/sql/init.sql', replace)
+    await dumpSql('jianghujs_demo_enterprise_user_app_management', noDataTables, clearFields, '../project-src/demo_multi/user_app_management/sql/init.sql', replace)
+    await dumpSql('jianghujs_demo_enterprise_directory', noDataTables, clearFields, '../project-src/demo_multi/directory/sql/init.sql', replace)
+    await dumpSql('jianghujs_demo_enterprise_demo_xiaoapp', noDataTables, clearFields, '../project-src/demo_xiaoapp-in-multi/sql/init.sql', replace)
     // xiaoapp
-    await dumpSql('jianghujs_demo_basic', noDataTables, clearFields, '../demo/demo_xiaoapp/sql/init.sql', replace)
+    await dumpSql('jianghujs_demo_basic', noDataTables, clearFields, '../project-src/demo_xiaoapp/sql/init.sql', replace)
 })()

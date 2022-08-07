@@ -1,6 +1,6 @@
 {
-  "name": "jianghu-init-config",
-  "version": "1.0.4",
+  "name": "@jianghujs/jianghu-init-config",
+  "version": "2.0.2",
   "description": "jianghu init boilerplate config",
   "files": [
     "index.js"

@@ -29,7 +29,7 @@ module.exports = class InitBoilerplate {
     options = options || {};
     this.name = options.name || 'jianghu-init';
     this.configName = options.configName || 'jianghu-init-config';
-    this.pkgInfo = options.pkgInfo || require('../package.json');
+    this.pkgInfo = options.pkgInfo || require('../../package.json');
     this.needUpdate = options.needUpdate !== false;
     this.httpClient = urllib.create();
     this.dbPrefix = options.dbPrefix || '';

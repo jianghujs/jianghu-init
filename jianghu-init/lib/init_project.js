@@ -1,20 +1,21 @@
 'use strict';
 const yargs = require('yargs');
-const InitBoilerplate = require('./init_boilerplate');
-const InitTableData = require('./init_table_data');
+const InitBoilerplate = require('./project/init_boilerplate');
+const InitTableData = require('./project/init_table_data');
 const CommandBase = require('./command_base');
 const path = require('path');
 require('colors');
 const fs = require('fs');
 const util = require('util');
 const exists = util.promisify(fs.exists);
+
 /**
  * 生成项目，初始化数据库，初始化 view
  */
 module.exports = class InitProjectCommand extends CommandBase {
 
   async run(cwd, args) {
-    const argv = this.argv = this.getParser().parse(args || []);
+    this.argv = this.getParser().parse(args || []);
     this.cwd = cwd;
     // console.log('%j', argv);
 
@@ -54,7 +55,7 @@ module.exports = class InitProjectCommand extends CommandBase {
     return {
       type: {
         type: 'string',
-        description: 'boilerplate type',
+        description: 'project type',
       },
     };
   }

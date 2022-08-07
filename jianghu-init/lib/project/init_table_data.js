@@ -3,7 +3,7 @@ const yargs = require('yargs');
 const path = require('path');
 const Importer = require('mysql-import');
 let importer = null;
-const CommandBase = require('./command_base');
+const CommandBase = require('../command_base');
 
 require('colors');
 const fs = require("fs");
