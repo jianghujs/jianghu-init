@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "egg": "^2.15.1",
-    "@jianghujs/jianghu": "3.0.11",
-    "egg-scripts": "^2.11.0",
-    "egg-duoxing": "1.0.11"
+    "@jianghujs/jianghu-duoxing": "2.0.6",
+    "@jianghujs/jianghu": "3.0.13",
+    "egg-scripts": "^2.11.0"
   },
   "devDependencies": {
     "autod": "^3.0.1",

@@ -6,10 +6,10 @@ const Knex = require('knex')
 const fs = require("fs");
 
 const connection = {
-    host: '8.210.35.150',
-    port: 3306,
+    host: '127.0.0.1',
+    port: 40002,
     user: 'root',
-    password: '57a68e5e0b5d21a0',
+    password: 'c7d9bd8d1ac97874',
 };
 
 /**
@@ -94,10 +94,13 @@ let replace = [
 
 (async () => {
     // multi
-    await dumpSql('jianghujs_demo_enterprise_data_repository', noDataTables, clearFields, '../project-src/demo_multi/data_repository/sql/init.sql', replace)
-    await dumpSql('jianghujs_demo_enterprise_user_app_management', noDataTables, clearFields, '../project-src/demo_multi/user_app_management/sql/init.sql', replace)
-    await dumpSql('jianghujs_demo_enterprise_directory', noDataTables, clearFields, '../project-src/demo_multi/directory/sql/init.sql', replace)
-    await dumpSql('jianghujs_demo_enterprise_demo_xiaoapp', noDataTables, clearFields, '../project-src/demo_xiaoapp-in-multi/sql/init.sql', replace)
-    // xiaoapp
-    await dumpSql('jianghujs_demo_basic', noDataTables, clearFields, '../project-src/demo_xiaoapp/sql/init.sql', replace)
+    // await dumpSql('jianghujs_demo_enterprise_data_repository', noDataTables, clearFields, '../project-src/demo_multi/data_repository/sql/init.sql', replace)
+    // await dumpSql('jianghujs_demo_enterprise_user_app_management', noDataTables, clearFields, '../project-src/demo_multi/user_app_management/sql/init.sql', replace)
+    // await dumpSql('jianghujs_demo_enterprise_directory', noDataTables, clearFields, '../project-src/demo_multi/directory/sql/init.sql', replace)
+    // await dumpSql('jianghujs_demo_enterprise_demo_xiaoapp', noDataTables, clearFields, '../project-src/demo_xiaoapp-in-multi/sql/init.sql', replace)
+    // // xiaoapp
+    // await dumpSql('jianghujs_demo_basic', noDataTables, clearFields, '../project-src/demo_xiaoapp/sql/init.sql', replace)
+
+    // xiaochengxu
+    await dumpSql('md_duoxing_bot_xiaochengxu_demo', noDataTables, clearFields, '../project-src/demo_xiaochengxu/sql/init.sql', replace)
 })()
