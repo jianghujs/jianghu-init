@@ -104,7 +104,7 @@ CREATE TABLE `_page` (
 
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help','帮助',NULL,'dynamicInMenu','0','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'login','登陆',NULL,NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'manual','操作手册',NULL,'showInMenu','0','insert',NULL,NULL,NULL);
+INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'manual','操作手册',NULL,'dynamicInMenu','0','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (8,'tableSyncConfig','数据同步表管理',NULL,'showInMenu','1','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (12,'tableSyncLog','数据表同步日志',NULL,'showInMenu','2','update','vscode','vscode','2022-06-06T23:46:28+08:00');
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (35,'userGroupRoleManagement','用户、组织、角色',NULL,'showInMenu','3','insert',NULL,NULL,NULL);
@@ -763,6 +763,32 @@ select
 from
   `_user`;
 
+
+# ------------------------------------------------------------
+# SCHEMA DUMP FOR TABLE: _view02_user_app
+# ------------------------------------------------------------
+
+CREATE OR REPLACE VIEW `_view02_user_app` AS
+select
+  `{{dbPrefix}}user_app_management`.`_user_app`.`id` AS `id`,
+  `{{dbPrefix}}user_app_management`.`_app`.`appId` AS `appId`,
+  `{{dbPrefix}}user_app_management`.`_app`.`appName` AS `appName`,
+  `{{dbPrefix}}user_app_management`.`_user`.`userId` AS `userId`,
+  `{{dbPrefix}}user_app_management`.`_user`.`username` AS `username`,
+  `{{dbPrefix}}user_app_management`.`_user`.`userStatus` AS `userStatus`,
+  `{{dbPrefix}}user_app_management`.`_user`.`userType` AS `userType`,
+  `{{dbPrefix}}user_app_management`.`_user_app`.`operation` AS `operation`,
+  `{{dbPrefix}}user_app_management`.`_user_app`.`operationByUserId` AS `operationByUserId`,
+  `{{dbPrefix}}user_app_management`.`_user_app`.`operationByUser` AS `operationByUser`,
+  `{{dbPrefix}}user_app_management`.`_user_app`.`operationAt` AS `operationAt`
+from
+  (
+  (
+    `{{dbPrefix}}user_app_management`.`_user_app`
+    join `_user` on((`{{dbPrefix}}user_app_management`.`_user_app`.`userId` = `_user`.`userId`))
+  )
+  join `_app` on((`{{dbPrefix}}user_app_management`.`_user_app`.`appId` = `_app`.`appId`))
+  );
 
 
 

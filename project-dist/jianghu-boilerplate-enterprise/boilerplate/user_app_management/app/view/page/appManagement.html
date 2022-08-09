@@ -117,6 +117,9 @@ new Vue({
     tableData() {
       return this.tableDataFromBackend
     },
+    isMobile() {
+      return window.innerWidth < 600;
+    }
   },
   watch: {},
   async created() {

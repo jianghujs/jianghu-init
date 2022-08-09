@@ -164,6 +164,9 @@ new Vue({
       }
       return this.tableDataFromBackend.filter(({userStatus}) => userStatus === this.currentUserStatusType);
     },
+    isMobile() {
+      return window.innerWidth < 600;
+    }
   },
   watch: {},
   async created() {

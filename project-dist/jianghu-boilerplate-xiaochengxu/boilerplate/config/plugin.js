@@ -4,6 +4,6 @@
 module.exports = {
     eggDuoxing: {
         enable: true,
-        package: "egg-duoxing",
+        package: "@jianghujs/jianghu-duoxing",
     },
 };

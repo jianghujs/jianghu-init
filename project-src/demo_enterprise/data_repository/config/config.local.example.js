@@ -8,7 +8,7 @@ module.exports = appInfo => {
   assert(appInfo);
   return {
     dataSyncStatus: '禁用', // 是否启用同步，启用/禁用
-    appDirectoryLink: 'http://127.0.0.1:7003',
+    appDirectoryLink: 'http://127.0.0.1:7004/',
     debug: true,
     jiangHuConfig: {
       packageIdCheck: false,

@@ -5,6 +5,7 @@ const path = require('path');
 module.exports = appInfo => {
 
   return {
+    appDirectoryLink: 'http://127.0.0.1:7004/',
     static: {
       maxAge: 0,
       buffer: false,
