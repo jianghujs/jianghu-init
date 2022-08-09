@@ -764,32 +764,6 @@ from
   `_user`;
 
 
-# ------------------------------------------------------------
-# SCHEMA DUMP FOR TABLE: _view02_user_app
-# ------------------------------------------------------------
-
-CREATE OR REPLACE VIEW `_view02_user_app` AS
-select
-  `{{dbPrefix}}user_app_management`.`_user_app`.`id` AS `id`,
-  `{{dbPrefix}}user_app_management`.`_app`.`appId` AS `appId`,
-  `{{dbPrefix}}user_app_management`.`_app`.`appName` AS `appName`,
-  `{{dbPrefix}}user_app_management`.`_user`.`userId` AS `userId`,
-  `{{dbPrefix}}user_app_management`.`_user`.`username` AS `username`,
-  `{{dbPrefix}}user_app_management`.`_user`.`userStatus` AS `userStatus`,
-  `{{dbPrefix}}user_app_management`.`_user`.`userType` AS `userType`,
-  `{{dbPrefix}}user_app_management`.`_user_app`.`operation` AS `operation`,
-  `{{dbPrefix}}user_app_management`.`_user_app`.`operationByUserId` AS `operationByUserId`,
-  `{{dbPrefix}}user_app_management`.`_user_app`.`operationByUser` AS `operationByUser`,
-  `{{dbPrefix}}user_app_management`.`_user_app`.`operationAt` AS `operationAt`
-from
-  (
-  (
-    `{{dbPrefix}}user_app_management`.`_user_app`
-    join `_user` on((`{{dbPrefix}}user_app_management`.`_user_app`.`userId` = `_user`.`userId`))
-  )
-  join `_app` on((`{{dbPrefix}}user_app_management`.`_user_app`.`appId` = `_app`.`appId`))
-  );
-
 
 
 

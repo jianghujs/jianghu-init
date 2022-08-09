@@ -20,7 +20,7 @@ module.exports = appInfo => {
     appId,
     appTitle: '江湖演示-企业级',
     appLogo: `${appId}/public/img/logo.png`,
-    appType: 'multiApp', // single: 单应用; multiApp: 多应用
+    appType: 'single', // single: 单应用; multiApp: 多应用
     appDirectoryLink: '/',
     indexPage: `/${appId}/page/tableSyncConfig`,
     loginPage: `/${appId}/page/login`,
