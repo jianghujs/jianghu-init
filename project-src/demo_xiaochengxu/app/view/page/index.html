@@ -1,20 +1,17 @@
-{% extends 'template/xiaochengxuTemplate.html'%}
+{% extends 'template/jhTemplateV3.html'%}
 
 {% block vue_template %}
 
-<xiaochengxu-layout>
+<jh-layout-v3>
 
-
-<!-- 页面主要内容 -->
-<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
-  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
-    <v-col cols="12" sm="12" md="3" xl="2" class="pa-xs-0  pb-3" :class="{'pb-xs-4': !isMobile}">
-      <v-text-field v-model="serverSearchInput.studentId" label="学生ID" class="cus-v-input " :class="{'mr-2': !isMobile}" dense outlined></v-text-field>
-    </v-col>
-    <v-col cols="12" sm="12" md="3" xl="2" class="pa-xs-0 pb-3" :class="{'pb-xs-4': !isMobile, 'mt-2': isMobile}">
-      <v-text-field v-model="serverSearchInput.classId" label="班级ID" class="cus-v-input" :class="{'mr-2': !isMobile}" dense outlined></v-text-field>
-    </v-col>
-    <v-col :class="{'pb-xs-4': !isMobile, 'pt-2': isMobile, 'pl-0': isMobile}" cols="12" md="2" sm="12" xl="3">
+  <template slot="serverSearch">
+    <v-row class="ma-0 align-center flex-none pa-0" :class="{'pa-2': !isMobile, 'pa-2': isMobile}" align="center" style="height: 100%;justify-content: end;">
+      <v-col cols="12" sm="12" md="3" xl="2" class="pa-xs-0  pb-3" :class="{'pb-xs-4': !isMobile}">
+        <v-text-field v-model="serverSearchInput.studentId" label="学生ID" class="cus-v-input " :class="{'mr-2': !isMobile}" dense filled single-line></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="3" xl="2" class="pa-xs-0 pb-3" :class="{'pb-xs-4': !isMobile, 'mt-2': isMobile}">
+        <v-text-field v-model="serverSearchInput.classId" label="班级ID" class="cus-v-input" :class="{'mr-2': !isMobile}" dense filled single-line></v-text-field>
+      </v-col>
       <v-btn
           class="elevation-0"
           color="success"
@@ -23,109 +20,112 @@
       >
         查询
       </v-btn>
-    </v-col>
-  </v-row>
+    </v-row>
+  </template>
 
-  <v-divider></v-divider>
-  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+<!-- 页面主要内容 -->
+<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+  <v-card>
+    <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}" style="">
 
-    <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
-      <v-btn color="success" small dark class="elevation-0 mr-2" @click="handleTableButton({ text: '新增', buttonType: 'add' }, null)">新增</v-btn>
-      <span class="body-2">共{{ tableData.length }}条记录</span>
-    </v-col>
+      <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+        <v-btn color="success" dark class="elevation-0 mr-2" @click="handleTableButton({ text: '新增', buttonType: 'add' }, null)">新增</v-btn>
+        <span class="body-2">共{{ tableData.length }}条记录</span>
+      </v-col>
 
-    <v-spacer></v-spacer>
+      <v-spacer></v-spacer>
 
-    <v-col cols="12" xs="8" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex pl-0">
-      <v-select class="cus-v-input mr-2" v-model="currentTableGenderType" :items="[{value: 'all', text: '全部'}, ...constantCollection.gender]"
-                prefix="性别：" dense item-text="text" item-value="value" dense outlined></v-select>
-    </v-col>
+      <v-col cols="12" xs="8" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex pl-0">
+        <v-select class="cus-v-input mr-2" v-model="currentTableGenderType" :items="[{value: 'all', text: '全部'}, ...constantCollection.gender]"
+                  prefix="性别：" dense item-text="text" item-value="value" dense filled single-line></v-select>
+      </v-col>
 
-    <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-      <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense outlined></v-text-field>
-    </v-col>
+      <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+        <v-text-field v-model="searchInput" prefix="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+      </v-col>
 
-  </v-row>
-  <v-data-table fixed-header
-                :headers="headers"
-                :items="tableData"
-                :search="searchInput"
-                :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
-                :items-per-page="20"
-                mobile-breakpoint="0"
-                :loading="isTableLoading"
-                checkbox-color="success"
-                class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-    <template v-slot:item.gender="{ item }">
-      {{ getConstantCollectionItemText('gender', item.gender) }}
-    </template>
-    <template v-slot:item.level="{ item }">
-      {{ getConstantCollectionItemText('level', item.level) }}
-    </template>
-    <template v-slot:item.action="{ item }">
-      <v-btn small class="mr-2" :class="tableButton.color" v-for="tableButton of tableButtonList" @click="handleTableButton(tableButton, item)">
-        {{ tableButton.text }}
-      </v-btn>
-      <v-btn small class="mr-2" @click="goToAnotherXiaochengxu({ botUserId: 'G00002', studentId: item.studentId })">
-        进入G00002小程序
-      </v-btn>
-    </template>
-  </v-data-table>
+    </v-row>
+    <v-data-table fixed-header
+                  :headers="headers"
+                  :items="tableData"
+                  :search="searchInput"
+                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                  :items-per-page="20"
+                  mobile-breakpoint="0"
+                  :loading="isTableLoading"
+                  checkbox-color="success"
+                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      <template v-slot:item.gender="{ item }">
+        {{ getConstantCollectionItemText('gender', item.gender) }}
+      </template>
+      <template v-slot:item.level="{ item }">
+        {{ getConstantCollectionItemText('level', item.level) }}
+      </template>
+      <template v-slot:item.action="{ item }">
+        <v-btn small class="mr-2" :class="tableButton.color" v-for="tableButton of tableButtonList" @click="handleTableButton(tableButton, item)">
+          {{ tableButton.text }}
+        </v-btn>
+        <v-btn small class="mr-2" @click="goToAnotherXiaochengxu({ botUserId: 'G00002', studentId: item.studentId })">
+          进入G00002小程序
+        </v-btn>
+      </template>
+    </v-data-table>
+  </v-card>
 </v-container>
 
 <!-- 编辑抽屉 -->
-<v-navigation-drawer v-model="isEditDrawerShow" absolute temporary right width="80%" hide-overlay
+<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%"
                      class="elevation-24">
   <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
-    <v-row>
-      <span class="title pa-6">{{ currentClickButton.title }}信息</span>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">{{ currentClickButton.title }}信息</span>
       <v-spacer></v-spacer>
-      <v-btn class="mt-7 mr-8 elevation-0" fab x-small @click="isEditDrawerShow = false">
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
         <v-icon dark>mdi-close</v-icon>
       </v-btn>
     </v-row>
-    <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none">
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <v-text-field class="cus-v-input mr-2" dense outlined label="学生ID" v-model="editItem.studentId" :rules="requireRules"></v-text-field>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="学生ID" v-model="editItem.studentId" :rules="requireRules"></v-text-field>
       </v-col>
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <v-select class="cus-v-input mr-2" dense outlined clearable label="班级ID" v-model="editItem.classId" :items="constantCollection.classId"></v-select>
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="班级ID" v-model="editItem.classId" :items="constantCollection.classId"></v-select>
       </v-col>
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <v-text-field class="cus-v-input mr-2" dense outlined label="学生名字" v-model="editItem.name"></v-text-field>
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="学生名字" v-model="editItem.name"></v-text-field>
       </v-col>
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <v-select class="cus-v-input mr-2" dense outlined clearable label="年级" v-model="editItem.level" :items="constantCollection.level"></v-select>
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="年级" v-model="editItem.level" :items="constantCollection.level"></v-select>
       </v-col>
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <v-select class="cus-v-input mr-2" dense outlined clearable label="性别" v-model="editItem.gender" :items="constantCollection.gender"></v-select>
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="性别" v-model="editItem.gender" :items="constantCollection.gender"></v-select>
       </v-col>
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <v-menu class="cus-v-input mr-2" offset-y max-width="290">
           <template v-slot:activator="{ on, attrs }">
-            <v-text-field class="cus-v-input mr-2" dense outlined v-on="on" label="出生日期" v-model="editItem.dateOfBirth"></v-text-field>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line v-on="on" label="出生日期" v-model="editItem.dateOfBirth"></v-text-field>
           </template>
           <v-date-picker color="success" elevation="20" v-model="editItem.dateOfBirth"></v-date-picker>
         </v-menu>
       </v-col>
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <v-text-field class="cus-v-input mr-2" dense outlined label="身高" v-model="editItem.bodyHeight"></v-text-field>
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="身高" v-model="editItem.bodyHeight"></v-text-field>
       </v-col>
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <v-select class="cus-v-input mr-2" dense outlined clearable label="学生状态" v-model="editItem.studentStatus" :items="constantCollection.studentStatus"></v-select>
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="学生状态" v-model="editItem.studentStatus" :items="constantCollection.studentStatus"></v-select>
       </v-col>
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <v-text-field class="cus-v-input mr-2" dense outlined label="备注" v-model="editItem.remarks"></v-text-field>
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="备注" v-model="editItem.remarks"></v-text-field>
       </v-col>
     </v-row>
-    <v-row class="justify-end pr-6">
-      <v-btn color="success" small @click="saveInfo" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">保存</v-btn>
-      <v-btn class="ml-2" small @click="isEditDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
+    <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+      <v-btn color="success" small @click="saveInfo">保存</v-btn>
+      <v-btn class="ml-2" small @click="isEditDrawerShow = false">取消</v-btn>
     </v-row>
   </v-form>
 </v-navigation-drawer>
 
-</xiaochengxu-layout>
+</jh-layout-v3>
 
 {% endblock %}
 
