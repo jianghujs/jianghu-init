@@ -11,6 +11,10 @@
         "package": "jianghu-boilerplate-1table-crud",
         "description": "Jianghu 1table crud"
       },
+      "1table-crud-file": {
+        "package": "jianghu-boilerplate-1table-crud-file",
+        "description": "Jianghu 1table crud with file"
+      },
       "1table-crud-enterprise": {
         "package": "jianghu-boilerplate-1table-crud-enterprise",
         "description": "Jianghu 1table in enterprise"

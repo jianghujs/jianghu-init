@@ -146,6 +146,7 @@ function process(type) {
 // process('xiaoapp-in-multi');
 // process('xiaoapp');
 process('1table-crud');
+process('1table-crud-file');
 process('1table-crud-enterprise');
 process('3table-crud');
 process('enterprise');
