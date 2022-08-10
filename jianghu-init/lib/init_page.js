@@ -4,6 +4,7 @@ const InitPage1Table = require('./page/init_page_1table');
 const InitPage2Table = require('./page/init_page_2table');
 const InitPage3Table = require('./page/init_page_3table');
 const InitPageTestPage = require('./page/init_page_test_page');
+const InitPageStatic = require('./page/init_page_static');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 
@@ -17,6 +18,31 @@ const pageTypes = [
   }, {
     value: '3table-page',
     name: '3table-page - generate pages from 3 related table',
+  }, {
+    value: 'reset-password-page',
+    name: 'reset-password-page - generate pages from reset-password',
+    pageId: 'resetUserPassword',
+    path: 'template/reset-password/'
+  }, {
+    value: 'record-history-page',
+    name: 'record-history-page - generate pages from record-history',
+    pageId: 'recordHistory',
+    path: 'template/record-history/'
+  }, {
+    value: 'user-management-page',
+    name: 'user-management-page - generate pages from user-management',
+    pageId: 'userManagement',
+    path: 'template/user-management/'
+  }, {
+    value: 'user-group-role-page',
+    name: 'user-group-role-page - generate pages from user-group-role',
+    pageId: 'userGroupRole',
+    path: 'template/user-group-role/'
+  }, {
+    value: 'user-page-resource-page',
+    name: 'user-page-resource-page - generate pages from user-page-resource',
+    pageId: 'userPageResource',
+    path: 'template/user-page-resource/'
   }, {
     value: 'test-page',
     name: 'test-page - generate test page from a table',
@@ -50,6 +76,8 @@ module.exports = class InitPageCommand extends CommandBase {
       await new InitPage3Table().run(process.cwd(), this.argv);
     } else if (pageType === 'test-page') {
       await new InitPageTestPage().run(process.cwd(), this.argv);
+    } else {
+      await new InitPageStatic().run(process.cwd(), pageTypes.find(o => o.value === pageType));
     }
     this.success('jianghu init page is success');
   }

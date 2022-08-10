@@ -476,7 +476,10 @@ select
   `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationByUser` AS `operationByUser`,
   `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationAt` AS `operationAt`
 from
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`;
+  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`
+  LEFT JOIN {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user_app ON {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user_app.userId = {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user.userId
+WHERE
+appId = 'directory';
 
 
 

@@ -1,0 +1,94 @@
+{% extends 'template/jhTemplateV3.html'%}
+<!--SQL START
+-- 以下为 jianghu init 工具生成的参考 SQL，使用后删除
+-- 创建 page
+INSERT INTO `_page` (`pageId`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '<=$ pageId $=>','修改密码','showInMenu','11','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_page` WHERE `pageId`='<=$ pageId $=>');
+
+-- 创建 resource
+INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'<=$ pageId $=>','resetPassword','✅修改用户密码','service','{}','{ \"service\": \"user\", \"serviceFunction\": \"resetPassword\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='<=$ pageId $=>' AND `actionId`='resetPassword');
+
+-- 创建 ui
+INSERT INTO `_ui` (`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '<=$ pageId $=>', 'ui', 'resetPassword', '✅修改密码', '{\"main\": [{\"function\": \"resetPassword\"}]}', NULL, 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_ui` WHERE `pageId`='<=$ pageId $=>' AND `uiActionId`='resetPassword');
+SQL END!-->
+{% block vue_template %}
+<jh-layout-v3>
+    <v-card :class="{'px-2': isMobile, 'pa-10': !isMobile}">
+      <v-form v-model="isFormValid" ref="form" lazy-validation style="width: 400px;" class="mx-auto">
+        <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none">
+          <v-col cols="12" class="pa-xs-0 pb-xs-4 pb-3">
+            <span class="inputLabel">原密码</span>
+            <v-text-field class="cus-v-input" dense filled single-line label="原密码" v-model="formData.oldPassword" :rules="requireRules"></v-text-field>
+          </v-col>
+          <v-col cols="12" class="pa-xs-0 pb-xs-4 pb-3">
+            <span class="inputLabel">新密码</span>
+            <v-text-field class="cus-v-input" dense filled single-line label="新密码" v-model="formData.newPassword1" :rules="requireRules"></v-text-field>
+          </v-col>
+          <v-col cols="12" class="pa-xs-0 pb-xs-4 pb-3">
+            <span class="inputLabel">新密码确认</span>
+            <v-text-field class="cus-v-input" dense filled single-line label="新密码确认" v-model="formData.newPassword2" :rules="requireRules"></v-text-field>
+          </v-col>
+          <v-col cols="12" class="pa-xs-0 pb-xs-4 pb-3">
+            <v-btn color="success" @click="doUiAction('resetPassword')" style="width: 100%;">确定</v-btn>
+          </v-col>
+        </v-row>
+      </v-form>
+    </v-card>
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    mixins: [window.jianghuUiActionMixins],
+    data: () => ({
+      isFormValid: true,
+      requireRules: [v => !!v || 'This is required'],
+      formData: {
+        oldPassword: null,
+        newPassword1: null,
+        newPassword2: null,
+      }
+    }),
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+    },
+    watch: {},
+    async created() {},
+    mounted() {
+    },
+    methods: {
+      async resetPassword () {
+        if (!this.$refs.form.validate()) return false;
+        if (this.formData.newPassword1 !== this.formData.newPassword2) {
+            window.vtoast.fail("两次输入的密码不一致");
+            return;
+        }
+        await window.jianghuAxios({
+            data: {
+                appData: {
+                    pageId: '<=$ pageId $=>',
+                    actionId: 'resetPassword',
+                    actionData: {
+                        oldPassword: this.formData.oldPassword, 
+                        newPassword: this.formData.newPassword1,
+                    }
+                }
+            }
+        })
+        window.vtoast.success("密码修改成功");
+        setTimeout(() => {
+          location.reload();
+        }, 500)
+      }
+    }
+  })
+</script>
+
+
+{% endblock %}

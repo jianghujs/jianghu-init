@@ -130,7 +130,7 @@ CREATE TABLE `_page` (
 
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help','帮助',NULL,'dynamicInMenu','11','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'login','登陆',NULL,'','','insert',NULL,NULL,NULL);
-INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'manual','操作手册',NULL,'showInMenu','0','insert',NULL,NULL,NULL);
+INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'manual','操作手册',NULL,'dynamicInMenu','0','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (29,'studentManagement','学生管理',NULL,'showInMenu','5','insert',NULL,NULL,NULL);
 
 
@@ -498,7 +498,10 @@ select
   `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationByUser` AS `operationByUser`,
   `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationAt` AS `operationAt`
 from
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`;
+  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`
+  LEFT JOIN {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user_app ON {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user_app.userId = {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user.userId
+WHERE
+appId = '{{name}}';
 
 
 
@@ -528,9 +531,12 @@ from
     join `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user` `_user` on((`_user_app`.`userId` = `_user`.`userId`))
   )
   join `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___app` `_app` on((`_user_app`.`appId` = `_app`.`appId`))
-  );
+  )
+WHERE
+appId = '{{name}}';
 
+INSERT INTO `{{dbPrefix}}user_app_management`.`_app` (`appId`, `appGroup`, `appName`, `appDesc`, `appUrl`, `appMenu`, `appType`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`, `sort`) SELECT '{{name}}','base', 'APP目录', NULL, NULL, NULL, 'internal', 'insert', NULL, NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `appId` FROM `{{dbPrefix}}user_app_management`.`_app` WHERE `appId`='{{name}}');
 
-
+INSERT INTO `{{dbPrefix}}user_app_management`.`_user_app` (`userId`, `appId`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) SELECT 'admin','{{name}}', 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `appId` FROM `{{dbPrefix}}user_app_management`.`_user_app` WHERE `appId`='{{name}}' and `userId`='admin');
 
 

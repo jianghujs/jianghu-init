@@ -490,7 +490,7 @@ INSERT INTO `_user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`
 INSERT INTO `_user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (41,'W00002','data_repository','insert',NULL,NULL,NULL);
 INSERT INTO `_user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (42,'W00002','directory','insert',NULL,NULL,NULL);
 INSERT INTO `_user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (46,'W00002','user_app_management','jhInsert','admin','系统管理员','2022-02-19T15:54:57+08:00');
-INSERT INTO `_user_app` (`id`,`userId`,`appId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (52,'admin','demo_xiaoapp','jhInsert','admin','系统管理员','2022-02-24T20:18:25+08:00');
+
 # ------------------------------------------------------------
 # TRIGGER DUMP FOR: {{dbPrefix}}user_app_management___user_app_INSERT
 # ------------------------------------------------------------
