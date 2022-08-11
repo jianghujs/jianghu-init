@@ -533,7 +533,7 @@ from
   join `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___app` `_app` on((`_user_app`.`appId` = `_app`.`appId`))
   )
 WHERE
-appId = '{{name}}';
+`_user_app`.`appId` = '{{name}}';
 
 INSERT INTO `{{dbPrefix}}user_app_management`.`_app` (`appId`, `appGroup`, `appName`, `appDesc`, `appUrl`, `appMenu`, `appType`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`, `sort`) SELECT '{{name}}','base', 'APP目录', NULL, NULL, NULL, 'internal', 'insert', NULL, NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `appId` FROM `{{dbPrefix}}user_app_management`.`_app` WHERE `appId`='{{name}}');
 

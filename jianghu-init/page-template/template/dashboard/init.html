@@ -118,65 +118,8 @@
           </div>
         </v-card>
       </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.来源域名url列表">
-        <CommonChart idPrefix="referenceRankingList" @showBigChart="showBigChart" :listData="referenceRankingList" title="来源域名url列表" keyName="来源域名" defaultType="List"/>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.国家排行">
-        <CommonChart ref="countryCommonChart" idPrefix="countryRankingList" @showBigChart="showBigChart" :listData="countryRankingList" title="国家排行(设备数)" keyName="国家" defaultType="List"/>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.语言排行">
-        <CommonChart ref="languageCommonChart" idPrefix="languageRankingList" @showBigChart="showBigChart" :listData="languageRankingList" title="语言排行(设备数)" keyName="语言" defaultType="List" leftSpacePercent="30%"/>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.浏览器客户端">
-        <CommonChart ref="browserCommonChart" idPrefix="browserRankingList" @showBigChart="showBigChart" :listData="browserRankingList" title="浏览器客户端(设备数)" keyName="浏览器" defaultType="List" leftSpacePercent="30%"/>
-      </v-col>
       <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.屏幕分辨率">
           <CommonChart ref="screenCommonChart" idPrefix="screenRankingList" @showBigChart="showBigChart" :listData="screenRankingList" title="屏幕分辨率(设备数)" keyName="分辨率" defaultType="List"/>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.预估访客停留时间">
-        <CommonChart ref="visitTimeCommonChart" idPrefix="visitTimeRankingList" @showBigChart="showBigChart" :listData="visitTimeRankingList" :title="averageVisitTime ? '预估访客停留时间(平均' + averageVisitTime + 'mins)' : '预估访客停留时间' " keyName="文章" defaultType="List"/>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.操作系统排行">
-        <CommonChart ref="systemOsCommonChart" idPrefix="systemOsRankingList" @showBigChart="showBigChart" :listData="systemOsRankingList" title="操作系统排行(设备数)" keyName="操作系统" defaultType="List" leftSpacePercent="40%"/>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.分类排行">
-        <CommonChart ref="categoryCommonChart" idPrefix="categoryRankingList" @showBigChart="showBigChart" :listData="categoryRankingList" title="分类排行(访问量)" keyName="分类" defaultType="List" leftSpacePercent="25%"/>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.文章排行">
-        <CommonChart ref="pageCommonChart" idPrefix="pageRankingList" @showBigChart="showBigChart" :listData="pageRankingList" title="文章排行(访问量)" keyName="文章" defaultType="List" leftSpacePercent="50%"/>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.浏览器搜索引擎">
-        <CommonChart ref="searchEngineCommonChart" idPrefix="searchEngineRankingList" @showBigChart="showBigChart" :listData="searchEngineRankingList" title="浏览器搜索引擎(访问量)" keyName="搜索引擎" defaultType="List" leftSpacePercent="10%"/>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.IP访问量">
-        <CommonChart ref="ipCommonChart" idPrefix="ipRankingList" @showBigChart="showBigChart" :listData="ipRankingList" title="IP访问量" keyName="IP" defaultType="List" leftSpacePercent="35%"/>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.用户访问排行">
-        <CommonChart ref="userCommonChart" idPrefix="userRankingList" @showBigChart="showBigChart" :listData="userRankingList" title="用户访问排行" keyName="用户" defaultType="List" leftSpacePercent="35%"/>
-      </v-col>
-
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig['404访问日志']">
-        <v-card class="mx-auto pa-4" flat style="height: 100%">
-          <div class="smallBox">
-            <span class="chart-title">
-              404访问日志
-            </span>
-            <v-list style="height: 280px;" class="overflow-y-auto">
-              <template v-for="(item, index) in pageviewList404">
-                <div class="d-flex pa-1">
-                  <span><a :href="item.pageviewUrl" target="_blank" :title="item.pageviewAt">{{item.pageviewUrl}}</a></span>
-                  <v-spacer></v-spacer>
-                  <span class="pa-1">{{item.pageviewUserIp}}</span>
-                </div>
-
-                <v-divider
-                  v-if="index < pageviewList404.length - 1"
-                  :key="index"
-                ></v-divider>
-              </template>
-            </v-list>
-          </div>
-        </v-card>
       </v-col>
     </v-row>
   </v-card>
@@ -215,42 +158,34 @@ new Vue({
     websiteDomain: null,
     websiteName: null,
     website: {},
-    startTime: null,
-    endTime: null,
-    timeRange: [],
+    startTime: '2022-07-29T00:00:00+08:00',
+    endTime: "2022-08-11T23:59:59+08:00",
+    timeRange: ["2022-07-29T00:00:00+08:00","2022-08-11T23:59:59+08:00"],
     unit: 'day',
     resetTime: null,
     viewsCount: null,
     browserSearchEngines: null,
     webSiteKeyword: null,
-    pageviewList: [], // 访问日志列表
-    pageviewList404: [], // 404访问日志列表
-    realtimeDeviceList: [], // 实时用户列表
-    pageviewRankingList: [], // 页面访问量排行
-    referenceRankingList: [], // 来源url排行
+    pageviewList: [{"id":306164,"websiteId":1,"deviceId":15138,"pageviewUserIp":"101.78.92.79","pageviewUserIpRegion":"SG","pageviewAt":"2022-08-11T15:20:15+08:00","pageviewUrl":"/","pageviewReferrer":"","pageviewTitle":"命定神学 -  华人社区 ","operation":"insert","operationByUserId":null,"operationByUser":null,"operationAt":"2022-08-11T15:20:15+08:00"},{"id":306163,"websiteId":1,"deviceId":25336,"pageviewUserIp":"175.173.91.181","pageviewUserIpRegion":"CN","pageviewAt":"2022-08-11T15:20:09+08:00","pageviewUrl":"/?p=12426","pageviewReferrer":"https://m.baidu.com/","pageviewTitle":"【微课】创世记第04章 -  命定神学 ","operation":"insert","operationByUserId":null,"operationByUser":null,"operationAt":"2022-08-11T15:20:09+08:00"}], // 访问日志列表
+    pageviewList404: [{"id":306032,"websiteId":1,"deviceId":10446,"pageviewUserIp":"110.228.214.12","pageviewUserIpRegion":"CN","pageviewAt":"2022-08-11T14:52:26+08:00","pageviewUrl":"/?p=1790","pageviewReferrer":"http://nativeapp.toutiao.com/","pageviewTitle":"404 Not found -  命定神学 ","operation":"insert","operationByUserId":null,"operationByUser":null,"operationAt":"2022-08-11T14:52:26+08:00"}], // 404访问日志列表
+    realtimeDeviceList: [{"id":33649,"deviceUuid":"www.mingding.org_Android.10_30dc3009^1660202377513^41_chrome","websiteId":"1","deviceCreateAt":"2022-08-11T15:20:05+08:00","deviceIp":"183.211.22.214","deviceHostname":"www.mingding.org","deviceBrowser":"chromium-webview","deviceOs":"Android OS","deviceType":"mobile","deviceScreen":"360x780","deviceLanguage":"zh-CN","deviceCountry":"CN","deviceUserId":null,"deviceUsername":null,"operation":"insert","operationByUserId":null,"operationByUser":null,"operationAt":"2022-08-11T15:20:05+08:00"},{"id":33648,"deviceUuid":"www.mingding.org_Mac.10.15.6_7b3af847^1660202347536^59_safari","websiteId":"1","deviceCreateAt":"2022-08-11T15:19:36+08:00","deviceIp":"49.228.236.25","deviceHostname":"www.mingding.org","deviceBrowser":"safari","deviceOs":"Mac OS","deviceType":"laptop","deviceScreen":"1024x1366","deviceLanguage":"th-TH","deviceCountry":"TH","deviceUserId":null,"deviceUsername":null,"operation":"insert","operationByUserId":null,"operationByUser":null,"operationAt":"2022-08-11T15:19:36+08:00"}], // 实时用户列表
+    pageviewRankingList: [{"name":"命定神学 -  华人社区 ","value":4987,"link":"/"},{"name":"祷告 -  命定神学 ","value":3049,"link":"/?cat=3303&https://www.youtube.com/channel/UCeCXHt4L7hYGa3jE9wJYGQw?view_as=subscriber&gclid=Cj0KCQjw54iXBhCXARIsADWpsG9c7T6OpXzZS9Z91E9XOf8wHEyd_04Nyk--vIh4lEC5WvsFuNI86jwaAj9tEALw_wcB"},{"name":"圣经学习 -  命定神学 ","value":2920,"link":"/?page_id=2092"},{"name":"第01卷 - 《创世记》查经总结 -  命定神学 ","value":1379,"link":"/?p=21932"},{"name":"讲道 -  命定神学 ","value":1027,"link":"/?cat=28"},{"name":"命定神学体系课程 -  命定神学 ","value":760,"link":"/?page_id=19281&https://www.youtube.com/channel/UCeCXHt4L7hYGa3jE9wJYGQw?view_as=subscriber&gclid=Cj0KCQjw54iXBhCXARIsADWpsG8J5WqGUMTHtY1je9AmzI36CFEZd8Aw8ZnolsJw8CppAJjQ0EmT8rQaAgtoEALw_wcB"}], // 页面访问量排行
+    referenceRankingList: [{"name":"直接访问","value":29999},{"name":"https://www.google.com/","value":5007},{"name":"https://m.baidu.com/","value":4572},{"name":"https://m.sogou.com/","value":1968},{"name":"https://www.google.com.hk/","value":179},{"name":"https://www.google.com","value":172},{"name":"https://www.google.com.sg/","value":147},{"name":"https://baidu.com/","value":145},{"name":"https://www.google.com.my/","value":139},{"name":"https://mingding.org/","value":129},{"name":"https://cn.bing.com/","value":121},{"name":"https://www.bing.com/","value":120},{"name":"https://m.baidu.com","value":118},{"name":"https://mingding.org/?page_id=19281","value":90},{"name":"https://www.google.ca/","value":88},{"name":"https://youtube.com/","value":78},{"name":"https://www.google.com.au/","value":76},{"name":"http://nativeapp.toutiao.com/","value":70},{"name":"https://www.youtube.com/","value":57},{"name":"https://www.google.com.tw/","value":47},{"name":"其它","value":26972}], // 来源url排行
     visitTimeRankingList: [], // 访客停留时间
     averageVisitTime: 0, // 平均访问时间
-    categoryRankingList: [], // 分类排行
-    pageRankingList: [], // 文章排行
+    categoryRankingList: [{"name":"未知分类","value":11492},{"name":"祷告","value":8471},{"name":"讲道","value":5444},{"name":"创世记","value":3496},{"name":"旧约圣经经卷","value":3091},{"name":"见证","value":3060},{"name":"箴言","value":2200},{"name":"马太福音","value":2075},{"name":"撒母耳记上","value":1723},{"name":"出埃及记","value":1678},{"name":"以赛亚书","value":1380},{"name":"新约圣经经卷","value":1376},{"name":"答疑解惑","value":1227},{"name":"士师记","value":1132},{"name":"使徒行传","value":1082},{"name":"101课程（第2版）从寻求到信徒","value":1052},{"name":"启示录","value":937},{"name":"课程主页面","value":934},{"name":"申命记","value":865},{"name":"路加福音","value":831},{"name":"其它","value":16748}], // 分类排行
+    pageRankingList: [{"name":"命定神学 -  华人社区 ","value":4987,"link":"/"},{"name":"祷告 -  命定神学 ","value":3049,"link":"/?cat=3303&https://www.youtube.com/channel/UCeCXHt4L7hYGa3jE9wJYGQw?view_as=subscriber&gclid=Cj0KCQjw54iXBhCXARIsADWpsG9c7T6OpXzZS9Z91E9XOf8wHEyd_04Nyk--vIh4lEC5WvsFuNI86jwaAj9tEALw_wcB"},{"name":"圣经学习 -  命定神学 ","value":2920,"link":"/?page_id=2092"},{"name":"第01卷 - 《创世记》查经总结 -  命定神学 ","value":1379,"link":"/?p=21932"},{"name":"讲道 -  命定神学 ","value":1027,"link":"/?cat=28"},{"name":"命定神学体系课程 -  命定神学 ","value":760,"link":"/?page_id=19281&https://www.youtube.com/channel/UCeCXHt4L7hYGa3jE9wJYGQw?view_as=subscriber&gclid=Cj0KCQjw54iXBhCXARIsADWpsG8J5WqGUMTHtY1je9AmzI36CFEZd8Aw8ZnolsJw8CppAJjQ0EmT8rQaAgtoEALw_wcB"},{"name":"【讲道】- 认识魔鬼的诡计系列03：只体贴人的意思！ -  命定神学 ","value":593,"link":"/?p=42699"},{"name":"【线上祷告】主题：神预定我们得胜！ -  命定神学 ","value":544,"link":"/?p=42701"},{"name":"【线上祷告】主题：我们要求神的国！ -  命定神学 ","value":455,"link":"/?p=42694"},{"name":"【课程】101课程 - 从寻求到信徒 -  命定神学 ","value":375,"link":"/?p=26190"},{"name":"【讲道】- 认识魔鬼的诡计系列04：随从今世的风俗！ -  命定神学 ","value":349,"link":"/?p=42708"},{"name":"【查经】箴言 30章 – 这才是聪明！ -  命定神学 ","value":320,"link":"/?p=42696"},{"name":"第40卷 – 《马太福音》查经总结 -  命定神学 ","value":314,"link":"/?p=27988"},{"name":"【线上祷告】主题：我必得医治！ -  命定神学 ","value":299,"link":"/?p=42686"},{"name":"第02卷 - 《出埃及记》查经总结 -  命定神学 ","value":292,"link":"/?p=21953"},{"name":"【讲道】- 认识魔鬼的诡计系列03：只体贴人的意思！（答疑解惑） -  命定神学 ","value":284,"link":"/?p=42700"},{"name":"【查经】撒母耳记上 07章 - 到如今耶和华神都帮助我们 -  命定神学 ","value":267,"link":"/?p=1794"},{"name":"【查经】士师记 16章 - 在信仰上不谨慎的参孙的最后下场 -  命定神学 ","value":252,"link":"/?p=1763"},{"name":"【线上祷告】主题：靠着圣灵治死肉体的恶行！ -  命定神学 ","value":243,"link":"/?p=42094"},{"name":"【课程】101课程（第2版）– 第1课 - 人活着是个属灵的事 - 灵界 -  命定神学 ","value":233,"link":"/?p=37673"},{"name":"其它","value":51352}], // 文章排行
     websiteSearchList: [], // 站内搜索关键词
-    browserSearchList: [], // 站外搜索关键词
-    browserRankingList: [], // 浏览器客户端排行
-    countryRankingList: [], // 国家排行
-    languageRankingList: [], // 语言排行
-    screenRankingList: [], // 屏幕分辨率
-    systemOsRankingList: [], // 操作系统排行
-    searchEngineRankingList: [], // 浏览器搜索引擎
-    ipRankingList: [], // IP排行
+    browserSearchList: [{"name":"搜索1","value":140},{"name":"搜索2","value":80},{"name":"搜索3","value":100},{"name":"搜索4","value":200},{"name":"搜索5","value":300},{"name":"搜索6","value":400},{"name":"搜索7","value":300},{"name":"搜索8","value":500},{"name":"搜索9","value":900},{"name":"搜索10","value":800}], // 站外搜索关键词
+    browserRankingList: [{"name":"chrome","value":11069},{"name":"chromium-webview","value":3876},{"name":"ios-webview","value":954},{"name":"ios","value":742},{"name":"safari","value":177},{"name":"edge-chromium","value":151},{"name":"crios","value":125},{"name":"samsung","value":104},{"name":"firefox","value":86},{"name":"searchbot","value":60},{"name":"miui","value":47},{"name":"android","value":18},{"name":"edge-ios","value":7},{"name":"opera","value":6},{"name":null,"value":5},{"name":"facebook","value":1}], // 浏览器客户端排行
+    countryRankingList: [{"name":"中国","value":14128},{"name":"马来西亚","value":750},{"name":"美国","value":694},{"name":"台湾省","value":484},{"name":"新加坡","value":362},{"name":"加拿大","value":220},{"name":"澳大利亚","value":152},{"name":"香港","value":107},{"name":"新西兰","value":67},{"name":"英国","value":40},{"name":"韩国","value":39},{"name":"意大利","value":36},{"name":"德国","value":28},{"name":"泰国","value":28},{"name":"日本","value":27},{"name":"UNKNOWN","value":25},{"name":"西班牙","value":21},{"name":"荷兰","value":20},{"name":"澳门","value":18},{"name":"巴西","value":16},{"name":"其它","value":166}], // 国家排行
+    languageRankingList: [{"name":"中文(中国)","value":15040},{"name":"英文(美国)","value":970},{"name":"英文(英国)","value":409},{"name":"zh-cn","value":273},{"name":"中文(台湾)","value":172},{"name":"en-SG","value":69},{"name":"en-US@posix","value":60},{"name":"英文(澳大利亚)","value":57},{"name":"英文(加拿大)","value":51},{"name":"中文(香港)","value":41},{"name":"en-us","value":33},{"name":"英文","value":30},{"name":"en-MY","value":29},{"name":"zh-SG","value":27},{"name":"zh-MY","value":23},{"name":"zh-tw","value":10},{"name":"英文(新西兰)","value":10},{"name":"en-gb","value":10},{"name":"en-sg","value":9},{"name":"zh-hk","value":8},{"name":"其它","value":97}], // 语言排行
+    screenRankingList: [{"name":"375x812","value":7151},{"name":"1366x1366","value":1709},{"name":"360x800","value":930},{"name":"360x780","value":920},{"name":"360x760","value":553},{"name":"1920x1080","value":408},{"name":"360x640","value":379},{"name":"414x896","value":256},{"name":"360x720","value":223},{"name":"390x844","value":220},{"name":"360x803","value":209},{"name":"375x667","value":205},{"name":"1366x768","value":199},{"name":"320x712","value":194},{"name":"414x736","value":192},{"name":"1200x1366","value":175},{"name":"393x873","value":170},{"name":"360x772","value":159},{"name":"360x792","value":156},{"name":"1536x864","value":156},{"name":"其它","value":2864}], // 屏幕分辨率
+    systemOsRankingList: [{"name":"Android OS","value":12077},{"name":"iOS","value":3569},{"name":"Windows 10","value":831},{"name":"Windows 7","value":321},{"name":"Mac OS","value":315},{"name":null,"value":188},{"name":"Windows Server 2003","value":65},{"name":"Linux","value":25},{"name":"Windows 8.1","value":19},{"name":"Chrome OS","value":8},{"name":"Windows XP","value":7},{"name":"Windows 8","value":3}], // 操作系统排行
+    searchEngineRankingList: [{"name":"谷歌","value":5857},{"name":"百度","value":5180},{"name":"搜狗","value":2306},{"name":"必应","value":245},{"name":"神马","value":226},{"name":"雅虎","value":39},{"name":"Duck Duck Go","value":8},{"name":"其它","value":56433}], // 浏览器搜索引擎
+    ipRankingList: [{"name":"221.212.198.115 (CN)","value":513},{"name":"210.71.196.143 (TW)","value":362},{"name":"70.73.130.139 (CA)","value":351},{"name":"50.92.116.39 (CA)","value":328}], // IP排行
     userRankingList: [], // 用户排行
-    overView: {
-      dayRange: 14,
-      pageviewTotalCount: 0,
-      perDayPageviewCount: 0,
-      deviceTotalCount: 0,
-      pageviewYestodayCount: 0,
-      pageviewTodayCount: 0,
-      pageviewLastHalfHourCount: 0
-    },
+    overView: {"dayRange":13,"pageviewTotalCount":70294,"perDayPageviewCount":5407,"deviceTotalCount":17428,"pageviewYestodayCount":4998,"pageviewLastHalfHourCount":111,"pageviewTodayCount":3580},
     isBigChartDrawerShow: false,
     bigChartComp: {}
   },
@@ -314,26 +249,6 @@ new Vue({
   },
   methods: {
     async initData() {
-      this.getPageviewLineChart();
-      await this.getOverview();
-      this.getPageviewList();
-      this.getPageviewList404();
-      this.getRealtimeDeviceList();
-      this.getWebsiteSearchList();
-      this.getBrowserSearchList();
-      this.getPageviewRankingList();
-      this.getReferenceRankingList();
-      this.getCountryRankingList();
-      this.getLanguageRankingList();
-      this.getBrowserRankingList();
-      this.getScreenRankingList();
-      this.getVisitTimeRankingList();
-      this.getCategoryRankingList();
-      this.getPageRankingList();
-      this.getSystemOsRankingList();
-      this.getSearchEngineRankingList();
-      this.getIpRankingList();
-      this.getUserRankingList();
     },
     dayjs,
     async getPageviewLineChart() {
