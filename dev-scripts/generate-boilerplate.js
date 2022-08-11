@@ -148,6 +148,7 @@ function process(type) {
 process('1table-crud');
 process('1table-crud-file');
 process('1table-crud-enterprise');
+process('2table-crud');
 process('3table-crud');
 process('enterprise');
 process('xiaochengxu');
