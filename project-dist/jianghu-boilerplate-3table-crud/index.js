@@ -11,9 +11,6 @@ module.exports = {
   author: {
     desc: 'project author',
   },
-  dbPrefix: {
-    desc: 'prefix of database',
-  },
   keys: {
     desc: 'cookie security keys',
     default: Date.now() + '_' + random(100, 10000),
