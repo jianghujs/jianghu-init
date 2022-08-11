@@ -5,75 +5,74 @@
 <jh-layout-v3>
 
   <template slot="serverSearch">
-    <v-row class="ma-0 align-center flex-none pa-0" :class="{'pa-2': !isMobile, 'pa-2': isMobile}" style="justify-content: end">
-      
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <v-text-field v-model="serverSearchInput.processName" label="流程名称" class="cus-v-input "
-          :class="{'mr-2': !isMobile}" dense filled single-line ></v-text-field>
+    <v-row class="ma-0 align-center" :class="{'pa-0': isMobile, 'pa-2': !isMobile}" style="justify-content: end">
+      <v-col cols="12" sm="12" xs="5" md="3" xl="2" class="pb-3" :class="{'pl-0': isMobile, 'pt-0': isMobile}">
+        <v-text-field v-model="serverSearchInput.processName" color="success"  prefix="流程名称：" class="cus-v-input" :class="{'mr-2': !isMobile}" dense filled single-line></v-text-field>
       </v-col>
-      <v-col :class="{'pt-2': isMobile, 'pl-0': isMobile, 'pr-0': !isMobile}" style="max-width: 77px">
+      <v-col class="pl-0 pr-0" :class="{'pt-0': isMobile}" style="max-width: 57px">
         <v-btn
-          class="elevation-0"
-          color="success"
-          dark
-          @click="doUiAction('refreshTableData')"
+            class="elevation-0"
+            color="success"
+            dark
+            @click="doUiAction('refreshTableData')"
         >
           查询
         </v-btn>
       </v-col>
     </v-row>
+
   </template>
 
   <!-- 页面主要内容 -->
-  <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
-    <v-card>
-      <v-list three-line subheader>
-        <v-subheader>流程列表</v-subheader>
-        <v-list-item v-for="(item, index) in tableDataFromBackend" :key="index">
-          <v-subheader>{{getConstantCollectionItemText('categoryList', index)}}</v-subheader>
-          <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none">
-            <v-col cols="12" sm="12" md="6" xl="6" class="pa-xs-0 pb-xs-4 pb-3" v-for="(it, index) in item">
-              <v-btn class="elevation-0 mr-10" color="success" dark @click="doUiAction('startCreateItem', {item: it})">
-                {{it.workflowName}}
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-list-item>
-      </v-list>
+    <v-card :class="{'px-2': isMobile}">
+      <v-data-table :headers="headers"
+                    :items="tableData"
+                    :search="searchInput"
+                    :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                    :items-per-page="20"
+                    mobile-breakpoint="0"
+                    :loading="isTableLoading"
+                    checkbox-color="success"
+                    :class="{'mx-2': isMobile}"
+                    color="success"
+                    class="elevation-0 mt-0 flex-fill d-flex flex-column">
+        <template v-slot:item.action="{ item }">
+          <v-btn small color="success" class="mr-2" @click="doUiAction('startCreateItem', {item: item})">
+            申请
+          </v-btn>
+        </template>
+      </v-data-table>
     </v-card>
-  </v-container>
 
   <!-- 编辑抽屉 -->
-  <v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%"
+  <v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="40%"
     class="elevation-24">
     <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
-      <v-row>
-        <span class="title pa-6">{{ currentClickButton.title }}信息</span>
+      <v-row class="pt-8">
+        <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">{{ currentClickButton.title }}信息</span>
         <v-spacer></v-spacer>
-        <v-btn class="mt-7 mr-8 elevation-0" fab x-small @click="isEditDrawerShow = false">
+        <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
           <v-icon dark>mdi-close</v-icon>
         </v-btn>
       </v-row>
-      <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none">
+      <v-row  :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
 
-        <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">任务标题</span>
+        <v-col cols="12" sm="12" md="12" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">任务标题</span>
           <v-text-field class="cus-v-input mr-2" dense filled single-line label="任务标题" v-model="editItem['taskTitle']">
           </v-text-field>
         </v-col>
-        
-        <v-col cols="12" class="pa-xs-0 pb-xs-4 pb-3" v-for="(formItem, index) in editItem.workflowForm" :key="index">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">{{formItem.component.outline}}</span>
+
+        <v-col cols="12" class=" pb-3" v-for="(formItem, index) in editItem.workflowForm" :key="index">
+          <span class="inputLabel">{{ index+1 }}、 {{ formItem.component.outline }}</span>
           <v-list-item-content v-if="formItem.component.type === 'singleSelect'">
-            <v-list-item-title class="formItem-title">{{ index+1 }}、 {{ formItem.component.outline }}</v-list-item-title>
-            <v-radio-group :rules="requireRules" v-model="editItem.workflowFormData[formItem.id]" hide-details>
+            <v-radio-group row :rules="requireRules" v-model="editItem.workflowFormData[formItem.id]" hide-details>
               <v-radio v-for="(option, optionIndex) in formItem.component.property.selectOptionList"
                 :key="optionIndex" :label="option.value"></v-radio>
             </v-radio-group>
           </v-list-item-content>
 
           <v-list-item-content v-if="formItem.component.type === 'multipleSelect'">
-            <v-list-item-title class="formItem-title">{{ index+1 }}、 {{ formItem.component.outline }}</v-list-item-title>
             <div v-for="(option, optionIndex) in formItem.component.property.selectOptionList" :key="optionIndex">
               <v-checkbox :rules="requireRules" style="margin-top: 0px;" :label="option.value" v-model="editItem.workflowFormData[formItem.id]" hide-details color="red"></v-checkbox>
             </div>
@@ -88,12 +87,11 @@
           </v-list-item-content>
         </v-col>
       </v-row>
-      <v-row class="justify-end pr-6">
-        <v-btn color="success" small @click="doUiAction(dialogSaveInfoAction)"
-          :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">保存
+      <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+        <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)"
+          >保存
         </v-btn>
-        <v-btn class="ml-2" small @click="isEditDrawerShow = false"
-          :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
+        <v-btn class="elevation-0 ml-2" @click="isEditDrawerShow = false">取消</v-btn>
       </v-row>
     </v-form>
   </v-navigation-drawer>
@@ -130,17 +128,11 @@
       tableDataFromBackend: [],
       headers: [
         { text: "ID", value: "id", width: 120, class: 'fixed', cellClass: 'fixed' },
-
-        { text: "任务ID", value: "taskId", width: 120 },
-        { text: "流程节点版本ID", value: "processVersionId", width: 120 },
-        { text: "任务名称", value: "taskTitle", width: 120 },
-        { text: "任务状态：running 执行中；deny 拒绝；end 结束", value: "taskStatus", width: 120 },
-        { text: "当前执行中节点", value: "taskCurrentNode", width: 120 },
-        { text: "申请人", value: "taskApplier", width: 120 },
-        { text: "当前执行的处理人员，用逗号分隔", value: "taskProcessorList", width: 120 },
-        { text: "所有相关人员，用逗号分隔", value: "taskRelatedPersonList", width: 120 },
-        { text: "催单次数", value: "taskUrgeCount", width: 120 },
-        { text: "最后催单时间", value: "taskUrgeLastTime", width: 120 },
+        { text: "任务ID", value: "workflowId", width: 120 },
+        { text: "任务名称", value: "workflowName", width: 120 },
+        { text: "任务分类ID", value: "workflowCategory", width: 120 },
+        { text: "任务节点", value: "workflowConfig", width: 120 },
+        { text: "备注", value: "workflowRemark", width: 120 },
         { text: "操作者", value: "operationByUser", width: 120 },
         { text: "操作时间", value: "operationAt", width: 250 },
         { text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed' },
@@ -193,10 +185,14 @@
             }
           }
         });
-        for(const item of rows) {
-          item.workflowForm = JSON.parse(item.workflowForm || '[]');
-        }
-        this.tableDataFromBackend = _.groupBy(rows, 'workflowCategory');
+        rows.forEach(row => {
+          if(row.workflowConfig) {
+            row.workflowConfig = JSON.parse(row.workflowConfig).nodeList.map(item => [item.label, item.lineTypeList]);
+            row.workflowForm = JSON.parse(row.workflowForm || '[]');
+          }
+        })
+        this.tableDataFromBackend = rows;
+        console.log(this.tableDataFromBackend);
         this.isTableLoading = false;
       },
 

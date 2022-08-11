@@ -1,0 +1,774 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+<jh-layout-v3>
+  <template slot="serverSearch">
+    <v-row class="ma-0 align-center py-2" :class="{'pa-0': isMobile}" style="justify-content: end">
+      <v-col cols="12" sm="12" xs="12" md="4" xl="2" class="pb-3 px-0" :class="{'pt-0': isMobile}">
+        <div style="background-color: #fff;
+          height: 40px;
+          line-height: 40px;
+          padding: 0 10px;
+          border-radius: 6px;" class="d-flex">
+          <span style="font-size: 14px;color: #a5a9ab;">时间区间：</span>
+          <v-icon style="color: #a5a9ab;" small class="mr-1">mdi-calendar</v-icon>
+          <div style="display: inline-block">
+            <v-menu ref="timeRangeRef" offset-y :close-on-content-click="false">
+              <template v-slot:activator="{ on, attrs }">
+              <span v-bind="attrs" v-on="on" style="letter-spacing: 0.5px;
+                font-size: 14px;
+                font-weight: 500;
+                color: #5E6278;">
+                {{timeRange && dayjs(timeRange[0]).format('YYYY-MM-DD')}} - {{timeRange && dayjs(timeRange[1]).format('YYYY-MM-DD')}}
+              </span>
+              </template>
+              <v-list v-if="viewsCount">
+                <v-date-picker
+                    v-model="timeRange"
+                    range
+                ></v-date-picker>
+              </v-list>
+            </v-menu>
+          </div>
+        </div>
+      </v-col>
+    </v-row>
+  </template>
+
+  <!-- 页面主要内容 -->
+  <v-card :class="{'px-2': isMobile}" style="background-color: #f5f8fa;">
+    <v-card class="mx-auto pa-4 mb-4" flat style="max-height: 350px">
+      <div class="echartsContainer" id="viewsBox"></div>
+    </v-card>
+
+    <v-row class="ma-0" dense no-gutters>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.总览">
+        <v-card class="mx-auto pa-4" flat style="height: 100%">
+          <div class="smallBox">
+            <div class="chart-title mb-2">
+              总览
+            </div>
+            <div class="d-flex pa-2"><span>总浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewTotalCount}}</span></div>
+            <v-divider></v-divider>
+            <div class="d-flex pa-2"><span>Days in range</span><v-spacer></v-spacer><span>{{overView.dayRange}}</span></div>
+            <v-divider></v-divider>
+            <div class="d-flex pa-2"><span>Average Daily Pageviews</span><v-spacer></v-spacer><span>{{overView.perDayPageviewCount}}</span></div>
+            <v-divider></v-divider>
+            <div class="d-flex pa-2"><span>独立设备总数</span><v-spacer></v-spacer><span>{{overView.deviceTotalCount}}</span></div>
+            <v-divider></v-divider>
+            <div class="d-flex pa-2"><span>昨日浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewYestodayCount}}</span></div>
+            <v-divider></v-divider>
+            <div class="d-flex pa-2"><span>今日浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewTodayCount}}</span></div>
+            <v-divider></v-divider>
+            <div class="d-flex pa-2"><span>最后30分钟浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewLastHalfHourCount}}</span></div>
+            <v-divider></v-divider>
+          </div>
+        </v-card>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.访问日志">
+        <v-card class="mx-auto pa-4" flat style="height: 100%">
+          <div class="smallBox">
+            <span class="chart-title">
+              访问日志
+            </span>
+            <v-list style="height: 280px;" class="overflow-y-auto">
+              <template v-for="(item, index) in pageviewList">
+                <div class="d-flex pa-1">
+                  <span><a :href="item.pageviewUrl" target="_blank">{{item.pageviewTitle}}</a></span>
+                  <v-spacer></v-spacer>
+                  <span class="pa-1">{{item.pageviewUserIp}}</span>
+                </div>
+                <v-divider
+                  v-if="index < pageviewList.length - 1"
+                  :key="index"
+                ></v-divider>
+              </template>
+            </v-list>
+          </div>
+        </v-card>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.站内搜索关键词">
+        <CommonChart idPrefix="websiteSearchList" @showBigChart="showBigChart" :listData="websiteSearchList" title="站内搜索关键词" keyName="关键词" defaultType="List"/>
+      </v-col>
+      <!-- <v-col cols="12" md="4" lg="3" sm="6" class="block-item">
+        <CommonChart idPrefix="browserSearchList" @showBigChart="showBigChart" :listData="browserSearchList" title="搜索引擎搜索关键词" keyName="关键词"/>
+      </v-col> -->
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.页面访问量列表">
+        <v-card class="mx-auto pa-4" flat style="height: 100%">
+          <div class="smallBox">
+            <span class="chart-title">
+              页面访问量列表
+            </span>
+            <v-list style="height: 280px;" class="overflow-y-auto">
+              <template v-for="(item, index) in pageviewRankingList">
+                <div class="d-flex pa-1">
+                  <span><a :href="item.link" target="_blank">{{item.name}}</a></span>
+                  <v-spacer></v-spacer>
+                  <span>{{item.value}}</span>
+                </div>
+                <v-divider
+                  v-if="index < pageviewRankingList.length - 1"
+                  :key="index"
+                ></v-divider>
+              </template>
+            </v-list>
+            <!-- <div style="text-align: right">
+              <a href="#">查看更多</a>
+            </div> -->
+          </div>
+        </v-card>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.来源域名url列表">
+        <CommonChart idPrefix="referenceRankingList" @showBigChart="showBigChart" :listData="referenceRankingList" title="来源域名url列表" keyName="来源域名" defaultType="List"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.国家排行">
+        <CommonChart ref="countryCommonChart" idPrefix="countryRankingList" @showBigChart="showBigChart" :listData="countryRankingList" title="国家排行(设备数)" keyName="国家" defaultType="List"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.语言排行">
+        <CommonChart ref="languageCommonChart" idPrefix="languageRankingList" @showBigChart="showBigChart" :listData="languageRankingList" title="语言排行(设备数)" keyName="语言" defaultType="List" leftSpacePercent="30%"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.浏览器客户端">
+        <CommonChart ref="browserCommonChart" idPrefix="browserRankingList" @showBigChart="showBigChart" :listData="browserRankingList" title="浏览器客户端(设备数)" keyName="浏览器" defaultType="List" leftSpacePercent="30%"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.屏幕分辨率">
+          <CommonChart ref="screenCommonChart" idPrefix="screenRankingList" @showBigChart="showBigChart" :listData="screenRankingList" title="屏幕分辨率(设备数)" keyName="分辨率" defaultType="List"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.预估访客停留时间">
+        <CommonChart ref="visitTimeCommonChart" idPrefix="visitTimeRankingList" @showBigChart="showBigChart" :listData="visitTimeRankingList" :title="averageVisitTime ? '预估访客停留时间(平均' + averageVisitTime + 'mins)' : '预估访客停留时间' " keyName="文章" defaultType="List"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.操作系统排行">
+        <CommonChart ref="systemOsCommonChart" idPrefix="systemOsRankingList" @showBigChart="showBigChart" :listData="systemOsRankingList" title="操作系统排行(设备数)" keyName="操作系统" defaultType="List" leftSpacePercent="40%"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.分类排行">
+        <CommonChart ref="categoryCommonChart" idPrefix="categoryRankingList" @showBigChart="showBigChart" :listData="categoryRankingList" title="分类排行(访问量)" keyName="分类" defaultType="List" leftSpacePercent="25%"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.文章排行">
+        <CommonChart ref="pageCommonChart" idPrefix="pageRankingList" @showBigChart="showBigChart" :listData="pageRankingList" title="文章排行(访问量)" keyName="文章" defaultType="List" leftSpacePercent="50%"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.浏览器搜索引擎">
+        <CommonChart ref="searchEngineCommonChart" idPrefix="searchEngineRankingList" @showBigChart="showBigChart" :listData="searchEngineRankingList" title="浏览器搜索引擎(访问量)" keyName="搜索引擎" defaultType="List" leftSpacePercent="10%"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.IP访问量">
+        <CommonChart ref="ipCommonChart" idPrefix="ipRankingList" @showBigChart="showBigChart" :listData="ipRankingList" title="IP访问量" keyName="IP" defaultType="List" leftSpacePercent="35%"/>
+      </v-col>
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.用户访问排行">
+        <CommonChart ref="userCommonChart" idPrefix="userRankingList" @showBigChart="showBigChart" :listData="userRankingList" title="用户访问排行" keyName="用户" defaultType="List" leftSpacePercent="35%"/>
+      </v-col>
+
+      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig['404访问日志']">
+        <v-card class="mx-auto pa-4" flat style="height: 100%">
+          <div class="smallBox">
+            <span class="chart-title">
+              404访问日志
+            </span>
+            <v-list style="height: 280px;" class="overflow-y-auto">
+              <template v-for="(item, index) in pageviewList404">
+                <div class="d-flex pa-1">
+                  <span><a :href="item.pageviewUrl" target="_blank" :title="item.pageviewAt">{{item.pageviewUrl}}</a></span>
+                  <v-spacer></v-spacer>
+                  <span class="pa-1">{{item.pageviewUserIp}}</span>
+                </div>
+
+                <v-divider
+                  v-if="index < pageviewList404.length - 1"
+                  :key="index"
+                ></v-divider>
+              </template>
+            </v-list>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-card>
+
+  <v-overlay app :value="isBigChartDrawerShow"></v-overlay>
+  <v-navigation-drawer v-model="isBigChartDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
+    <CommonChart
+      v-if="isBigChartDrawerShow"
+      :idPrefix="bigChartComp.idPrefix + '_big'"
+      :listData="bigChartComp.listData"
+      :title="bigChartComp.title"
+      :keyName="bigChartComp.keyName"
+      :bigChart="true"
+      defaultType="bigChartComp.currentType"
+      class="pa-10"
+    />
+  </v-navigation-drawer>
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+{% include 'echartOption/views.html' %}
+{% include 'echartOption/commonChart.html' %}
+<script src="/<$ ctx.app.config.appId $>/public/js/echarts/echarts.min.js"></script>
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vueComponent: 'page',
+  vuetify: new Vuetify(),
+  mixins: [window.jianghuUiActionMixins],
+  data: {
+    websiteId: null,
+    websiteDomain: null,
+    websiteName: null,
+    website: {},
+    startTime: null,
+    endTime: null,
+    timeRange: [],
+    unit: 'day',
+    resetTime: null,
+    viewsCount: null,
+    browserSearchEngines: null,
+    webSiteKeyword: null,
+    pageviewList: [], // 访问日志列表
+    pageviewList404: [], // 404访问日志列表
+    realtimeDeviceList: [], // 实时用户列表
+    pageviewRankingList: [], // 页面访问量排行
+    referenceRankingList: [], // 来源url排行
+    visitTimeRankingList: [], // 访客停留时间
+    averageVisitTime: 0, // 平均访问时间
+    categoryRankingList: [], // 分类排行
+    pageRankingList: [], // 文章排行
+    websiteSearchList: [], // 站内搜索关键词
+    browserSearchList: [], // 站外搜索关键词
+    browserRankingList: [], // 浏览器客户端排行
+    countryRankingList: [], // 国家排行
+    languageRankingList: [], // 语言排行
+    screenRankingList: [], // 屏幕分辨率
+    systemOsRankingList: [], // 操作系统排行
+    searchEngineRankingList: [], // 浏览器搜索引擎
+    ipRankingList: [], // IP排行
+    userRankingList: [], // 用户排行
+    overView: {
+      dayRange: 14,
+      pageviewTotalCount: 0,
+      perDayPageviewCount: 0,
+      deviceTotalCount: 0,
+      pageviewYestodayCount: 0,
+      pageviewTodayCount: 0,
+      pageviewLastHalfHourCount: 0
+    },
+    isBigChartDrawerShow: false,
+    bigChartComp: {}
+  },
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+  },
+  watch: {
+    timeRange(value, oldValue) {
+      if(value && value.length === 2) {
+        if (dayjs(value[0]).valueOf() > dayjs(value[1]).valueOf()) {
+          this.timeRange = [value[1], value[0]]
+          return;
+        }
+        this.startTime = dayjs(value[0]).startOf('day').format()
+        this.endTime = dayjs(value[1]).endOf('day').format()
+        this.initData();
+
+      }
+    }
+  },
+  async created() {
+    const searchParams = new URLSearchParams(location.search.substring(1));
+    this.websiteId = searchParams.get('websiteId');
+    this.websiteDomain = searchParams.get('websiteDomain');
+    this.websiteName = searchParams.get('title');
+    this.website = (await window.jianghuAxios({
+      data: {
+        appData: {
+          pageId: 'websiteManagement',
+          actionId: 'selectItemList',
+          actionData: {},
+          where: {
+            id: this.websiteId,
+          },
+        }
+      }
+    })).data.appData.resultData.rows[0];
+    this.website.websiteConfig = JSON.parse(this.website.websiteConfig)
+
+    window.onresize = () => {
+      if(this.resetTime) clearTimeout(this.resetTime)
+      this.resetTime = setTimeout(() => {
+        this.viewsCount && this.viewsCount.resize()
+        this.$refs.countryCommonChart && this.$refs.countryCommonChart.resize()
+        this.$refs.languageCommonChart && this.$refs.languageCommonChart.resize()
+        this.$refs.screenCommonChart && this.$refs.screenCommonChart.resize()
+        this.$refs.visitTimeCommonChart && this.$refs.visitTimeCommonChart.resize()
+        this.$refs.systemOsCommonChart && this.$refs.systemOsCommonChart.resize()
+        this.$refs.categoryCommonChart && this.$refs.categoryCommonChart.resize()
+        this.$refs.pageCommonChart && this.$refs.pageCommonChart.resize()
+        this.$refs.searchEngineCommonChart && this.$refs.searchEngineCommonChart.resize()
+        this.$refs.browserCommonChart && this.$refs.browserCommonChart.resize()
+      }, 100)
+    }
+  },
+  async mounted() {
+    await this.buildEcharts();
+    this.timeRange = [dayjs().subtract(13, 'day').startOf('day').format(), dayjs().endOf('day').format()]
+  },
+  methods: {
+    async initData() {
+      this.getPageviewLineChart();
+      await this.getOverview();
+      this.getPageviewList();
+      this.getPageviewList404();
+      this.getRealtimeDeviceList();
+      this.getWebsiteSearchList();
+      this.getBrowserSearchList();
+      this.getPageviewRankingList();
+      this.getReferenceRankingList();
+      this.getCountryRankingList();
+      this.getLanguageRankingList();
+      this.getBrowserRankingList();
+      this.getScreenRankingList();
+      this.getVisitTimeRankingList();
+      this.getCategoryRankingList();
+      this.getPageRankingList();
+      this.getSystemOsRankingList();
+      this.getSearchEngineRankingList();
+      this.getIpRankingList();
+      this.getUserRankingList();
+    },
+    dayjs,
+    async getPageviewLineChart() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getPageviewLineChart',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+              unit: this.unit
+            },
+          }
+        }
+      })).data.appData.resultData;
+      const { pageviewCountList, deviceCountList, pageviewCountPreviousList, deviceCountPreviousList } = resultData;
+      this.viewsCount.reload([pageviewCountList, deviceCountList, pageviewCountPreviousList, deviceCountPreviousList]);
+    },
+    async getOverview() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getOverview',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.overView = resultData
+    },
+    async getPageviewList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getPageviewList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+              page: 1,
+              size: 20,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.pageviewList = resultData.pageviewList
+    },
+    async getPageviewList404() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getPageviewList404',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+              page: 1,
+              size: 20,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.pageviewList404 = resultData.pageviewList404
+    },
+    async getRealtimeDeviceList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getRealtimeDeviceList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.realtimeDeviceList = resultData.realtimeDeviceList
+    },
+    async getWebsiteSearchList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getWebsiteSearchList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.websiteSearchList = resultData.websiteSearchList
+    },
+    async getBrowserSearchList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getBrowserSearchList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.browserSearchList = resultData.browserSearchList
+    },
+    async getPageviewRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getPageviewRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.pageviewRankingList = resultData.pageviewRankingList
+    },
+    async getReferenceRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getReferenceRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.referenceRankingList = resultData.referenceRankingList
+      // 如果总数不够总浏览量，需要增加一项其它
+      this.fillOtherItem(this.referenceRankingList, this.overView.pageviewTotalCount);
+    },
+    async getCountryRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getCountryRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.countryRankingList = resultData.countryRankingList
+      // 如果总数不够总设备数，需要增加一项其它
+      this.fillOtherItem(this.countryRankingList, this.overView.deviceTotalCount);
+    },
+    async getLanguageRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getLanguageRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.languageRankingList = resultData.languageRankingList
+      // 如果总数不够总设备数，需要增加一项其它
+      this.fillOtherItem(this.languageRankingList, this.overView.deviceTotalCount);
+    },
+    async getBrowserRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getBrowserRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.browserRankingList = resultData.browserRankingList
+      // 如果总数不够总设备数，需要增加一项其它
+      this.fillOtherItem(this.browserRankingList, this.overView.deviceTotalCount);
+    },
+    async getScreenRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getScreenRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.screenRankingList = resultData.screenRankingList
+      // 如果总数不够总设备数，需要增加一项其它
+      this.fillOtherItem(this.screenRankingList, this.overView.deviceTotalCount);
+    },
+    async getVisitTimeRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getVisitTimeRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.visitTimeRankingList = resultData.visitTimeRankingList
+      this.averageVisitTime = resultData.averageVisitTime
+    },
+    async getSystemOsRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getSystemOsRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.systemOsRankingList = resultData.systemOsRankingList
+      // 如果总数不够总设备数，需要增加一项其它
+      this.fillOtherItem(this.systemOsRankingList, this.overView.deviceTotalCount);
+    },
+    async getCategoryRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getCategoryRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.categoryRankingList = resultData.categoryRankingList
+      // 如果总数不够总浏览量，需要增加一项其它
+      this.fillOtherItem(this.categoryRankingList, this.overView.pageviewTotalCount);
+    },
+    async getPageRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getPageRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.pageRankingList = resultData.pageRankingList
+      // 如果总数不够总浏览量，需要增加一项其它
+      this.fillOtherItem(this.pageRankingList, this.overView.pageviewTotalCount);
+    },
+    async getSearchEngineRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getSearchEngineRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.searchEngineRankingList = resultData.searchEngineRankingList
+      // 如果总数不够总浏览量，需要增加一项其它
+      this.fillOtherItem(this.searchEngineRankingList, this.overView.pageviewTotalCount);
+    },
+    async getIpRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getIpRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.ipRankingList = resultData.ipRankingList
+      // 如果总数不够总浏览量，需要增加一项其它
+      this.fillOtherItem(this.ipRankingList, this.overView.pageviewTotalCount);
+    },
+    async getUserRankingList() {
+      const resultData = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'websiteDashboard',
+            actionId: 'getUserRankingList',
+            actionData: {
+              websiteId: this.websiteId,
+              startTime: this.startTime,
+              endTime: this.endTime,
+            },
+          }
+        }
+      })).data.appData.resultData;
+      this.userRankingList = resultData.userRankingList
+      // 如果总数不够总浏览量，需要增加一项其它
+      this.fillOtherItem(this.userRankingList, this.overView.pageviewTotalCount);
+    },
+
+    async checkDomExist(domId, count) {
+      const dom = document.getElementById(domId);
+      return new Promise(resolve => {
+        if(dom) {
+          resolve(dom);
+        } else {
+          if(count > 5) {
+            resolve(null);
+          } else {
+            setTimeout(async () => {
+              let newCount = count || 0;
+              resolve(await this.checkDomExist(domId, ++newCount));
+            }, 300)
+          }
+        }
+      })
+    },
+    fillOtherItem(list, totalCount) {
+      if (!list) {
+        return;
+      }
+      let sum = 0;
+      list.forEach(item => sum += item.value);
+      if (sum >= totalCount) {
+        return;
+      }
+      const other = totalCount - sum;
+      list.push({name: '其它', value: other})
+    },
+    async buildEcharts() {
+      const viewsBoxDom = await this.checkDomExist('viewsBox');
+      if (viewsBoxDom) {
+        this.viewsCount = new ViewsCount(viewsBoxDom);
+      }
+    },
+    showBigChart(ref) {
+      this.bigChartComp = ref;
+      this.isBigChartDrawerShow = true;
+    }
+  }
+})
+</script>
+
+<style scoped>
+.echartsContainer {
+  width: 100%;
+  height: 300px;
+}
+.overview {
+  width: 100%;
+  height: 277px;
+}
+.smallBox {
+  height: 300px;
+}
+.v-application ol, .v-application ul {
+  padding: 5px 0;
+}
+.v-application ol, .v-application ul li {
+  display: flex;
+  padding: 2px 0;
+  /* border-bottom: 1px solid #eee; */
+}
+.v-application ol, .v-application ul li a {
+  flex: 1;
+}
+.block-item{
+  height: 340px;
+}
+.block-item .v-card{
+  margin-right: 16px !important;
+  margin-bottom: 16px !important;
+}
+.block-item:nth-child(4n) .v-card{
+  margin-right: 0 !important;
+}
+.chart-title{
+  font-size: 16px;
+  font-weight: 600;
+  color: #3F4254;
+}
+.theme--light.v-divider{
+  border-color: #E4E6EF;
+}
+</style>
+{% endblock %}
