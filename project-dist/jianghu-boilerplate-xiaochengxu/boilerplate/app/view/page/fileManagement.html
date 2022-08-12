@@ -1,12 +1,12 @@
-{% extends 'template/jhTemplateV3.html'%}
+{% extends 'template/xiaochengxuTemplateV3.html'%}
 
 {% block css %}
-<script src="/<$ ctx.app.config.appId $>/public/pdf/build/pdf.js"></script>
+<script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/pdf/build/pdf.js"></script>
 {% endblock %}
 
 {% block vue_template %}
 
-<jh-layout-v3>
+<xiaochengxu-layout-v3>
 
   <!-- 页面主要内容 -->
   <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
@@ -113,7 +113,7 @@
     <v-img v-else max-height="800" max-width="800" :src="fileSrc"></v-img>
   </v-overlay>
 
-</jh-layout-v3>
+</xiaochengxu-layout-v3>
 
 {% endblock %}
 
@@ -147,6 +147,7 @@
         {text: "操作时间", value: "operationAt", width: 250},
         {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'}
       ],
+      previewPrefix: window.appInfo.upload,
 
       currentClickButton: {title: '新增', action: 'add'},
       editItem: {},
@@ -303,11 +304,12 @@
         const fileType = item.downloadPath.split('.');
         if (fileType[fileType.length - 1] === 'pdf') {
           this.fileType = 'pdf';
-          this.fileSrc = '/<$ ctx.app.config.appId $>/public/pdf/web/viewer.html?file=' + encodeURIComponent(this.previewPrefix + item.downloadPath);
+          this.fileSrc = '/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/pdf/web/viewer.html?file=' + encodeURIComponent(this.previewPrefix + item.downloadPath);
         } else {
           this.fileType = 'img';
           this.fileSrc = this.previewPrefix + item.downloadPath;
         }
+        console.log('this.fileSrc', this.fileSrc);
         this.overlay = true;
       },
       
