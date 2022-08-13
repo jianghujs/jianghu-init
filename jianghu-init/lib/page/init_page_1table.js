@@ -185,7 +185,7 @@ module.exports = class InitPage1Table extends CommandBase {
     }).map(column => {
       return {
         COLUMN_NAME: column.COLUMN_NAME,
-        COLUMN_COMMENT: column.COLUMN_COMMENT || column.COLUMN_NAME,
+        COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '').split(';')[0].split('；')[0].split(':')[0],
       };
     });
   }

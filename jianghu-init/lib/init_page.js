@@ -1,6 +1,7 @@
 'use strict';
 const yargs = require('yargs');
 const InitPage1Table = require('./page/init_page_1table');
+const InitPage1TableFile = require('./page/init_page_1table_file');
 const InitPage2Table = require('./page/init_page_2table');
 const InitPage3Table = require('./page/init_page_3table');
 const InitPageTestPage = require('./page/init_page_test_page');
@@ -13,6 +14,9 @@ const pageTypes = [
   {
     value: '1table-page',
     name: '1table-page - generate pages from a table',
+  }, {
+    value: '1table-file-page',
+    name: '1table-file-page - generate pages from a table',
   }, {
     value: '2table-page',
     name: '2table-page - generate pages from 2 related table',
@@ -76,6 +80,8 @@ module.exports = class InitPageCommand extends CommandBase {
 
     if (pageType === '1table-page') {
       await new InitPage1Table().run(process.cwd(), this.argv);
+    } else if (pageType === '1table-file-page') {
+      await new InitPage1TableFile().run(process.cwd(), this.argv);
     } else if (pageType === '2table-page') {
       await new InitPage2Table().run(process.cwd(), this.argv);
     } else if (pageType === '3table-page') {

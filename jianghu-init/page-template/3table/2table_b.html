@@ -81,22 +81,22 @@ SQL END!-->
       <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
         //===// <=% for f in tableBFields %=>
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
+          <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
           <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
         </v-col>//===// <=% endfor %=>
 <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
 <!--        &lt;!&ndash; 必填字段样式 demo :rules="requireRules" &ndash;&gt;-->
-<!--        <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生ID</span>-->
+<!--        <span class="inputLabel">学生ID</span>-->
 <!--        <v-text-field class="cus-v-input " dense filled single-line label="学生ID" v-model="editItem.studentId" :rules="requireRules"></v-text-field>-->
 <!--      </v-col>-->
 <!--      &lt;!&ndash; select 字段 demo &ndash;&gt;-->
-<!--        <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生ID</span>-->
+<!--        <span class="inputLabel">学生ID</span>-->
 <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
 <!--        <v-select class="cus-v-input " dense filled single-line clearable label="班级ID" v-model="editItem.classId" :items="constantCollection.classId"></v-select>-->
 <!--      </v-col>-->
 <!--      &lt;!&ndash; 日期选择 demo &ndash;&gt;-->
 <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
-<!--        <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生ID</span>-->
+<!--        <span class="inputLabel">学生ID</span>-->
 <!--        <v-menu class="cus-v-input " offset-y max-width="290">-->
 <!--          <template v-slot:activator="{ on, attrs }">-->
 <!--            <v-text-field class="cus-v-input " dense filled single-line v-on="on" label="出生日期" v-model="editItem.dateOfBirth"></v-text-field>-->
@@ -125,7 +125,7 @@ SQL END!-->
       <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
         //===// <=% for f in tableBFields %=>
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
+          <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
           <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
         </v-col>//===// <=% endfor %=>
       </v-row>
