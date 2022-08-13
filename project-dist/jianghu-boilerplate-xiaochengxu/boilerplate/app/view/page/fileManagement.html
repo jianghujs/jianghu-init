@@ -124,6 +124,7 @@
     el: '#app',
     template: '#app-template',
     vuetify: new Vuetify(),
+    mixins: [window.jianghuUiActionMixins],
     data: () => ({
       // 表格相关数据
       overlay: false,
@@ -319,21 +320,18 @@
        * main:   [{"function":"downloadFileByStream"}]
       */
       async downloadFileByStream({ item }) {
-        const downloadPath = item.downloadPath
-        const filename = item.filename
-        window.vtoast.loading(`${filename} 下载进度: 0%`);
-        const buffer = await window.jianghuAxios.httpDownloadByStream({
-          downloadPath,
-          filename,
-          onProgress: (total, loaded) => {
-            const progress = Number((loaded * 100 / total).toFixed(2));
-            window.vtoast.loading(`${filename} 下载进度: ${progress}%`);
-            if (total === loaded) {
-              window.vtoast.success("下载完成");
+        const { downloadPath, filename } = item;
+        window.vtoast.loading('文件下载开始');
+        const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename, 
+          onProgress: (total, loaded)=> {
+            let progress = Number((loaded * 100 / total).toFixed(2))
+            window.vtoast.loading(`文件下载进度${progress}%`);
+            if (progress === 100) {
+              window.vtoast.success('文件下载成功');
             }
-          }
-        })
-        window.jianghuAxios.downloadBufferToChrome({ buffer, filename });
+          } 
+        });
+        window.jianghuAxios.downloadBase64ToChrome({ base64: fileBase64, filename})
       }
     }
   })
