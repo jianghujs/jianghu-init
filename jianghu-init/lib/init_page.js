@@ -5,6 +5,7 @@ const InitPage2Table = require('./page/init_page_2table');
 const InitPage3Table = require('./page/init_page_3table');
 const InitPageTestPage = require('./page/init_page_test_page');
 const InitPageStatic = require('./page/init_page_static');
+const InitPageManual = require('./page/init_page_manual');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 
@@ -18,6 +19,11 @@ const pageTypes = [
   }, {
     value: '3table-page',
     name: '3table-page - generate pages from 3 related table',
+  }, {
+    value: 'manual-page',
+    name: 'manual-page - generate manual page from a table',
+    pageId: 'manual',
+    path: 'template/manual/'
   }, {
     value: 'reset-password-page',
     name: 'reset-password-page - generate pages from reset-password',
@@ -76,6 +82,8 @@ module.exports = class InitPageCommand extends CommandBase {
       await new InitPage3Table().run(process.cwd(), this.argv);
     } else if (pageType === 'test-page') {
       await new InitPageTestPage().run(process.cwd(), this.argv);
+    } else if (pageType === 'manual-page') {
+      await new InitPageManual().run(process.cwd(), pageTypes.find(o => o.value === pageType));
     } else {
       await new InitPageStatic().run(process.cwd(), pageTypes.find(o => o.value === pageType));
     }
