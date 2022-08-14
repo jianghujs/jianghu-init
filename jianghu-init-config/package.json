@@ -38,6 +38,10 @@
       "workflow": {
         "package": "jianghu-boilerplate-workflow",
         "description": "Jianghu workflow app boilerplate"
+      },
+      "json-editor": {
+        "package": "jianghu-boilerplate-json-editor",
+        "description": "Jianghu json-editor app boilerplate"
       }
     }
   },

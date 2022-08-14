@@ -155,7 +155,7 @@
         {text: '删除', buttonType: 'delete', color: 'error',},
       ],
       inputFile: null,
-      downloadPrefix: `${window.location.origin}/<$ ctx.app.config.appId $>/upload`,
+      previewPrefix: `/<$ ctx.app.config.appId $>/upload`,
     }),
     computed: {
       isMobile() {
@@ -236,17 +236,19 @@
        */      
       async downloadFile(item) {
         const { downloadPath, filename } = item;
-        window.vtoast.loading('文件下载开始');
-        const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename, 
-          onProgress: (total, loaded)=> {
-            let progress = Number((loaded * 100 / total).toFixed(2))
-            window.vtoast.loading(`文件下载进度${progress}%`);
-            if (progress === 100) {
-              window.vtoast.success('文件下载成功');
+        window.vtoast.loading(`${filename} 下载进度: 0%`);
+        const buffer = await window.jianghuAxios.httpDownloadByStream({
+          downloadPath,
+          filename,
+          onProgress: (total, loaded) => {
+            const progress = Number((loaded * 100 / total).toFixed(2));
+            window.vtoast.loading(`${filename} 下载进度: ${progress}%`);
+            if (total === loaded) {
+              window.vtoast.success("下载完成");
             }
-          } 
-        });
-        window.jianghuAxios.downloadBase64ToChrome({ base64: fileBase64, filename})
+          }
+        })
+        window.jianghuAxios.downloadBufferToChrome({ buffer, filename });
       },
       /**
        * 保存数据

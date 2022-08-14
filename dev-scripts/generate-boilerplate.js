@@ -153,4 +153,5 @@ process('3table-crud');
 process('enterprise');
 process('xiaochengxu');
 process('workflow');
+process('json-editor');
 
