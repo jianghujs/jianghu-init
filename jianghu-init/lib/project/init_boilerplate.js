@@ -28,7 +28,7 @@ module.exports = class InitBoilerplate {
   constructor(options) {
     options = options || {};
     this.name = options.name || 'jianghu-init';
-    this.configName = options.configName || 'jianghu-init-config';
+    this.configName = options.configName || '@jianghujs/jianghu-init-config';
     this.pkgInfo = options.pkgInfo || require('../../package.json');
     this.needUpdate = options.needUpdate !== false;
     this.httpClient = urllib.create();
