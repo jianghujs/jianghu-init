@@ -565,16 +565,18 @@ module.exports = class InitBoilerplate {
   /**
    * get package info from registry
    *
-   * @param {String} pkgName - package name
+   * @param {String} pkg - package name
    * @param {Boolean} [withFallback] - when http request fail, whethe to require local
    * @return {Object} pkgInfo
    */
-  async getPackageInfo(pkgName, withFallback) {
+  async getPackageInfo(pkg, withFallback) {
+    const pkgName = this.registryUrl.includes('localhost:') ? pkg.split('/').pop() : pkg;
     this.log(`fetching npm info of ${pkgName} ${withFallback}`);
     try {
       // 重要的一句话，有些node版本，会提示 `unable to get local issuer certificate`
       process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
       // this.log(`线上开始 ${this.registryUrl.substring(7)} ${this.registryUrl}/${pkgName}/latest`);
+      console.log('this.registryUrl', this.registryUrl);
       const result = await this.curl(`${this.registryUrl}/${pkgName}/latest`, {
         dataType: 'json',
         followRedirect: true,
