@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-init-config",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "jianghu init boilerplate config",
   "files": [
     "index.js"
@@ -8,39 +8,39 @@
   "config": {
     "boilerplate": {
       "1table-crud": {
-        "package": "jianghu-boilerplate-1table-crud",
+        "package": "@jianghujs/jianghu-boilerplate-1table-crud",
         "description": "Jianghu 1table crud"
       },
       "1table-crud-file": {
-        "package": "jianghu-boilerplate-1table-crud-file",
+        "package": "@jianghujs/jianghu-boilerplate-1table-crud-file",
         "description": "Jianghu 1table crud with file"
       },
       "1table-crud-enterprise": {
-        "package": "jianghu-boilerplate-1table-crud-enterprise",
+        "package": "@jianghujs/jianghu-boilerplate-1table-crud-enterprise",
         "description": "Jianghu 1table in enterprise"
       },
       "2table-crud": {
-        "package": "jianghu-boilerplate-2table-crud",
+        "package": "@jianghujs/jianghu-boilerplate-2table-crud",
         "description": "Jianghu 2table crud"
       },
       "3table-crud": {
-        "package": "jianghu-boilerplate-3table-crud",
+        "package": "@jianghujs/jianghu-boilerplate-3table-crud",
         "description": "Jianghu 3table crud"
       },
       "enterprise": {
-        "package": "jianghu-boilerplate-enterprise",
+        "package": "@jianghujs/jianghu-boilerplate-enterprise",
         "description": "Jianghu multi enterprise"
       },
       "xiaochengxu": {
-        "package": "jianghu-boilerplate-xiaochengxu",
+        "package": "@jianghujs/jianghu-boilerplate-xiaochengxu",
         "description": "Duoxing xiaochengxu"
       },
       "workflow": {
-        "package": "jianghu-boilerplate-workflow",
+        "package": "@jianghujs/jianghu-boilerplate-workflow",
         "description": "Jianghu workflow app boilerplate"
       },
       "json-editor": {
-        "package": "jianghu-boilerplate-json-editor",
+        "package": "@jianghujs/jianghu-boilerplate-json-editor",
         "description": "Jianghu json-editor app boilerplate"
       }
     }
