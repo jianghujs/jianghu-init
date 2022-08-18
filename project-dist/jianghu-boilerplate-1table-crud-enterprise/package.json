@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-boilerplate-1table-crud-enterprise",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "boilerplate for jianghu quickstart",
   "scripts": {
     "autod": "autod",
