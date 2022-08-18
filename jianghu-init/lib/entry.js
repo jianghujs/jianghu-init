@@ -30,7 +30,7 @@ module.exports = class Entry {
         type: 'list',
         message: 'Please select a init type',
         choices: initTypes,
-        pageSize: initTypes.length,
+        pageSize: initTypes.length + 1,
       });
       initType = answer.initType;
     } else {

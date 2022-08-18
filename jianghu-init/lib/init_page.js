@@ -127,7 +127,7 @@ module.exports = class InitPageCommand extends CommandBase {
       type: 'list',
       message: 'Please select a page type',
       choices: pageTypes,
-      pageSize: pageTypes.length,
+      pageSize: pageTypes.length + 1,
     });
     return answer.pageType;
   }
