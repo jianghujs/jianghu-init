@@ -188,7 +188,7 @@ module.exports = class InitBoilerplate {
         type: 'list',
         message: 'Please select a boilerplate category',
         choices: groupNames,
-        pageSize: groupNames.length,
+        pageSize: groupNames.length + 1,
       });
       group = groupMapping[answers.group];
     } else {
@@ -210,7 +210,7 @@ module.exports = class InitBoilerplate {
       type: 'list',
       message: 'Please select a boilerplate type',
       choices,
-      pageSize: choices.length,
+      pageSize: choices.length + 1,
     });
     if (!boilerplateInfo.deprecate) return boilerplateInfo;
 
