@@ -5,10 +5,12 @@ Jianghu init 是[江湖 js](https://openjianghu.org/)的代码初始化工具。
 ## 安装 jianghu-init
 
 ```shell
+# 卸载旧版 jianghu-init
+$ npm uninstall -g jianghu-init
 # install
-$ npm i -g jianghu-init
+$ npm i -g @jianghujs/jianghu-init
 # upgrade
-$ npm update -g jianghu-init
+$ npm update -g @jianghujs/jianghu-init
 ```
 
 ## 主要功能说明
