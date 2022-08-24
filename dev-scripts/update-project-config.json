@@ -1,0 +1,16 @@
+[
+  {
+    "projectName": "xiaochengxu-1table-crud",
+    "replaceList": [
+      {
+        "from": "jianghujs-xiaochengxu-1table-crud",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_xiaochengxu_1table_crud",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-1table-crud.git"
+  }
+]
