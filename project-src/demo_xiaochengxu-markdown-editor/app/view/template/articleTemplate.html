@@ -1,0 +1,107 @@
+{% set appId = ctx.app.config.appId %}
+{% set userId = userInfo.userId %}
+{% set username = userInfo.username %}
+{% set adminUrl = ctx.app.config.adminUrl %}
+{% set static = "/" + appId + "/public" %}
+{% set pageUrl = "/" + appId + "/page" %}
+{% set url = "/" +ctx.app.config.appId + "/page/" %}
+{% set xiaochengxuPageUrl = '/' + ctx.app.config.duoxingBot.serverAppId + '/page/xiaochengxu' %}
+{% set botUserId = ctx.app.config.duoxingBot.userId %}
+{% set constantUiMap = {common: { modify: '修改', add: '新增', manage: '管理'}} %}
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name=renderer content=webkit>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge，chrome=1">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="Cache-Control" content="max-age=7200" />
+  <!-- <meta name="referrer" content="no-referrer"> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="keywords" content="{% block keyword %}{% endblock %}<$ site_keywords $>" />
+  <meta name="description" content="{% block description %}{% endblock %}" />
+  <!-- OGP分享协议开始 -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{% block ogp_title %}{% endblock %}">
+  <meta property="og:description" content="{% block ogp_desc %}{% endblock %}">
+  <meta property="og:pageUrl" content="<$ request.scheme $>://<$ request.META.HTTP_HOST $><$ request.path_info $>">
+
+
+  <script type="text/javascript">
+    window.appInfo = {
+      appId: '<$ ctx.app.config.appId $>',
+      upload: '/<$ ctx.app.config.appId $>/upload',
+      public: '/<$ ctx.app.config.appId $>/public',
+      userAgent: navigator.userAgent || '',
+    }
+    if (window.appInfo.userAgent.length > 127) {
+      window.appInfo.userAgent = window.appInfo.userAgent.substring(0, 126);
+    }
+  </script>
+
+  <!-- OGP分享协议结束 -->
+  <title>{% block title %}{% endblock %} - <$ ctx.app.config.appTitle $></title>
+  <!-- MDB -->
+  <link href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/1.0.0/mdb.min.css" rel="stylesheet"/>
+  <link href="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/css/vuetify.min.css" rel="stylesheet">
+  <link href="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/css/vuetify.custom.css" rel="stylesheet">
+  <!-- css -->
+  {% include 'util/jianghu/jianghuUiCss.html' %}
+  {% include 'util/jianghu/jianghuCommonCss.html' %}
+  <script type="text/javascript">
+    window.appInfo = {
+      appId: '<$ ctx.app.config.appId $>',
+      upload: '/<$ serverAppId if serverAppId else ctx.app.config.appId $>/upload',
+      public: '/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public',
+      userAgent: navigator.userAgent || '',
+    }
+  </script>
+  <!-- js -->
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/jquery-1.9.1.min.js"></script>
+  <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js?v=1.0.5"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/lodash.min.js"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/dayjs.min.js"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/axios.min.js"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/vue.js"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/vuetify.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/1.0.0/mdb.min.js"></script>
+
+  {% include 'common/jianghuAxios.html' %}
+  {% include 'util/jianghu/jianghuJs.html' %}
+
+  {% block css %}
+  {% endblock %}
+</head>
+
+<body>
+
+  <!-- 使用 x-template 的模式，避免 vue-slot 不能支持大写字母的问题 -->
+  <script type="text/x-template" id="app-template">
+    <div id="container">
+      {% block vue_template %}
+      {% endblock %}
+      <jh-toast></jh-toast>
+      <jh-confirm-dialog></jh-confirm-dialog>
+    </div>
+  </script>
+
+  <div id="app">
+  </div>
+
+  {% include 'component/jhToast.html' %}
+  {% include 'component/jhConfirmDialog.html' %}
+
+  {% block vue_body %}
+  {% endblock %}
+
+  <script type="text/javascript">
+    console.warn("WARN \{\% extends 'index.html'\%\} will deprecated; \{\% extends 'template/index.html' \%\}  ")
+  </script>
+
+</body>

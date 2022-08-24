@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-init-config",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "jianghu init boilerplate config",
   "files": [
     "index.js"
@@ -42,6 +42,10 @@
       "json-editor": {
         "package": "@jianghujs/jianghu-boilerplate-json-editor",
         "description": "Jianghu json-editor app boilerplate"
+      },
+      "xiaochengxu-markdown-editor": {
+        "package": "@jianghujs/jianghu-boilerplate-xiaochengxu-markdown-editor",
+        "description": "Duoxing xiaochengxu-markdown-editor app boilerplate"
       }
     }
   },

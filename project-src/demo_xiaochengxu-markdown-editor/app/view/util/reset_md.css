@@ -1,0 +1,23 @@
+
+#editorMdContainer pre {
+    font-size: 16px !important;
+}
+
+#baseinfo_diff_body pre {
+    font-size: 16px !important;
+}
+#baseinfo_diff_body .CodeMirror-merge {
+    height: 100%;
+}
+#baseinfo_diff_body .CodeMirror-merge .CodeMirror {
+    height: 100%;
+}
+#diff_body pre {
+    font-size: 16px !important;
+}
+#diff_body .CodeMirror-merge {
+    height: 100%;
+}
+#diff_body .CodeMirror-merge .CodeMirror {
+    height: 100%;
+}

@@ -1,0 +1,654 @@
+{% extends 'template/xiaochengxuTemplateV3.html'%}
+{% set url = "/" +ctx.app.config.appId + "/page/" %}
+
+{% block vue_template %}
+
+<!-- 编辑文章页 -->
+
+<xiaochengxu-layout-v3>
+  <template slot="serverSearch">
+    <v-row class="ma-0 align-center flex-none pa-0" :class="{'pa-2': !isMobile, 'pa-2': isMobile}" align="center" style="height: 100%;">
+      <v-col class="d-flex" :class="{'pt-2': isMobile, 'pl-0': isMobile, 'pr-0': !isMobile}" style="justify-content: end">
+        <v-btn v-if="editItem.articleId && editItem.articlePublishStatus !== 'deleted'" @click="doUiAction('deletedArticle')"
+          color="error mr-1">移到回收站</v-btn>
+        <v-btn v-if="editItem.articlePublishStatus === 'deleted'" @click="restoreArticle" color="error mr-1">恢复文章
+        </v-btn>
+        <v-btn @click="doUiAction('saveInfo')" color="success" class="mr-1">保存</v-btn>
+        <v-btn @click="doUiAction('saveInfoAndPreview')" color="success">保存并预览</v-btn>
+      </v-row>
+      </v-col>
+    </v-row>
+    </template>
+
+  <!-- 页面主要内容 -->
+  
+    <v-card style="min-height: calc(100vh - 150px);background-color: #f5f8fa;">
+    <v-form v-model="isFormValid" ref="form">
+      <div class="d-flex flex-column pb-8">
+        <v-row dense no-gutters>
+          <v-col cols="12" xs="12" sm="4" md="3" xl="2" class="pr-2">
+            <v-card class="pa-4" flat>
+              <v-card-text class="pa-0">
+
+              <span class="inputLabel">文章标题</span>
+              <v-text-field class="mr-2 mb-2" dense filled single-line color="success" v-model="editItem.articleTitle"
+                :rules="requireRules" hide-details>
+              </v-text-field>
+
+              <span class="inputLabel">文章发布状态</span>
+              <v-row class="pt-0 ma-0 mb-2">
+                <v-select class="cus-v-input mr-2" dense filled single-line clearable v-model="editItem['articleStatus']" :items="constantCollection.articleStatus" :rules="requireRules" disabled></v-select>
+              </v-row>
+
+              <span class="inputLabel">选择分类</span>
+              <v-row class="pt-0 ma-0 pl-2 mb-2">
+               <v-select @mouseup="openSelectCategoryDialog" v-model="editItem.categoryId"
+                :items="constantCollection.category" :rules="requireRules" readonly hide-details dense filled single-line
+                hide-no-data hide-selected />
+             </v-row>
+
+             <span class="inputLabel">发布状态</span>
+            <v-row class="pt-0 ma-0 pl-2 mb-2">
+              <v-select v-model="editItem.articlePublishStatus" :items="constantCollection.articlePublishStatus"
+                :rules="requireRules" hide-details dense filled single-line hide-no-data hide-selected />
+            </v-row>
+
+          </v-card-text>
+          </v-card>
+          </v-col>
+          
+          <v-col cols="12" xs="12" sm="8" md="9" xl="10" style="height: calc(100vh - 120px);">
+            
+            <div class="pr-3" style="height: 100%;">
+              <div id="editorMdContainer">
+                <textarea style="display:none;">{{ editItem.articleContent }}</textarea>
+              </div>
+            </div>
+            
+          </v-col>
+        </v-row>
+      </div>
+    </v-form>
+
+    <SingleSelect v-model="selectCategoryDialog" :dataList="constantCollection.category" title="选择分类"
+      @close="selectCategoryDialog=false" @done="onSelectCategory" />
+    </v-card>
+
+</xiaochengxu-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+
+{% include 'layout/xiaochengxuLayout.html' %}
+{% include 'common/resetTableMaxHeight.html' %}
+{% include 'component/singleSelectDialog.html' %}
+{% include 'component/datetimePicker.html' %}
+
+<style>{% include 'util/reset_md.css' %}</style>
+<link rel="stylesheet" href="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/editor.md/css/editormd.css" />
+<style>{% include 'util/jianghu/jianghudoc.css' %}</style>
+<script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/jquery-1.9.1.min.js"></script>
+<script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/editor.md/editormd.js"></script>
+
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    mixins: [window.jianghuUiActionMixins],
+    data: () => ({
+      articleId: null,
+      selectCategoryDialog: false,
+      // 表格相关数据
+      isFormValid: true,
+      requireRules: [
+        v => !!v || 'This is required',
+      ],
+      constantCollection: {
+        category: [],
+        articleTagList: [],
+        articlePublishStatus: [
+          { text: "公开", value: "public" },
+          { text: "登录可见", value: "login" },
+          { text: "草稿", value: "draft" },
+          { text: "回收站", value: "deleted" },
+        ],
+        categoryList: [
+          { text: "全部类目", value: "all" },
+        ],
+        articleStatus: [
+          { text: "一稿", value: "firstDraft" },
+        ],
+      },
+      newArticleTagList: [],
+      upload: window.appInfo.upload,
+      localImage: null,
+      localAudio: null,
+      localVideo: null,
+      localImageBase64: null,
+      isEditDrawerShow: false,
+      searchInput: null,
+      isTableLoading: true,
+      tableDataFromBackend: [],
+      editItem: {
+        articlePublishStatus: 'public'
+      },
+      search: '',
+      materialType: '',
+      writeBackType: '',
+      editor: null,
+      mdChanged: false,
+    }),
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+      tableData() {
+        return this.tableDataFromBackend;
+      },
+      computedEditItem() {
+        return this.editItem;
+      },
+      articleStatusMap() {
+        const map = {};
+        this.constantCollection.articleStatus.forEach(constantObj => {
+          map[constantObj.value] = constantObj.text;
+        })
+        return map;
+      }
+    },
+    watch: {},
+    async created() {
+      const searchParams = new URLSearchParams(location.search.substring(1));
+      this.articleId = searchParams.get('articleId');
+      if (searchParams.get('categoryId')) {
+        this.editItem.categoryId = searchParams.get('categoryId')
+      }
+      if (searchParams.get('articleGroupName')) {
+        this.editItem.articleGroupName = searchParams.get('articleGroupName')
+      }
+      if (searchParams.get('articlePublishStatus')) {
+        this.editItem.articlePublishStatus = searchParams.get('articlePublishStatus')
+      }
+      if (searchParams.get('articleStatus')) {
+        this.editItem.articleStatus = searchParams.get('articleStatus')
+      }
+
+      const { rows } = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'articleEdit',
+            actionId: 'selectCategoryList',
+            actionData: {},
+            whereIn: { categoryPublishStatus: [ 'public', 'login' ] },
+            orderBy: [{ column: 'categoryGroup', order: 'asc' }, { column: 'categoryGroupSort', order: 'asc' }]
+          }
+        }
+      })).data.appData.resultData;
+      rows.forEach(item => {
+        const count = item[`articleCount`] || 0
+        const text = `${item.categoryGroupConcat || ''}${item.categoryName} [共${count}篇]`;
+        this.constantCollection.category.push({ text, value: item.categoryId + "" });
+      })
+      
+    },
+
+  
+    
+
+    async mounted() {
+      if (this.articleId) {
+        await this.getTableData();
+      }
+      this.initEditorMd();
+
+      // 未保存离开提示
+      const that = this;
+      window.onbeforeunload = function () {
+        if (that.mdChanged) {
+          return 1;
+        } else {
+          return null;
+        }
+      }
+    },
+    methods: {
+      openSelectCategoryDialog() {
+        this.selectCategoryDialog = true
+      },
+      onSelectCategory(item) {
+        this.editItem.categoryName = "";
+        this.editItem.categoryId = item.value
+      },
+      async setLocalImage(event) {
+        const file = event.target.files[0];
+        window.vtoast.loading(`${file.name} 上传进度: 0.00%`);
+        const { downloadPath } = (await window.jianghuAxios.httpUploadByStream({
+          file,
+          fileDirectory: `articleMaterial/${this.articleId}`,
+          onProgress: (total, loaded) => {
+            // TODO: that.progress <v-overlay :value="uploading"  ==>  不好使
+            const progress = Number((loaded * 100 / total).toFixed(2));
+            window.vtoast.loading(`${file.name} 上传进度: ${progress}%`);
+            if (loaded === total) {
+              window.vtoast.success(`${file.name} 上传进度: 100%`);
+            }
+          }
+        })).data.appData.resultData;
+        this.editItem.articleCoverImage = downloadPath;
+      },
+      async setLocalAudio(event) {
+        const file = event.target.files[0];
+        window.vtoast.loading(`${file.name} 上传进度: 0.00%`);
+        const { downloadPath } = (await window.jianghuAxios.httpUploadByStream({
+          file,
+          fileDirectory: `articleMaterial/${this.articleId}`,
+          onProgress: (total, loaded) => {
+            // TODO: that.progress <v-overlay :value="uploading"  ==>  不好使
+            const progress = Number((loaded * 100 / total).toFixed(2));
+            window.vtoast.loading(`${file.name} 上传进度: ${progress}%`);
+            if (loaded === total) {
+              window.vtoast.success(`${file.name} 上传进度: 100%`);
+            }
+          }
+        })).data.appData.resultData;
+        if (downloadPath) {
+          this.localAudio = `/${window.appInfo.appId}/upload${downloadPath}`;
+          this.editItem.articleAudioUrl = downloadPath;
+        }
+      },
+      async setLocalVideo(event) {
+        const file = event.target.files[0];
+        window.vtoast.loading(`${file.name} 上传进度: 0.00%`);
+        const { downloadPath } = (await window.jianghuAxios.httpUploadByStream({
+          file,
+          fileDirectory: `articleMaterial/${this.articleId}`,
+          onProgress: (total, loaded) => {
+            // TODO: that.progress <v-overlay :value="uploading"  ==>  不好使
+            const progress = Number((loaded * 100 / total).toFixed(2));
+            window.vtoast.loading(`${file.name} 上传进度: ${progress}%`);
+            if (loaded === total) {
+              window.vtoast.success(`${file.name} 上传进度: 100%`);
+            }
+          }
+        })).data.appData.resultData;
+        if (downloadPath) {
+          this.localVideo = `/${window.appInfo.appId}/upload${downloadPath}`;
+          this.editItem.articleVideoUrl = downloadPath;
+        }
+      },
+      clearImage() {
+        this.editItem.articleCoverImage = null;
+      },
+      clearAudio() {
+        this.editItem.articleAudioUrl = null;
+      },
+      clearVideo() {
+        this.editItem.articleVideoUrl = null;
+      },
+      closeMaterialPicker() {
+        this.isEditDrawerShow = false;
+      },
+      async pickerImage() {
+        if (!await this.articleIdCheck()) {
+          window.vtoast.fail("请填写文章信息后,再点击上传文件!");
+          return
+        }
+        // document.getElementById('imageInput').click();
+        this.materialType = 'image';
+        this.writeBackType = 'attachment';
+        this.isEditDrawerShow = true;
+      },
+      async audioPicker() {
+        if (!await this.articleIdCheck()) {
+          window.vtoast.fail("请填写文章信息后,再点击上传文件!");
+          return
+        }
+        // document.getElementById('audioInput').click();
+        this.materialType = 'audio';
+        this.writeBackType = 'attachment';
+        this.isEditDrawerShow = true;
+      },
+      async videoPicker() {
+        if (!await this.articleIdCheck()) {
+          window.vtoast.fail("请填写文章信息后,再点击上传文件!");
+          return
+        }
+        // document.getElementById('videoInput').click();
+        this.materialType = 'video';
+        this.writeBackType = 'attachment';
+        this.isEditDrawerShow = true;
+      },
+      initEditorMd() {
+        const that = this;
+        this.$nextTick(() => {
+          if (document.getElementById('editorMdContainer')) {
+            document.getElementById('editorMdContainer').innerHTML = `<textarea style=\"display:none;\">${this.editItem['articleContent'] || ""}</textarea>`;
+            that.editor = editormd('editorMdContainer', {
+              // width  : "100%",
+              // height : "100%",
+              watch: false,
+              saveHTMLToTextarea: true,    // 保存 HTML 到 Textarea
+              path: '/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/editor.md/lib/',
+              toolbarIcons: function () {
+                return [
+                  "undo", "redo", "|",
+                  "watch",
+                  "preview", "|",
+                  "h1", "h2", "h3", "h4", "h5", "bold", "del", "italic", "quote", "mark",
+                  // "imageUpload",
+                  "list-ul", "list-ol", "hr", "link",
+                ]
+              },
+              toolbarIconsClass: {
+                // imageUpload: 'fa-image',
+                // audioUpload: 'fa-file-audio-o',
+                // videoUpload: 'fa-youtube-play',
+                // attachmentUpload: 'fa-upload',
+              },
+              toolbarHandlers: {
+                imageUpload: function (cm, icon, cursor, selection) {
+                  that.openImageUploadDrawer();
+                },
+                audioUpload: function (cm, icon, cursor, selection) {
+                  that.materialType = 'audio';
+                  that.writeBackType = 'editor';
+                  that.isEditDrawerShow = true;
+                },
+                videoUpload: function (cm, icon, cursor, selection) {
+                  that.materialType = 'video';
+                  that.writeBackType = 'editor';
+                  that.isEditDrawerShow = true;
+                },
+                attachmentUpload: function (cm, icon, cursor, selection) {
+                  that.materialType = 'attachment';
+                  that.writeBackType = 'editor';
+                  that.isEditDrawerShow = true;
+                },
+              },
+              onchange: function () {
+                that.mdChanged = true;
+                that.editItem.articleContent = this.getMarkdown();
+                that.editItem.articleContentForSeo = this.getPreviewedHTML2();
+              },
+            });
+          } else {
+            requestAnimationFrame(() => {
+              this.initEditorMd();
+            })
+          }
+        })
+      },
+      async openImageUploadDrawer() {
+        if (await this.articleIdCheck()) {
+          this.materialType = 'image';
+          this.writeBackType = 'editor';
+          this.isEditDrawerShow = true;
+        }
+      },
+      /**
+       * 获取表格数据
+       */
+      async getTableData() {
+        this.isTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'articleEdit',
+              actionId: 'selectArticleWithCategory',
+              actionData: {
+                articleId: this.articleId
+              },
+            }
+          }
+        });
+        this.editItem = result.data.appData.resultData;
+
+        this.isTableLoading = false;
+      },
+      async articleIdCheck() {
+        if (!this.articleId) {
+          return await this.insertItem();
+        }
+        return true;
+      },
+      /**
+       * 移除到回收站
+       */
+      async deletedArticle() {
+        if (await window.confirmDialog({
+          title: '移到回收站',
+          content: '确定要将文章移到回收站吗？'
+        })) {
+          await window.vtoast.loading("正在将文章移动到回收站");
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'articleEdit',
+                actionId: 'deletedArticle',
+                actionData: { articleId: this.articleId }
+              }
+            }
+          });
+          await window.vtoast.success("成功将文章移动到回收站！");
+          this.getTableData();
+        }
+      },
+      async restoreArticle() {
+        if (await window.confirmDialog({
+          title: '恢复文章',
+          content: '确定要恢复这篇文章吗？'
+        })) {
+          await window.vtoast.loading("正在恢复文章");
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'articleEdit',
+                actionId: 'restoreArticle',
+                actionData: { articleId: this.articleId }
+              }
+            }
+          });
+          await window.vtoast.success("成功恢复文章！");
+          this.getTableData();
+        }
+      },
+      /**
+       * 保存数据
+       */
+      async saveInfo() {
+        // 处理 articleTagList
+        if (!this.editItem.articleTagList) { this.editItem.articleTagList = ''; }
+        const parts = this.editItem.articleTagList.replace(/，/g, ',').split(',')
+        this.editItem.articleTagList = parts.map(item => item.trim()).join(',')
+        this.editItem.articlePublishTime = dayjs(this.editItem.articlePublishTime).format();
+        if (this.computedEditItem.id) {
+          await this.updateItem();
+        } else {
+          await this.insertItem();
+        }
+      },
+      // 保存并预览
+      async saveInfoAndPreview() {
+        await this.saveInfo();
+        // window.location.href = `<$ xiaochengxuPageUrl $>/?botUserId=<$ botUserId $>&pageId=article&articleId=${this.computedEditItem.articleId}&title=${this.computedEditItem.articleTitle}&articleStatus=${this.computedEditItem.articleStatus}`;
+        window.changeXiaochengxuPage({pageId: 'article', query: { articleId: this.editItem.articleId, title: this.editItem.articleTitle, articleStatus: this.editItem.articleStatus } });
+      },
+      /**
+       * 新增文章
+       */
+      async insertItem() {
+        if (!this.$refs.form.validate()) {
+          if (!this.editItem.articleStatus) {
+            window.vtoast.fail({ message: `文章状态不能为空` });
+          }
+          return false
+        };
+        const { id, articleList, categoryName, ...saveInfo } = this.computedEditItem;
+        await window.vtoast.loading("新增文章");
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'articleEdit',
+              actionId: 'jhInsertItem',
+              actionData: saveInfo
+            }
+          }
+        });
+
+        await window.vtoast.success("新增文章成功");
+        // 按id获取新文章并跳转新 url
+        const { rows } = (await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'articleEdit',
+              actionId: 'selectItemList',
+              actionData: {},
+              where: { id: result.data.appData.resultData.rows[0] },
+            }
+          }
+        })).data.appData.resultData;
+        const newArticle = rows[0];
+        const { articleId, articleTitle } = newArticle
+        this.articleId = articleId;
+        this.mdChanged = false;
+        await this.getTableData();
+        window.changeXiaochengxuPage({ pageId: 'articleEdit', query: { articleId: articleId, title: articleTitle , articleStatus: this.computedEditItem.articleStatus} });
+        // const newUrl = window.location.origin + `<$ xiaochengxuPageUrl $>?botUserId=<$ botUserId $>&pageId=articleEdit&articleId=${articleId}&title=${articleTitle}`;
+        // window.open(newUrl, '_self');
+        // history.pushState({}, null, newUrl);
+        return true;
+      },
+      /**
+       * 保存文章
+       */
+      async updateItem() {
+        if (!this.$refs.form.validate()) {
+          if (!this.editItem.articleStatus) {
+            window.vtoast.fail({ message: `文章状态不能为空` });
+          }
+          return false
+        };
+        const { id, articleList, categoryName, ...saveInfo } = this.computedEditItem;
+        await window.vtoast.loading("修改文章");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'articleEdit',
+              actionId: 'jhUpdateItem',
+              actionData: saveInfo,
+              where: {
+                articleId: this.computedEditItem.articleId
+              }
+            }
+          }
+        })
+        await window.vtoast.success("修改文章成功");
+        
+
+        this.mdChanged = false;
+        await this.getTableData();
+
+        window.changeXiaochengxuPage({ pageId: 'articleEdit', query: { articleId: this.computedEditItem.articleId, title: this.computedEditItem.articleTitle,articleStatus: this.computedEditItem.articleStatus} });
+        // const newUrl = window.location.origin + `<$ xiaochengxuPageUrl $>?botUserId=<$ botUserId $>&pageId=articleEdit&articleId=${this.computedEditItem.articleId}&title=${this.computedEditItem.articleTitle}`;
+        // window.open(newUrl, '_self');
+        // history.pushState({}, null, newUrl);
+      },
+
+
+
+
+      async useMaterial({ path }) {
+        let filename, downloadPath = null;
+        if (this.materialType === 'image') {
+          const resultData = (await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'articleEdit',
+                actionId: 'useMaterial',
+                actionData: {
+                  articleId: this.articleId,
+                  path,
+                },
+              }
+            }
+          })).data.appData.resultData;
+          filename = resultData.filename;
+          downloadPath = resultData.downloadPath;
+        } else {
+          downloadPath = `/materialRepo${path}`;
+          filename = path.substring(path.lastIndexOf('/')+1);
+        }
+
+        this.isEditDrawerShow = false;
+        if (this.writeBackType === 'editor') {
+          switch (this.materialType) {
+            case 'image':
+              if (downloadPath) {
+                this.editor.insertValue(`\n![${filename}](/upload${downloadPath})`);
+              }
+              break;
+            case 'audio':
+              if (downloadPath) {
+                this.editor.insertValue(`\n![=audio](/upload${downloadPath})`);
+              }
+              break;
+            case 'video':
+              if (downloadPath) {
+                this.editor.insertValue(`\n![=video](/upload${downloadPath})`);
+              }
+              break;
+            case 'attachment':
+              if (downloadPath) {
+                // attachment如何渲染
+                this.editor.insertValue(`\n[${filename}](/upload${downloadPath})`);
+              }
+              break;
+          }
+        } else {
+          switch (this.materialType) {
+            case 'image':
+              if (downloadPath) {
+                this.editItem.articleCoverImage = downloadPath
+              }
+              break;
+            case 'audio':
+              if (downloadPath) {
+                this.editItem.articleAudioUrl = downloadPath
+              }
+              break;
+            case 'video':
+              if (downloadPath) {
+                this.editItem.articleVideoUrl = downloadPath
+              }
+              break;
+            case 'attachment':
+              // attachment如何渲染
+              break;
+          }
+        }
+      },
+      closePage() {
+        window.history.back();
+      },
+      getFileName(path) {
+        if (path) {
+          return path.substring(path.lastIndexOf('/') + 1);
+        }
+        return "点击上传";
+      }
+    }
+  })
+</script>
+
+<style scoped>
+    .editormd-preview-container ol.linenums li, .editormd-html-preview ol.linenums li {
+        list-style-type: none;
+    }
+    .editormd-preview-container ol.linenums, .editormd-html-preview ol.linenums {
+        color: #999;
+        padding-left: 0;
+    }
+</style>
+{% endblock %}
