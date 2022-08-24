@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-init-config",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "jianghu init boilerplate config",
   "files": [
     "index.js"
@@ -46,6 +46,14 @@
       "xiaochengxu-markdown-editor": {
         "package": "@jianghujs/jianghu-boilerplate-xiaochengxu-markdown-editor",
         "description": "Duoxing xiaochengxu-markdown-editor app boilerplate"
+      },
+      "xiaochengxu-1table-crud": {
+        "package": "@jianghujs/jianghu-boilerplate-xiaochengxu-1table-crud",
+        "description": "Duoxing xiaochengxu-1table-crud app boilerplate"
+      },
+      "xiaochengxu-1table-crud-file": {
+        "package": "@jianghujs/jianghu-boilerplate-xiaochengxu-1table-crud-file",
+        "description": "Duoxing xiaochengxu-1table-crud-file app boilerplate"
       }
     }
   },

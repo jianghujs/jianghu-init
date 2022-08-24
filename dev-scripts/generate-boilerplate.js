@@ -155,4 +155,6 @@ process('xiaochengxu');
 process('workflow');
 process('json-editor');
 process('xiaochengxu-markdown-editor');
+process('xiaochengxu-1table-crud');
+process('xiaochengxu-1table-crud-file');
 
