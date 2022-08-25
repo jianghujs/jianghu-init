@@ -107,28 +107,13 @@ function moveBoilerplateAndPackToTgz(compressFolder, distFolder, fileName) {
   }
   fs.mkdirSync(tmpPath, { recursive: true });
   fse.copySync(compressFolder, tmpPath);
-
-  if (!fs.existsSync(distFolder)) {
-    fs.mkdirSync(distFolder);
-  }
-
-  // 压缩文件
-  compressing.tgz.compressDir(tmpPath, `${distFolder}/${fileName}.tgz`)
-    .then(() => {
-      console.log(`压缩文件成功, fileName: ${distFolder}/${fileName}.tgz`)
-    })
-    .catch(err => {
-      console.error(`压缩文件失败, fileName: ${distFolder}/${fileName}.tgz`)
-      console.log(err);
-    });
 }
 
 /**
  * 处理不同类型的 boilerplate
  */
-function process(type) {
+ exports.execute = function (sourceDir, type) {
   const targetDir = `../project-dist/jianghu-boilerplate-${type}/boilerplate`;
-  const sourceDir = `../project-src/demo_${type}`;
 
   // 删除 boilerplate
   console.log(`开始删除旧模板，type=${type}`);
@@ -142,18 +127,3 @@ function process(type) {
   moveBoilerplateAndPackToTgz(`../project-dist/jianghu-boilerplate-${type}`, './dist', `jianghu-boilerplate-${type}`);
 }
 
-// process('multi');
-// process('xiaoapp-in-multi');
-// process('xiaoapp');
-process('1table-crud');
-process('1table-crud-file');
-process('1table-crud-enterprise');
-process('2table-crud');
-process('3table-crud');
-process('enterprise');
-process('xiaochengxu');
-process('workflow');
-process('json-editor');
-process('xiaochengxu-markdown-editor');
-process('xiaochengxu-1table-crud');
-process('xiaochengxu-1table-crud-file');

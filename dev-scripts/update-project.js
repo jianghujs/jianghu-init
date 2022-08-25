@@ -4,7 +4,7 @@ const fse = require('fs-extra');
 const replace = require('replace-in-file');
 const path = require('path')
 const projectConfig = require('./update-project-config.json')
-const { execute } = require('./generate-boilerplate');
+const { execute } = require('./generate-boilerplate-update');
 
 const handler = async (config) => {
   const _cleanAndPrepareTmpDir = async (tmpPath, projectName) => {
