@@ -126,6 +126,24 @@ function moveBoilerplateAndPackToTgz(compressFolder, distFolder, fileName) {
 /**
  * 处理不同类型的 boilerplate
  */
+ exports.execute = function (sourceDir, type) {
+  const targetDir = `../project-dist/jianghu-boilerplate-${type}/boilerplate`;
+
+  // 删除 boilerplate
+  console.log(`开始删除旧模板，type=${type}`);
+  fs.rmSync(targetDir, {recursive: true, force: true});
+
+  // 复制 demo 至模板
+  console.log(`开始复制新模板，type=${type}`);
+  processFiles(targetDir, sourceDir);
+
+  // 打包，包中结构为 package/boilerplate/*
+  moveBoilerplateAndPackToTgz(`../project-dist/jianghu-boilerplate-${type}`, './dist', `jianghu-boilerplate-${type}`);
+}
+
+/**
+ * 处理不同类型的 boilerplate
+ */
 function process(type) {
   const targetDir = `../project-dist/jianghu-boilerplate-${type}/boilerplate`;
   const sourceDir = `../project-src/demo_${type}`;
@@ -157,4 +175,3 @@ process('json-editor');
 process('xiaochengxu-markdown-editor');
 process('xiaochengxu-1table-crud');
 process('xiaochengxu-1table-crud-file');
-

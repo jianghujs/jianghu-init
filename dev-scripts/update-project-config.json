@@ -12,5 +12,19 @@
       }
     ],
     "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-1table-crud.git"
+  },
+  {
+    "projectName": "xiaochengxu-markdown-editor",
+    "replaceList": [
+      {
+        "from": "jianghujs-xiaochengxu-markdown-editor",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_xiaochengxu_markdown_editor",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-markdown-editor.git"
   }
 ]

@@ -2,26 +2,19 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const fse = require('fs-extra');
 const replace = require('replace-in-file');
-// const projectConfig = require('./update-project-config.json')
-const config = {
-  projectName: 'xiaochengxu-1table-crud',
-  replaceList: [
-    {
-      from: 'jianghujs-xiaochengxu-1table-crud',
-      to: '__name__'
-    },
-    {
-      from: 'jianghujs_xiaochengxu_1table_crud',
-      to: '__name__'
-    },
-  ],
-  repositoryUrl: 'git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-1table-crud.git'
-}
+const path = require('path')
+const projectConfig = require('./update-project-config.json')
+const { execute } = require('./generate-boilerplate');
 
 const handler = async (config) => {
-  const _cleanAndPrepareTmpDir = async () => {
-    await fse.remove(`.tmp`)
-    await fse.mkdir(`.tmp`, { recursive: true });
+  const _cleanAndPrepareTmpDir = async (tmpPath, projectName) => {
+    try {
+      await fse.access(tmpPath, fse.constants.W_OK)
+      await fse.remove(path.join(tmpPath, projectName))
+    } catch(err) {
+      console.error(`access: ${path} error: ${err}`)
+      await fse.mkdir(tmpPath, { recursive: true });
+    }
   }
   /**
    * 
@@ -57,16 +50,13 @@ const handler = async (config) => {
     })
     await _replaceFolderFilesString(files, from_arr, to_arr)
   }
-
-  console.log('prepare the tmp dir...')
-  await _cleanAndPrepareTmpDir()
+  const tmpDir = `${__dirname}/.tmp`
+  await _cleanAndPrepareTmpDir(tmpDir, config.projectName)
 
   console.log(`start clone project: ${config.projectName}`)
-  console.log(`cd .tmp && git clone ${config.repositoryUrl} ${config.projectName}`)
   // clone the project
-  await exec(`cd .tmp && git clone ${config.repositoryUrl} ${config.projectName}`); 
+  await exec(`cd ${tmpDir} && git clone ${config.repositoryUrl} ${config.projectName}`); 
 
-  console.log(`start replace project name`)
   // replace project name variable
   await _replaceFileStrWithReplaceList([
     `.tmp/${config.projectName}/**/*.js`,
@@ -74,6 +64,7 @@ const handler = async (config) => {
     `.tmp/${config.projectName}/**/*.md`,
   ], config.replaceList)
   console.log('start replace database name')
+  
   // replace database name
   await _replaceFolderFilesString(
     [
@@ -83,19 +74,22 @@ const handler = async (config) => {
   `database: '__name__'`,
   `database: '__database__'`
   )
+
+  execute(path.join(tmpDir, config.projectName), config.projectName)
+
+  console.log(`update project: ${config.projectName} done`)
 }
 
-handler(config)
+const run = async () => {
+  if (!projectConfig) {
+    console.error(`project config json no content`)
+    return;
+  }
+  if (Array.isArray(projectConfig)) {
+    for (const item of projectConfig) {
+      await handler(item)
+    }
+  }
+}
 
-
-// const execute = async () => {
-//   if (!projectConfig) {
-//     console.error(`project config json no content`)
-//     return;
-//   }
-//   if (Array.isArray(projectConfig)) {
-//     for (const item of projectConfig) {
-//       await handler(item)
-//     }
-//   }
-// }
+run()
