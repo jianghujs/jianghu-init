@@ -107,6 +107,20 @@ function moveBoilerplateAndPackToTgz(compressFolder, distFolder, fileName) {
   }
   fs.mkdirSync(tmpPath, { recursive: true });
   fse.copySync(compressFolder, tmpPath);
+
+  if (!fs.existsSync(distFolder)) {
+    fs.mkdirSync(distFolder);
+  }
+  
+  // 压缩文件
+  compressing.tgz.compressDir(tmpPath, `${distFolder}/${fileName}.tgz`)
+    .then(() => {
+      console.log(`压缩文件成功, fileName: ${distFolder}/${fileName}.tgz`)
+    })
+    .catch(err => {
+      console.error(`压缩文件失败, fileName: ${distFolder}/${fileName}.tgz`)
+      console.log(err);
+    });
 }
 
 /**
