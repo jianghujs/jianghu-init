@@ -74,8 +74,11 @@ const handler = async (config) => {
   `database: '__name__'`,
   `database: '__database__'`
   )
-
-  execute(path.join(tmpDir, config.projectName), config.projectName)
+  
+  const projectPath = path.join(tmpDir, config.projectName)
+  execute(projectPath, config.projectName)
+  // delete the tmp project folder
+  await fse.remove(projectPath)
 
   console.log(`update project: ${config.projectName} done`)
 }
