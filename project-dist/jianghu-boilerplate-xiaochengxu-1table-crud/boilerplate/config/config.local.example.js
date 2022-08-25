@@ -26,9 +26,9 @@ module.exports = appInfo => {
         connection: {
           host: '127.0.0.1',
           port: 3306,
-          user: "root",
-          password: "123456",
-          database: "{{database}}",
+          user: 'root',
+          password: '123456',
+          database: '{{database}}'
         },
         pool: { min: 0, max: 10 },
         acquireConnectionTimeout: 30000
@@ -37,7 +37,7 @@ module.exports = appInfo => {
     },
     duoxingBot: {
       server: "https://duoxing-v5.openjianghu.org",
-      userId: "W00001",
+      userId: "userId",
       password: "123456",
       serverAppId: "duoxing",
       deviceType: "bot_xiaochengxu", // bot_databot, bot_chatbot, bot_xiaochengxu
