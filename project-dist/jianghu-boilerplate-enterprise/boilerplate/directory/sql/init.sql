@@ -104,7 +104,7 @@ CREATE TABLE `_page` (
 
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help','帮助',NULL,NULL,NULL,'insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'login','登陆',NULL,NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'manual','操作手册',NULL,'dynamicInMenu',NULL,'insert',NULL,NULL,NULL);
+INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'manual','操作手册',NULL,NULL,NULL,'insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (8,'directory','目录',NULL,'showInMenu','1','insert',NULL,NULL,NULL);
 
 
@@ -127,7 +127,7 @@ CREATE TABLE `_record_history` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `index_record_id` (`recordId`) USING BTREE,
   KEY `index_table_action` (`table`, `operation`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 COMMENT = '数据历史表';
+) ENGINE = InnoDB AUTO_INCREMENT = 7 COMMENT = '数据历史表';
 
 
 
@@ -161,10 +161,10 @@ CREATE TABLE `_resource` (
 # DATA DUMP FOR TABLE: _resource
 # ------------------------------------------------------------
 
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (231,NULL,NULL,'login','passwordLogin','✅登陆','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"passwordLogin\" }',NULL,NULL,'update',NULL,NULL,'2022-04-28T23:10:35+08:00');
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (231,NULL,NULL,'login','passwordLogin','✅登陆','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"passwordLogin\" }','{\"appData\":{\"pageId\":\"login\",\"actionId\":\"passwordLogin\",\"actionData\":{\"userId\":\"admin\",\"password\":\"123456\",\"deviceId\":\"127.0.0.1:7007_Windows.10.0_5f48a3f5_chrome\"},\"appId\":\"directory\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36\"},\"packageId\":\"1659856538525_3047161\",\"packageType\":\"httpRequest\"}','{\"packageId\":\"1659856538525_3047161\",\"packageType\":\"httpResponse\",\"status\":\"success\",\"timestamp\":\"2022-08-07T15:15:40+08:00\",\"appData\":{\"authToken\":\"AxBpieI19kWFfd80xrRowVccqK-tt7WzLjdD\",\"deviceId\":\"127.0.0.1:7007_Windows.10.0_5f48a3f5_chrome\",\"userId\":\"admin\",\"resultData\":{\"authToken\":\"AxBpieI19kWFfd80xrRowVccqK-tt7WzLjdD\",\"deviceId\":\"127.0.0.1:7007_Windows.10.0_5f48a3f5_chrome\",\"userId\":\"admin\"},\"appId\":\"directory\",\"pageId\":\"login\",\"actionId\":\"passwordLogin\"}}','update',NULL,NULL,'2022-08-07T15:15:40+08:00');
 INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (251,NULL,NULL,'allPage','logout','✅登出','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"logout\" }',NULL,NULL,'update',NULL,NULL,'2022-02-23T23:08:31+08:00');
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (253,NULL,NULL,'allPage','userInfo','✅获取用户信息','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"userInfo\" }',NULL,NULL,'update',NULL,NULL,'2022-04-28T23:11:44+08:00');
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (263,NULL,NULL,'directory','selectItemList','✅查询目录','service',NULL,'{ \"service\": \"directory\", \"serviceFunction\": \"getDirectoryList\" }',NULL,NULL,'update',NULL,NULL,'2022-04-28T23:11:44+08:00');
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (253,NULL,NULL,'allPage','userInfo','✅获取用户信息','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"userInfo\" }','{\"appData\":{\"pageId\":\"allPage\",\"actionId\":\"userInfo\",\"actionData\":{},\"appId\":\"directory\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36\"},\"packageId\":\"1659856542162_9932845\",\"packageType\":\"httpRequest\"}','{\"packageId\":\"1659856542162_9932845\",\"packageType\":\"httpResponse\",\"status\":\"success\",\"timestamp\":\"2022-08-07T15:15:43+08:00\"}','update',NULL,NULL,'2022-08-07T15:15:43+08:00');
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (263,NULL,NULL,'directory','selectItemList','✅查询目录','service',NULL,'{ \"service\": \"directory\", \"serviceFunction\": \"getDirectoryList\" }','{\"appData\":{\"pageId\":\"directory\",\"actionId\":\"selectItemList\",\"orderBy\":[{\"column\":\"operationAt\",\"order\":\"desc\"}],\"appId\":\"directory\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36\",\"actionData\":{}},\"packageId\":\"1659856542163_2940224\",\"packageType\":\"httpRequest\"}','{\"packageId\":\"1659856542163_2940224\",\"packageType\":\"httpResponse\",\"status\":\"success\",\"timestamp\":\"2022-08-07T15:15:43+08:00\"}','update',NULL,NULL,'2022-08-07T15:15:43+08:00');
 
 
 
@@ -193,7 +193,7 @@ CREATE TABLE `_resource_request_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `resourceId_index` (`resourceId`) USING BTREE,
   KEY `packageId_index` (`packageId`) USING BTREE
-) ENGINE = InnoDB COMMENT = '文件表; 软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 4 COMMENT = '文件表; 软删除未启用;';
 
 
 
@@ -412,7 +412,7 @@ CREATE TABLE `_user_session` (
   KEY `userId_index` (`userId`) USING BTREE,
   KEY `userId_deviceId_index` (`userId`, `deviceId`) USING BTREE,
   KEY `authToken_index` (`authToken`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 COMMENT = '用户session表; deviceId 维度;软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 13 COMMENT = '用户session表; deviceId 维度;软删除未启用;';
 
 
 
@@ -461,25 +461,22 @@ INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,
 
 CREATE OR REPLACE VIEW `_view01_user` AS
 select
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`id` AS `id`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`idSequence` AS `idSequence`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`userId` AS `userId`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`username` AS `username`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`clearTextPassword` AS `clearTextPassword`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`password` AS `password`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`md5Salt` AS `md5Salt`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`userStatus` AS `userStatus`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`userType` AS `userType`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`userConfig` AS `userConfig`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operation` AS `operation`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationByUserId` AS `operationByUserId`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationByUser` AS `operationByUser`,
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationAt` AS `operationAt`
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`id` AS `id`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`idSequence` AS `idSequence`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`userId` AS `userId`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`username` AS `username`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`clearTextPassword` AS `clearTextPassword`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`password` AS `password`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`md5Salt` AS `md5Salt`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`userStatus` AS `userStatus`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`userType` AS `userType`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`userConfig` AS `userConfig`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`operation` AS `operation`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`operationByUserId` AS `operationByUserId`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`operationByUser` AS `operationByUser`,
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`.`operationAt` AS `operationAt`
 from
-  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`
-  LEFT JOIN {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user_app ON {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user_app.userId = {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user.userId
-WHERE
-appId = 'directory';
+  `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user`;
 
 
 
@@ -505,10 +502,10 @@ select
 from
   (
   (
-    `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user_app` `_user_app`
-    join `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user` `_user` on((`_user_app`.`userId` = `_user`.`userId`))
+    `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user_app` `_user_app`
+    join `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___user` `_user` on((`_user_app`.`userId` = `_user`.`userId`))
   )
-  join `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___app` `_app` on((`_user_app`.`appId` = `_app`.`appId`))
+  join `jianghujs_demo_enterprise_data_repository`.`jianghujs_demo_enterprise_user_app_management___app` `_app` on((`_user_app`.`appId` = `_app`.`appId`))
   );
 
 

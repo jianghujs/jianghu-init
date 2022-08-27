@@ -28,9 +28,9 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --port=7002 --title=data_repository",
+    "start": "egg-scripts start --daemon  --port=7005 --title=data_repository",
     "stop": "egg-scripts stop --title=data_repository",
-    "dev": "egg-bin dev --port=7002",
+    "dev": "egg-bin dev --port=7005",
     "debug": "egg-bin debug",
     "test": "npm run lint -- --fix && npm run test-local",
     "test-local": "egg-bin test",

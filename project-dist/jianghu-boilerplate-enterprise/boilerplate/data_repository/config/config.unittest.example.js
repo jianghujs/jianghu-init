@@ -16,7 +16,7 @@ module.exports = appInfo => {
           password: '123456',
           database: '{{dbPrefix}}data_repository',
         },
-        pool: { min: 0, max: 10 },
+        pool: { min: 0, max: 100 },
         acquireConnectionTimeout: 30000,
       },
       app: true,

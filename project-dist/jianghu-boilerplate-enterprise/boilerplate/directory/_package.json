@@ -1,5 +1,5 @@
 {
-  "name": "{{dbPrefix}}directory",
+  "name": "{{dbPrefix}}enterprise_directory",
   "version": "1.0.0",
   "description": "",
   "private": true,
@@ -8,7 +8,7 @@
     "framework": "@jianghujs/jianghu"
   },
   "dependencies": {
-    "dayjs": "^1.10.5",
+    "dayjs": "1.11.0",
     "egg": "^2.15.1",
     "@jianghujs/jianghu": "3.0.44",
     "egg-scripts": "^2.11.0",
@@ -28,9 +28,9 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --port=7004 --title=directory",
+    "start": "egg-scripts start --daemon  --port=7007 --title=directory",
     "stop": "egg-scripts stop --title=directory",
-    "dev": "egg-bin dev --port=7004",
+    "dev": "egg-bin dev --port=7007",
     "debug": "egg-bin debug",
     "test": "npm run lint -- --fix && npm run test-local",
     "test-local": "egg-bin test",

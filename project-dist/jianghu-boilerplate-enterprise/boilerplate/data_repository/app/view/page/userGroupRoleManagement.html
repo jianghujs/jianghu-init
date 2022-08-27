@@ -3,626 +3,714 @@
 {% block vue_template %}
 
 <jh-layout-v3>
-  <v-btn
-      color="success"
-      class="ma-2 white--text"
-      fab absolute right bottom
-      style="bottom: 68px"
-      v-if="isMobile"
-      @click="showLeftMenu = !showLeftMenu"
-  >
-    <v-icon dark>
-      mdi-menu-open
-    </v-icon>
-  </v-btn>
+<v-btn
+    color="success"
+    class="ma-2 white--text"
+    fab absolute right bottom
+    style="bottom: 68px"
+    v-if="isMobile"
+    @click="showLeftMenu = !showLeftMenu"
+>
+  <v-icon dark>
+    mdi-menu-open
+  </v-icon>
+</v-btn>
 
-  <v-navigation-drawer
-      app
-      left
-      width="270"
-      style="top: 70px; z-index: 3"
-      v-model="showLeftMenu"
-  >
-    <template v-slot:prepend>
-      <v-tabs color="success" v-model="pageTab">
-        <v-tab class="pa-0">用户</v-tab>
-        <v-tab class="pa-0">组织</v-tab>
-        <v-tab class="pa-0">角色</v-tab>
-      </v-tabs>
-      <v-btn depressed  block style="max-width: 180px; display: block; min-width: calc(100% - 24px)!important;" @click="openFormDialog()" color="success ma-3 mb-0">
-        添加新{{tabItemTitle}}
-      </v-btn>
-      <v-col>
-        <v-text-field
-            label="搜索" dense
-            color="success"
-            class="cus-v-input"
-            placeholder="搜索"
-            v-model="tabsSearchKeyword"
-            prepend-inner-icon="mdi-text-search"
-            filled single-line
-        ></v-text-field>
+<v-navigation-drawer
+    app
+    left
+    width="270"
+    style="top: 70px; z-index: 3"
+    v-model="showLeftMenu"
+>
+  <template v-slot:prepend>
+    <v-tabs color="success" v-model="pageTab">
+      <v-tab class="pa-0">用户</v-tab>
+      <v-tab class="pa-0">组织</v-tab>
+      <v-tab class="pa-0">角色</v-tab>
+    </v-tabs>
+    <v-btn depressed  block style="max-width: 180px; display: block; min-width: calc(100% - 24px)!important;" @click="openFormDialog()" color="success ma-3 mb-0">
+      添加新{{tabItemTitle}}
+    </v-btn>
+    <v-col>
+      <v-text-field
+          label="搜索" dense
+          color="success"
+          class="cus-v-input"
+          placeholder="搜索"
+          v-model="tabsSearchKeyword"
+          prepend-inner-icon="mdi-text-search"
+          filled single-line
+      ></v-text-field>
+    </v-col>
+  </template>
+
+  <v-list-item-group v-model="selectedItem" mandatory dense color="success">
+    <v-list-item
+        v-for="item in tabData"
+        :key="item.value"
+    >
+      <v-list-item-content>
+        <v-list-item-title>{{ item.text }}({{ item.value }})</v-list-item-title>
+      </v-list-item-content>
+    </v-list-item>
+  </v-list-item-group>
+</v-navigation-drawer>
+
+<!-- 页面主要内容 -->
+<v-container class="fullScreen d-flex flex-column pa-0" :style="{maxWidth: 'calc(100vw - ' + (isMobile ? 0 : 270) + 'px)'}">
+  <v-card :class="{'px-2': isMobile}">
+    <v-row class="flex-nowrap ma-0">
+      <v-col :style="{maxWidth: 'calc(100% - ' + (isMobile ? 0 : 270) + 'px)'}" class="d-flex flex-column ma-0 pb-0" :class="{'pa-0': isMobile}">
+        <v-row class="ma-0 align-center flex-none pt-0 " :class="{'pb-0': !isMobile, 'pa-2': isMobile, 'pl-0': !isMobile, 'pr-0': !isMobile}">
+
+          <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0 d-flex align-center">
+            <v-btn color="success" dark class="elevation-0 mr-4" @click="doAction('startCreateItem', null)">新增</v-btn>
+            <div style="border-radius: 4px; padding-top: 1px" class="pr-2 mr-4">
+              <v-switch class="d-inline-block ma-0 pa-0"
+                        v-model="showAllData"
+                        label="显示全部"
+                        color="success"
+                        inset
+                        style="white-space: nowrap"
+                        @change="doAction('refreshTableData')"
+                        hide-details
+              ></v-switch>
+            </div>
+            <v-divider vertical></v-divider>
+            <span class="body-2 ml-5" style="white-space: nowrap">共{{ tableData.length }}条记录</span>
+          </v-col>
+
+          <v-spacer></v-spacer>
+
+          <v-col cols="12" xs="12" sm="4" md="3" xl="3" class="px-0">
+            <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+          </v-col>
+
+        </v-row>
+        <v-data-table fixed-header
+                      :headers="headers"
+                      :items="tableData"
+                      :search="searchInput"
+                      :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                      :items-per-page="20"
+                      :loading="isTableLoading"
+                      checkbox-color="success"
+                      mobile-breakpoint="0"
+                      class="elevation-0 mt-0 flex-fill d-flex flex-column">
+
+          <template v-slot:item.roleId="{ item }">
+            {{ (constantCollection.userType.find(({value}) => value === item.roleId) || constantCollection.role.find(({value}) => value === item.roleId) || {}).text }}
+          </template>
+          <template v-slot:item.action="{ item }">
+            <v-btn small class="mr-2 success" @click="doAction('startUpdateItem', {item})">
+              修改
+            </v-btn>
+            <v-btn small class="mr-2 error" @click="doAction('deleteItem', {item})">
+              删除
+            </v-btn>
+          </template>
+        </v-data-table>
       </v-col>
-    </template>
-
-    <v-list-item-group v-model="selectedItem" mandatory dense color="success">
-      <v-list-item
-          v-for="item in tabData"
-          :key="item.value"
-      >
-        <v-list-item-content>
-          <v-list-item-title>{{ item.text }}({{ item.value }})</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-    </v-list-item-group>
-  </v-navigation-drawer>
-
-  <!-- 页面主要内容 -->
-  <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0" :style="{maxWidth: 'calc(100vw - ' + (isMobile ? 0 : 270) + 'px)'}">
-    <v-card>
-      <v-row class="flex-nowrap ma-0">
-        <v-col :style="{maxWidth: 'calc(100% - ' + (isMobile ? 0 : 270) + 'px)'}" class="d-flex flex-column ma-0 pb-0" :class="{'pa-0': isMobile}">
-          <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pb-0': !isMobile, 'pa-2': isMobile, 'pl-0': !isMobile, 'pr-0': !isMobile}">
-
-            <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0 d-flex align-center">
-              <v-btn color="success" dark class="elevation-0 mr-4" @click="doUiAction('startCreateItem', null)">新增</v-btn>
-              <div style="border-radius: 4px; padding-top: 1px" class="pr-2 mr-4">
-                <v-switch class="d-inline-block ma-0 pa-0"
-                          v-model="showAllData"
-                          label="显示全部"
-                          color="success"
-                          inset
-                          style="white-space: nowrap"
-                          @change="doUiAction('refreshTableData')"
-                          hide-details
-                ></v-switch>
-              </div>
-              <v-divider vertical></v-divider>
-              <span class="body-2 ml-5" style="white-space: nowrap">共{{ tableData.length }}条记录</span>
-            </v-col>
-
+      <v-col style="max-width: 270px; border-left: 1px solid #ccc;" class="px-6" v-if="!isMobile">
+        <v-list-item-title style="font-size: 18px!important; font-weight: bold;" class="pt-3">{{tabItemTitle + '信息'}}</v-list-item-title>
+        <v-form v-model="isFormValidRight" ref="formRight" lazy-validation>
+          <v-list-item v-for="item of tabItemKeys" class="pl-0 pt-4 pr-0">
+            <v-select v-if="item.type === 'select'"
+                      class="cus-v-input mr-2" dense filled single-line
+                      item-value="value"
+                      :label="item.text" v-model="activeItemInfo[item.value]"
+                      :rules="item.require == false ? nullRules : requireRules" :items="constantCollection[item.value]"></v-select>
+            <v-textarea v-else-if="item.type === 'textarea'" class="cus-v-input mr-2" dense filled single-line :label="item.text" v-model="activeItemInfo[item.value]" :rules="item.require == false ? nullRules : requireRules"></v-textarea>
+            <v-text-field v-else class="cus-v-input mr-2" dense filled single-line :label="item.text" v-model="activeItemInfo[item.value]" :rules="item.require == false ? nullRules : requireRules"></v-text-field>
+          </v-list-item>
+          <v-row class="pa-5">
             <v-spacer></v-spacer>
-
-            <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex" :class="{'pr-0': !isMobile}">
-              <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
-            </v-col>
-
-          </v-row>
-          <v-data-table fixed-header
-                        :headers="headers"
-                        :items="tableData"
-                        :search="searchInput"
-                        :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
-                        :items-per-page="20"
-                        :loading="isTableLoading"
-                        checkbox-color="success"
-                        :class="{'mx-4': isMobile}"
-                        mobile-breakpoint="0"
-                        class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-
-            <template v-slot:item.roleId="{ item }">
-              {{ (constantCollection.userType.find(({value}) => value === item.roleId) || constantCollection.role.find(({value}) => value === item.roleId) || {}).text }}
-            </template>
-            <template v-slot:item.action="{ item }">
-              <v-btn :small="!isMobile" class="mr-2 success" @click="doUiAction('startUpdateItem', {item})">
-                修改
-              </v-btn>
-              <v-btn :small="!isMobile" class="mr-2 error" @click="doUiAction('deleteItem', {item})">
-                删除
-              </v-btn>
-            </template>
-          </v-data-table>
-        </v-col>
-        <v-col style="max-width: 270px; border-left: 1px solid #ccc;" class="px-6" v-if="!isMobile">
-          <v-list-item-title style="font-size: 18px!important; font-weight: bold;" class="pt-3">{{tabItemTitle + '信息'}}</v-list-item-title>
-          <v-form v-model="isFormValidRight" ref="formRight" lazy-validation>
-            <v-list-item v-for="item of tabItemKeys" class="pl-0 pt-4 pr-0">
-              <v-select v-if="item.type === 'select'"
-                        class="cus-v-input mr-2" dense filled single-line
-                        item-value="value"
-                        :label="item.text" v-model="activeItemInfo[item.value]"
-                        :rules="item.require == false ? nullRules : requireRules" :items="constantCollection[item.value]"></v-select>
-              <v-textarea v-else-if="item.type === 'textarea'" class="cus-v-input mr-2" dense filled single-line :label="item.text" v-model="activeItemInfo[item.value]" :rules="item.require == false ? nullRules : requireRules"></v-textarea>
-              <v-text-field v-else class="cus-v-input mr-2" dense filled single-line :label="item.text" v-model="activeItemInfo[item.value]" :rules="item.require == false ? nullRules : requireRules"></v-text-field>
-            </v-list-item>
-            <v-row class="pa-5">
-              <v-spacer></v-spacer>
-              <v-btn color="error" @click="doUiAction('deleteLeftItem')" class="mr-4">删除</v-btn>
-              <v-btn color="success" @click="doUiAction('updateLeftItem')">修改</v-btn>
-            </v-row>
-          </v-form>
-        </v-col>
-      </v-row>
-    </v-card>
-  </v-container>
-
-  <v-overlay app :value="isEditDrawerShow"></v-overlay>
-  <!-- 编辑抽屉 -->
-  <v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="80%"
-                      class="elevation-24">
-    <v-form v-model="isFormValid" ref="form" lazy-validation>
-      <v-row class="pt-8">
-        <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-8': isMobile}">{{ currentClickButton.title }}信息</span>
-        <v-spacer></v-spacer>
-        <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
-          <v-icon dark>mdi-close</v-icon>
-        </v-btn>
-      </v-row>
-      <v-row  :class="{'px-10': !isMobile, 'px-4': isMobile, 'pb-7': isMobile}">
-        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">UserID</span>
-          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="UserID" :rules="requireRules" v-model="editItem.userId" :items="constantCollection.user"></v-select>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">GroupID</span>
-          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="GroupID" :rules="requireRules" v-model="editItem.groupId" :items="constantCollection.group"></v-select>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">RoleId</span>
-          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="RoleId" :rules="requireRules" v-model="editItem.roleId" :items="constantCollection.role"></v-select>
-        </v-col>
-      </v-row>
-
-      <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
-        <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)" >保存</v-btn>
-        <v-btn class="elevation-0 mr-2 ml-2" @click="isEditDrawerShow = false" >取消</v-btn>
-      </v-row>
-    </v-form>
-  </v-navigation-drawer>
-
-  <v-dialog
-      v-model="addItemDialog"
-      width="800px"
-  >
-    <v-card>
-      <v-card-title class="text-h5  lighten-2 px-16 pt-12">
-        添加新{{tabItemTitle}}
-      </v-card-title>
-
-      <v-card-text>
-        <v-form v-model="isFormValidLeft" v-if="addItemDialog" ref="formLeft" lazy-validation>
-          <v-row :class="{'px-10': !isMobile, 'px-4': isMobile, 'pb-7': isMobile}" v-if="pageTab == 0">
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">用户ID</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="用户ID" v-model="editItem.userId" :rules="requireRules"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">用户名</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="用户名" v-model="editItem.username" :rules="requireRules"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">用户状态</span>
-              <v-select class="cus-v-input mr-2" dense filled single-line clearable label="用户状态" v-model="editItem.userStatus" :items="constantCollection.userStatus"></v-select>
-            </v-col>
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">用户类型</span>
-              <v-select class="cus-v-input mr-2" dense filled single-line clearable label="用户类型" v-model="editItem.userType" :items="constantCollection.userType"></v-select>
-            </v-col>
-            <v-col v-if="currentClickButton.action === 'add'" cols="12" sm="12" md="6" class="pa-xs-0 pb-xs-4 pb-3">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">初始密码</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="初始密码" v-model="editItem.clearTextPassword" :rules="requireRules"></v-text-field>
-            </v-col>
-          </v-row>
-          <v-row :class="{'px-10': !isMobile, 'px-4': isMobile, 'pb-7': isMobile}" v-if="pageTab == 1">
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">组织ID</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织ID" v-model="editItem.groupId" :rules="requireRules"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">组织名</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织名" v-model="editItem.groupName" :rules="requireRules"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">组织描述</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织描述" v-model="editItem.groupDesc"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">组织Logo</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织Logo" v-model="editItem.groupAvatar"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">拓展字段</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="拓展字段" v-model="editItem.groupExtend"></v-text-field>
-            </v-col>
-          </v-row>
-          <v-row :class="{'px-10': !isMobile, 'px-4': isMobile, 'pb-7': isMobile}" v-if="pageTab == 2">
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">角色ID</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="角色ID" v-model="editItem.roleId" :rules="requireRules"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">角色名</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="角色名" v-model="editItem.roleName" :rules="requireRules"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-              <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">角色描述</span>
-              <v-text-field class="cus-v-input mr-2" dense filled single-line label="角色描述" v-model="editItem.roleDesc"></v-text-field>
-            </v-col>
+            <v-btn color="error" @click="doAction('deleteLeftItem')" class="mr-4">删除</v-btn>
+            <v-btn color="success" @click="doAction('updateLeftItem')">修改</v-btn>
           </v-row>
         </v-form>
-      </v-card-text>
+      </v-col>
+    </v-row>
+  </v-card>
+</v-container>
 
-      <v-card-actions class="py-4">
-        <v-spacer></v-spacer>
-        <v-btn color="success"  @click="doUiAction('createLeftItem')"> 保存</v-btn>
-        <v-btn class="elevation-0 mr-2 ml-2" @click="addItemDialog = false" >取消</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+<!-- 编辑抽屉 -->
+<v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="80%"
+                     class="elevation-24">
+  <v-form v-model="isFormValid" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">{{ currentClickButton.title }}信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row  :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">UserID</span>
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="UserID" :rules="requireRules" v-model="editItem.userId" :items="constantCollection.user"></v-select>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">GroupID</span>
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="GroupID" :rules="requireRules" v-model="editItem.groupId" :items="constantCollection.group"></v-select>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">RoleId</span>
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="RoleId" :rules="requireRules" v-model="editItem.roleId" :items="constantCollection.role"></v-select>
+      </v-col>
+    </v-row>
+
+    <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+      <v-btn color="success" @click="doAction(dialogSaveInfoAction)" >保存</v-btn>
+      <v-btn class="elevation-0 mr-2 ml-2" @click="isEditDrawerShow = false" >取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+
+<v-dialog
+    v-model="addItemDialog"
+    width="800px"
+>
+  <v-card :class="{'px-2': isMobile}">
+    <v-card-title class="text-h5  lighten-2  pt-12" :class="{'px-16': !isMobile}">
+      添加新{{tabItemTitle}}
+    </v-card-title>
+
+    <v-card-text>
+      <v-form v-model="isFormValidLeft" v-if="addItemDialog" ref="formLeft" lazy-validation>
+        <v-row :class="{'px-10': !isMobile, 'pb-7': isMobile}" v-if="pageTab == 0">
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">用户ID</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="用户ID" v-model="editItem.userId" :rules="requireRules"></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">用户名</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="用户名" v-model="editItem.username" :rules="requireRules"></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">用户状态</span>
+            <v-select class="cus-v-input mr-2" dense filled single-line clearable label="用户状态" v-model="editItem.userStatus" :items="constantCollection.userStatus"></v-select>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">用户类型</span>
+            <v-select class="cus-v-input mr-2" dense filled single-line clearable label="用户类型" v-model="editItem.userType" :items="constantCollection.userType"></v-select>
+          </v-col>
+          <v-col v-if="currentClickButton.action === 'add'" cols="12" sm="12" md="6" class="pb-xs-4 pb-3">
+            <span class="inputLabel">初始密码</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="初始密码" v-model="editItem.clearTextPassword" :rules="requireRules"></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row :class="{'px-10': !isMobile, 'pb-7': isMobile}" v-if="pageTab == 1">
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">组织ID</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织ID" v-model="editItem.groupId" :rules="requireRules"></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">组织名</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织名" v-model="editItem.groupName" :rules="requireRules"></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">组织描述</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织描述" v-model="editItem.groupDesc"></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">组织Logo</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织Logo" v-model="editItem.groupAvatar"></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">拓展字段</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="拓展字段" v-model="editItem.groupExtend"></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row :class="{'px-10': !isMobile,  'pb-7': isMobile}" v-if="pageTab == 2">
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">角色ID</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="角色ID" v-model="editItem.roleId" :rules="requireRules"></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">角色名</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="角色名" v-model="editItem.roleName" :rules="requireRules"></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">角色描述</span>
+            <v-text-field class="cus-v-input mr-2" dense filled single-line label="角色描述" v-model="editItem.roleDesc"></v-text-field>
+          </v-col>
+        </v-row>
+      </v-form>
+    </v-card-text>
+
+    <v-card-actions class="py-4">
+      <v-spacer></v-spacer>
+      <v-btn color="success"  @click="doAction('createLeftItem')"> 保存</v-btn>
+      <v-btn class="elevation-0 mr-2 ml-2" @click="addItemDialog = false" >取消</v-btn>
+    </v-card-actions>
+  </v-card>
+</v-dialog>
 </jh-layout-v3>
 
 {% endblock %}
 
 {% block vue_body %}
+{% include 'common/uiAction.html' %}
+
 <script type="module">
-  new Vue({
-    el: '#app',
-    template: '#app-template',
-    vuetify: new Vuetify(),
-    mixins: [window.jianghuUiActionMixins],
-    data: {
-      // 表格相关数据
-      isFormValid: true,
-      isFormValidLeft: true,
-      isFormValidRight: true,
-      showAllData: false,
-      addItemDialog: false,
-      pageTab: 0,
-      selectedItem: 0,
-      showLeftMenu: window.innerWidth > 600,
-      requireRules: [ v => !!v],
-      nullRules: [ v => true],
-      tabsSearchKeyword: null,
-      constantCollection: {
-        user: [],
-        group: [],
-        role: [],
-        userStatus: [{value: 'active', text: '活跃'}, {value: 'banned', text: '关闭'}],
-        userType: [{value: 'common', text: '管理员'}, {value: 'staff', text: '职工'},  {value: 'teacher', text: '老师'}, {value: 'student', text: '学员'}],
-      },
-      isEditDrawerShow: false,
-      searchInput: null,
-      isTableLoading: true,
-      tableDataFromBackend: [],
-      pageTableDataFromBackend: [],
-      editItem: {},
-      activeItemInfo: {},
-      headers: [
-        {text: "用户Id", value: "userId", width: 120, class: 'fixed', cellClass: 'fixed'},
-        {text: "组织ID", value: "groupId", width: 120},
-        {text: "角色ID", value: "roleId", width: 120},
-        {text: "操作人", value: "operationByUser", width: 120},
-        {text: "操作时间", value: "operationAt", width: 250},
-        {text: '操作', value: 'action', align: 'center', sortable: false, width: 180, class: 'fixed', cellClass: 'fixed'},
-      ],
-
-      userKeys: [
-        {text: "用户Id", value: "userId"},
-        {text: "用户名", value: "username"},
-        {text: "用户账号状态", value: "userStatus", type: 'select'},
-        {text: "用户类型", value: "userType", type: 'select'},
-      ],
-
-      groupKeys: [
-        {text: "组织Id", value: "groupId"},
-        {text: "组织名", value: "groupName"},
-        {text: "组织描述", value: "groupDesc", require: false},
-        {text: "组织Logo", value: "groupAvatar", require: false},
-        {text: "拓展字段", value: "groupExtend", type: 'textarea', require: false},
-      ],
-      roleKeys: [
-        {text: "角色ID", value: "roleId"},
-        {text: "角色名", value: "roleName"},
-        {text: "角色描述", value: "roleDesc", require: false},
-      ],
-      currentClickButton: {title: '新增', action: 'add'},
-      dialogSaveInfoAction: ''
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  mixins: [window.jianghuUiActionMixins],
+  data: {
+    // 表格相关数据
+    isFormValid: true,
+    isFormValidLeft: true,
+    isFormValidRight: true,
+    showAllData: false,
+    addItemDialog: false,
+    pageTab: 0,
+    selectedItem: 0,
+    showLeftMenu: window.innerWidth > 600,
+    requireRules: [ v => !!v],
+    nullRules: [ v => true],
+    tabsSearchKeyword: null,
+    constantCollection: {
+      user: [],
+      group: [],
+      role: [],
+      userStatus: [{value: 'active', text: '活跃'}, {value: 'banned', text: '关闭'}],
+      userType: [{value: 'common', text: '管理员'}, {value: 'staff', text: '职工'},  {value: 'teacher', text: '老师'}, {value: 'student', text: '学员'}],
     },
-    computed: {
-      isMobile() {
-        return window.innerWidth < 600;
-      },
-      tableData() {
-        return this.tableDataFromBackend;
-      },
-      tabData() {
-        // _.toPairs对象转成了数组，因此可以索引获取
-        const temp = _.toPairs(this.constantCollection);
-        const tempTabList = temp[this.pageTab][1];
-        if(this.tabsSearchKeyword) {
-          const searchKey = [['userId', 'username'], ['groupId', 'groupName'], ['roleId', 'roleName']][this.pageTab];
-          return tempTabList.filter((item) => item.data[searchKey[0]].includes(this.tabsSearchKeyword) || item.data[searchKey[1]].includes(this.tabsSearchKeyword));
-        }
-        return tempTabList;
+    isEditDrawerShow: false,
+    searchInput: null,
+    isTableLoading: true,
+    tableDataFromBackend: [],
+    pageTableDataFromBackend: [],
+    editItem: {},
+    activeItemInfo: {},
+    headers: [
+      {text: "用户Id", value: "userId", width: 120, class: 'fixed', cellClass: 'fixed'},
+      {text: "组织ID", value: "groupId", width: 120},
+      {text: "角色ID", value: "roleId", width: 120},
+      {text: "操作人", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 250},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 180, class: 'fixed', cellClass: 'fixed'},
+    ],
 
-      },
-      tabPageHeaders() {
-        if (this.pageTab === 0) {
-          return this.headers;
-        }
-        if (this.pageTab === 1) {
-          return this.pageHeaders;
-        }
-      },
-      tabItemTitle() {
-        const names = ['用户', '组织', '角色'];
-        return names[this.pageTab];
-      },
-      tabItemKeys() {
-        return [this.userKeys, this.groupKeys, this.roleKeys][this.pageTab];
+    userKeys: [
+      {text: "用户Id", value: "userId"},
+      {text: "用户名", value: "username"},
+      {text: "用户账号状态", value: "userStatus", type: 'select'},
+      {text: "用户类型", value: "userType", type: 'select'},
+    ],
+
+    groupKeys: [
+      {text: "组织Id", value: "groupId"},
+      {text: "组织名", value: "groupName"},
+      {text: "组织描述", value: "groupDesc", require: false},
+      {text: "组织Logo", value: "groupAvatar", require: false},
+      {text: "拓展字段", value: "groupExtend", type: 'textarea', require: false},
+    ],
+    roleKeys: [
+      {text: "角色ID", value: "roleId"},
+      {text: "角色名", value: "roleName"},
+      {text: "角色描述", value: "roleDesc", require: false},
+    ],
+    currentClickButton: {title: '新增', action: 'add'},
+    dialogSaveInfoAction: ''
+  },
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataFromBackend;
+    },
+    tabData() {
+      // _.toPairs对象转成了数组，因此可以索引获取
+      const temp = _.toPairs(this.constantCollection);
+      const tempTabList = temp[this.pageTab][1];
+      if(this.tabsSearchKeyword) {
+        const searchKey = [['userId', 'username'], ['groupId', 'groupName'], ['roleId', 'roleName']][this.pageTab];
+        return tempTabList.filter((item) => item.data[searchKey[0]].includes(this.tabsSearchKeyword) || item.data[searchKey[1]].includes(this.tabsSearchKeyword));
+      }
+      return tempTabList;
+
+    },
+    tabPageHeaders() {
+      if (this.pageTab === 0) {
+        return this.headers;
+      }
+      if (this.pageTab === 1) {
+        return this.pageHeaders;
       }
     },
-    watch: {
-      async pageTab() {
-        this.doUiAction('refreshTableData');
-      },
-      selectedItem(v, ov) {
-        if (v !== ov) {
-          this.doUiAction('refreshTableData');
+    tabItemTitle() {
+      const names = ['用户', '组织', '角色'];
+      return names[this.pageTab];
+    },
+    tabItemKeys() {
+      return [this.userKeys, this.groupKeys, this.roleKeys][this.pageTab];
+    }
+  },
+  watch: {
+    async pageTab() {
+      this.doAction('refreshTableData');
+    },
+    selectedItem(v, ov) {
+      if (v !== ov) {
+        this.doAction('refreshTableData');
+      }
+    }
+  },
+  async created() {
+  },
+  mounted() {
+    this.doAction('initOptions');
+  },
+  methods: {
+    async doAction(actionId, actionData) {
+        switch (actionId) {
+          case 'refreshTableData':
+            await this.refreshTableData(actionData);
+            break;
+          case 'startCreateItem':
+            await this.clearItemData(actionData);
+            await this.openCreateItemDialog(actionData);
+            break;
+          case 'createItem':
+            await this.prepareValidate(actionData);
+            await this.confirmCreateItemDialog(actionData);
+            await this.doCreateItem(actionData);
+            await this.refreshTableData(actionData);
+            await this.closeDrawerShow(actionData);
+            break;
+          case 'startUpdateItem':
+            await this.prepareItemData(actionData);
+            await this.openUpdateItemDialog(actionData);
+            break;
+          case 'updateItem':
+            await this.prepareValidate(actionData);
+            await this.confirmUpdateItemDialog(actionData);
+            await this.doUpdateItem(actionData);
+            await this.refreshTableData(actionData);
+            await this.closeDrawerShow(actionData);
+            break;
+          case 'deleteItem':
+            await this.confirmDeleteItemDialog(actionData);
+            await this.prepareItemData(actionData);
+            await this.doDeleteItem(actionData);
+            await this.refreshTableData(actionData);
+            break;
+          case 'startCreateLeftItem':
+            await this.clearItemData(actionData);
+            await this.openFormDialog(actionData);
+            break;
+          case 'createLeftItem':
+            await this.prepareLeftValidate(actionData);
+            await this.addNewItem(actionData);
+            await this.reGetLeftData(actionData);
+            await this.closeFormDialog(actionData);
+            break;
+          case 'updateLeftItem':
+            await this.prepareRightValidate(actionData);
+            await this.updateLeftItem(actionData);
+            await this.reGetLeftData(actionData);
+            break;
+          case 'deleteLeftItem':
+            await this.confirmDelLeftItemDialog(actionData);
+            await this.deleteLeftItem(actionData);
+            await this.reGetLeftData(actionData);
+            break;
+          case 'initOptions':
+            await this.selectUser(actionData);
+            await this.refreshTableData(actionData);
+            await this.initOptions(actionData);
+            break;
+          default:
+            console.error("[doAction] actionId not find", { actionId });
+            break;
         }
+    },
+    initOptions() {
+      this.selectGroup();
+      this.selectRole();
+      this.buildActiveItemInfo(this.constantCollection);
+    },
+    // 获取当前左侧选中的选项详情
+    buildActiveItemInfo(value) {
+      console.log(this.selectedItem)
+      const tabItemList = [value.user, value.group, value.role][this.pageTab || 0];
+      if(tabItemList && tabItemList[this.selectedItem || 0]) {
+        this.activeItemInfo = tabItemList[this.selectedItem || 0].data;
       }
     },
-    async created() {
-    },
-    mounted() {
-      this.doUiAction('initOptions');
-    },
-    methods: {
-      initOptions() {
-        this.selectGroup();
-        this.selectRole();
-        this.buildActiveItemInfo(this.constantCollection);
-      },
-      // 获取当前左侧选中的选项详情
-      buildActiveItemInfo(value) {
-        const tabItemList = [value.user, value.group, value.role][this.pageTab || 0];
-        if(tabItemList && tabItemList[this.selectedItem || 0]) {
-          this.activeItemInfo = tabItemList[this.selectedItem || 0].data;
+    async selectGroup() {
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'userGroupRoleManagement',
+            actionId: 'selectGroup'
+          }
         }
-      },
-      async selectGroup() {
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userGroupRoleManagement',
-              actionId: 'selectGroup'
-            }
+      });
+      this.constantCollection.group = [...result.data.appData.resultData.rows.map((group) => {
+        return {value: group.groupId, text: group.groupName, data: group}
+      })]
+    },
+    async selectRole() {
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'userGroupRoleManagement',
+            actionId: 'selectRole'
           }
-        });
-        this.constantCollection.group = [...result.data.appData.rows.map((group) => {
-          return {value: group.groupId, text: group.groupName, data: group}
-        })]
-      },
-      async selectRole() {
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userGroupRoleManagement',
-              actionId: 'selectRole'
-            }
-          }
-        });
-        this.constantCollection.role = [...result.data.appData.rows.map((role) => {
-          return {value: role.roleId, text: role.roleName, data: role}
-        })]
-      },
-      async selectUser() {
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userGroupRoleManagement',
-              actionId: 'selectUser'
-            }
-          }
-        });
-        this.constantCollection.user = [...result.data.appData.rows.map((user) => {
-          return {value: user.userId, text: user.username, data: user}
-        })]
-      },
-      /**
-       * 获取表格数据
-       */
-      async refreshTableData() {
-        this.isTableLoading = true;
-        let where = {};
-        const activeItem = this.tabData[this.selectedItem];
-        if(!this.showAllData && activeItem) {
-          const key = ['userId', 'groupId', 'roleId'][this.pageTab];
-          where = {[key]: activeItem.value}
         }
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userGroupRoleManagement',
-              actionId: 'selectItemList',
-              where: where
-            }
+      });
+      this.constantCollection.role = [...result.data.appData.resultData.rows.map((role) => {
+        return {value: role.roleId, text: role.roleName, data: role}
+      })]
+    },
+    async selectUser() {
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'userGroupRoleManagement',
+            actionId: 'selectUser'
           }
-        });
-        this.tableDataFromBackend = result.data.appData.rows;
-        this.buildActiveItemInfo(this.constantCollection);
-        this.isTableLoading = false;
-      },
-
-      // startCreateItem
-      async clearItemData() {
-        this.editItem = {};
-      },
-
-      async openCreateItemDialog() {
-        this.currentClickButton = {action: 'add', title: '新增'};
-        this.isEditDrawerShow = true;
-        this.dialogSaveInfoAction = 'createItem';
-      },
-
-      // createItem
-      async prepareValidate() {
-        if (!this.$refs.form.validate()) return false;
-      },
-
-      // createItem
-      async confirmCreateItemDialog() {
-        return window.confirmDialog({title: '新增', content: '确定新增吗？'})
-      },
-
-      /**
-       * 新增数据
-       */
-      async doCreateItem() {
-        await window.vtoast.loading("保存中");
-        const {userId, groupId, roleId} = this.editItem;
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userGroupRoleManagement',
-              actionId: 'insertItem',
-              actionData: {userId, groupId, roleId}
-            }
+        }
+      });
+      this.constantCollection.user = [...result.data.appData.resultData.rows.map((user) => {
+        return {value: user.userId, text: user.username, data: user}
+      })]
+    },
+    /**
+     * 获取表格数据
+     */
+    async refreshTableData() {
+      this.isTableLoading = true;
+      let where = {};
+      const activeItem = this.tabData[this.selectedItem];
+      if(!this.showAllData && activeItem) {
+        const key = ['userId', 'groupId', 'roleId'][this.pageTab];
+        where = {[key]: activeItem.value}
+      }
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'userGroupRoleManagement',
+            actionId: 'selectItemList',
+            where: where
           }
-        });
-        await window.vtoast.success("保存成功");
-      },
+        }
+      });
+      this.tableDataFromBackend = result.data.appData.resultData.rows;
+      this.buildActiveItemInfo(this.constantCollection);
+      this.isTableLoading = false;
+    },
 
-      async closeDrawerShow() {
-        this.isEditDrawerShow = false;
-      },
+    // startCreateItem
+    async clearItemData() {
+      this.editItem = {};
+    },
 
-      // startUpdateItem
-      async prepareItemData({item}) {
-        this.editItem = {...item};
-      },
+    async openCreateItemDialog() {
+      this.currentClickButton = {action: 'add', title: '新增'};
+      this.isEditDrawerShow = true;
+      this.dialogSaveInfoAction = 'createItem';
+    },
 
-      async openUpdateItemDialog() {
-        this.currentClickButton = {action: 'edit', title: '修改'};
-        this.isEditDrawerShow = true;
-        this.dialogSaveInfoAction = 'updateItem';
-      },
+    // createItem
+    async prepareValidate() {
+      if (await this.$refs.form.validate() === false) {
+          throw new Error("[prepareValidate] false");
+      }
+    },
 
-      // updateItem
-      async confirmUpdateItemDialog() {
-        return window.confirmDialog({title: '修改', content: '确定修改吗？'});
-      },
+    // createItem
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+          throw new Error("[confirmCreateFormDialog] 否");
+      }
+    },
 
-      /**
-       * 保存
-       */
-      async doUpdateItem() {
-        await window.vtoast.loading("保存中");
-        const id = this.editItem.id;
-        const {userId, groupId, roleId} = this.editItem;
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userGroupRoleManagement',
-              actionId: 'updateItem',
-              actionData: {userId, groupId, roleId},
-              where: {id: id}
-            }
+    /**
+     * 新增数据
+     */
+    async doCreateItem() {
+      await window.vtoast.loading("保存中");
+      const {userId, groupId, roleId} = this.editItem;
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'userGroupRoleManagement',
+            actionId: 'insertItem',
+            actionData: {userId, groupId, roleId}
           }
-        });
-        await window.vtoast.success("修改成功");
-      },
+        }
+      });
+      await window.vtoast.success("保存成功");
+    },
 
-      // deleteItem
-      async confirmDeleteItemDialog() {
-        return window.confirmDialog({title: '删除', content: '确定删除吗？'});
-      },
+    async closeDrawerShow() {
+      this.isEditDrawerShow = false;
+    },
 
-      /**
-       * 删除
-       */
-      async doDeleteItem() {
-        window.vtoast.loading('正在删除')
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userGroupRoleManagement',
-              actionId: 'deleteItem',
-              where: {id: this.editItem.id}
-            }
+    // startUpdateItem
+    async prepareItemData({item}) {
+      this.editItem = {...item};
+    },
+
+    async openUpdateItemDialog() {
+      this.currentClickButton = {action: 'edit', title: '修改'};
+      this.isEditDrawerShow = true;
+      this.dialogSaveInfoAction = 'updateItem';
+    },
+
+    // updateItem
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+          throw new Error("[confirmUpdateItemDialog] 否");
+      }
+    },
+
+    /**
+     * 保存
+     */
+    async doUpdateItem() {
+      await window.vtoast.loading("保存中");
+      const id = this.editItem.id;
+      const {userId, groupId, roleId} = this.editItem;
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'userGroupRoleManagement',
+            actionId: 'updateItem',
+            actionData: {userId, groupId, roleId},
+            where: {id: id}
           }
-        });
-        window.vtoast.success('删除成功')
-      },
+        }
+      });
+      await window.vtoast.success("修改成功");
+    },
 
-      // 打开添加用户、组织、角色的表单弹窗
-      async openFormDialog() {
-        this.editItem = {};
-        this.addItemDialog = true;
-      },
-      // 添加用户、组织、角色的表单
-      async addNewItem() {
-        if (!this.$refs.formLeft.validate()) return false;
-        const insertActionId = ['insertUser', 'insertGroup', 'insertRole'][this.pageTab];
+    // deleteItem
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+          throw new Error("[confirmDeleteItemDialog] 否");
+      }
+    },
+
+    /**
+     * 删除
+     */
+    async deleteItem() {
+      window.vtoast.loading('正在删除')
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'userGroupRoleManagement',
+            actionId: 'deleteItem',
+            where: {id: this.editItem.id}
+          }
+        }
+      });
+      window.vtoast.success('删除成功')
+    },
+
+    // 打开添加用户、组织、角色的表单弹窗
+    async openFormDialog() {
+      this.addItemDialog = true;
+    },
+    // 左侧表单验证
+    async prepareLeftValidate() {
+        if (await this.$refs.formLeft.validate() === false) {
+          throw new Error("[prepareLeftValidate] false");
+        }
+    },
+    // 添加用户、组织、角色的表单
+    async addNewItem() {
+      const insertActionId = ['insertUser', 'insertGroup', 'insertRole'][this.pageTab];
+      window.vtoast.loading("添加中")
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'userGroupRoleManagement',
+            actionId: insertActionId,
+            actionData: this.editItem
+          }
+        }
+      })
+      window.vtoast.success("添加成功")
+    },
+    // 关闭添加用户、组织、角色的表单弹窗
+    async closeFormDialog() {
         this.addItemDialog = false;
-        window.vtoast.loading("添加中")
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userGroupRoleManagement',
-              actionId: insertActionId,
-              actionData: this.editItem
-            }
-          }
-        })
-        window.vtoast.success("添加成功")
-      },
-      // 刷新用户、组织、角色的数据
-      async reGetLeftData() {
-        if (this.pageTab === 0) {
-          await this.selectUser();
+    },
+    // 刷新用户、组织、角色的数据
+    async reGetLeftData() {
+      if (this.pageTab === 0) {
+        await this.selectUser();
+      }
+      if (this.pageTab === 1) {
+        await this.selectGroup();
+      }
+      if (this.pageTab === 2) {
+        await this.selectRole();
+      }
+      this.$forceUpdate()
+    },
+    // deleteLeftItem 确认
+    async confirmDelLeftItemDialog() {
+        if (await window.confirmDialog({title: `确认删除该${this.tabItemTitle}？`}) === false) {
+          throw new Error("[confirmDelLeftItemDialog] 否");
         }
-        if (this.pageTab === 1) {
-          await this.selectGroup();
-        }
-        if (this.pageTab === 2) {
-          await this.selectRole();
-        }
-        this.$forceUpdate()
-      },
-      // 删除用户、组织、角色
-      async deleteLeftItem() {
-        if(await window.confirmDialog({"title": `确认删除该${this.tabItemTitle}？`})) {
-          const id = this.activeItemInfo.id;
-          const actionId = ['deleteUser', 'deleteGroup', 'deleteRole'][this.pageTab];
-          const whereKey = ['userId', 'groupId', 'roleId'][this.pageTab];
-          const where = [{userId: this.activeItemInfo['userId']}, {groupId: this.activeItemInfo['groupId']}, {roleId: this.activeItemInfo['roleId']}][this.pageTab];
-          if(where[whereKey]) {
-            window.vtoast.loading("删除中");
-            await window.jianghuAxios({
-              data: {
-                appData: {
-                  pageId: 'userGroupRoleManagement',
-                  actionId: actionId,
-                  where: where
-                }
-              }
-            })
-            window.vtoast.success("删除成功");
-          }
-        }
-      },
-      // 更新修改用户、组织、角色
-      async updateLeftItem() {
-        if (!this.$refs.formRight.validate()) return false;
-        window.vtoast.loading("保存中");
-        const { id, ...data } = this.activeItemInfo;
-        const actionId = ['updateUser', 'updateGroup', 'updateRole'][this.pageTab];
+    },
+    // 删除用户、组织、角色
+    async deleteLeftItem() {
+      const id = this.activeItemInfo.id;
+      const actionId = ['deleteUser', 'deleteGroup', 'deleteRole'][this.pageTab];
+      const whereKey = ['userId', 'groupId', 'roleId'][this.pageTab];
+      const where = [{userId: this.activeItemInfo['userId']}, {groupId: this.activeItemInfo['groupId']}, {roleId: this.activeItemInfo['roleId']}][this.pageTab];
+      if(where[whereKey]) {
+        window.vtoast.loading("删除中");
         await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'userGroupRoleManagement',
               actionId: actionId,
-              actionData: data,
-              where: { id }
+              where: where
             }
           }
         })
-        window.vtoast.success("保存成功");
+        window.vtoast.success("删除成功");
       }
-
+    },
+    // 右侧表单验证
+    async prepareRightValidate() {
+        if (await this.$refs.formRight.validate() === false) {
+          throw new Error("[prepareRightValidate] false");
+        }
+    },
+    // 更新修改用户、组织、角色
+    async updateLeftItem() {
+      window.vtoast.loading("保存中");
+      const id = this.activeItemInfo.id;
+      delete this.activeItemInfo.id;
+      const actionId = ['updateUser', 'updateGroup', 'updateRole'][this.pageTab];
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'userGroupRoleManagement',
+            actionId: actionId,
+            actionData: this.activeItemInfo,
+            where: {id: id}
+          }
+        }
+      })
+      window.vtoast.success("保存成功");
     }
-  })
+  }
+})
 </script>
 
 

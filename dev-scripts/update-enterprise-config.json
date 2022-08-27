@@ -1,0 +1,12 @@
+[
+  {
+    "projectName": "enterprise",
+    "replaceList": [
+      {
+        "from": "jianghujs_enterprise_",
+        "to": "__dbPrefix__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-enterprise.git"
+  }
+]
