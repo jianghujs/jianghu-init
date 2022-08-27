@@ -9,7 +9,7 @@
 <template slot="breadcrumbsTitle">
   <div>
     班级【{{ title }}】的学生管理
-    <span style="font-size: 14px;" >(ID: {{ studentId }})</span>
+    <span style="font-size: 14px;">(ID: {{ classId }})</span>
   </div>
 </template>
 <v-container class="fullScreen d-flex flex-column pa-0">
@@ -22,7 +22,8 @@
       </v-col>
       <v-spacer></v-spacer>
       <v-col cols="12" xs="12" sm="4" md="3" xl="3" class="px-0">
-        <v-text-field dense filled single-line v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input"></v-text-field>
+        <v-text-field dense filled single-line v-model="searchInput" color="success" prefix="表格过滤："
+                      class="cus-v-input"></v-text-field>
       </v-col>
     </v-row>
     <v-data-table fixed-header :headers="headers" :items="tableData" :search="searchInput"
@@ -83,7 +84,8 @@
     <v-row class="pt-8">
       <span class="title pa-6" :class="{'pl-12': !isMobile, 'px-6': isMobile}">编辑信息</span>
       <v-spacer></v-spacer>
-      <v-btn class="mt-7 mr-8 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+      <v-btn class="mt-7 mr-8 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small
+             @click="isEditDrawerShow = false">
         <v-icon dark>mdi-close</v-icon>
       </v-btn>
     </v-row>
@@ -101,13 +103,14 @@
       </v-col>
       <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">备注</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line label="备注" v-model="editItem['remark']"></v-text-field>
+        <v-text-field class="cus-v-input mr-2" dense filled single-line label="备注"
+                      v-model="editItem['remark']"></v-text-field>
       </v-col>
     </v-row>
     <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-2': isMobile, 'mb-8': isMobile}">
-      <v-btn color="success"  @click="doUiAction('updateItem')">保存
+      <v-btn color="success" @click="doUiAction('updateItem')">保存
       </v-btn>
-      <v-btn class="elevation-0 mr-2 ml-2"  @click="isEditDrawerShow = false">取消
+      <v-btn class="elevation-0 mr-2 ml-2" @click="isEditDrawerShow = false">取消
       </v-btn>
     </v-row>
   </v-form>
@@ -123,8 +126,8 @@ new Vue({
   el: '#app',
   template: '#app-template',
   vuetify: new Vuetify(),
-  mixins: [window.jianghuUiActionMixins],
   data: () => ({
+    isMobile: window.innerWidth < 600,
     classId: null,
     title: null,
     searchInput: null,
@@ -153,7 +156,9 @@ new Vue({
       {text: '备注', value: 'remarks', width: 120},
       {text: "操作者", value: "operationByUser", width: 120},
     ],
+    drawerTableData: [],
     drawerTableDataFromBackend: [],
+    tableData: [],
     tableDataFromBackend: [],
     drawerItemSelectedClass: [],
     isFormValid: true,
@@ -163,23 +168,7 @@ new Vue({
     constantCollection: {},
     editItem: {}
   }),
-  computed: {
-    isMobile() {
-      return window.innerWidth < 600;
-    },
-    // 表格内容，即当前班级下的学生
-    tableData() {
-      return this.tableDataFromBackend;
-    },
-    // 弹出抽屉的内容，即：所有学生 - 当前班级下的学生
-    drawerTableData() {
-      if (_.isEmpty(this.drawerTableDataFromBackend)) {
-        return [];
-      }
-      return _.differenceBy(this.drawerTableDataFromBackend, this.tableData, 'studentId');
-    }
-  },
-  watch: {},
+
   async created() {
     const urlParams = new URLSearchParams(location.search);
     const classId = urlParams.get('classId');
@@ -193,12 +182,53 @@ new Vue({
       }, 1000);
       return;
     }
-    this.doUiAction('refreshTableData');
+    await this.doUiAction('refreshTableData');
     await this.doUiAction('getDrawerTableData');
   },
-  mounted() {
-  },
   methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'refreshTableData':
+          await this.refreshTableData();
+          break;
+        case 'getDrawerTableData':
+          await this.getDrawerTableData();
+          await this.buildDrawerTableData();
+          break;
+        case 'allotItem':
+          await this.confirmAllotItemDialog();
+          await this.doAllotItem();
+          await this.refreshTableData();
+          await this.buildDrawerTableData();
+          break;
+        case 'buildRelation':
+          await this.confirmAllotItemDialog();
+          await this.doBuildRelation(uiActionData);
+          await this.refreshTableData();
+          await this.buildDrawerTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareItemData(uiActionData);
+          await this.openUpdateDialog();
+          break;
+        case 'updateItem':
+          await this.confirmUpdateItemDialog();
+          await this.doUpdateItem();
+          await this.refreshTableData();
+          await this.buildDrawerTableData();
+          await this.closeDrawerShow();
+          break;
+        case 'deleteRelation':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteRelation(uiActionData);
+          await this.refreshTableData();
+          await this.buildDrawerTableData();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
     // 获取所有班级的数据
     /**
      * uiActionId:  refreshTableData
@@ -217,6 +247,7 @@ new Vue({
           }
         }
       });
+      this.tableData = result.data.appData.rows;
       this.tableDataFromBackend = result.data.appData.rows;
       this.isTableLoading = false;
     },
@@ -242,14 +273,23 @@ new Vue({
       this.isDrawerTableLoading = false;
     },
 
+    buildDrawerTableData() {
+      if (_.isEmpty(this.drawerTableDataFromBackend)) {
+        this.drawerTableData = [];
+      } else {
+        this.drawerTableData = _.differenceBy(this.drawerTableDataFromBackend, this.tableData, 'studentId');
+      }
+    },
+
     /**
      * uiActionId:  allotItem
      * description: ✅获取表格数据
      * main:   [{"function":"confirmAllotItemDialog"},{"function":"doAllotItem"}]
      */
     async confirmAllotItemDialog() {
-      this.isAllotEditDrawerShow = true;
-      return window.confirmDialog({title: '确定将学生分配给此班级吗', content: '确定分配吗？'})
+      if (await window.confirmDialog({title: "确定将学生分配给此班级吗", content: "确定分配吗？"}) === false) {
+        throw new Error("[confirmAllotItemDialog] 否");
+      }
     },
 
     async doAllotItem() {
@@ -308,18 +348,20 @@ new Vue({
      * after:  [{"function":"closeDrawerShow"}]
      */
     async confirmUpdateItemDialog() {
-      return window.confirmDialog({title: '修改', content: '确定修改吗？'});
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("[confirmUpdateItemDialog] 否");
+      }
     },
 
     async doUpdateItem() {
-      const {id, ...data} = this.editItem;
+      const {id, classId, studentId, remark} = this.editItem;
       await window.vtoast.loading("修改数据");
       await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'studentManagementOfOneClass',
             actionId: 'updateItem',
-            actionData: data,
+            actionData: { classId, studentId, remark },
             where: {id: id}
           }
         }
@@ -338,7 +380,9 @@ new Vue({
      * main:   [{"function":"doDeleteRelation"},{"function":"refreshTableData"}]
      */
     async confirmDeleteItemDialog() {
-      return window.confirmDialog({title: '确认将学生从班级删除？'})
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("[confirmDeleteItemDialog] 否");
+      }
     },
     async doDeleteRelation({item}) {
       window.vtoast.loading("删除中");

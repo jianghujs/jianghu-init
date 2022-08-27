@@ -5,8 +5,8 @@ const assert = require('assert');
 
 const { middleware, middlewareMatch } = require('@jianghujs/jianghu/config/middlewareConfig');
 
-const jianghuPathTemp = require.resolve('@jianghujs/jianghu');
-const jianghuPath = path.join(jianghuPathTemp, '../');
+const eggJianghuPathTemp = require.resolve('@jianghujs/jianghu');
+const eggJianghuPath = path.join(eggJianghuPathTemp, '../');
 
 module.exports = appInfo => {
   assert(appInfo);
@@ -17,11 +17,11 @@ module.exports = appInfo => {
 
   return {
     appId,
-    appTitle: '江湖演示-初级',
+    appTitle: '{{name}}',
     appLogo: `${appId}/public/img/logo.png`,
     appType: 'single',
     appDirectoryLink: '/',
-    indexPage: `/${appId}/page/manual`,
+    indexPage: `/${appId}/page/studentManagement`,
     loginPage: `/${appId}/page/login`,
     helpPage: `/${appId}/page/help`,
     uploadDir,
@@ -35,7 +35,7 @@ module.exports = appInfo => {
       maxFiles: 0,
       dir: [
         { prefix: `/${appId}/public/`, dir: path.join(appInfo.baseDir, 'app/public') },
-        { prefix: `/${appId}/public/`, dir: path.join(jianghuPath, 'app/public') },
+        { prefix: `/${appId}/public/`, dir: path.join(eggJianghuPath, 'app/public') },
         { prefix: `/${appId}/upload/`, dir: uploadDir },
       ],
     },
@@ -44,7 +44,7 @@ module.exports = appInfo => {
       mapping: { '.html': 'nunjucks' },
       root: [
         path.join(appInfo.baseDir, 'app/view'),
-        path.join(jianghuPath, 'app/view'),
+        path.join(eggJianghuPath, 'app/view'),
       ].join(','),
     },
     middleware,

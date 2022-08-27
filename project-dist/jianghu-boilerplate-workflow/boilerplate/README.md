@@ -1,4 +1,4 @@
-# xianfeng-v1
+# {{name}}
 
 ## 配置
 
@@ -10,7 +10,7 @@
    port: 3306,
    user: 'root',
    password: '123456',
-   database: 'xianfeng-v1'
+   database: '{{name}}'
    ```
 4. 启动 npm run dev
    
@@ -18,9 +18,9 @@
 
 ```sql
 # 数据库初始化
-create database `xianfeng-v1` default character set utf8mb4 collate utf8mb4_bin;
-use xianfeng-v1;
-# 运行 sql/xianfeng-v1.sql 文件
+create database `{{name}}` default character set utf8mb4 collate utf8mb4_bin;
+use {{name}};
+# 运行 sql/{{name}}.sql 文件
 ```
 
 ## 测试账号 & 测试环境
@@ -36,10 +36,3 @@ use xianfeng-v1;
 4. 服务端搜索: studentManagement05.html
    * 应用协议：sql演示
 
-## FAQ
-
-- egg-jianghu mysql view
-```sql
-DROP VIEW IF EXISTS `_view01_user`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `_view01_user` AS select * from `_user`;
-```

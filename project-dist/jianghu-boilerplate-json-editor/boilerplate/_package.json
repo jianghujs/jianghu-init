@@ -1,5 +1,5 @@
 {
-  "name": "jianghujs-jsoneditor",
+  "name": "{{name}}",
   "version": "1.0.0",
   "description": "",
   "private": true,
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "egg": "^2.15.1",
-    "@jianghujs/jianghu": "3.0.44",
+    "@jianghujs/jianghu": "3.0.36",
     "egg-scripts": "^2.11.0"
   },
   "devDependencies": {
@@ -25,8 +25,8 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --port=7008 --title=jianghujs-jsoneditor",
-    "stop": "egg-scripts stop --title=jianghujs-jsoneditor",
+    "start": "egg-scripts start --daemon --port=7008 --title={{name}}",
+    "stop": "egg-scripts stop --title={{name}}",
     "dev": "egg-bin dev --port=7008",
     "debug": "egg-bin debug",
     "test": "npm run lint -- --fix && npm run test-local",

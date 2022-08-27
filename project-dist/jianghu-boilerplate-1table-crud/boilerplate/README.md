@@ -1,4 +1,4 @@
-# {{name}}
+# jianghujs_demo_onetable
 
 ## 配置
 
@@ -20,7 +20,7 @@
 # 数据库初始化
 create database `{{name}}` default character set utf8mb4 collate utf8mb4_bin;
 use {{name}};
-# 运行 sql/{{name}}.sql 文件
+# 运行 sql/init.sql 文件
 ```
 
 ## 测试账号 & 测试环境
@@ -29,12 +29,8 @@ use {{name}};
 
 ## 页面
 
-1. 应用协议: studentManagement01.html
+1. 应用协议: frontendDemo.html
    * 增删改查（select，insert，softUpdate，softDelete）
-2. 前端对接: studentManagement03.html
-3. 前端优化: studentManagement04.html
-4. 服务端搜索: studentManagement05.html
-   * 应用协议：sql演示
 
 ## FAQ
 

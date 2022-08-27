@@ -1,5 +1,33 @@
 [
   {
+    "projectName": "1table-crud",
+    "replaceList": [
+      {
+        "from": "jianghujs-1table-crud",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_1table_crud",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-1table-crud.git"
+  },
+  {
+    "projectName": "1table-crud-file",
+    "replaceList": [
+      {
+        "from": "jianghujs-1table-crud-file",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_1table_crud_file",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-1table-crud-file.git"
+  },
+  {
     "projectName": "xiaochengxu-1table-crud",
     "replaceList": [
       {
@@ -12,6 +40,68 @@
       }
     ],
     "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-1table-crud.git"
+  },
+  {
+    "projectName": "xiaochengxu-1table-crud-file",
+    "replaceList": [
+      {
+        "from": "jianghujs-xiaochengxu-1table-crud-file",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_xiaochengxu_1table_crud_file",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-1table-crud-file.git"
+  },
+  {
+    "projectName": "2table-crud",
+    "replaceList": [
+      {
+        "from": "table2",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_2table_crud",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-2table-crud.git"
+  },
+  {
+    "projectName": "3table-crud",
+    "replaceList": [
+      {
+        "from": "jianghujs_demo_threetable",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs-3table-crud",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-3table-crud.git"
+  },
+  {
+    "projectName": "json-editor",
+    "replaceList": [
+      {
+        "from": "jianghujs-jsoneditor",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-json-editor.git"
+  },
+  {
+    "projectName": "workflow",
+    "replaceList": [
+      {
+        "from": "xianfeng-v1",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-workflow.git"
   },
   {
     "projectName": "xiaochengxu-markdown-editor",

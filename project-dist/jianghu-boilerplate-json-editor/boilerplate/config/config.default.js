@@ -11,7 +11,7 @@ const jianghuPath = path.join(jianghuPathTemp, '../');
 module.exports = appInfo => {
   assert(appInfo);
 
-  const appId = 'jianghujs-jsoneditor';
+  const appId = '{{name}}';
   const uploadDir = path.join(appInfo.baseDir, 'upload');
   const downloadBasePath = `/${appId}/upload`;
 

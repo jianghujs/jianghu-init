@@ -8,8 +8,8 @@
     "framework": "@jianghujs/jianghu"
   },
   "dependencies": {
+    "@jianghujs/jianghu": "^3.0.44",
     "egg": "^2.15.1",
-    "@jianghujs/jianghu": "3.0.44",
     "egg-scripts": "^2.11.0"
   },
   "devDependencies": {
@@ -29,6 +29,8 @@
     "stop": "egg-scripts stop --title={{name}}",
     "dev": "egg-bin dev --port=7001",
     "debug": "egg-bin debug",
+    "jianghuConfigImportData": "jianghu jianghuConfigImportData",
+    "jianghuConfigDumpData": "jianghu jianghuConfigDumpData",
     "test": "npm run lint -- --fix && npm run test-local",
     "test-local": "egg-bin test",
     "cov": "egg-bin cov",
@@ -38,7 +40,7 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/jianghujs/{{name}}.git"
   },
   "author": "",
   "license": "MIT"

@@ -60,7 +60,7 @@
       </v-btn>
     </v-row>
     <v-row class="pa-2 py-0">
-      <v-data-table show-select checkbox-color="success" :headers="headers"
+      <v-data-table show-select checkbox-color="success" :headers="drawerHeaders"
                     :loading="isDrawerTableLoading" :items="drawerTableData" item-key="classId"
                     :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }" :items-per-page="20"
                     mobile-breakpoint="0" @item-selected="drawerItemSelected"
@@ -120,253 +120,298 @@
 
 <script type="module">
 
-  new Vue({
-    el: '#app',
-    template: '#app-template',
-    vuetify: new Vuetify(),
-    mixins: [window.jianghuUiActionMixins],
-    data: () => ({
-      studentId: null,
-      title: null,
-      searchInput: null,
-      isTableLoading: true,
-      isDrawerTableLoading: true,
-      isAllotEditDrawerShow: false,
-      isEditDrawerShow: false,
-      headers: [
-        { text: '学生ID', value: 'studentId', width: 120 },
-        { text: '班级ID', value: 'classId', width: 120 },
-        { text: '备注', value: 'remark', width: 120 },
-        { text: "操作者", value: "operationByUser", width: 120 },
-        { text: "操作时间", value: "operationAt", width: 250 },
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed' },
-      ],
-      drawerHeaders: [
-        { text: '班级ID', value: 'classId', width: 120 },
-        { text: '门派ID', value: 'menPaiId', width: 120 },
-        { text: '门派名', value: 'menPaiName', width: 120 },
-        { text: '备注', value: 'remarks', width: 120 },
-        { text: '班级状态', value: 'classStatus', width: 120 },
-        { text: "操作者", value: "operationByUser", width: 120 },
-      ],
-      drawerTableDataFromBackend: [],
-      tableDataFromBackend: [],
-      drawerItemSelectedClass: [],
-      isFormValid: true,
-        requireRules: [
-        v => !!v || 'This is required',
-      ],
-      constantCollection: {},
-      editItem: {}
-    }),
-    computed: {
-      isMobile() {
-        return window.innerWidth < 600;
-      },
-      // 表格内容，即当前学生下的班级
-      tableData() {
-        return this.tableDataFromBackend;
-      },
-      // 弹出抽屉的内容，即：所有班级 - 当前学生下的班级
-      drawerTableData() {
-        if (_.isEmpty(this.drawerTableDataFromBackend)) {
-          return [];
-        }
-        return _.differenceBy(this.drawerTableDataFromBackend, this.tableData, 'classId');
-      }
-    },
-    watch: {},
-    async created() {
-      const urlParams = new URLSearchParams(location.search);
-      const studentId = urlParams.get('studentId');
-      const title = urlParams.get('title');
-      if (studentId && title) {
-        this.studentId = studentId;
-        this.title = title;
-      } else {
-        setTimeout(() => {
-            window.vtoast.fail('请从"学生列表"点击"班级"进入');
-        }, 1000);
-        return;
-      }
-      this.doUiAction('refreshTableData');
-      await this.doUiAction('getDrawerTableData');
-    },
-    mounted() {
-    },
-    methods: {
-      // 获取所有学生的数据
-      /**
-       * uiActionId:  refreshTableData
-       * description: ✅获取表格数据
-       * main:   [{"function":"refreshTableData"}]
-      */
-      async refreshTableData() {
-        this.isTableLoading = true;
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'classManagementOfOneStudent',
-              actionId: 'selectCurrentList',
-              where: { studentId: this.studentId },
-              orderBy: [{ column: 'operationAt', order: 'desc' }]
-            }
-          }
-        });
-        this.tableDataFromBackend = result.data.appData.rows;
-        this.isTableLoading = false;
-      },
-
-      // 获取所有班级的数据
-      /**
-       * uiActionId:  getDrawerTableData
-       * description: ✅获取内表格数据
-       * main:   [{"function":"getDrawerTableData"}]
-      */
-      async getDrawerTableData() {
-        this.isDrawerTableLoading = true;
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'classManagementOfOneStudent',
-              actionId: 'selectAllList',
-              orderBy: [{ column: 'operationAt', order: 'desc' }]
-            }
-          }
-        });
-        this.drawerTableDataFromBackend = result.data.appData.rows;
-        this.isDrawerTableLoading = false;
-      },
-
-      /**
-       * uiActionId:  allotItem
-       * description: ✅获取表格数据
-       * main:   [{"function":"confirmAllotItemDialog"},{"function":"doAllotItem"}]
-      */
-      async confirmAllotItemDialog() {
-        this.isAllotEditDrawerShow = true;
-        return window.confirmDialog({title: '确定将班级分配给此学生吗', content: '确定分配吗？'})
-      },
-
-      async doAllotItem() {
-        this.isAllotEditDrawerShow = false;
-        for (let i = 0; i < this.drawerItemSelectedClass.length; i++) {
-          window.vtoast.loading(`正在新增 第${i + 1}个`);
-          const { classId } = this.drawerItemSelectedClass[i];
-          await this.buildRelationImpl(classId);
-        }
-        window.vtoast.success("批量新增成功");
-        this.drawerItemSelectedClass = [];
-      },
-
-      /**
-       * uiActionId:  buildRelation
-       * description: ✅获取表格数据
-       * main:   [{"function":"doBuildRelation"}]
-      */
-      async doBuildRelation({ item: {classId} }) {
-        this.isAllotEditDrawerShow = false;
-        window.vtoast.loading("正在新增");
-        await this.buildRelationImpl(classId);
-        window.vtoast.success("新增成功");
-      },
-      async buildRelationImpl(classId) {
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'classManagementOfOneStudent',
-              actionId: 'insertItem',
-              actionData: { studentId: this.studentId, classId }
-            }
-          }
-        });
-      },
-
-
-      /**
-       * uiActionId:  startUpdateItem
-       * description: ✅获取表格数据
-       * main:   [{"function":"prepareItemData"},{"function":"openUpdateDialog"}]
-      */
-      async prepareItemData({item}) {
-        this.editItem = {...item};
-      },
-
-      async openUpdateDialog() {
-        this.isEditDrawerShow = true;
-      },
-
-      /**
-       * uiActionId:  updateItem
-       * description: ✅获取表格数据
-       * before: [{"function":"confirmUpdateItemDialog"}]
-       * main:   [{"function":"doUpdateItem"},{"function":"refreshTableData"}]
-       * after:  [{"function":"closeDrawerShow"}]
-      */
-      async confirmUpdateItemDialog() {
-        return window.confirmDialog({title: '修改', content: '确定修改吗？'});
-      },
-
-      async doUpdateItem() {
-        const {id, ...data} = this.editItem;
-        await window.vtoast.loading("修改数据");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'classManagementOfOneStudent',
-              actionId: 'updateItem',
-              actionData: data,
-              where: {id: id}
-            }
-          }
-        })
-        await window.vtoast.success("修改数据成功");
-      },
-
-      async closeDrawerShow() {
-        this.isAllotEditDrawerShow = false;
-      },
-
-      /**
-       * uiActionId:  deleteRelation
-       * description: ✅获取表格数据
-       * before: [{"function":"confirmDeleteItemDialog"}]
-       * main:   [{"function":"doDeleteRelation"},{"function":"refreshTableData"}]
-      */
-      async confirmDeleteItemDialog() {
-        return window.confirmDialog({title: '确认将班级从学生删除？'})
-      },
-      async doDeleteRelation({ item }) {
-        window.vtoast.loading("删除中");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'classManagementOfOneStudent',
-              actionId: 'deleteItem',
-              where: { id: item.id }
-            }
-          }
-        });
-        window.vtoast.success("删除成功");
-      },
-      drawerItemSelected({ item, value }) {
-          console.log(item, value);
-          if (value) {
-              this.drawerItemSelectedClass.push(item);
-          } else {
-              this.drawerItemSelectedClass = _.filter(this.drawerItemSelectedClass, ['classId', item.classId]);
-          }
-      },
-      drawerToggleSelectAll({ items, value }) {
-          console.log(items, value);
-          if (value) {
-              this.drawerItemSelectedClass = items;
-          } else {
-              this.drawerItemSelectedClass = [];
-          }
-      },
-      dayjs: dayjs,
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    isMobile: window.innerWidth < 600,
+    studentId: null,
+    title: null,
+    searchInput: null,
+    isTableLoading: true,
+    isDrawerTableLoading: true,
+    isAllotEditDrawerShow: false,
+    isEditDrawerShow: false,
+    headers: [
+      {text: '学生ID', value: 'studentId', width: 120},
+      {text: '班级ID', value: 'classId', width: 120},
+      {text: '备注', value: 'remark', width: 120},
+      {text: "操作者", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 250},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+    ],
+    drawerHeaders: [
+      {text: '班级ID', value: 'classId', width: 120},
+      {text: '门派ID', value: 'menPaiId', width: 120},
+      {text: '门派名', value: 'menPaiName', width: 120},
+      {text: '备注', value: 'remarks', width: 120},
+      {text: '班级状态', value: 'classStatus', width: 120},
+      {text: "操作者", value: "operationByUser", width: 120},
+    ],
+    drawerTableData: [],
+    drawerTableDataFromBackend: [],
+    tableData: [],
+    tableDataFromBackend: [],
+    drawerItemSelectedClass: [],
+    isFormValid: true,
+    requireRules: [
+      v => !!v || 'This is required',
+    ],
+    constantCollection: {},
+    editItem: {}
+  }),
+  watch: {},
+  async created() {
+    const urlParams = new URLSearchParams(location.search);
+    const studentId = urlParams.get('studentId');
+    const title = urlParams.get('title');
+    if (studentId && title) {
+      this.studentId = studentId;
+      this.title = title;
+    } else {
+      setTimeout(() => {
+        window.vtoast.fail('请从"学生列表"点击"班级"进入');
+      }, 1000);
+      return;
     }
-  })
+    await this.doUiAction('refreshTableData');
+    await this.doUiAction('getDrawerTableData');
+  },
+  mounted() {
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'refreshTableData':
+          await this.refreshTableData();
+          break;
+        case 'getDrawerTableData':
+          await this.getDrawerTableData();
+          await this.buildDrawerTableData();
+          break;
+        case 'allotItem':
+          await this.confirmAllotItemDialog();
+          await this.doAllotItem();
+          await this.refreshTableData();
+          await this.buildDrawerTableData();
+          break;
+        case 'buildRelation':
+          await this.confirmAllotItemDialog();
+          await this.doBuildRelation(uiActionData);
+          await this.refreshTableData();
+          await this.buildDrawerTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareItemData(uiActionData);
+          await this.openUpdateDialog();
+          break;
+        case 'updateItem':
+          await this.confirmUpdateItemDialog();
+          await this.doUpdateItem();
+          await this.refreshTableData();
+          await this.buildDrawerTableData();
+          await this.closeDrawerShow();
+          break;
+        case 'deleteRelation':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteRelation(uiActionData);
+          await this.refreshTableData();
+          await this.buildDrawerTableData();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
+    // 获取所有学生的数据
+    /**
+     * uiActionId:  refreshTableData
+     * description: ✅获取表格数据
+     * main:   [{"function":"refreshTableData"}]
+     */
+    async refreshTableData() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'classManagementOfOneStudent',
+            actionId: 'selectCurrentList',
+            where: {studentId: this.studentId},
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+      this.tableData = result.data.appData.rows;
+      this.tableDataFromBackend = result.data.appData.rows;
+      this.isTableLoading = false;
+    },
+
+    // 获取所有班级的数据
+    /**
+     * uiActionId:  getDrawerTableData
+     * description: ✅获取内表格数据
+     * main:   [{"function":"getDrawerTableData"}]
+     */
+    async getDrawerTableData() {
+      this.isDrawerTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'classManagementOfOneStudent',
+            actionId: 'selectAllList',
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+      this.drawerTableDataFromBackend = result.data.appData.rows;
+      this.isDrawerTableLoading = false;
+    },
+
+
+    buildDrawerTableData() {
+      if (_.isEmpty(this.drawerTableDataFromBackend)) {
+        this.drawerTableData = [];
+      } else {
+        this.drawerTableData = _.differenceBy(this.drawerTableDataFromBackend, this.tableData, 'classId');
+      }
+    },
+
+    /**
+     * uiActionId:  allotItem
+     * description: ✅获取表格数据
+     * main:   [{"function":"confirmAllotItemDialog"},{"function":"doAllotItem"}]
+     */
+
+    async confirmAllotItemDialog() {
+      this.isAllotEditDrawerShow = true;
+      if (await window.confirmDialog({title: "确定将班级分配给此学生吗", content: "确定分配吗？"}) === false) {
+        throw new Error("[confirmAllotItemDialog] 否");
+      }
+    },
+    async doAllotItem() {
+      this.isAllotEditDrawerShow = false;
+      for (let i = 0; i < this.drawerItemSelectedClass.length; i++) {
+        window.vtoast.loading(`正在新增 第${i + 1}个`);
+        const {classId} = this.drawerItemSelectedClass[i];
+        await this.buildRelationImpl(classId);
+      }
+      window.vtoast.success("批量新增成功");
+      this.drawerItemSelectedClass = [];
+    },
+
+    /**
+     * uiActionId:  buildRelation
+     * description: ✅获取表格数据
+     * main:   [{"function":"doBuildRelation"}]
+     */
+    async doBuildRelation({item: {classId}}) {
+      this.isAllotEditDrawerShow = false;
+      window.vtoast.loading("正在新增");
+      await this.buildRelationImpl(classId);
+      window.vtoast.success("新增成功");
+    },
+    async buildRelationImpl(classId) {
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'classManagementOfOneStudent',
+            actionId: 'insertItem',
+            actionData: {studentId: this.studentId, classId}
+          }
+        }
+      });
+    },
+
+
+    /**
+     * uiActionId:  startUpdateItem
+     * description: ✅获取表格数据
+     * main:   [{"function":"prepareItemData"},{"function":"openUpdateDialog"}]
+     */
+    async prepareItemData({item}) {
+      this.editItem = {...item};
+    },
+
+    async openUpdateDialog() {
+      this.isEditDrawerShow = true;
+    },
+
+    /**
+     * uiActionId:  updateItem
+     * description: ✅获取表格数据
+     * before: [{"function":"confirmUpdateItemDialog"}]
+     * main:   [{"function":"doUpdateItem"},{"function":"refreshTableData"}]
+     * after:  [{"function":"closeDrawerShow"}]
+     */
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("[confirmUpdateItemDialog] 否");
+      }
+    },
+
+    async doUpdateItem() {
+      const {id, classId, studentId, remark } = this.editItem;
+      await window.vtoast.loading("修改数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'classManagementOfOneStudent',
+            actionId: 'updateItem',
+            actionData: { classId, studentId, remark },
+            where: {id: id}
+          }
+        }
+      })
+      await window.vtoast.success("修改数据成功");
+    },
+
+    async closeDrawerShow() {
+      this.isAllotEditDrawerShow = false;
+    },
+
+    /**
+     * uiActionId:  deleteRelation
+     * description: ✅获取表格数据
+     * before: [{"function":"confirmDeleteItemDialog"}]
+     * main:   [{"function":"doDeleteRelation"},{"function":"refreshTableData"}]
+     */
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("[confirmDeleteItemDialog] 否");
+      }
+    },
+    async doDeleteRelation({item}) {
+      window.vtoast.loading("删除中");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'classManagementOfOneStudent',
+            actionId: 'deleteItem',
+            where: {id: item.id}
+          }
+        }
+      });
+      window.vtoast.success("删除成功");
+    },
+    drawerItemSelected({item, value}) {
+      console.log(item, value);
+      if (value) {
+        this.drawerItemSelectedClass.push(item);
+      } else {
+        this.drawerItemSelectedClass = _.filter(this.drawerItemSelectedClass, ['classId', item.classId]);
+      }
+    },
+    drawerToggleSelectAll({items, value}) {
+      console.log(items, value);
+      if (value) {
+        this.drawerItemSelectedClass = items;
+      } else {
+        this.drawerItemSelectedClass = [];
+      }
+    },
+    dayjs: dayjs,
+  }
+})
 </script>
 {% endblock %}
