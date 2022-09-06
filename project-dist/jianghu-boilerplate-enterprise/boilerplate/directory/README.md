@@ -20,5 +20,5 @@
 # 数据库初始化
 create database `{{dbPrefix}}directory` default character set utf8mb4 collate utf8mb4_bin;
 use {{dbPrefix}}directory;
-# 运行 sql/init.sql 文件
+# 运行 sql/{{dbPrefix}}directory.sql 文件
 ```

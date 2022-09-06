@@ -21,3 +21,5 @@ config/config.unittest.js
 upload/**
 multipartTmp/**
 .vscode
+.travis.yml
+appveyor.yml

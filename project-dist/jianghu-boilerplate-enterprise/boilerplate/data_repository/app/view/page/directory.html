@@ -1,0 +1,102 @@
+{% extends 'index.html'%}
+
+<!-- vue template 代码块 -->
+{% block vue_template %}
+<jh-layout>
+  <v-list-item-group
+      v-model="selectedUrlItem"
+      color="primary"
+  >
+    <v-row>
+      <template v-if="!directoryList">
+        <div style="text-align: center; line-height: 100px; width: 100%; color: #999999; font-size: 1.25rem">
+          加载中
+        </div>
+      </template>
+      <template v-else-if="!Object.keys(directoryList).length">
+        <div style="text-align: center; line-height: 100px; width: 100%; color: #999999; font-size: 1.25rem">
+          暂无目录
+        </div>
+      </template>
+      <template v-else v-for="(value, key) in directoryList">
+        <v-col cols="12" sm="6" md="4" lg="3" xl="2" class="">
+          <v-list dense :key="key">
+            <template v-for="(item, i) in value">
+              <v-list-item
+                  :key="item.appId + '-' + item.loginId + '-' + item.appGroupNumber + '-' + item.appGroupItemSort + '-' + i"
+                  @click="jump(item.url)"
+              >
+                <v-list-item-icon class="mr-2">
+                  <v-icon size="18" color="grey lighten-3">mdi-link-variant</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title v-text="item.displayName"></v-list-item-title>
+                </v-list-item-content>
+                <v-list-item-icon class="mr-2">
+                  <v-icon size="18" color="grey lighten-1">mdi-chevron-right</v-icon>
+                </v-list-item-icon>
+              </v-list-item>
+              <!--          <v-divider></v-divider>-->
+            </template>
+          </v-list>
+        </v-col>
+      </template>
+
+    </v-row>
+  </v-list-item-group>
+
+</jh-layout>
+{% endblock %}
+
+{% block vue_body %}
+{% include 'layout/jhLayout.html' %}
+<script type="module">
+
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: () => ({
+      selectedUrlItem: null,
+      directoryList: null
+    }),
+
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+    },
+    watch: {},
+    async created() {
+      await this.getTableData();
+    },
+    mounted() {
+    },
+    methods: {
+      /**
+       * 获取表格数据
+       */
+      async getTableData() {
+        this.isTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'directory',
+              actionId: 'selectItemList',
+              orderBy: [{column: 'operationAt', order: 'desc'}]
+            }
+          }
+        });
+        this.directoryList = _
+        .chain(result.data.appData.rows)
+        .sortBy('appGroupItemSort')
+        .groupBy('appGroupNumber')
+        .value();
+      },
+      jump(url) {
+        window.open(url);
+      }
+    }
+  })
+</script>
+{% endblock %}

@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-boilerplate-json-editor",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "boilerplate for jianghu quickstart",
   "scripts": {
     "autod": "autod",

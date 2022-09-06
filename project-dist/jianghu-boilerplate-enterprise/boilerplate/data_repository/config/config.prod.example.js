@@ -7,7 +7,7 @@ module.exports = appInfo => {
 
   assert(appInfo);
   return {
-    dataSyncStatus: '启用', // 是否启用同步，启用/禁用
+    dataSyncStatus: '禁用', // 是否启用同步，启用/禁用
     appDirectoryLink: 'https://panshi.openjianghu.org',
     static: {
       maxAge: 0,
@@ -29,7 +29,7 @@ module.exports = appInfo => {
           password: '123456',
           database: '{{dbPrefix}}data_repository',
         },
-        pool: { min: 0, max: 100 },
+        pool: { min: 0, max: 10 },
         acquireConnectionTimeout: 30000,
       },
       app: true,

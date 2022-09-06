@@ -5,22 +5,22 @@
 <jh-layout-v3>
 
   <!-- 页面主要内容 -->
-  <v-card :class="{'px-2': isMobile}">
-    <v-row class="ma-0  align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+  <v-card>
+    <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
 
-      <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0">
+      <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
         <span class="body-2">共{{ tableData.length }}条记录</span>
         <span class="body-2"><v-chip class="ma-2" small color="default">同步模式: {{ syncModel }}</v-chip></span>
       </v-col>
 
       <v-spacer></v-spacer>
 
-      <v-col cols="12" xs="12" sm="4" md="3" xl="3" class="px-0">
-        <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+      <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex pr-0">
+        <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
       </v-col>
 
     </v-row>
-    <v-data-table
+    <v-data-table fixed-header
                   :headers="headers"
                   :items="tableData"
                   :search="searchInput"
@@ -28,7 +28,7 @@
                   :items-per-page="20"
                   :loading="isTableLoading"
                   checkbox-color="success"
-                  :class="{'mx-2': isMobile}"
+                  :class="{'mx-4': isMobile}"
                   mobile-breakpoint="0"
                   class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
       <template v-slot:item.syncTime="{ item }">
@@ -88,28 +88,18 @@
     },
     watch: {
       showFullData() {
-        this.doAction('refreshTableData');
+        this.doUiAction('refreshTableData');
       }
     },
     async created() {
       setInterval(()=> {
-        this.doAction('refreshTableData');
+        this.doUiAction('refreshTableData');
       }, 10000)
     },
     mounted() {
-      this.doAction('refreshTableData');
+      this.doUiAction('refreshTableData');
     },
     methods: {
-      async doAction(actionId, actionData) {
-        switch (actionId) {
-          case 'refreshTableData':
-            await this.refreshTableData(actionData);
-            break;
-          default:
-            console.error("[doAction] actionId not find", { actionId });
-            break;
-        }
-      },
       /**
        * 获取表格数据
        */
@@ -125,7 +115,7 @@
           }
         });
 
-        this.tableDataFromBackend = result.data.appData.resultData.rows;
+        this.tableDataFromBackend = result.data.appData.rows;
         this.isTableLoading = false;
       },
       dayjs: dayjs,

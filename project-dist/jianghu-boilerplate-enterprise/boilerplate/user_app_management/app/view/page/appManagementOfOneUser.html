@@ -6,18 +6,18 @@
 <template slot="breadcrumbsTitle">
   <div>
     用户【{{ title }}】的APP管理
-    <span style="font-size: 18px;">(ID: {{ userId }})</span>
+    <span style="font-size: 1rem;" :class="{'d-block': isMobile}">(ID: {{ userId }})</span>
   </div>
 </template>
-	<v-card :class="{'px-2': isMobile}">
-		<v-row class="ma-0  align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
-			<v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0 ">
+	<v-card>
+		<v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+			<v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0 ">
 				<v-btn dark color="success" @click="isEditDrawerShow = true" class="elevation-0 mr-2">分配新的APP</v-btn>
 				<span class="body-2">共{{ tableData.length }}条记录</span>
 			</v-col>
 			<v-spacer></v-spacer>
-			<v-col cols="12" xs="12" sm="4" md="3" xl="3" class="px-0">
-				<v-text-field dense filled single-line v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input"></v-text-field>
+			<v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex pr-0">
+				<v-text-field dense filled single-line v-model="searchInput" label="表格过滤" class="cus-v-input"></v-text-field>
 			</v-col>
 		</v-row>
 		<v-data-table
@@ -29,7 +29,7 @@
 				:items-per-page="-1"
 				:loading="isTableLoading"
 				checkbox-color="success"
-        :class="{'mx-2': isMobile}"
+        :class="{'mx-4': isMobile}"
 				mobile-breakpoint="0"
 				class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column"
 		>
@@ -37,7 +37,7 @@
 				{{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
 			</template>
 			<template v-slot:item.option="{ item }">
-				<v-btn small :class="btn.color" v-for="btn of tableButtonList" @click="doAction('deleteRelation', {item})" :key="btn.value">
+				<v-btn :small="!isMobile" :xSmall="isMobile" :class="btn.color" v-for="btn of tableButtonList" @click="doUiAction('deleteRelation', {item})" :key="btn.value">
 					{{ btn.text }}
 				</v-btn>
 			</template>
@@ -55,7 +55,7 @@
 		>
 			<v-container class="navDrawerContainer">
         <v-row class="pt-8" :class="{'px-12': !isMobile, 'px-4': isMobile}">
-          <v-btn class="mt-0" dark color="success" elevation="0" @click="doAction('allotApp')">保存选中</v-btn>
+          <v-btn class="mt-0" dark color="success" elevation="0" @click="doUiAction('allotApp')">保存选中</v-btn>
           <v-spacer></v-spacer>
           <v-btn class="mt-0 elevation-0" :class="{'mr-16': !isMobile, 'mr-4': isMobile}" fab x-small @click="isEditDrawerShow = false">
             <v-icon dark>mdi-close</v-icon>
@@ -76,10 +76,10 @@
 							@item-selected="drawerItemSelected"
 							@toggle-select-all="drawerToggleSelectAll"
               class="elevation-0 flex-fill d-flex flex-column show-select pt-6"
-              :class="{'px-2': isMobile}"
+              :class="{'px-4': isMobile}"
           >
 						<template v-slot:item.option="{ item }">
-							<v-btn small class="success" @click="doAction('buildRelation', {item})">新增</v-btn>
+							<v-btn :small="!isMobile" :xSmall="isMobile" class="success" @click="doUiAction('buildRelation', {item})">新增</v-btn>
 						</template>
 					</v-data-table>
 				</v-row>
@@ -154,38 +154,10 @@
 
 		},
 		mounted() {
-			this.doAction('refreshTableData');
-			this.doAction('getDrawerTableData');
+      this.doUiAction('refreshTableData');
+      this.doUiAction('getDrawerTableData');
 		},
 		methods: {
-			async doAction(actionId, actionData) {
-				switch (actionId) {
-				case 'refreshTableData':
-					await this.refreshTableData(actionData);
-					break;
-				case 'getDrawerTableData':
-					await this.getDrawerTableData(actionData);
-					break;
-				case 'allotApp':
-					await this.confirmAllotAppDialog(actionData);
-					await this.doAllotApp(actionData);
-					await this.refreshTableData(actionData);
-					break;
-				case 'buildRelation':
-					await this.confirmAllotAppDialog(actionData);
-					await this.doBuildRelation(actionData);
-					await this.refreshTableData(actionData);
-					break;
-				case 'deleteRelation':
-					await this.confirmDeleteAppDialog(actionData);
-					await this.doDeleteRelation(actionData);
-					await this.refreshTableData(actionData);
-					break;
-				default:
-					console.error("[doAction] actionId not find", { actionId });
-					break;
-				}
-			},
 			async refreshTableData() {
 				this.isTableLoading = true;
 				const result = await window.jianghuAxios({
@@ -201,7 +173,7 @@
 						}
 					}
 				});
-				this.tableDataFromBackend = result.data.appData.resultData.rows;
+				this.tableDataFromBackend = result.data.appData.rows;
 				this.isTableLoading = false;
 			},
 			// 未包含数据列表
@@ -216,27 +188,28 @@
 						}
 					}
 				});
-				this.drawerTableDataFromBackend = result.data.appData.resultData.rows;
+				this.drawerTableDataFromBackend = result.data.appData.rows;
 				this.isDrawerTableLoading = false;
 			},
 
       // allotStudent
       async confirmAllotAppDialog() {
-		if (await window.confirmDialog({title: "确定将APP分配给此用户", content: "确定分配吗？"}) === false) {
-          throw new Error("[confirmAllotAppDialog] 否");
-        }
+        this.isEditDrawerPermanent = true;
+        return window.confirmDialog({title: '确定将APP分配给此用户', content: '确定分配吗？'})
       },
 
-	  async doAllotApp() {
+			async doAllotApp() {
         for (const [i, appId] of this.drawerItemSelectedClass.entries()) {
+          this.isEditDrawerPermanent = false;
           window.vtoast.loading(`正在新增 第${i + 1}个`);
           await this.buildRelationImpl(appId);
         }
         window.vtoast.success("批量新增成功");
         this.drawerItemSelectedClass = [];
-	  },
+			},
 
-	 async doBuildRelation({item}) {
+			async doBuildRelation({item}) {
+        this.isEditDrawerPermanent = false;
         window.vtoast.loading("正在新增");
         await this.buildRelationImpl(item.appId);
         window.vtoast.success("新增成功");
@@ -256,11 +229,9 @@
 			},
       // allotStudent
       async confirmDeleteAppDialog() {
-		if (await window.confirmDialog({title: "确定将APP从此用户删除", content: "确定删除吗？"}) === false) {
-          throw new Error("[confirmDeleteAppDialog] 否");
-        }
+        return window.confirmDialog({title: '确定将APP从此用户删除', content: '确定删除吗？'})
       },
-	  async doDeleteRelation({item}) {
+			async doDeleteRelation({item}) {
         window.vtoast.loading("删除中");
         await window.jianghuAxios({
           data: {
@@ -273,28 +244,28 @@
           }
         });
         window.vtoast.success("删除成功");
-	  },
-	  drawerItemSelected({item, value}) {
+			},
+			drawerItemSelected({item, value}) {
         const { appId } = item;
         if (value) {
           this.drawerItemSelectedClass.push(appId);
         } else {
           this.drawerItemSelectedClass = this.drawerItemSelectedClass.filter(e => e !== appId);
         }
-	  },
-	  drawerToggleSelectAll({items, value}) {
-		if (value) {
+			},
+			drawerToggleSelectAll({items, value}) {
+				if (value) {
           const itemIds = [];
           for (const item of items) {
             itemIds.push(item.appId)
           }
-			this.drawerItemSelectedClass = items;
-		} else {
-			this.drawerItemSelectedClass = [];
+					this.drawerItemSelectedClass = items;
+				} else {
+					this.drawerItemSelectedClass = [];
+				}
+			},
+			dayjs: dayjs,
 		}
-	  },
-	  dayjs: dayjs,
-	  }
 	})
 </script>
 {% endblock %}

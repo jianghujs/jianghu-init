@@ -1,5 +1,5 @@
 {
-  "name": "{{name}}",
+  "name": "{{database}}",
   "version": "1.0.0",
   "description": "",
   "private": true,
@@ -26,8 +26,8 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --port=9909 --title={{name}}",
-    "stop": "egg-scripts stop --title={{name}}",
+    "start": "egg-scripts start --daemon --port=9909 --title={{database}}",
+    "stop": "egg-scripts stop --title={{database}}",
     "dev": "egg-bin dev --port=9909",
     "debug": "egg-bin debug",
     "test": "npm run lint -- --fix && npm run test-local",

@@ -5,21 +5,19 @@ const assert = require('assert');
 
 const { middleware, middlewareMatch } = require('@jianghujs/jianghu/config/middlewareConfig');
 
-const eggJianghuPathTemp = require.resolve('@jianghujs/jianghu');
-const eggJianghuPath = path.join(eggJianghuPathTemp, '../');
+const jianghuPathTemp = require.resolve('@jianghujs/jianghu');
+const jianghuPath = path.join(jianghuPathTemp, '../');
 
 module.exports = appInfo => {
   assert(appInfo);
 
-  const projectId = 'jianghujs_enterprise';
   const appId = 'directory';
   const uploadDir = path.join(appInfo.baseDir, 'upload');
   const downloadBasePath = `/${appId}/upload`;
 
   return {
     appId,
-    projectId,
-    appTitle: '江湖演示-企业级-APP目录',
+    appTitle: '江湖演示-企业级',
     appLogo: `${appId}/public/img/logo.png`,
     appType: 'multiApp',
     appDirectoryLink: '',
@@ -37,7 +35,7 @@ module.exports = appInfo => {
       maxFiles: 0,
       dir: [
         { prefix: `/${appId}/public/`, dir: path.join(appInfo.baseDir, 'app/public') },
-        { prefix: `/${appId}/public/`, dir: path.join(eggJianghuPath, 'app/public') },
+        { prefix: `/${appId}/public/`, dir: path.join(jianghuPath, 'app/public') },
         { prefix: `/${appId}/upload/`, dir: uploadDir },
       ],
     },
@@ -46,7 +44,7 @@ module.exports = appInfo => {
       mapping: { '.html': 'nunjucks' },
       root: [
         path.join(appInfo.baseDir, 'app/view'),
-        path.join(eggJianghuPath, 'app/view'),
+        path.join(jianghuPath, 'app/view'),
       ].join(','),
     },
     middleware,

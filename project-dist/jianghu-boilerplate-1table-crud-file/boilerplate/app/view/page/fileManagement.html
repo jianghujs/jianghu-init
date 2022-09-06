@@ -1,9 +1,9 @@
-{% extends 'template/xiaochengxuTemplateV3.html'%}
+{% extends 'template/jhTemplateV3.html'%}
 
 {% block vue_template %}
 
 
-<xiaochengxu-layout-v3>
+<jh-layout-v3>
 
   <!--   <template slot="serverSearch">
       <v-row class="ma-0 align-center flex-none pa-0" :class="{'pa-2': !isMobile, 'pa-2': isMobile}" style="justify-content: end">
@@ -179,7 +179,7 @@
     <v-img v-if="previewFileType === 'img'" max-height="80vw" max-width="100vw"  :src="previewFileUrl"></v-img>
   </v-overlay>
 
-</xiaochengxu-layout-v3>
+</jh-layout-v3>
 
 {% endblock %}
 
@@ -353,18 +353,16 @@ new Vue({
       if (!this.inputFile) {
         window.vtoast.fail('请选择文件');
         // 中断uiAction
-        throw new Error("未选择文件");
+        return false;
       }
-      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
-        throw new Error("取消");
-      }
+      return window.confirmDialog({title: '新增', content: '确定新增吗？'})
     },
     async doCreateItem() {
       const { fileDesc, fileType } = this.addItem;
       window.vtoast.loading(`文件上传进度0.00%`);
       // const filenameStorage = this.inputFile.name;
       const filenameStorage = null;
-      const result = await window.jianghuAxios.socketUploadByBase64({ file: this.inputFile, fileDirectory: 'testFile', fileDesc, fileType, filenameStorage,
+      const result = await window.jianghuAxios.httpUploadByStream({ file: this.inputFile, fileDirectory: 'testFile', fileDesc, fileType, filenameStorage,
         onProgress: (total, loaded) => {
           this.inputFileUploadProgress = Number((loaded * 100 / total).toFixed(2))
           window.vtoast.loading(`文件上传进度${this.inputFileUploadProgress}%`);
@@ -395,9 +393,7 @@ new Vue({
      * after:  [{"function":"closeDrawerShow"}]
     */
     async confirmUpdateItemDialog() {
-      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
-        throw new Error("取消");
-      }
+      return window.confirmDialog({title: '修改', content: '确定修改吗？'});
     },
     async doUpdateItem() {
       const { id, fileDesc } = this.editItem;
@@ -422,9 +418,7 @@ new Vue({
      * main:   [{"function":"doDeleteItem"},{"function":"refreshTableData"}]
     */
     async confirmDeleteItemDialog() {
-      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
-        throw new Error("取消");
-      }
+      return window.confirmDialog({title: '删除', content: '确定删除吗？'});
     },
     async doDeleteItem({item}) {
       const { id } = item;
@@ -451,7 +445,7 @@ new Vue({
       const itemIndex = this.tableDataFromBackend.findIndex(v => v.fileId === item.fileId);
       const { fileId, filename, downloadPath } = item;
       window.vtoast.loading('文件下载进度0.00%');
-      const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename, 
+      const buffer = await window.jianghuAxios.httpDownloadByStream({ downloadPath, filename, 
         onProgress: (total, loaded)=> {
           const progress = Number((loaded * 100 / total).toFixed(2));
           window.vtoast.loading(`文件下载进度${progress}%`);
@@ -460,7 +454,7 @@ new Vue({
           }
         } 
       });
-      window.jianghuAxios.downloadBase64ToChrome({ base64: fileBase64, filename})
+      window.jianghuAxios.downloadBufferToChrome({ buffer, filename });
     },
 
     /** 
@@ -478,36 +472,12 @@ new Vue({
       this.previewFileType = null;
       if (/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(filename)) {
         this.previewFileType = 'img';
+        this.previewFileUrl = `/<$ ctx.app.config.appId $>/upload${downloadPath}`;
       }
       if (/\.(pdf|PDF)$/.test(filename)) {
         this.previewFileType = 'pdf';
+        this.previewFileUrl = '/<$ ctx.app.config.appId $>/public/pdf/web/viewer.html?file=' + encodeURIComponent(`/<$ ctx.app.config.appId $>/upload${downloadPath}`);
       }
-
-      // 图片 & pdf ===》预览
-      window.vtoast.loading(`${filename} 加载进度 0.0%`);
-      const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename, 
-        onProgress: (total, loaded)=> {
-          let progress = Number((loaded * 100 / total).toFixed(2))
-          window.vtoast.loading(`【${filename}】 加载进度 ${progress}%`);
-          if (progress === 100) {
-            window.vtoast.success(`【${filename}】 加载进度 ${progress}%`);
-          }
-        } 
-      });
-      let arr = fileBase64.split(','),
-        mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(arr[1]),
-        n = bstr.length,
-        u8arr = new Uint8Array(n);
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-      const theBlob = new Blob([u8arr], { type: mime });
-      theBlob.lastModifiedDate = new Date();
-      theBlob.name = filename;
-      this.previewFileUrl = window.URL.createObjectURL(theBlob);
-      // 存起来===>右上角下载按钮
-      this.previewFileBase64 = fileBase64;
       this.previewFilename = filename;
       this.previewOverlay = true;
     },
@@ -518,9 +488,33 @@ new Vue({
      * main:   [{"function":"downloadPreviewFile"}]
     */
     async downloadPreviewFile() {
-      window.jianghuAxios.downloadBase64ToChrome({ base64: this.previewFileBase64, filename: this.previewFilename})
+      const oReq = new XMLHttpRequest();
+      const url = this.previewFileUrl;
+      const filename = this.previewFilename;
+      oReq.open("GET", url, true);
+      oReq.responseType = "arraybuffer";
+      oReq.onprogress = function (event) {
+        if (event.lengthComputable) {
+          const progress = Number((event.loaded * 100 / event.total).toFixed(2));
+          window.vtoast.loading(`文件下载进度${progress}%`);
+          if (progress === 100) {
+            window.vtoast.success('文件下载成功');
+          }
+        }
+      }
+      oReq.onload = function (oEvent) {
+        const buffer = oReq.response;
+        let url = window.URL.createObjectURL(new Blob( [buffer], {type: "arraybuffer"}) )
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+      oReq.send(null); 
     }, 
-
   }
 })
 </script>

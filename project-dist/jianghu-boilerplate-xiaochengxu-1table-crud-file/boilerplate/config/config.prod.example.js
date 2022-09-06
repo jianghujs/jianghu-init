@@ -27,9 +27,9 @@ module.exports = appInfo => {
         connection: {
           host: "127.0.0.1",
           port: 3306,
-          user: "{{name}}",
+          user: "{{database}}",
           password: "123456",
-          database: "{{name}}",
+          database: "{{database}}",
         },
         pool: { min: 0, max: 10 },
         acquireConnectionTimeout: 30000,

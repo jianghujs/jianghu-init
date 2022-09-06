@@ -1,5 +1,5 @@
 {
-  "name": "{{name}}",
+  "name": "{{database}}",
   "version": "1.0.0",
   "description": "",
   "private": true,
@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "egg": "^2.15.1",
-    "@jianghujs/jianghu-duoxing": "2.0.8",
-    "@jianghujs/jianghu": "3.0.36",
+    "@jianghujs/jianghu-duoxing": "2.0.9",
+    "@jianghujs/jianghu": "3.0.52",
     "egg-scripts": "^2.11.0"
   },
   "devDependencies": {

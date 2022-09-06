@@ -63,9 +63,8 @@
     </v-data-table>
   </v-card>
 </v-container>
-<v-overlay app :value="isAddDrawerShow || isEditDrawerShow"></v-overlay>
 <!-- 新增抽屉 -->
-<v-navigation-drawer v-model="isAddDrawerShow" fixed temporary right width="80%" hide-overlay
+<v-navigation-drawer v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%" 
                      class="elevation-24">
   <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
     <v-row class="pt-8">
@@ -105,7 +104,7 @@
   </v-form>
 </v-navigation-drawer>
 <!-- 编辑抽屉 -->
-<v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="80%" hide-overlay
+<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" 
                      class="elevation-24">
   <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
     <v-row class="pt-8">

@@ -14,7 +14,7 @@ describe('test/controller/database.sync.util.js', () => {
     syncDatabase = database;
     assert(knex);
     assert(logger);
-  });
+  })
 
   /**
    * 注意：
@@ -30,8 +30,8 @@ describe('test/controller/database.sync.util.js', () => {
     it('generate mysql trigger', async () => {
       const ctx = app.mockContext();
       await ctx.service.util.updateMysqlDataSyncTrigger();
-    });
+    })
 
-  });
+  })
 
-});
+})

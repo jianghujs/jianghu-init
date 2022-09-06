@@ -96,7 +96,6 @@
     el: '#app',
     template: '#app-template',
     vuetify: new Vuetify(),
-    mixins: [window.jianghuUiActionMixins],
     data: () => ({
       articleId: null,
       selectCategoryDialog: false,
@@ -214,6 +213,22 @@
       }
     },
     methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'saveInfo':
+            await this.saveInfo();
+            break;
+          case 'deletedArticle':
+            await this.deletedArticle();
+            break;
+          case 'saveInfoAndPreview':
+            await this.saveInfoAndPreview();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
       openSelectCategoryDialog() {
         this.selectCategoryDialog = true
       },

@@ -61,12 +61,24 @@
       <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
 
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">身高</span>
-          <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['bodyHeight']"></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">班级ID</span>
           <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['classId']"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生ID</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['studentId']"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生名字</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['name']"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">年级</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['level']"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">身高</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['bodyHeight']"></v-text-field>
         </v-col>
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">出生日期</span>
@@ -77,21 +89,10 @@
           <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['gender']"></v-text-field>
         </v-col>
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">年级</span>
-          <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['level']"></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生名字</span>
-          <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['name']"></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">备注</span>
           <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['remarks']"></v-text-field>
         </v-col>
-        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生ID</span>
-          <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['studentId']"></v-text-field>
-        </v-col>
+   
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生状态</span>
           <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['studentStatus']"></v-text-field>
@@ -137,12 +138,24 @@
       <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
 
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">身高</span>
-          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['bodyHeight']"></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">班级ID</span>
           <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['classId']"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生ID</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['studentId']"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生名字</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['name']"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">年级</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['level']"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">身高</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['bodyHeight']"></v-text-field>
         </v-col>
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">出生日期</span>
@@ -153,20 +166,8 @@
           <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['gender']"></v-text-field>
         </v-col>
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">年级</span>
-          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['level']"></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生名字</span>
-          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['name']"></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">备注</span>
           <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['remarks']"></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生ID</span>
-          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['studentId']"></v-text-field>
         </v-col>
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生状态</span>
@@ -197,14 +198,14 @@
       isTableLoading: true,
       headers: [
 
-        { text: '身高', value: 'bodyHeight', width: 120 },
         { text: '班级ID', value: 'classId', width: 120 },
+        { text: '学生ID', value: 'studentId', width: 120 },
+        { text: '学生名字', value: 'name', width: 120 },
+        { text: '年级', value: 'level', width: 120 },
+        { text: '身高', value: 'bodyHeight', width: 120 },
         { text: '出生日期', value: 'dateOfBirth', width: 120 },
         { text: '性别', value: 'gender', width: 120 },
-        { text: '年级', value: 'level', width: 120 },
-        { text: '学生名字', value: 'name', width: 120 },
         { text: '备注', value: 'remarks', width: 120 },
-        { text: '学生ID', value: 'studentId', width: 120 },
         { text: '学生状态', value: 'studentStatus', width: 120 },
         { text: "操作者", value: "operationByUser", width: 120 },
         { text: "操作时间", value: "operationAt", width: 250 },
@@ -212,14 +213,14 @@
       ],
       drawerHeaders: [
 
-        { text: '身高', value: 'bodyHeight', width: 120 },
         { text: '班级ID', value: 'classId', width: 120 },
+        { text: '学生ID', value: 'studentId', width: 120 },
+        { text: '学生名字', value: 'name', width: 120 },
+        { text: '年级', value: 'level', width: 120 },
+        { text: '身高', value: 'bodyHeight', width: 120 },
         { text: '出生日期', value: 'dateOfBirth', width: 120 },
         { text: '性别', value: 'gender', width: 120 },
-        { text: '年级', value: 'level', width: 120 },
-        { text: '学生名字', value: 'name', width: 120 },
         { text: '备注', value: 'remarks', width: 120 },
-        { text: '学生ID', value: 'studentId', width: 120 },
         { text: '学生状态', value: 'studentStatus', width: 120 },
         { text: "操作者", value: "operationByUser", width: 120 },
       ],

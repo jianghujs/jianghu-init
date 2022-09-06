@@ -1,0 +1,536 @@
+{% extends 'template/xiaochengxuTemplateV3.html'%}
+
+{% block vue_template %}
+
+<!-- 3 table 下  的单表 crud 页面 -->
+
+<xiaochengxu-layout-v3>
+
+<!--   <template slot="serverSearch">
+    <v-row class="ma-0 align-center flex-none pa-0" :class="{'pa-2': !isMobile, 'pa-2': isMobile}" style="justify-content: end">
+      <v-col :class="{'pt-2': isMobile, 'pl-0': isMobile, 'pr-0': !isMobile}" style="max-width: 77px">
+        <v-btn
+          class="elevation-0"
+          color="success"
+          dark
+          @click="doUiAction('refreshTableData')"
+        >
+          查询
+        </v-btn>
+      </v-col>
+    </v-row>
+  </template>-->
+
+<!-- 页面主要内容 -->
+<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+  <v-card>
+  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+
+      <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+        <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem')">新增</v-btn>
+        <span class="body-2">共{{ tableData.length }}条记录</span>
+      </v-col>
+
+      <v-spacer></v-spacer>
+
+      <!--<v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pl-0">
+        <v-text-field v-model="serverSearchInput.articleTitle" label="文章标题" class="cus-v-input" dense filled single-line>
+        </v-text-field>
+      </v-col>
+      <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex pl-0">
+        <v-select @mouseup="openSelectCategoryDialog" v-model="serverSearchInput.categoryId"
+          :items="constantCollection.category" readonly label="分类" hide-details dense filled single-line hide-no-data
+          hide-selected />
+      </v-col>
+      -->
+      <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+        <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+      </v-col>
+    </v-row>
+    <v-data-table fixed-header
+                  :headers="headers"
+                  :items="tableData"
+                  :search="searchInput"
+                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                  :items-per-page="20"
+                  mobile-breakpoint="0"
+                  :loading="isTableLoading"
+                  checkbox-color="success"
+                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      <template v-slot:item.downloadPath="{ item }">
+        <v-btn small class="mr-2" primary @click="doUiAction('previewFile', { item })">预览</v-btn>
+        <a href="javascript:;" @click="doUiAction('downloadFile', { item })">{{ item.downloadPath }}</a>
+      </template>
+      <template v-slot:item.action="{ item }">
+        <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
+        <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
+      </template>
+    </v-data-table>
+  </v-card>
+</v-container>
+
+<!-- 新增 -->
+<v-navigation-drawer v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%" class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">新增信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="doUiAction('closeCreateDrawerShow')">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">文件</span>
+        <v-file-input v-model="addInputFile" class="cus-v-input mr-2" dense filled single-line chips label="请选择文件" ></v-file-input>
+      </v-col>
+
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">文档类型</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['docType']"></v-text-field>
+      </v-col>
+
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">学生名字</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['studentName']"></v-text-field>
+      </v-col>
+
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">备注</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['remarks']"></v-text-field>
+      </v-col>
+
+    </v-row>
+    <v-row class="justify-end pr-6">
+      <v-btn color="success" @click="doUiAction('createItem')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">新增</v-btn>
+      <v-btn class="ml-2 mr-2" @click="doUiAction('closeCreateDrawerShow')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+
+
+<!-- 编辑抽屉 -->
+<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">编辑信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="doUiAction('closeUpdateDrawerShow')">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">文件</span>
+        <v-file-input v-model="editInputFile" class="cus-v-input mr-2" dense filled single-line chips label="请选择文件" ></v-file-input>
+      </v-col>
+
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">文档类型</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['docType']"></v-text-field>
+      </v-col>
+
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">学生名字</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['studentName']"></v-text-field>
+      </v-col>
+
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">备注</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['remarks']"></v-text-field>
+      </v-col>
+
+    </v-row>
+    <v-row class="justify-end pr-6">
+      <v-btn color="success" @click="doUiAction('updateItem')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">保存</v-btn>
+      <v-btn class="ml-2 mr-2" @click="doUiAction('closeUpdateDrawerShow')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+
+  <!-- 文件预览 -->
+  <v-overlay :value="previewOverlay" @click="previewOverlay = false" :opacity="0.85">
+    <v-icon style="position: fixed; right: 10px; top: 5px; z-index: 50000" large color="white"
+      @click="previewOverlay = false">
+      mdi-close-circle
+    </v-icon>
+    <v-icon style="position: fixed; right: 50px; top: 5px; z-index: 50000" large color="white"
+      @click="doUiAction('downloadPreviewFile')">
+      mdi-download
+    </v-icon>
+    <iframe v-if="previewFileType === 'pdf'" :src="'/<$ ctx.app.config.duoxingBot.serverAppId $>/public/pdf/web/viewer.html?file=' + previewFileUrl" frameborder="0"
+      style="width: 100vw; height: 100vh; padding: 50px 0 0 0;"></iframe>  
+    <v-img v-if="previewFileType === 'img'" max-height="80vw" max-width="100vw"  :src="previewFileUrl"></v-img>
+  </v-overlay>
+</xiaochengxu-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    // 表格相关数据
+    isMobile: window.innerWidth < 600,
+    isFormValid: true,
+    requireRules: [
+      v => !!v || 'This is required',
+    ],
+    constantCollection: {
+    },
+    overlay: false,
+    fileType: '',
+    fileSrc: '',
+    serverSearchInput: {
+      studentId: null,
+      classId: null
+    },
+    searchInput: null,
+    isTableLoading: true,
+    tableData: [],
+    tableDataFromBackend: [],
+    headers: [
+      {text: "ID", value: "id", width: 120, class: 'fixed', cellClass: 'fixed'},
+      {text: "文件名", value: "filename", width: 120}, 
+      {text: "文件路径", value: "downloadPath", width: 400},
+      {text: "文件大小/KB", value: "binarySize", width: 120}, 
+      {text: "文档类型", value: "docType", width: 120}, 
+      {text: "学生名字", value: "studentName", width: 120},
+      {text: "备注", value: "remarks", width: 120},
+      {text: "操作者", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 250},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+    ],
+    isEditDrawerShow: false,
+    editItem: {},
+    isAddDrawerShow: false,
+    addInputFile: null,
+    editInputFile: null,
+    addItem: {},
+    previewPrefix: `/<$ ctx.app.config.appId $>/upload`,
+
+    previewOverlay: false,
+    previewFileUrl: null,
+    previewFileBase64: '',
+    previewFilename: '',
+    previewFileType: '',
+  }),
+  watch: {},
+  async created() {
+    await this.doUiAction('refreshTableData');
+  },
+  mounted() {},
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'refreshTableData':
+            await this.refreshTableData(uiActionData);
+            break;
+          case 'startCreateItem':
+            await this.clearItemData(uiActionData);
+            await this.openCreateItemDialog(uiActionData);
+            break;
+          case 'closeCreateDrawerShow':
+            await this.closeCreateDrawerShow(uiActionData);
+            break;
+          case 'closeUpdateDrawerShow':
+            await this.closeUpdateDrawerShow(uiActionData);
+            break;
+          case 'createItem':
+            await this.confirmCreateItemDialog(uiActionData);
+            await this.doCreateItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            await this.closeCreateDrawerShow(uiActionData);
+            break;
+          case 'startUpdateItem':
+            await this.prepareItemData(uiActionData);
+            await this.openUpdateDialog(uiActionData);
+            break;
+          case 'updateItem':
+            await this.confirmUpdateItemDialog(uiActionData);
+            await this.doUpdateItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            await this.closeUpdateDrawerShow(uiActionData);
+            break;
+          case 'deleteItem':
+            await this.confirmDeleteItemDialog(uiActionData);
+            await this.doDeleteItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            break;
+          case 'previewFile':
+            await this.previewFile(uiActionData);
+            break;
+          case 'downloadFile':
+            await this.downloadFile(uiActionData);
+            break;
+          case 'downloadPreviewFile':
+            await this.downloadPreviewFile(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+    },
+    // =================================uiAction 公共方法 start ======================================
+    /**
+     * uiActionId:  refreshTableData
+     * description: ✅获取表格数据
+     * main:   [{"function":"refreshTableData"}]
+    */
+    async refreshTableData() {
+      this.isTableLoading = true;
+      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
+      const { data: { appData: { rows } } } = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'studentFileManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {},
+            whereLike: serverSearchInput,
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+
+      this.tableDataFromBackend = rows;
+      this.tableData = rows;
+      this.isTableLoading = false;
+    },
+    // =================================uiAction 公共方法 end ======================================
+
+    /**
+     * uiActionId:  startCreateItem
+     * description: ✅开始新增
+     * main:   [{"function":"clearItemData"},{"function":"openCreateItemDialog"}]
+    */
+    async clearItemData() {
+      this.addItem = {};
+    },
+    async openCreateItemDialog() {
+      this.isAddDrawerShow = true;
+    },
+
+    /**
+     * uiActionId:  createItem
+     * description: ✅新增
+     * before: [{"function":"confirmCreateItemDialog"}]
+     * main:   [{"function":"doCreateItem"},{"function":"refreshTableData"}]
+     * after:  [{"function":"closeCreateDrawerShow"}]
+    */
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+          throw new Error("[confirmCreateFormDialog] 否");
+      }
+    },
+    async doCreateItem() {
+      const { docType, studentName, remarks } = this.addItem;
+      const fileType = '学生文件';
+      const _this = this;
+      const {data: {status, appData: {resultData: { filename, downloadPath, binarySize }}} } = await window.jianghuAxios.socketUploadByBase64({ file: this.addInputFile, fileDirectory: 'testFile',
+          onProgress: (total, loaded) => {
+            let progress = Number((loaded * 100 / total).toFixed(2))
+            window.vtoast.loading(`文件上传进度${progress}%`);
+            if (progress === 100) {
+              window.vtoast.success('文件上传成功');
+            }
+          }
+        })
+      if (status === 'success') {
+        await window.vtoast.loading("新增数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'studentFileManagement',
+              actionId: 'insertItem',
+              actionData: { docType, studentName, remarks, filename, downloadPath, binarySize}
+            }
+          }
+        })
+        await window.vtoast.success("新增数据成功");
+      } else {
+        await window.vtoast.fail("文件上传失败");
+      }
+
+    },
+    async closeCreateDrawerShow() {
+      this.isAddDrawerShow = false;
+      this.addInputFile = null;
+    },
+
+    /**
+     * uiActionId:  startUpdateItem
+     * description: ✅开始更新
+     * main:   [{"function":"prepareItemData"},{"function":"openUpdateDialog"}]
+    */
+    async prepareItemData({item}) {
+      this.editItem = {...item};
+    },
+    async openUpdateDialog() {
+      this.isEditDrawerShow = true;
+    },
+    /**
+     * uiActionId:  updateItem
+     * description: ✅更新
+     * before: [{"function":"confirmUpdateItemDialog"}]
+     * main:   [{"function":"doUpdateItem"},{"function":"refreshTableData"}]
+     * after:  [{"function":"closeUpdateDrawerShow"}]
+    */
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+          throw new Error("[confirmUpdateItemDialog] 否");
+      }
+    },
+    async doUpdateItem() {
+      const { id, docType, studentName, remarks } = this.editItem;
+      const updateParam = { docType, studentName, remarks };
+      if (this.editInputFile) {
+        const {data: {status, appData: {resultData: { filename, downloadPath, binarySize }}} } = await window.jianghuAxios.socketUploadByBase64({ file: this.editInputFile, fileDirectory: 'testFile',
+          onProgress: (total, loaded) => {
+            let progress = Number((loaded * 100 / total).toFixed(2))
+            window.vtoast.loading(`文件上传进度${progress}%`);
+            if (progress === 100) {
+              window.vtoast.success('文件上传成功');
+            }
+          }
+        })
+        updateParam.filename = filename;
+        updateParam.downloadPath = downloadPath;
+        updateParam.binarySize = binarySize;
+      }
+
+      await window.vtoast.loading("修改数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'studentFileManagement',
+            actionId: 'updateItem',
+            actionData: updateParam,
+            where: { id }
+          }
+        }
+      })
+      await window.vtoast.success("修改数据成功");
+    },
+    async closeUpdateDrawerShow() {
+      this.isEditDrawerShow = false;
+      this.updateInputFile = null;
+    },
+
+    /**
+     * uiActionId:  deleteItem
+     * description: ✅删除
+     * before: [{"function":"confirmDeleteItemDialog"}]
+     * main:   [{"function":"doDeleteItem"},{"function":"refreshTableData"}]
+    */
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+          throw new Error("[confirmDeleteItemDialog] 否");
+      }
+    },
+    async doDeleteItem({item}) {
+      const { id } = item;
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'studentFileManagement',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: { id: id }
+          }
+        }
+      });
+      await window.vtoast.success("删除数据成功");
+    },
+
+    /** 
+     * uiActionId: previewFile
+     * description: ✅预览文件
+     * main:   [{"function":"previewFile"}]
+     */
+     async previewFile({ item }) {
+      const { filename, downloadPath, binarySize } = item;
+      if (binarySize > 7 * 1024) {
+        window.vtoast.fail('文件大于7M, 不支持预览!');
+        // 中断uiAction
+        return false;
+      }
+      this.previewFileType = null;
+      if (/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(filename)) {
+        this.previewFileType = 'img';
+      }
+      if (/\.(pdf|PDF)$/.test(filename)) {
+        this.previewFileType = 'pdf';
+      }
+
+      // 图片 & pdf ===》预览
+      window.vtoast.loading(`${filename} 加载进度 0.0%`);
+      const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename, 
+        onProgress: (total, loaded)=> {
+          let progress = Number((loaded * 100 / total).toFixed(2))
+          window.vtoast.loading(`【${filename}】 加载进度 ${progress}%`);
+          if (progress === 100) {
+            window.vtoast.success(`【${filename}】 加载进度 ${progress}%`);
+          }
+        } 
+      });
+      let arr = fileBase64.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]),
+        n = bstr.length,
+        u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      const theBlob = new Blob([u8arr], { type: mime });
+      theBlob.lastModifiedDate = new Date();
+      theBlob.name = filename;
+      this.previewFileUrl = window.URL.createObjectURL(theBlob);
+      // 存起来===>右上角下载按钮
+      this.previewFileBase64 = fileBase64;
+      this.previewFilename = filename;
+      this.previewOverlay = true;
+    },
+
+    /** 
+     * uiActionId: downloadPreviewFile
+     * description: ✅下载正在预览的文件
+     * main:   [{"function":"downloadPreviewFile"}]
+    */
+    async downloadPreviewFile() {
+      window.jianghuAxios.downloadBase64ToChrome({ base64: this.previewFileBase64, filename: this.previewFilename})
+    }, 
+
+    /** 
+     * uiActionId: downloadFile
+     * description: ✅下载
+     * main:   [{"function":"downloadFile"}]
+     */
+     async downloadFile({ item }) {
+      const itemIndex = this.tableDataFromBackend.findIndex(v => v.fileId === item.fileId);
+      const { fileId, filename, downloadPath } = item;
+      window.vtoast.loading('文件下载进度0.00%');
+      const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename, 
+        onProgress: (total, loaded)=> {
+          const progress = Number((loaded * 100 / total).toFixed(2));
+          window.vtoast.loading(`文件下载进度${progress}%`);
+          if (progress === 100) {
+            window.vtoast.success('文件下载成功');
+          }
+        } 
+      });
+      window.jianghuAxios.downloadBase64ToChrome({ base64: fileBase64, filename})
+    },
+  }
+})
+</script>
+
+<style scoped>
+</style>
+{% endblock %}

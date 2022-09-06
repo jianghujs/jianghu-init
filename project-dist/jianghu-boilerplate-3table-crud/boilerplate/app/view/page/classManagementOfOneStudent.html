@@ -47,10 +47,9 @@
 
 </v-container>
 
-<v-overlay app :value="isAllotEditDrawerShow || isEditDrawerShow"></v-overlay>
 
-<v-navigation-drawer v-model="isAllotEditDrawerShow" fixed temporary right
-                     touchless width="80%" hide-overlay class="elevation-24">
+<v-navigation-drawer v-model="isAllotEditDrawerShow" :permanent="isAllotEditDrawerShow" fixed temporary right
+                     touchless width="80%"  class="elevation-24">
   <v-container class="navDrawerContainer">
     <v-row class="pt-8" :class="{'px-4': isMobile, 'px-12': !isMobile}">
       <v-btn class="mt-0" dark color="success" elevation="0" @click="doUiAction('allotItem')">保存选中</v-btn>
@@ -78,7 +77,7 @@
 </v-navigation-drawer>
 
 <!-- 编辑抽屉 -->
-<v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="80%" hide-overlay
+<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" 
                      class="elevation-24">
   <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
     <v-row class="pt-8">
