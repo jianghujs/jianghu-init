@@ -183,7 +183,7 @@
         {text: "sort", value: "sort", width: 120, class: 'fixed', cellClass: 'fixed'},
         {text: "操作人", value: "operationByUser", width: 120},
         {text: "操作时间", value: "operationAt", width: 250},
-        {text: '操作', value: 'action', align: 'center', sortable: false, width: 240, class: 'fixed', cellClass: 'fixed'},
+        {text: '操作', value: 'action', align: 'center', sortable: false, width: 140, class: 'fixed', cellClass: 'fixed'},
       ],
 
       currentClickButton: {title: '新增', action: 'add'},
@@ -258,7 +258,7 @@
         const result = await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: 'userPageResource',
               actionId: `selectItemListOf${this.pageId}`
             }
           }
@@ -301,7 +301,7 @@
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: 'userPageResource',
               actionId: `insertItemOf${this.pageId}`,
               actionData: this.editItem
             }
@@ -342,7 +342,7 @@
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: 'userPageResource',
               actionId: `updateItemOf${this.pageId}`,
               actionData: this.editItem,
               where: {id: id}
@@ -366,7 +366,7 @@
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: 'userPageResource',
               actionId: `deleteItemOf${this.pageId}`,
               where: { id: this.editItem.id }
             }

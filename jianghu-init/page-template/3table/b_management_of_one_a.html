@@ -13,15 +13,6 @@ INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`
 INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'<=$ pageId $=>','updateItem','✅<=$ nameA $=>的<=$ nameB $=>管理-更新数据','sql','{}','{ \"table\": \"<=$ tableMiddle $=>\", \"operation\": \"jhUpdate\" }',NULL,NULL,'jhInsert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='<=$ pageId $=>' AND `actionId`='updateItem');
 INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'<=$ pageId $=>','deleteItem','✅<=$ nameA $=>的<=$ nameB $=>管理-删除信息','sql','{}','{ \"table\": \"<=$ tableMiddle $=>\", \"operation\": \"jhDelete\" }',NULL,NULL,'jhInsert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='<=$ pageId $=>' AND `actionId`='deleteItem');
 INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'<=$ pageId $=>','selectAll<=$ CamelCaseTableB $=>List','✅<=$ nameA $=>查询-查询列表','sql','{}','{ \"table\": \"<=$ tableB $=>\", \"operation\": \"select\" }',NULL,NULL,'jhInsert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='<=$ pageId $=>' AND `actionId`='selectAll<=$ CamelCaseTableB $=>List');
-
--- 创建 ui
-INSERT INTO `_ui` (`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '<=$ pageId $=>', 'ui', 'refreshTableData', '✅获取表格数据', '{\"main\": [{\"function\": \"refreshTableData\"}]}', NULL, 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_ui` WHERE `pageId`='<=$ pageId $=>' AND `uiActionId`='refreshTableData');
-INSERT INTO `_ui` (`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '<=$ pageId $=>', 'ui', 'getDrawerTableData', '✅获取内表格数据', '{\"main\": [{\"function\": \"getDrawerTableData\"}]}', NULL, 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_ui` WHERE `pageId`='<=$ pageId $=>' AND `uiActionId`='getDrawerTableData');
-INSERT INTO `_ui` (`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '<=$ pageId $=>', 'ui', 'allotItem', '✅同步数据', '{\"before\": [{\"function\": \"confirmAllotItemDialog\"}], \"main\": [{\"function\": \"doAllotItem\"}, {\"function\": \"refreshTableData\"}]}', NULL, 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_ui` WHERE `pageId`='<=$ pageId $=>' AND `uiActionId`='allotItem');
-INSERT INTO `_ui` (`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '<=$ pageId $=>', 'ui', 'buildRelation', '✅同步数据', '{\"before\": [{\"function\": \"confirmAllotItemDialog\"}], \"main\": [{\"function\": \"doBuildRelation\"}, {\"function\": \"refreshTableData\"}]}', NULL, 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_ui` WHERE `pageId`='<=$ pageId $=>' AND `uiActionId`='buildRelation');
-INSERT INTO `_ui` (`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '<=$ pageId $=>', 'ui', 'startUpdateItem', '✅获取表格数据', '{\"main\": [{\"function\": \"prepareItemData\"}, {\"function\": \"openUpdateDialog\"}]}', NULL, 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_ui` WHERE `pageId`='<=$ pageId $=>' AND `uiActionId`='startUpdateItem');
-INSERT INTO `_ui` (`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '<=$ pageId $=>', 'ui', 'updateItem', '✅获取表格数据', '{\"before\": [{\"function\": \"confirmUpdateItemDialog\"}], \"main\": [{\"function\": \"doUpdateItem\"}, {\"function\": \"refreshTableData\"}], \"after\": [{\"function\": \"closeDrawerShow\"}]}', NULL, 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_ui` WHERE `pageId`='<=$ pageId $=>' AND `uiActionId`='updateItem');
-INSERT INTO `_ui` (`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '<=$ pageId $=>', 'ui', 'deleteRelation', '✅删除关系数据', '{\"before\": [{\"function\": \"confirmDeleteItemDialog\"}], \"main\": [{\"function\": \"doDeleteRelation\"}, {\"function\": \"refreshTableData\"}]}', NULL, 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_ui` WHERE `pageId`='<=$ pageId $=>' AND `uiActionId`='deleteRelation');
 SQL END!-->
 
 <!-- vue template 代码块 -->
@@ -66,17 +57,17 @@ SQL END!-->
       </v-data-table>
     </v-card>
   </v-container>
-  <v-navigation-drawer v-model="isAllotEditDrawerShow" :permanent="isAllotEditDrawerShow" absolute temporary right
-      touchless width="80%" hide-overlay class="elevation-24">
+  <v-navigation-drawer v-model="isAllotEditDrawerShow" :permanent="isAllotEditDrawerShow" fixed temporary right
+      touchless width="80%" class="elevation-24">
     <v-container class="navDrawerContainer">
-      <v-row class=" pa-2">
-        <v-btn class="mt-0" dark color="success" elevation="0" @click="doUiAction('allotItem')">新增</v-btn>
+      <v-row class="pt-8" :class="{'px-4': isMobile, 'px-12': !isMobile}">
+        <v-btn class="mt-0" dark color="success" elevation="0" @click="doUiAction('allotItem')">保存选中</v-btn>
         <v-spacer></v-spacer>
-        <v-btn class="mr-4 mt-1 elevation-0" fab x-small @click="isAllotEditDrawerShow = false">
+        <v-btn class="mt-0 elevation-0" fab x-small @click="isAllotEditDrawerShow = false">
           <v-icon dark>mdi-close</v-icon>
         </v-btn>
       </v-row>
-      <v-row class="pa-2 py-0">
+      <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
         <v-data-table fixed-header show-select checkbox-color="success" :headers="headers"
           :loading="isDrawerTableLoading" :items="drawerTableData" item-key="<=$ primaryFieldB $=>" :dense="isMobile"
           :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }" :items-per-page="20"
@@ -130,9 +121,9 @@ SQL END!-->
 <!--        </v-menu>-->
 <!--      </v-col>-->
       </v-row>
-      <v-row class="justify-end pr-6">
-        <v-btn color="success" small @click="doUiAction('updateItem')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">保存</v-btn>
-        <v-btn class="ml-2" small @click="isEditDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
+      <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-3': isMobile, 'mb-8': isMobile}">
+        <v-btn color="success" @click="doUiAction('updateItem')">保存</v-btn>
+        <v-btn class="ml-2" @click="isEditDrawerShow = false">取消</v-btn>
       </v-row>
     </v-form>
   </v-navigation-drawer>
@@ -167,8 +158,9 @@ SQL END!-->
         { text: '<=$ f.COLUMN_COMMENT.split(\';\')[0] $=>', value: '<=$ f.COLUMN_NAME $=>', width: 120 },//===// <=% endfor %=>
         { text: "操作者", value: "operationByUser", width: 120 },
       ],
+      drawerTableData: [],
       drawerTableDataFromBackend: [],
-      tableDataFromBackend: [],
+      tableData: [],
       drawerItemSelectedClass: [],
       isFormValid: true,
         requireRules: [
@@ -181,17 +173,6 @@ SQL END!-->
       isMobile() {
         return window.innerWidth < 600;
       },
-      // 表格内容，即当前<=$ nameA $=>下的<=$ nameB $=>
-      tableData() {
-        return this.tableDataFromBackend;
-      },
-      // 弹出抽屉的内容，即：所有<=$ nameB $=> - 当前<=$ nameA $=>下的<=$ nameB $=>
-      drawerTableData() {
-        if (_.isEmpty(this.drawerTableDataFromBackend)) {
-          return [];
-        }
-        return _.differenceBy(this.drawerTableDataFromBackend, this.tableData, '<=$ primaryFieldB $=>');
-      }
     },
     watch: {},
     async created() {
@@ -213,6 +194,49 @@ SQL END!-->
     mounted() {
     },
     methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'refreshTableData':
+            await this.refreshTableData();
+            break;
+          case 'getDrawerTableData':
+            await this.getDrawerTableData();
+            await this.buildDrawerTableData();
+            break;
+          case 'allotItem':
+            await this.confirmAllotItemDialog();
+            await this.doAllotItem();
+            await this.refreshTableData();
+            await this.buildDrawerTableData();
+            break;
+          case 'buildRelation':
+            await this.confirmAllotItemDialog();
+            await this.doBuildRelation(uiActionData);
+            await this.refreshTableData();
+            await this.buildDrawerTableData();
+            break;
+          case 'startUpdateItem':
+            await this.prepareItemData(uiActionData);
+            await this.openUpdateDialog();
+            break;
+          case 'updateItem':
+            await this.confirmUpdateItemDialog();
+            await this.doUpdateItem();
+            await this.refreshTableData();
+            await this.buildDrawerTableData();
+            await this.closeDrawerShow();
+            break;
+          case 'deleteRelation':
+            await this.confirmDeleteItemDialog();
+            await this.doDeleteRelation(uiActionData);
+            await this.refreshTableData();
+            await this.buildDrawerTableData();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      },
       // 获取所有<=$ nameA $=>的数据
       /** 
        * uiActionId:  refreshTableData
@@ -231,7 +255,7 @@ SQL END!-->
             }
           }
         });
-        this.tableDataFromBackend = result.data.appData.rows;
+        this.tableData = result.data.appData.rows;
         this.isTableLoading = false;
       },
 
@@ -256,14 +280,22 @@ SQL END!-->
         this.isDrawerTableLoading = false;
       },
 
+      buildDrawerTableData() {
+        if (_.isEmpty(this.drawerTableDataFromBackend)) {
+          this.drawerTableData = [];
+        } else {
+          this.drawerTableData = _.differenceBy(this.drawerTableDataFromBackend, this.tableData, '<=$ primaryFieldB $=>');
+        }
+      },
       /** 
        * uiActionId:  allotItem
        * description: ✅获取表格数据
-       * main:   [{"function":"confirmAllotItemDialog"},{"function":"doAllotItem"}]
       */
       async confirmAllotItemDialog() {
         this.isAllotEditDrawerShow = true;
-        return window.confirmDialog({title: '确定将<=$ nameB $=>分配给此<=$ nameA $=>吗', content: '确定分配吗？'})
+        if (await window.confirmDialog({title: "确定将<=$ nameB $=>分配给此<=$ nameA $=>吗", content: "确定分配吗？"}) === false) {
+          throw new Error("[confirmAllotItemDialog] 否");
+        }
       },
 
       async doAllotItem() {
@@ -280,7 +312,6 @@ SQL END!-->
       /** 
        * uiActionId:  buildRelation
        * description: ✅获取表格数据
-       * main:   [{"function":"doBuildRelation"}]
       */
       async doBuildRelation({ item: {<=$ primaryFieldB $=>} }) {
         this.isAllotEditDrawerShow = false;
@@ -317,12 +348,11 @@ SQL END!-->
       /** 
        * uiActionId:  updateItem
        * description: ✅获取表格数据
-       * before: [{"function":"confirmUpdateItemDialog"}]
-       * main:   [{"function":"doUpdateItem"},{"function":"refreshTableData"}]
-       * after:  [{"function":"closeDrawerShow"}]
       */
       async confirmUpdateItemDialog() {
-        return window.confirmDialog({title: '修改', content: '确定修改吗？'});
+        if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+          throw new Error("[confirmUpdateItemDialog] 否");
+        }
       },
 
       async doUpdateItem() {
@@ -348,11 +378,11 @@ SQL END!-->
       /** 
        * uiActionId:  deleteRelation
        * description: ✅获取表格数据
-       * before: [{"function":"confirmDeleteItemDialog"}]
-       * main:   [{"function":"doDeleteRelation"},{"function":"refreshTableData"}]
       */
       async confirmDeleteItemDialog() {
-        return window.confirmDialog({title: '确认将<=$ nameB $=>从<=$ nameA $=>删除？'})
+        if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+          throw new Error("[confirmDeleteItemDialog] 否");
+        }
       },
       async doDeleteRelation({ item }) {
         window.vtoast.loading("删除中");

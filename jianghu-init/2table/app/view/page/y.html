@@ -63,11 +63,43 @@
           <span class="inputLabel">文件</span>
           <v-file-input v-model="inputFile" class="cus-v-input mr-2" dense filled single-line chips label="请选择文件" ></v-file-input>
         </v-col>
-        //===// <=% for f in fields %=>
+         
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
-          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
-        </v-col>//===// <=% endfor %=>
+          <span class="inputLabel">学生ID</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['studentId']"></v-text-field>
+        </v-col> 
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">学生名字</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['name']"></v-text-field>
+        </v-col> 
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">性别</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['gender']"></v-text-field>
+        </v-col> 
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">出生日期</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['dateOfBirth']"></v-text-field>
+        </v-col> 
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">班级ID</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['classId']"></v-text-field>
+        </v-col> 
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">年级</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['level']"></v-text-field>
+        </v-col> 
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">身高</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['bodyHeight']"></v-text-field>
+        </v-col> 
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">学生状态</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['studentStatus']"></v-text-field>
+        </v-col> 
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">备注</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['remarks']"></v-text-field>
+        </v-col> 
       </v-row>
       <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-3': isMobile, 'mb-8': isMobile}">
         <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)">保存</v-btn>
@@ -112,8 +144,16 @@
       headers: [
         {text: "ID", value: "id", width: 120, required: true, class: 'fixed', cellClass: 'fixed'},
         {text: "文件", value: "filePath", width: 250},
-          //===// <=% for f in fields %=>
-        {text: "<=$ f.COLUMN_COMMENT $=>", value: "<=$ f.COLUMN_NAME $=>", width: 120},//===// <=% endfor %=>
+           
+        {text: "学生ID", value: "studentId", width: 120}, 
+        {text: "学生名字", value: "name", width: 120}, 
+        {text: "性别", value: "gender", width: 120}, 
+        {text: "出生日期", value: "dateOfBirth", width: 120}, 
+        {text: "班级ID", value: "classId", width: 120}, 
+        {text: "年级", value: "level", width: 120}, 
+        {text: "身高", value: "bodyHeight", width: 120}, 
+        {text: "学生状态", value: "studentStatus", width: 120}, 
+        {text: "备注", value: "remarks", width: 120}, 
         {text: "操作人", value: "operationByUser", width: 120},
         {text: "操作时间", value: "operationAt", width: 250},
         {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'}
@@ -185,7 +225,7 @@
         const result = await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: 'y',
               actionId: 'selectItemList',
               orderBy: [{column: 'operationAt', order: 'desc'}]
             }
@@ -248,7 +288,7 @@
           await window.jianghuAxios({
             data: {
               appData: {
-                pageId: '<=$ pageId $=>',
+                pageId: 'y',
                 actionId: 'insertItem',
                 actionData: {...createData, filePath: downloadPath}
               }
@@ -287,7 +327,7 @@
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: 'y',
               actionId: 'updateItem',
               actionData: data,
               where: {id}
@@ -319,7 +359,7 @@
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: 'y',
               actionId: 'deleteItem',
               where: {id}
             }
@@ -335,7 +375,7 @@
       // TODO::下载未成功时无错误响应
       async downloadFileByStream({ item }) {
         const downloadPath = item.filePath
-        const filename = item.filename || downloadPath.split('/').pop()
+        const filename = item.filename
         window.vtoast.loading(`${filename} 下载进度: 0%`);
         const buffer = await window.jianghuAxios.httpDownloadByStream({
           downloadPath,
@@ -354,12 +394,11 @@
         this.editItem = item;
         if (!item.filePath) return;
         const fileType = item.filePath.split('.');
-        if (/\.(pdf|PDF)$/.test(item.filePath)) {
+        if (fileType[fileType.length - 1] === 'pdf') {
           this.fileType = 'pdf';
           this.fileSrc = '/<$ ctx.app.config.appId $>/public/pdf/web/viewer.html?file=' + encodeURIComponent(this.previewPrefix + item.filePath);
           this.overlay = true;
-        }
-        if (/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(item.filePath)) {
+        } else {
           this.fileType = 'img';
           this.fileSrc = this.previewPrefix + item.filePath;
         }
