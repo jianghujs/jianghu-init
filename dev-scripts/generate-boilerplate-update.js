@@ -19,7 +19,7 @@ const locals = [
  * 不打包的文件夹
  */
 const ignoreFolders = [
-  'node_modules', '/out/', '/run/', 'dist', 'typings', '.idea',
+  'node_modules', '/out/', '/run/', 'dist', 'typings', '.idea', '.git/',
   'logs/', 'coverage/', '.nyc_output/', '.github',
   'config/config.local.js',
   'config/config.prod.js',
@@ -67,11 +67,11 @@ function processFiles(targetDir, sourceDir) {
     followSymlinkedDirectories: false,
   });
   files.forEach(file => {
-    const {dir: dirname, base: basename} = path.parse(file);
     // 过滤文件夹
-    if (ignoreFolders.find(folder => file.includes(folder))) {
+    if (ignoreFolders.some(folder => file.includes(folder))) {
       return;
     }
+    const {dir: dirname, base: basename} = path.parse(file);
     const from = path.join(src, file);
     const name = path.join(dirname, fileMapping[basename] || basename);
     const to = path.join(targetDir, replaceTemplate(name, locals));

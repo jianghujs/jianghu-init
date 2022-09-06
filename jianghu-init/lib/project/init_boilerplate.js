@@ -111,9 +111,9 @@ module.exports = class InitBoilerplate {
     }
 
     // copy template
-    await this.processFiles(this.targetDir, templateDir);
+    const { database } = await this.processFiles(this.targetDir, templateDir);
 
-    return { boilerplate, targetDir: this.targetDir };
+    return { boilerplate, targetDir: this.targetDir, database };
   }
 
   /**
@@ -348,7 +348,7 @@ module.exports = class InitBoilerplate {
         this.log('ignore %s only support file, dir, symlink', file);
       }
     });
-    return files;
+    return locals;
   }
 
   /**

@@ -8,7 +8,7 @@
       },
       {
         "from": "jianghujs_1table_crud",
-        "to": "__name__"
+        "to": "__database__"
       }
     ],
     "repositoryUrl": "git@github.com:jianghujs/jianghujs-1table-crud.git"
@@ -22,7 +22,7 @@
       },
       {
         "from": "jianghujs_1table_crud_file",
-        "to": "__name__"
+        "to": "__database__"
       }
     ],
     "repositoryUrl": "git@github.com:jianghujs/jianghujs-1table-crud-file.git"
@@ -36,7 +36,7 @@
       },
       {
         "from": "jianghujs_xiaochengxu_1table_crud",
-        "to": "__name__"
+        "to": "__database__"
       }
     ],
     "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-1table-crud.git"
@@ -50,7 +50,7 @@
       },
       {
         "from": "jianghujs_xiaochengxu_1table_crud_file",
-        "to": "__name__"
+        "to": "__database__"
       }
     ],
     "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-1table-crud-file.git"
@@ -64,7 +64,7 @@
       },
       {
         "from": "jianghujs_2table_crud",
-        "to": "__name__"
+        "to": "__database__"
       }
     ],
     "repositoryUrl": "git@github.com:jianghujs/jianghujs-2table-crud.git"
@@ -78,7 +78,7 @@
       },
       {
         "from": "jianghujs-3table-crud",
-        "to": "__name__"
+        "to": "__database__"
       }
     ],
     "repositoryUrl": "git@github.com:jianghujs/jianghujs-3table-crud.git"
@@ -89,6 +89,10 @@
       {
         "from": "jianghujs-jsoneditor",
         "to": "__name__"
+      },
+      {
+        "from": "jianghujs_jsoneditor",
+        "to": "__database__"
       }
     ],
     "repositoryUrl": "git@github.com:jianghujs/jianghujs-json-editor.git"
@@ -99,6 +103,10 @@
       {
         "from": "xianfeng-v1",
         "to": "__name__"
+      },
+      {
+        "from": "xianfeng_v1",
+        "to": "__database__"
       }
     ],
     "repositoryUrl": "git@github.com:jianghujs/jianghujs-workflow.git"
@@ -112,7 +120,7 @@
       },
       {
         "from": "jianghujs_xiaochengxu_markdown_editor",
-        "to": "__name__"
+        "to": "__database__"
       }
     ],
     "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-markdown-editor.git"

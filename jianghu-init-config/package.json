@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-init-config",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "jianghu init boilerplate config",
   "files": [
     "index.js"
@@ -30,10 +30,6 @@
       "enterprise": {
         "package": "@jianghujs/jianghu-boilerplate-enterprise",
         "description": "Jianghu multi enterprise"
-      },
-      "xiaochengxu": {
-        "package": "@jianghujs/jianghu-boilerplate-xiaochengxu",
-        "description": "Duoxing xiaochengxu"
       },
       "workflow": {
         "package": "@jianghujs/jianghu-boilerplate-workflow",

@@ -142,18 +142,14 @@ function process(type) {
   moveBoilerplateAndPackToTgz(`../project-dist/jianghu-boilerplate-${type}`, './dist', `jianghu-boilerplate-${type}`);
 }
 
-// process('multi');
-// process('xiaoapp-in-multi');
-// process('xiaoapp');
-process('1table-crud');
-process('1table-crud-file');
+// process('1table-crud');
+// process('1table-crud-file');
 process('1table-crud-enterprise');
-process('2table-crud');
-process('3table-crud');
+// process('2table-crud');
+// process('3table-crud');
 process('enterprise');
-process('xiaochengxu');
-process('workflow');
-process('json-editor');
-process('xiaochengxu-markdown-editor');
-process('xiaochengxu-1table-crud');
-process('xiaochengxu-1table-crud-file');
+// process('workflow');
+// process('json-editor');
+// process('xiaochengxu-markdown-editor');
+// process('xiaochengxu-1table-crud');
+// process('xiaochengxu-1table-crud-file');

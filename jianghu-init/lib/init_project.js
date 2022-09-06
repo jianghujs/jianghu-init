@@ -23,11 +23,11 @@ module.exports = class InitProjectCommand extends CommandBase {
     const dbPrefix = this.tryGetDbPrefix();
 
     // 下载模板并生成项目
-    const { targetDir, boilerplate } = await new InitBoilerplate({ dbPrefix }).run(cwd, args);
+    const { targetDir, boilerplate, database = '' } = await new InitBoilerplate({ dbPrefix }).run(cwd, args);
     const projectName = path.basename(path.resolve(targetDir));
 
     // 运行数据库初始化
-    await this.initDb(boilerplate, projectName, dbPrefix);
+    await this.initDb(boilerplate, projectName, dbPrefix, database);
 
     // done
     this.printGuide(targetDir, boilerplate);
@@ -63,7 +63,7 @@ module.exports = class InitProjectCommand extends CommandBase {
   /**
    * 获取数据库配置
    */
-  async getDbSetting(boilerplate, projectName) {
+  async getDbSetting(boilerplate, projectName, database) {
     let dbSetting = {};
     if (this.inMultiDemoProject.includes(boilerplate.name) && fs.existsSync('user_app_management')) {
       // 读取 example 中的数据库前缀
@@ -74,8 +74,9 @@ module.exports = class InitProjectCommand extends CommandBase {
       dbSetting.dbPrefix = this.tryGetDbPrefix();
       dbSetting.host = await this.readlineMethod('数据库IP：', '127.0.0.1');
       if (!this.multiDemoProject.includes(boilerplate.name)) {
-        const databaseName = projectName.replace(new RegExp('-', 'g'), '_');
-        dbSetting.defaultDatabase = await this.readlineMethod('数据库名称：', databaseName);
+        // const databaseName = projectName.replace(new RegExp('-', 'g'), '_');
+        // dbSetting.defaultDatabase = await this.readlineMethod('数据库名称：', databaseName);
+        dbSetting.defaultDatabase = database;
       }
       dbSetting.port = await this.readlineMethod('数据库端口：', 3306);
       dbSetting.user = await this.readlineMethod('数据库账号：', 'root');
@@ -87,7 +88,7 @@ module.exports = class InitProjectCommand extends CommandBase {
   /**
    * 运行数据库初始化
    */
-  async initDb(boilerplate, projectName, dbPrefix) {
+  async initDb(boilerplate, projectName, dbPrefix, database) {
     // 确认要处理的 app
     const apps = [];
     if (this.multiDemoProject.includes(boilerplate.name)) {
@@ -98,7 +99,7 @@ module.exports = class InitProjectCommand extends CommandBase {
     }
 
     // 获取数据库配置
-    const dbSetting = await this.getDbSetting(boilerplate, projectName);
+    const dbSetting = await this.getDbSetting(boilerplate, projectName, database);
     dbSetting.dbPrefix = dbSetting.dbPrefix || dbPrefix || '';
     if (this.demoProject.includes(boilerplate.name)) {
       dbSetting.dbPrefix = '';
