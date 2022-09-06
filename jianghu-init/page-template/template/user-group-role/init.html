@@ -29,7 +29,7 @@
         <v-tab class="pa-0">组织</v-tab>
         <v-tab class="pa-0">角色</v-tab>
       </v-tabs>
-      <v-btn depressed  block style="max-width: 180px; display: block; min-width: calc(100% - 24px)!important;" @click="openFormDialog()" color="success ma-3 mb-0">
+      <v-btn depressed  block style="max-width: 180px; display: block; min-width: calc(100% - 24px)!important;" @click="doUiAction('startCreateLeftItem', null)" color="success ma-3 mb-0">
         添加新{{tabItemTitle}}
       </v-btn>
       <v-col>
@@ -78,7 +78,7 @@
                 ></v-switch>
               </div>
               <v-divider vertical></v-divider>
-              <span class="body-2 ml-5" style="white-space: nowrap">共{{ tableData.length }}条记录</span>
+              <span class="body-2 ml-5" style="white-space: nowrap">共{{ tableDataFromBackend.length }}条记录</span>
             </v-col>
 
             <v-spacer></v-spacer>
@@ -90,7 +90,7 @@
           </v-row>
           <v-data-table fixed-header
                         :headers="headers"
-                        :items="tableData"
+                        :items="tableDataFromBackend"
                         :search="searchInput"
                         :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
                         :items-per-page="20"
@@ -136,7 +136,7 @@
   </v-container>
 
   <!-- 编辑抽屉 -->
-  <v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="80%"
+  <v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%"
                        class="elevation-24">
     <v-form v-model="isFormValid" ref="form" lazy-validation>
       <v-row class="pt-8">
@@ -260,6 +260,7 @@
     vuetify: new Vuetify(),
     mixins: [window.jianghuUiActionMixins],
     data: {
+      isMobile: window.innerWidth < 600,
       // 表格相关数据
       isFormValid: true,
       isFormValidLeft: true,
@@ -315,45 +316,24 @@
         {text: "角色描述", value: "roleDesc", require: false},
       ],
       currentClickButton: {title: '新增', action: 'add'},
-      dialogSaveInfoAction: ''
-    },
-    computed: {
-      isMobile() {
-        return window.innerWidth < 600;
-      },
-      tableData() {
-        return this.tableDataFromBackend;
-      },
-      tabData() {
-        // _.toPairs对象转成了数组，因此可以索引获取
-        const temp = _.toPairs(this.constantCollection);
-        const tempTabList = temp[this.pageTab][1];
-        if(this.tabsSearchKeyword) {
-          const searchKey = [['userId', 'username'], ['groupId', 'groupName'], ['roleId', 'roleName']][this.pageTab];
-          return tempTabList.filter((item) => item.data[searchKey[0]].includes(this.tabsSearchKeyword) || item.data[searchKey[1]].includes(this.tabsSearchKeyword));
-        }
-        return tempTabList;
-
-      },
-      tabPageHeaders() {
-        if (this.pageTab === 0) {
-          return this.headers;
-        }
-        if (this.pageTab === 1) {
-          return this.pageHeaders;
-        }
-      },
-      tabItemTitle() {
-        const names = ['用户', '组织', '角色'];
-        return names[this.pageTab];
-      },
-      tabItemKeys() {
-        return [this.userKeys, this.groupKeys, this.roleKeys][this.pageTab];
-      }
+      dialogSaveInfoAction: '',
+      tabItemTitle: '用户',
+      tabItemKeys: [],
+      tabData: []
     },
     watch: {
       async pageTab() {
-        this.doUiAction('refreshTableData');
+        this.tabItemTitle = ['用户', '组织', '角色'][this.pageTab];
+        this.tabItemKeys = [this.userKeys, this.groupKeys, this.roleKeys][this.pageTab];
+        this.buildTabData();
+        this.tableDataFromBackend = [];
+        await this.doUiAction('refreshTableData');
+      },
+      constantCollection: {
+        deep: true,
+        handler(value) {
+          this.buildTabData();
+        }
       },
       selectedItem(v, ov) {
         if (v !== ov) {
@@ -362,11 +342,86 @@
       }
     },
     async created() {
+      this.tabItemKeys = this.userKeys;
     },
     mounted() {
       this.doUiAction('initOptions');
     },
     methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'refreshTableData':
+            await this.refreshTableData(uiActionData);
+            break;
+          case 'startCreateItem':
+            await this.clearItemData(uiActionData);
+            await this.openCreateItemDialog(uiActionData);
+            break;
+          case 'createItem':
+            await this.prepareValidate(uiActionData);
+            await this.confirmCreateItemDialog(uiActionData);
+            await this.doCreateItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            await this.closeDrawerShow(uiActionData);
+            break;
+          case 'startUpdateItem':
+            await this.prepareItemData(uiActionData);
+            await this.openUpdateItemDialog(uiActionData);
+            break;
+          case 'updateItem':
+            await this.prepareValidate(uiActionData);
+            await this.confirmUpdateItemDialog(uiActionData);
+            await this.doUpdateItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            await this.closeDrawerShow(uiActionData);
+            break;
+          case 'deleteItem':
+            await this.confirmDeleteItemDialog(uiActionData);
+            await this.prepareItemData(uiActionData);
+            await this.doDeleteItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            break;
+          case 'startCreateLeftItem':
+            await this.clearItemData(uiActionData);
+            await this.openFormDialog(uiActionData);
+            break;
+          case 'createLeftItem':
+            await this.prepareLeftValidate(uiActionData);
+            await this.addNewItem(uiActionData);
+            await this.reGetLeftData(uiActionData);
+            await this.closeFormDialog(uiActionData);
+            break;
+          case 'updateLeftItem':
+            await this.prepareRightValidate(uiActionData);
+            await this.updateLeftItem(uiActionData);
+            await this.reGetLeftData(uiActionData);
+            break;
+          case 'deleteLeftItem':
+            await this.confirmDelLeftItemDialog(uiActionData);
+            await this.deleteLeftItem(uiActionData);
+            await this.reGetLeftData(uiActionData);
+            break;
+          case 'initOptions':
+            await this.selectUser(uiActionData);
+            await this.refreshTableData(uiActionData);
+            await this.initOptions(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      buildTabData() {
+          // _.toPairs对象转成了数组，因此可以索引获取
+          const temp = _.toPairs(this.constantCollection);
+          const tempTabList = temp[this.pageTab][1];
+          if(this.tabsSearchKeyword) {
+            const searchKey = [['userId', 'username'], ['groupId', 'groupName'], ['roleId', 'roleName']][this.pageTab];
+            this.tabData = tempTabList.filter((item) => item.data[searchKey[0]].includes(this.tabsSearchKeyword) || item.data[searchKey[1]].includes(this.tabsSearchKeyword));
+          } else {
+            this.tabData = tempTabList;
+          }
+      },
       initOptions() {
         this.selectGroup();
         this.selectRole();
@@ -374,7 +429,6 @@
       },
       // 获取当前左侧选中的选项详情
       buildActiveItemInfo(value) {
-        console.log(this.selectedItem)
         const tabItemList = [value.user, value.group, value.role][this.pageTab || 0];
         if(tabItemList && tabItemList[this.selectedItem || 0]) {
           this.activeItemInfo = tabItemList[this.selectedItem || 0].data;
@@ -455,14 +509,18 @@
         this.dialogSaveInfoAction = 'createItem';
       },
 
-      // createItem
+      // 表单验证
       async prepareValidate() {
-        if (!this.$refs.form.validate()) return false;
+        if (await this.$refs.form.validate() === false) {
+          throw new Error("[prepareValidate] false");
+        }
       },
 
       // createItem
       async confirmCreateItemDialog() {
-        return window.confirmDialog({title: '新增', content: '确定新增吗？'})
+        if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+          throw new Error("[confirmCreateFormDialog] 否");
+        }
       },
 
       /**
@@ -500,7 +558,9 @@
 
       // updateItem
       async confirmUpdateItemDialog() {
-        return window.confirmDialog({title: '修改', content: '确定修改吗？'});
+        if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+          throw new Error("[confirmUpdateItemDialog] 否");
+        }
       },
 
       /**
@@ -525,13 +585,15 @@
 
       // deleteItem
       async confirmDeleteItemDialog() {
-        return window.confirmDialog({title: '删除', content: '确定删除吗？'});
+        if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+          throw new Error("[confirmDeleteItemDialog] 否");
+        }
       },
 
       /**
        * 删除
        */
-      async deleteItem() {
+      async doDeleteItem() {
         window.vtoast.loading('正在删除')
         await window.jianghuAxios({
           data: {
@@ -547,14 +609,17 @@
 
       // 打开添加用户、组织、角色的表单弹窗
       async openFormDialog() {
-        this.editItem = {};
         this.addItemDialog = true;
+      },
+      // 左侧表单验证
+      async prepareLeftValidate() {
+        if (await this.$refs.formLeft.validate() === false) {
+          throw new Error("[prepareLeftValidate] false");
+        }
       },
       // 添加用户、组织、角色的表单
       async addNewItem() {
-        if (!this.$refs.formLeft.validate()) return false;
         const insertActionId = ['insertUser', 'insertGroup', 'insertRole'][this.pageTab];
-        this.addItemDialog = false;
         window.vtoast.loading("添加中")
         await window.jianghuAxios({
           data: {
@@ -566,6 +631,10 @@
           }
         })
         window.vtoast.success("添加成功")
+      },
+      // 关闭添加用户、组织、角色的表单弹窗
+      async closeFormDialog() {
+        this.addItemDialog = false;
       },
       // 刷新用户、组织、角色的数据
       async reGetLeftData() {
@@ -580,9 +649,14 @@
         }
         this.$forceUpdate()
       },
+      // deleteLeftItem 确认
+      async confirmDelLeftItemDialog() {
+        if (await window.confirmDialog({title: `确认删除该${this.tabItemTitle}？`}) === false) {
+          throw new Error("[confirmDelLeftItemDialog] 否");
+        }
+      },
       // 删除用户、组织、角色
       async deleteLeftItem() {
-        if(await window.confirmDialog({"title": `确认删除该${this.tabItemTitle}？`})) {
           const id = this.activeItemInfo.id;
           const actionId = ['deleteUser', 'deleteGroup', 'deleteRole'][this.pageTab];
           const whereKey = ['userId', 'groupId', 'roleId'][this.pageTab];
@@ -600,21 +674,24 @@
             })
             window.vtoast.success("删除成功");
           }
+      },
+      // 右侧表单验证
+      async prepareRightValidate() {
+        if (await this.$refs.formRight.validate() === false) {
+          throw new Error("[prepareRightValidate] false");
         }
       },
       // 更新修改用户、组织、角色
       async updateLeftItem() {
-        if (!this.$refs.formRight.validate()) return false;
         window.vtoast.loading("保存中");
-        const id = this.activeItemInfo.id;
-        delete this.activeItemInfo.id;
+        const { id, userId, ...updateItem } = this.activeItemInfo;
         const actionId = ['updateUser', 'updateGroup', 'updateRole'][this.pageTab];
         await window.jianghuAxios({
           data: {
             appData: {
               pageId: '<=$ pageId $=>',
               actionId: actionId,
-              actionData: this.activeItemInfo,
+              actionData: updateItem,
               where: {id: id}
             }
           }

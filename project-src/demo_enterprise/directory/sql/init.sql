@@ -104,7 +104,7 @@ CREATE TABLE `_page` (
 
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help','帮助',NULL,NULL,NULL,'insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'login','登陆',NULL,NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'manual','操作手册',NULL,'dynamicInMenu',NULL,'insert',NULL,NULL,NULL);
+INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'manual','操作手册',NULL,NULL,NULL,'insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (8,'directory','目录',NULL,'showInMenu','1','insert',NULL,NULL,NULL);
 
 
@@ -127,7 +127,7 @@ CREATE TABLE `_record_history` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `index_record_id` (`recordId`) USING BTREE,
   KEY `index_table_action` (`table`, `operation`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 COMMENT = '数据历史表';
+) ENGINE = InnoDB AUTO_INCREMENT = 8 COMMENT = '数据历史表';
 
 
 
@@ -161,10 +161,10 @@ CREATE TABLE `_resource` (
 # DATA DUMP FOR TABLE: _resource
 # ------------------------------------------------------------
 
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (231,NULL,NULL,'login','passwordLogin','✅登陆','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"passwordLogin\" }',NULL,NULL,'update',NULL,NULL,'2022-04-28T23:10:35+08:00');
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (251,NULL,NULL,'allPage','logout','✅登出','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"logout\" }',NULL,NULL,'update',NULL,NULL,'2022-02-23T23:08:31+08:00');
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (253,NULL,NULL,'allPage','userInfo','✅获取用户信息','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"userInfo\" }',NULL,NULL,'update',NULL,NULL,'2022-04-28T23:11:44+08:00');
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (263,NULL,NULL,'directory','selectItemList','✅查询目录','service',NULL,'{ \"service\": \"directory\", \"serviceFunction\": \"getDirectoryList\" }',NULL,NULL,'update',NULL,NULL,'2022-04-28T23:11:44+08:00');
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (231,NULL,NULL,'login','passwordLogin','✅登陆','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"passwordLogin\" }','','','update',NULL,NULL,'2022-08-25T23:40:05+08:00');
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (251,NULL,NULL,'allPage','logout','✅登出','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"logout\" }','','','update',NULL,NULL,'2022-02-23T23:08:31+08:00');
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (253,NULL,NULL,'allPage','userInfo','✅获取用户信息','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"userInfo\" }','','','update',NULL,NULL,'2022-08-26T00:07:03+08:00');
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (263,NULL,NULL,'directory','selectItemList','✅查询目录','service',NULL,'{ \"service\": \"directory\", \"serviceFunction\": \"getDirectoryList\" }','','','update',NULL,NULL,'2022-08-26T00:07:03+08:00');
 
 
 
@@ -193,7 +193,7 @@ CREATE TABLE `_resource_request_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `resourceId_index` (`resourceId`) USING BTREE,
   KEY `packageId_index` (`packageId`) USING BTREE
-) ENGINE = InnoDB COMMENT = '文件表; 软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 13 COMMENT = '文件表; 软删除未启用;';
 
 
 
@@ -412,7 +412,7 @@ CREATE TABLE `_user_session` (
   KEY `userId_index` (`userId`) USING BTREE,
   KEY `userId_deviceId_index` (`userId`, `deviceId`) USING BTREE,
   KEY `authToken_index` (`authToken`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 COMMENT = '用户session表; deviceId 维度;软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 14 COMMENT = '用户session表; deviceId 维度;软删除未启用;';
 
 
 
@@ -449,9 +449,9 @@ INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,
 INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (14,'baidu','百度','搜索','10','02','https://www.baidu.com','百度一下, 你就知道',NULL,'public','insert',NULL,NULL,NULL);
 INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (15,'360','360','搜索','10','03','https://www.so.com/','最安全的搜索引擎',NULL,'public','insert',NULL,NULL,NULL);
 INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (16,'sougou','搜狗','搜索','10','04','https://www.sogou.com/','上网从搜狗开始',NULL,'public','insert',NULL,NULL,NULL);
-INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (51,'user_app_management','账号权限管理','系统管理','20','01','http://127.0.0.1:7001/user_app_management/page/userManagement','用户管理',NULL,'app','insert',NULL,NULL,NULL);
-INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (52,'user_app_management','账号权限管理','系统管理','20','02','http://127.0.0.1:7001/user_app_management/page/appManagement','APP管理',NULL,'app','insert',NULL,NULL,NULL);
-INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (53,'data_repository','数据中心管理','系统管理','20','03','http://127.0.0.1:7002/data_repository/page/tableSyncConfig','数据同步表管理',NULL,'app','insert',NULL,NULL,NULL);
+INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (51,'user_app_management','账号权限管理','系统管理','20','01','http://127.0.0.1:7006/user_app_management/page/userManagement','用户管理',NULL,'app','insert',NULL,NULL,NULL);
+INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (52,'user_app_management','账号权限管理','系统管理','20','02','http://127.0.0.1:7006/user_app_management/page/appManagement','APP管理',NULL,'app','insert',NULL,NULL,NULL);
+INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (53,'data_repository','数据中心管理','系统管理','20','03','http://127.0.0.1:7005/data_repository/page/tableSyncConfig','数据同步表管理',NULL,'app','insert',NULL,NULL,NULL);
 
 
 
@@ -476,10 +476,18 @@ select
   `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationByUser` AS `operationByUser`,
   `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationAt` AS `operationAt`
 from
+  (
   `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`
-  LEFT JOIN {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user_app ON {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user_app.userId = {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user.userId
-WHERE
-appId = 'directory';
+  join `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user_app` on(
+    (
+    `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`userId` = `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user_app`.`userId`
+    )
+  )
+  )
+where
+  (
+  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user_app`.`appId` = 'directory'
+  );
 
 
 

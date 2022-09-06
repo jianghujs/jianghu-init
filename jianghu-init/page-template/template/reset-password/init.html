@@ -28,7 +28,7 @@ SQL END!-->
             <v-text-field class="cus-v-input" dense filled single-line label="新密码确认" v-model="formData.newPassword2" :rules="requireRules"></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-xs-0 pb-xs-4 pb-3">
-            <v-btn color="success" @click="doUiAction('resetPassword')" style="width: 100%;">确定</v-btn>
+            <v-btn color="success" @click="resetPassword()" style="width: 100%;">确定</v-btn>
           </v-col>
         </v-row>
       </v-form>

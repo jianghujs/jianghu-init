@@ -130,7 +130,6 @@ CREATE TABLE `_page` (
 
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help','帮助',NULL,'dynamicInMenu','11','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'login','登陆',NULL,'','','insert',NULL,NULL,NULL);
-INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'manual','操作手册',NULL,'dynamicInMenu','0','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (29,'studentManagement','学生管理',NULL,'showInMenu','5','insert',NULL,NULL,NULL);
 
 
@@ -153,7 +152,7 @@ CREATE TABLE `_record_history` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `index_record_id` (`recordId`) USING BTREE,
   KEY `index_table_action` (`table`, `operation`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1975 COMMENT = '数据历史表';
+) ENGINE = InnoDB AUTO_INCREMENT = 1977 COMMENT = '数据历史表';
 
 
 
@@ -187,14 +186,14 @@ CREATE TABLE `_resource` (
 # DATA DUMP FOR TABLE: _resource
 # ------------------------------------------------------------
 
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (231,NULL,NULL,'login','passwordLogin','✅登陆','service','{}','{ \"service\": \"user\", \"serviceFunction\": \"passwordLogin\" }',NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (251,NULL,NULL,'allPage','logout','✅登出','service','{}','{ \"service\": \"user\", \"serviceFunction\": \"logout\" }',NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (253,NULL,NULL,'allPage','userInfo','✅获取用户信息','service','{}','{ \"service\": \"user\", \"serviceFunction\": \"userInfo\" }',NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (258,NULL,NULL,'allPage','getConstantList','✅查询常量','sql','{}','{ \"table\": \"_constant\", \"operation\": \"select\" }',NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (317,NULL,NULL,'backendSearchDemo','selectItemList','✅服务端查询-查询列表','sql','{}','{ \"table\": \"student\", \"operation\": \"select\" }',NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (318,NULL,NULL,'backendSearchDemo','insertItem','✅服务端查询-添加成员','sql','{}','{ \"table\": \"student\", \"operation\": \"insert\" }',NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (319,NULL,NULL,'backendSearchDemo','updateItem','✅服务端查询-更新成员','sql','{}','{ \"table\": \"student\", \"operation\": \"jhUpdate\" }',NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (320,NULL,NULL,'backendSearchDemo','deleteItem','✅服务端查询-删除信息','sql','{}','{ \"table\": \"student\", \"operation\": \"jhDelete\" }',NULL,NULL,'insert',NULL,NULL,NULL);
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (231,NULL,NULL,'login','passwordLogin','✅登陆','service','{}','{ \"service\": \"user\", \"serviceFunction\": \"passwordLogin\" }','','','insert',NULL,NULL,NULL);
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (251,NULL,NULL,'allPage','logout','✅登出','service','{}','{ \"service\": \"user\", \"serviceFunction\": \"logout\" }','','','insert',NULL,NULL,NULL);
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (253,NULL,NULL,'allPage','userInfo','✅获取用户信息','service','{}','{ \"service\": \"user\", \"serviceFunction\": \"userInfo\" }','','','insert',NULL,NULL,NULL);
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (258,NULL,NULL,'allPage','getConstantList','✅查询常量','sql','{}','{ \"table\": \"_constant\", \"operation\": \"select\" }','','','insert',NULL,NULL,NULL);
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (317,NULL,NULL,'studentManagement','selectItemList','✅服务端查询-查询列表','sql','{}','{ \"table\": \"student\", \"operation\": \"select\" }','','','insert',NULL,NULL,NULL);
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (318,NULL,NULL,'studentManagement','insertItem','✅服务端查询-添加成员','sql','{}','{ \"table\": \"student\", \"operation\": \"insert\" }','','','insert',NULL,NULL,NULL);
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (319,NULL,NULL,'studentManagement','updateItem','✅服务端查询-更新成员','sql','{}','{ \"table\": \"student\", \"operation\": \"jhUpdate\" }','','','insert',NULL,NULL,NULL);
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (320,NULL,NULL,'studentManagement','deleteItem','✅服务端查询-删除信息','sql','{}','{ \"table\": \"student\", \"operation\": \"jhDelete\" }','','','insert',NULL,NULL,NULL);
 
 
 
@@ -223,7 +222,7 @@ CREATE TABLE `_resource_request_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `resourceId_index` (`resourceId`) USING BTREE,
   KEY `packageId_index` (`packageId`) USING BTREE
-) ENGINE = InnoDB COMMENT = '文件表; 软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 15 COMMENT = '文件表; 软删除未启用;';
 
 
 
@@ -434,7 +433,7 @@ CREATE TABLE `_user_session` (
   KEY `userId_index` (`userId`) USING BTREE,
   KEY `userId_deviceId_index` (`userId`, `deviceId`) USING BTREE,
   KEY `authToken_index` (`authToken`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 19 COMMENT = '用户session表; deviceId 维度;软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 21 COMMENT = '用户session表; deviceId 维度;软删除未启用;';
 
 
 
@@ -498,10 +497,18 @@ select
   `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationByUser` AS `operationByUser`,
   `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`operationAt` AS `operationAt`
 from
+  (
   `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`
-  LEFT JOIN {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user_app ON {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user_app.userId = {{dbPrefix}}data_repository.{{dbPrefix}}user_app_management___user.userId
-WHERE
-appId = '{{name}}';
+  join `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user_app` on(
+    (
+    `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user`.`userId` = `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user_app`.`userId`
+    )
+  )
+  )
+where
+  (
+  `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user_app`.`appId` = '{{name}}'
+  );
 
 
 
@@ -527,16 +534,13 @@ select
 from
   (
   (
-    `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user_app` `_user_app`
-    join `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___user` `_user` on((`_user_app`.`userId` = `_user`.`userId`))
+    `{{dbPrefix}}data_repository`.`jianghujs_demo_enterprise_user_app_management___user_app` `_user_app`
+    join `{{dbPrefix}}data_repository`.`jianghujs_demo_enterprise_user_app_management___user` `_user` on((`_user_app`.`userId` = `_user`.`userId`))
   )
-  join `{{dbPrefix}}data_repository`.`{{dbPrefix}}user_app_management___app` `_app` on((`_user_app`.`appId` = `_app`.`appId`))
-  )
-WHERE
-`_user_app`.`appId` = '{{name}}';
+  join `{{dbPrefix}}data_repository`.`jianghujs_demo_enterprise_user_app_management___app` `_app` on((`_user_app`.`appId` = `_app`.`appId`))
+  );
 
-INSERT INTO `{{dbPrefix}}user_app_management`.`_app` (`appId`, `appGroup`, `appName`, `appDesc`, `appUrl`, `appMenu`, `appType`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`, `sort`) SELECT '{{name}}','base', 'APP目录', NULL, NULL, NULL, 'internal', 'insert', NULL, NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `appId` FROM `{{dbPrefix}}user_app_management`.`_app` WHERE `appId`='{{name}}');
 
-INSERT INTO `{{dbPrefix}}user_app_management`.`_user_app` (`userId`, `appId`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) SELECT 'admin','{{name}}', 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `appId` FROM `{{dbPrefix}}user_app_management`.`_user_app` WHERE `appId`='{{name}}' and `userId`='admin');
+
 
 

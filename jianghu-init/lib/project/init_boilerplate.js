@@ -260,10 +260,11 @@ module.exports = class InitBoilerplate {
       // 将 dbPrefix 参数的默认值设置为当前目录名
       if (questions.dbPrefix && !questions.dbPrefix.default) {
         questions.dbPrefix.default = (path.basename(targetDir).replace(/^jianghu-/, '') + '_').replace(/-/g, '_');
-      }
-      questions.database = {
-        desc: 'database name',
-        default: questions.name.default.replace(/-/g, '_')
+      } else {
+        questions.database = {
+          desc: 'database name',
+          default: questions.name.default.replace(/-/g, '_')
+        }
       }
     } catch (err) {
       if (err.code !== 'MODULE_NOT_FOUND') {

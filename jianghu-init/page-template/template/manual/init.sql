@@ -1,6 +1,0 @@
--- 创建 page
-INSERT INTO `_page` (`pageId`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '{{pageId}}','修改密码','showInMenu','11','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_page` WHERE `pageId`='{{pageId}}');
--- 创建 resource
-INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'{{pageId}}','resetPassword','✅修改用户密码','service','{}','{ \"service\": \"user\", \"serviceFunction\": \"resetPassword\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='{{pageId}}' AND `actionId`='resetPassword');
--- 创建 ui
-INSERT INTO `_ui` (`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '{{pageId}}', 'ui', 'resetPassword', '✅修改密码', '{\"main\": [{\"function\": \"resetPassword\"}]}', NULL, 'insert', NULL, NULL, NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_ui` WHERE `pageId`='{{pageId}}' AND `uiActionId`='resetPassword');

@@ -3,124 +3,135 @@
 {% block vue_template %}
 
 <jh-layout-v3>
-<template v-slot:topRightWidget v-if="isMobile">
-  <div class="d-flex mt-3" style="flex: 1">
-    <v-spacer></v-spacer>
-    <v-tabs v-model="pageTab" height="36" slider-size="0" class="mt-2" color="success" active-class="customActiveClass"
-            style="width: auto; flex: none; border-radius: 5px; overflow: hidden;">
-      <v-tab>接口权限管理</v-tab>
-      <v-tab>页面权限管理</v-tab>
-    </v-tabs>
-  </div>
-</template>
-<template v-slot:serverSearch v-else>
-  <div class="d-flex">
-    <v-spacer></v-spacer>
-    <v-tabs v-model="pageTab" height="36" slider-size="0" class="mt-2" color="success" active-class="customActiveClass"
-            style="width: auto; flex: none; border-radius: 5px; overflow: hidden;">
-      <v-tab>接口权限管理</v-tab>
-      <v-tab>页面权限管理</v-tab>
-    </v-tabs>
-  </div>
-</template>
+  <template v-slot:topRightWidget v-if="isMobile">
+    <div class="d-flex mt-3" style="flex: 1">
+      <v-spacer></v-spacer>
+      <v-tabs v-model="pageTab" height="36" slider-size="0" class="mt-2" color="success" active-class="customActiveClass" style="width: auto; flex: none; border-radius: 5px; overflow: hidden;">
+        <v-tab>接口管理</v-tab>
+        <v-tab>页面管理</v-tab>
+      </v-tabs>
+    </div>
+  </template>
+  <template v-slot:serverSearch v-else>
+    <div class="d-flex">
+      <v-spacer></v-spacer>
+      <v-tabs v-model="pageTab" height="36" slider-size="0" class="mt-2" color="success" active-class="customActiveClass" style="width: auto; flex: none; border-radius: 5px; overflow: hidden;">
+        <v-tab>接口管理</v-tab>
+        <v-tab>页面管理</v-tab>
+      </v-tabs>
+    </div>
+  </template>
 
-<!-- 页面主要内容 -->
-<v-card :class="{'px-2': isMobile}">
-  <v-row class="ma-0 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
 
-    <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0">
-      <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)">新增</v-btn>
-      <span class="body-2">共{{ tableData.length }}条记录</span>
-    </v-col>
+  <!-- 页面主要内容 -->
+    <v-card :class="{'px-2': isMobile}">
+      <v-row class="ma-0 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
 
-    <v-spacer></v-spacer>
+        <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="px-0">
+          <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)">新增</v-btn>
+          <span class="body-2">共{{ tableDataFromBackend.length }}条记录</span>
+        </v-col>
 
-    <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="px-0">
-      <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled
-                    single-line></v-text-field>
-    </v-col>
+        <v-spacer></v-spacer>
 
-  </v-row>
-  <v-data-table :headers="tabPageHeaders"
-                :items="tableData"
-                :search="searchInput"
-                :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
-                :items-per-page="20"
-                :loading="isTableLoading"
-                checkbox-color="success"
-                mobile-breakpoint="0"
-                :class="{'mx-2': isMobile}"
-                class="elevation-0 mt-0 flex-fill d-flex flex-column">
-    <template v-slot:item.allowOrDeny="{ item }">
-      {{ getConstantCollectionItemText('allowOrDeny', item.allowOrDeny) }}
-    </template>
-    <template v-slot:item.action="{ item }">
-      <v-btn small class="mr-2 success" @click="doUiAction('startUpdateItem', {item})">
-        修改
-      </v-btn>
-      <v-btn small class="mr-2 error" @click="doUiAction('deleteItem', {item})">
-        删除
-      </v-btn>
-    </template>
-  </v-data-table>
-</v-card>
+        <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="px-0">
+          <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+        </v-col>
+
+      </v-row>
+      <v-data-table  :headers="tabPageHeaders"
+                    :items="tableDataFromBackend"
+                    :search="searchInput"
+                    :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                    :items-per-page="20"
+                    :loading="isTableLoading"
+                    checkbox-color="success"
+                    mobile-breakpoint="0"
+                    :class="{'mx-2': isMobile}"
+                    class="elevation-0 mt-0 flex-fill d-flex flex-column">
+        <template v-slot:item.pageType="{ item }">
+          {{ getConstantCollectionItemText('pageType', item.pageType) }}
+        </template>
+        <template v-slot:item.action="{ item }">
+          <v-btn small class="mr-2 success" @click="doUiAction('startUpdateItem', {item})">
+            修改
+          </v-btn>
+          <v-btn small class="mr-2 error" @click="doUiAction('deleteItem', {item})">
+            删除
+          </v-btn>
+        </template>
+      </v-data-table>
+    </v-card>
 
 <v-overlay app :value="isEditDrawerShow"></v-overlay>
-<!-- 编辑抽屉 -->
-<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" hide-overlay
-                     class="elevation-24">
-  <v-form v-model="isFormValid" ref="form" lazy-validation>
-    <v-row class="pt-8">
-      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">{{ currentClickButton.title }}信息</span>
-      <v-spacer></v-spacer>
-      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small
-             @click="isEditDrawerShow = false">
-        <v-icon dark>mdi-close</v-icon>
-      </v-btn>
-    </v-row>
-    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
-      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">用户ID/通配符(*)</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line label="用户ID/通配符(*)"
-                      v-model="editItem.user"></v-text-field>
-      </v-col>
-      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">GroupID/通配符(*)</span>
-        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="GroupID/通配符(*)"
-                  v-model="editItem.group" :items="constantCollection.group"></v-select>
-      </v-col>
-      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">RoleID/通配符(*)</span>
-        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="RoleID/通配符(*)"
-                  v-model="editItem.role" :items="constantCollection.role"></v-select>
-      </v-col>
-      <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3" v-if="pageTab === 0">
-        <span class="inputLabel">ResourceId/通配符(*)</span>
-        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="ResourceId/通配符(*)"
-                  v-model="editItem.resource" :items="constantCollection.resource"></v-select>
-      </v-col>
-      <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3" v-if="pageTab === 1">
-        <span class="inputLabel">PageId/通配符(*)</span>
-        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="PageId/通配符(*)"
-                  v-model="editItem.page" :items="constantCollection.page"></v-select>
-      </v-col>
-      <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">权限状态</span>
-        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="权限状态"
-                  v-model="editItem.allowOrDeny" :items="constantCollection.allowOrDeny"></v-select>
-      </v-col>
-      <v-col cols="12" sm="12" md="12" xl="12" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">desc</span>
-        <v-textarea class="cus-v-input mr-2" dense filled single-line label="desc" v-model="editItem.desc"></v-textarea>
-      </v-col>
-    </v-row>
-
-    <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
-      <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)">保存</v-btn>
-      <v-btn class="elevation-0 mr-2 ml-2" @click="isEditDrawerShow = false">取消</v-btn>
-    </v-row>
-  </v-form>
-</v-navigation-drawer>
+  <!-- 编辑抽屉 -->
+  <v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
+    <v-form v-model="isFormValid" ref="form" lazy-validation>
+      <v-row class="pt-8">
+        <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">{{ currentClickButton.title }}信息</span>
+        <v-spacer></v-spacer>
+        <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+          <v-icon dark>mdi-close</v-icon>
+        </v-btn>
+      </v-row>
+      <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}" v-if="pageTab === 0">
+        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">pageId</span>
+          <v-text-field class="cus-v-input mr-2" dense filled single-line label="pageId" v-model="editItem.pageId"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">actionId</span>
+          <v-text-field class="cus-v-input mr-2" dense filled single-line label="actionId" v-model="editItem.actionId"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">resourceType</span>
+          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="resourceType" v-model="editItem.resourceType" :items="constantCollection.resourceType"></v-select>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">accessControlTable</span>
+          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="accessControlTable" v-model="editItem.accessControlTable" :items="constantCollection.accessControlTable"></v-select>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">resourceHook</span>
+          <v-text-field class="cus-v-input mr-2" dense filled single-line label="resourceHook" v-model="editItem.resourceHook"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">appDataSchema</span>
+          <v-text-field class="cus-v-input mr-2" dense filled single-line label="appDataSchema" v-model="editItem.appDataSchema"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="12" xl="12" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">resourceData</span>
+          <v-textarea class="cus-v-input mr-2" dense filled single-line label="resourceData" v-model="editItem.resourceData"></v-textarea>
+        </v-col>
+        <v-col cols="12" sm="12" md="12" xl="12" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">desc</span>
+          <v-textarea class="cus-v-input mr-2" dense filled single-line label="desc" v-model="editItem.desc"></v-textarea>
+        </v-col>
+      </v-row>
+      <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}" v-if="pageTab === 1">
+        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">pageId</span>
+          <v-text-field class="cus-v-input mr-2" dense filled single-line label="pageId" v-model="editItem.pageId" :rules="requireRules"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">pageName</span>
+          <v-text-field class="cus-v-input mr-2" dense filled single-line label="pageName" v-model="editItem.pageName"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">pageType</span>
+          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="pageType" v-model="editItem.pageType" :items="constantCollection.pageType"></v-select>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">sort</span>
+          <v-text-field class="cus-v-input mr-2" dense filled single-line label="sort" v-model="editItem.sort"></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+        <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)" >保存</v-btn>
+        <v-btn class="elevation-0 mr-2 ml-2" @click="isEditDrawerShow = false" >取消</v-btn>
+      </v-row>
+    </v-form>
+  </v-navigation-drawer>
 
 </jh-layout-v3>
 
@@ -129,276 +140,256 @@
 {% block vue_body %}
 
 <script type="module">
-new Vue({
-  el: '#app',
-  template: '#app-template',
-  vuetify: new Vuetify(),
-  mixins: [window.jianghuUiActionMixins],
-  data: {
-    // 表格相关数据
-    isFormValid: true,
-    pageTab: 0,
-    showLeftMenu: window.innerWidth > 600,
-    requireRules: [v => !!v || 'This is required'],
-    constantCollection: {
-      group: [{"value": "*", "text": "通配符*"}],
-      role: [{"value": "*", "text": "通配符*"}],
-      resource: [{"value": "*", "text": "通配符*"}],
-      page: [{"value": "*", "text": "通配符*"}],
-      allowOrDeny: [{"value": "allow", "text": "Allow"}, {"value": "deny", "text": "Deny"}],
-    },
-    isEditDrawerShow: false,
-    searchInput: null,
-    isTableLoading: true,
-    tableDataFromBackend: [],
-    pageTableDataFromBackend: [],
-    headers: [
-      {text: "用户ID/通配符(*)", value: "user", width: 120},
-      {text: "GroupID/通配符(*)", value: "group", width: 120},
-      {text: "RoleId/通配符(*)", value: "role", width: 120},
-      {text: "ResourceId/通配符(*)", value: "resource", width: 120, class: 'fixed', cellClass: 'fixed'},
-      {text: "权限状态", value: "allowOrDeny", width: 120},
-      {text: "说明", value: "desc", width: 420},
-      {text: "操作人", value: "operationByUser", width: 120},
-      {text: "操作时间", value: "operationAt", width: 250},
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 180, class: 'fixed', cellClass: 'fixed'},
-    ],
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: {
+      // 表格相关数据
+      isMobile: window.innerWidth < 600,
+      isFormValid: true,
+      pageTab: 0,
+      showLeftMenu: window.innerWidth > 600,
+      requireRules: [ v => !!v || 'This is required' ],
+      constantCollection: {
+        accessControlTable: [{"value": "_access_control_a000", "text": "_access_control_a000"}],
+        resourceType: [{"value": "service", "text": "service"}, {"value": "sql", "text": "sql"}],
+        pageType: [{"value": "common", "text": "common"}, {"value": "showInMenu", "text": "顶部菜单"}, {"value": "dynamicInMenu", "text": "动态菜单"}, {"value": "avatarInMenu", "text": "用户菜单"}],
+      },
+      isEditDrawerShow: false,
+      searchInput: null,
+      isTableLoading: true,
+      tableDataFromBackend: [],
+      pageTableDataFromBackend: [],
+      tabPageHeaders: [],
+      headers: [
+        {text: "pageId", value: "pageId", width: 120},
+        {text: "actionId", value: "actionId", width: 120},
+        {text: "resourceType", value: "resourceType", width: 120},
+        {text: "accessControlTable", value: "accessControlTable", width: 120, class: 'fixed', cellClass: 'fixed'},
+        {text: "resourceHook", value: "resourceHook", width: 120},
+        {text: "appDataSchema", value: "appDataSchema", width: 120},
+        {text: "resourceData", value: "resourceData", width: 400},
+        {text: "desc", value: "desc", width: 260},
+        {text: "操作人", value: "operationByUser", width: 120},
+        {text: "操作时间", value: "operationAt", width: 250},
+        {text: '操作', value: 'action', align: 'center', sortable: false, width: 240, class: 'fixed', cellClass: 'fixed'},
+      ],
 
-    pageHeaders: [
-      {text: "用户ID/通配符(*)", value: "user", width: 120},
-      {text: "GroupID/通配符(*)", value: "group", width: 120},
-      {text: "RoleId/通配符(*)", value: "role", width: 120},
-      {text: "PageId/通配符(*)", value: "page", width: 120, class: 'fixed', cellClass: 'fixed'},
-      {text: "权限状态", value: "allowOrDeny", width: 120},
-      {text: "说明", value: "desc", width: 420},
-      {text: "操作人", value: "operationByUser", width: 120},
-      {text: "操作时间", value: "operationAt", width: 250},
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 180, class: 'fixed', cellClass: 'fixed'},
-    ],
+      pageHeaders: [
+        {text: "pageId", value: "pageId", width: 120},
+        {text: "pageName", value: "pageName", width: 120},
+        {text: "pageType", value: "pageType", width: 120},
+        {text: "sort", value: "sort", width: 120, class: 'fixed', cellClass: 'fixed'},
+        {text: "操作人", value: "operationByUser", width: 120},
+        {text: "操作时间", value: "operationAt", width: 250},
+        {text: '操作', value: 'action', align: 'center', sortable: false, width: 140, class: 'fixed', cellClass: 'fixed'},
+      ],
 
-    currentClickButton: {title: '新增', action: 'add'},
-    editItem: {},
-    dialogSaveInfoAction: ''
-  },
-  computed: {
-    isMobile() {
-      return window.innerWidth < 600;
+      currentClickButton: {title: '新增', action: 'add'},
+      editItem: {},
+      dialogSaveInfoAction: '',
+      pageId: 'Resource'
     },
-    tableData() {
-      return this.tableDataFromBackend;
-    },
-    tabPageHeaders() {
-      if (this.pageTab === 0) {
-        return this.headers;
+    watch: {
+      pageTab(value) {
+        this.tableDataFromBackend = [];
+        if(value === 0) {
+          this.pageId = 'Resource'
+          this.tabPageHeaders = this.headers;
+        }
+        if(value === 1) {
+          this.pageId = 'Page'
+          this.tabPageHeaders = this.pageHeaders;
+        }
+        this.doUiAction('refreshTableData');
       }
-      if (this.pageTab === 1) {
-        return this.pageHeaders;
+    },
+    async created() {
+      this.tabPageHeaders = this.headers;
+    },
+    mounted() {
+      this.doUiAction('refreshTableData');
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'refreshTableData':
+            await this.refreshTableData(uiActionData);
+            break;
+          case 'startCreateItem':
+            await this.clearItemData(uiActionData);
+            await this.openCreateItemDialog(uiActionData);
+            break;
+          case 'createItem':
+            await this.prepareValidate(uiActionData);
+            await this.confirmCreateItemDialog(uiActionData);
+            await this.doCreateItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            await this.closeDrawerShow(uiActionData);
+            break;
+          case 'startUpdateItem':
+            await this.prepareItemData(uiActionData);
+            await this.openUpdateItemDialog(uiActionData);
+            break;
+          case 'updateItem':
+            await this.prepareValidate(uiActionData);
+            await this.confirmUpdateItemDialog(uiActionData);
+            await this.doUpdateItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            await this.closeDrawerShow(uiActionData);
+            break;
+          case 'deleteItem':
+            await this.confirmDeleteItemDialog(uiActionData);
+            await this.prepareItemData(uiActionData);
+            await this.doDeleteItem(uiActionData);
+            await this.refreshTableData(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      /**
+       * 获取表格数据
+       */
+      async refreshTableData() {
+        this.isTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: '<=$ pageId $=>',
+              actionId: `selectItemListOf${this.pageId}`
+            }
+          }
+        });
+        this.tableDataFromBackend = result.data.appData.resultData.rows;
+        this.isTableLoading = false;
+      },
+
+      // startCreateItem
+      async clearItemData() {
+        this.editItem = {};
+      },
+
+      async openCreateItemDialog() {
+        this.currentClickButton = {action: 'add', title: '新增'};
+        this.isEditDrawerShow = true;
+        this.dialogSaveInfoAction = 'createItem';
+      },
+
+      // 表单验证
+      async prepareValidate() {
+        if (await this.$refs.form.validate() === false) {
+          throw new Error("[prepareValidate] false");
+        }
+      },
+
+      // createItem
+      async confirmCreateItemDialog() {
+        if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+          throw new Error("[confirmCreateFormDialog] 否");
+        }
+      },
+
+      /**
+       * 新增数据
+       */
+      async doCreateItem() {
+        await window.vtoast.loading("保存中");
+        delete this.editItem.id;
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: '<=$ pageId $=>',
+              actionId: `insertItemOf${this.pageId}`,
+              actionData: this.editItem
+            }
+          }
+        })
+        await window.vtoast.success("保存成功");
+      },
+
+      async closeDrawerShow() {
+        this.isEditDrawerShow = false;
+      },
+
+      // startUpdateItem
+      async prepareItemData({item}) {
+        this.editItem = {...item};
+      },
+
+      async openUpdateItemDialog() {
+        this.currentClickButton = {action: 'edit', title: '修改'};
+        this.isEditDrawerShow = true;
+        this.dialogSaveInfoAction = 'updateItem';
+      },
+
+      // updateItem
+      async confirmUpdateItemDialog() {
+        if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+          throw new Error("[confirmUpdateItemDialog] 否");
+        }
+      },
+
+      /**
+       * 保存学生
+       */
+      async doUpdateItem() {
+        await window.vtoast.loading("保存中");
+        const id = this.editItem.id;
+        delete this.editItem.id;
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: '<=$ pageId $=>',
+              actionId: `updateItemOf${this.pageId}`,
+              actionData: this.editItem,
+              where: {id: id}
+            }
+          }
+        })
+        await window.vtoast.success("修改成功");
+      },
+
+      // deleteItem
+      async confirmDeleteItemDialog() {
+        if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+          throw new Error("[confirmDeleteItemDialog] 否");
+        }
+      },
+      /**
+       * 删除
+       */
+      async doDeleteItem() {
+        window.vtoast.loading('正在删除')
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: '<=$ pageId $=>',
+              actionId: `deleteItemOf${this.pageId}`,
+              where: { id: this.editItem.id }
+            }
+          }
+        });
+        window.vtoast.success('删除成功')
+      },
+
+      getConstantCollectionItemText(key, _value) {
+        const constantCollectionItemFind = this.constantCollection[key].find(({value}) => value === _value);
+        if(constantCollectionItemFind) {
+          return constantCollectionItemFind.text;
+        }
+        return _value;
       }
-    },
-    pageId() {
-      return this.pageTab === 0 ? 'Resource' : 'Page'
     }
-  },
-  watch: {
-    pageTab() {
-      this.tableDataFromBackend = [];
-      this.refreshTableData();
-    }
-  },
-  async created() {
-  },
-  mounted() {
-    this.doUiAction('refreshTableData');
-  },
-  methods: {
-    async initOptions() {
-      this.selectGroup();
-      this.selectRole();
-      this.selectResource();
-      this.selectPage();
-    },
-    async selectGroup() {
-      const result = await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: '<=$ pageId $=>',
-            actionId: 'selectGroup'
-          }
-        }
-      });
-      this.constantCollection.group = [...this.constantCollection.group, ...result.data.appData.resultData.rows.map((group) => {
-        return {value: group.groupId, text: group.groupName}
-      })]
-    },
-    async selectRole() {
-      const result = await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: '<=$ pageId $=>',
-            actionId: 'selectRole'
-          }
-        }
-      });
-      this.constantCollection.role = [...this.constantCollection.role, ...result.data.appData.resultData.rows.map((role) => {
-        return {value: role.roleId, text: role.roleName}
-      })]
-    },
-    async selectResource() {
-      const result = await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: '<=$ pageId $=>',
-            actionId: `selectResourceList`
-          }
-        }
-      });
-      this.constantCollection.resource = [...this.constantCollection.resource, ...result.data.appData.resultData.rows.map((resource) => {
-        return {value: `${resource.pageId}.${resource.actionId}`, text: `${resource.pageId}.${resource.actionId}`}
-      })]
-    },
-    async selectPage() {
-      const result = await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: '<=$ pageId $=>',
-            actionId: `selectPageList`
-          }
-        }
-      });
-      this.constantCollection.page = [...this.constantCollection.page, ...result.data.appData.resultData.rows.map((page) => {
-        return {value: page.pageId, text: page.pageName}
-      })]
-    },
-    /**
-     * 获取表格数据
-     */
-    async refreshTableData() {
-      this.isTableLoading = true;
-      const result = await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: '<=$ pageId $=>',
-            actionId: `selectItemListOf${this.pageId}`
-          }
-        }
-      });
-
-      this.tableDataFromBackend = result.data.appData.resultData.rows;
-      this.isTableLoading = false;
-    },
-
-
-    // startCreateItem
-    async clearItemData() {
-      this.editItem = {};
-    },
-
-    async openCreateItemDialog() {
-      this.currentClickButton = {action: 'add', title: '新增'};
-      this.isEditDrawerShow = true;
-      this.dialogSaveInfoAction = 'createItem';
-    },
-
-    // createItem
-    async confirmCreateItemDialog() {
-      return window.confirmDialog({title: '新增', content: '确定新增吗？'})
-    },
-
-    /**
-     * 新增数据
-     */
-    async doCreateItem() {
-      await window.vtoast.loading("保存中");
-      delete this.editItem.id;
-      await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: '<=$ pageId $=>',
-            actionId: `insertItemOf${this.pageId}`,
-            actionData: this.editItem
-          }
-        }
-      })
-      await window.vtoast.success("保存成功");
-    },
-
-    async closeDrawerShow() {
-      this.isEditDrawerShow = false;
-    },
-
-    // startUpdateItem
-    async prepareItemData({item}) {
-      this.editItem = {...item};
-    },
-
-    async openUpdateItemDialog() {
-      this.currentClickButton = {action: 'edit', title: '修改'};
-      this.isEditDrawerShow = true;
-      this.dialogSaveInfoAction = 'updateItem';
-    },
-
-    // updateItem
-    async confirmUpdateItemDialog() {
-      return window.confirmDialog({title: '修改', content: '确定修改吗？'});
-    },
-
-    /**
-     * 保存学生
-     */
-    async doUpdateItem() {
-      await window.vtoast.loading("保存中");
-      const id = this.editItem.id;
-      delete this.editItem.id;
-      await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: '<=$ pageId $=>',
-            actionId: `updateItemOf${this.pageId}`,
-            actionData: this.editItem,
-            where: {id: id}
-          }
-        }
-      })
-      await window.vtoast.success("修改成功");
-    },
-
-    // deleteItem
-    async confirmDeleteItemDialog() {
-      return window.confirmDialog({title: '删除', content: '确定删除吗？'});
-    },
-
-    /**
-     * 删除
-     */
-    async doDeleteItem() {
-      await window.vtoast.loading("删除中");
-      await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: '<=$ pageId $=>',
-            actionId: `deleteItemOf${this.pageId}`,
-            where: {id: this.editItem.id}
-          }
-        }
-      });
-      await window.vtoast.success("删除成功");
-    },
-
-    getConstantCollectionItemText(key, _value) {
-      const constantCollectionItemFind = this.constantCollection[key].find(({value}) => value === _value);
-      if (constantCollectionItemFind) {
-        return constantCollectionItemFind.text;
-      }
-      return _value;
-    }
-  }
-})
+  })
 </script>
 <style>
-.customActiveClass {
-  background: #4caf50 !important;
-  color: #ffffff !important;
-}
+  .customActiveClass {
+    background: #4caf50 !important;
+    color: #ffffff!important;
+  }
 </style>
 
 {% endblock %}

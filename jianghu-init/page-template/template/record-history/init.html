@@ -28,7 +28,7 @@
     </v-row>
     <v-data-table fixed-header
                   :headers="headers"
-                  :items="tableData"
+                  :items="tableDataFromBackend"
                   :search="searchInput"
                   :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
                   :items-per-page="20"
@@ -64,7 +64,14 @@
     class="elevation-24"
 >
   <v-container class="navDrawerContainer">
-    <v-row class="pa-2 py-0">
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">数据版本</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-5': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
       <v-data-table
           fixed-header
           checkbox-color="success"
@@ -100,8 +107,8 @@ new Vue({
   el: '#app',
   template: '#app-template',
   vuetify: new Vuetify(),
-  mixins: [window.jianghuUiActionMixins],
   data: {
+    isMobile: window.innerWidth < 600,
     tab: null,
     // 表格相关数据
     isFormValid: true,
@@ -135,14 +142,6 @@ new Vue({
     isEditDrawerShow: false,
     drawerTableData: [],
   },
-  computed: {
-    isMobile() {
-      return window.innerWidth < 600;
-    },
-    tableData() {
-      return this.tableDataFromBackend;
-    },
-  },
   watch: {
     currentTable() {
       this.doUiAction('refreshTableData')
@@ -158,6 +157,29 @@ new Vue({
   },
   mounted() {},
   methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'refreshTableData':
+          await this.openTableLoading(uiActionData);
+          await this.refreshTableData(uiActionData);
+          await this.computeHeader(uiActionData);
+          await this.closeTableLoading(uiActionData);
+          break;
+        case 'viewRecordHistory':
+          await this.openDrawer(uiActionData);
+          await this.doViewRecordHistory(uiActionData);
+          break;
+        case 'restoreRecordByRecordHistory':
+          await this.doRestoreRecordByRecordHistory(uiActionData);
+          await this.doViewRecordHistory(uiActionData);
+          await this.refreshTableData(uiActionData);
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          break;
+      }
+    },
+
     async openTableLoading() {
       this.isTableLoading = true;
     },
@@ -216,11 +238,14 @@ new Vue({
       }
     },
 
+    async openDrawer() {
+        this.isEditDrawerShow = true;
+    },
+
     // viewRecordHistory
     async doViewRecordHistory({item}) {
       const { id } = item;
       this.drawerTableData = [];
-      this.isEditDrawerShow = true;
       this.isDrawerTableLoading = true;
       const result = await window.jianghuAxios({
         data: {
