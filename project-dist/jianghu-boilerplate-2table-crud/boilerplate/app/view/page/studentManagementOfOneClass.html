@@ -118,9 +118,9 @@
 <!--        </v-menu>-->
 <!--      </v-col>-->
       </v-row>
-      <v-row class="justify-end pr-6">
-        <v-btn color="success" small @click="doUiAction('createItem')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">新增</v-btn>
-        <v-btn class="ml-2" small @click="isAddDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
+      <v-row class="justify-end mx-0 mt-8 mb-8" :class="{'px-10': !isMobile, 'px-4': isMobile}">
+        <v-btn color="success" @click="doUiAction('createItem')">新增</v-btn>
+        <v-btn class="ml-2" @click="isAddDrawerShow = false">取消</v-btn>
       </v-row>
     </v-form>
   </v-navigation-drawer>
@@ -305,7 +305,7 @@
             appData: {
               pageId: 'studentManagementOfOneClass',
               actionId: 'selectCurrentList',
-              where: { studentId: this.classId },
+              where: { classId: this.classId },
               orderBy: [{ column: 'operationAt', order: 'desc' }]
             }
           }
@@ -353,7 +353,7 @@
             appData: {
               pageId: 'studentManagementOfOneClass',
               actionId: 'insertItem',
-              actionData: {...data, studentId: this.classId}
+              actionData: {...data, classId: this.classId}
             }
           }
         })
