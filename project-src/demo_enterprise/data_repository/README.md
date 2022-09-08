@@ -24,3 +24,6 @@ create database `__dbPrefix__data_repository` default character set utf8mb4 coll
 use __dbPrefix__data_repository;
 # 运行 sql/__dbPrefix__data_repository.sql 文件
 ```
+
+- `npm run test-local "test/app/controller/database.sync.test.js"`
+- `npm run test-local -- --grep="crud test"`

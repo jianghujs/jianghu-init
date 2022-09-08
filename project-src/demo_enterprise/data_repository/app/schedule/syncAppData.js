@@ -11,7 +11,7 @@ module.exports = app => {
       const startTime = new Date().getTime();
       const { logger } = app;
 
-      await ctx.service.tableSync.syncTable({});
+      await ctx.service.tableSync.syncTable({ useSyncTimeSlotFilter: true });
 
       const endTime = new Date().getTime();
       logger.info('[syncAppData.js]', { useTime: `${endTime - startTime}/ms` });
