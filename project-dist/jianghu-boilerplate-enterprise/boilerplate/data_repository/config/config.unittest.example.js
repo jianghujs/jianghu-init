@@ -6,6 +6,7 @@ module.exports = appInfo => {
 
   assert(appInfo);
   return {
+    dataSyncStatus: '禁用', // 是否启用同步，启用/禁用
     knex: {
       client: {
         dialect: 'mysql',

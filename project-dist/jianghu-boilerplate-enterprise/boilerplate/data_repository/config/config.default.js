@@ -16,6 +16,7 @@ module.exports = appInfo => {
   const downloadBasePath = `/${appId}/upload`;
 
   return {
+    dataSyncStatus: '禁用', // 是否启用同步，启用/禁用
     // egg-jianghu 配置
     appId,
     appTitle: '江湖演示-企业级',

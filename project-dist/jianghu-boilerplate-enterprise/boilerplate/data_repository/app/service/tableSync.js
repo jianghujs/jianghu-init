@@ -4,6 +4,7 @@ const Service = require('egg').Service;
 const { tableEnum } = require('../constant/constant');
 const dayjs = require('dayjs');
 const validateUtil = require('@jianghujs/jianghu/app/common/validateUtil');
+const hyperDiff = require('@jianghujs/jianghu/app/common/hyperDiff');
 const _ = require('lodash');
 const { BizError, errorInfoEnum } = require('../constant/error');
 const actionDataScheme = Object.freeze({
@@ -99,11 +100,11 @@ class UtilService extends Service {
   }
 
   /**
-   *   1. 源表检查
-   *      - 源表不存在 & 目标表不存在 则去标注一下 syncDesc: '源表不存在; 目标表不存在;'
-   *      - 源表不存在 & 目标表存在 ===> syncDesc: '源表不存在; 目标表存在;' ===>管理员手动删除
+   *   1. 应用表检查
+   *      - 应用表不存在 & 仓库表不存在 则去标注一下 syncDesc: '应用表不存在; 仓库表不存在;'
+   *      - 应用表不存在 & 仓库表存在 ===> syncDesc: '应用表不存在; 仓库表存在;' ===>管理员手动删除
    *   2. 一致性检查
-   *      - 不一致 ===》目标表覆盖
+   *      - 不一致 ===》仓库表覆盖
    *   3. 触发器检查
    *      - 不一致 ===》触发器覆盖
    *   4. 清除无用的触发器
@@ -111,15 +112,16 @@ class UtilService extends Service {
    * @return {Promise<void>}
    */
   async syncTable(actionData) {
-
+    // Tip: 适配schedule调用, actionData从入参取
 
     validateUtil.validate(actionDataScheme.syncTable, actionData);
-
+    const { useSyncTimeSlotFilter } = actionData;
     const tableSyncConfigSelectParams = _.pick(actionData, [ 'sourceDatabase', 'sourceTable' ]);
 
-    const { jianghuKnex } = this.app;
+    const { jianghuKnex, logger } = this.app;
     const targetDatabase = this.getTargetDatabase();
     const lastSyncTime = dayjs().format();
+    const currentMinute = dayjs().diff(dayjs().format('YYYY-MM-DD'), 'minute');
 
     let tableSyncConfigList = await jianghuKnex(tableEnum.table_sync_config)
       .where(tableSyncConfigSelectParams)
@@ -128,8 +130,16 @@ class UtilService extends Service {
     const allTableMap = Object.fromEntries(allTable.map(obj => [ `${obj.database}.${obj.tableName}`, obj ]));
 
     tableSyncConfigList = await this.tableExistCheck({ tableSyncConfigList, allTableMap, targetDatabase });
-    const tableSyncConfigIdList = tableSyncConfigList.map(item => item.id);
+    if (useSyncTimeSlotFilter === true) {
+      tableSyncConfigList = tableSyncConfigList.filter(x => x.syncTimeSlot && currentMinute % parseInt(x.syncTimeSlot) === 0);
+    }
+    logger.info('[syncTable] 要同步的应用表:', tableSyncConfigList.map(item => `${item.sourceDatabase}.${item.sourceTable}`));
+    if (tableSyncConfigList.length === 0) {
+      logger.info('[syncTable] 没有要同步应用表');
+      return;
+    }
 
+    const tableSyncConfigIdList = tableSyncConfigList.map(item => item.id);
     // 标记为开始同步
     await jianghuKnex(tableEnum.table_sync_config)
       .whereIn('id', tableSyncConfigIdList)
@@ -160,13 +170,13 @@ class UtilService extends Service {
       if (!sourceTableExist && targetTableExist) {
         await jianghuKnex(tableEnum.table_sync_config)
           .where({ id: tableSyncConfig.id })
-          .update({ syncDesc: '【表检查】源表不存在; 目标表存在;', lastSyncTime });
-        logger.error(`[${targetTable}]`, '源表不存在; 目标表存在; ==> 若目标表废弃, 请手动删除目标库中 的 目标表');
+          .update({ syncDesc: '【表检查】应用表不存在; 仓库表存在;', lastSyncTime });
+        logger.error(`[${targetTable}]`, '应用表不存在; 仓库表存在; ==> 若仓库表废弃, 请手动删除目标库中 的 仓库表');
         continue;
       }
 
       if (!sourceTableExist && !targetTableExist) {
-        const syncDesc = '【表检查】源表不存在;';
+        const syncDesc = '【表检查】应用表不存在;';
         await jianghuKnex(tableEnum.table_sync_config)
           .where({ id: tableSyncConfig.id })
           .update({ syncDesc, lastSyncTime });
@@ -180,44 +190,109 @@ class UtilService extends Service {
   }
 
   async tableConsistentCheckAndSync({ tableSyncConfigList, allTableMap, targetDatabase }) {
-    const { jianghuKnex, logger } = this.app;
-
+    const { knex, jianghuKnex, logger } = this.app;
     for (const tableSyncConfig of tableSyncConfigList) {
+      
       const { sourceDatabase, sourceTable } = tableSyncConfig;
       const targetTable = `${sourceDatabase}__${sourceTable}`;
       const targetTableExist = allTableMap[`${targetDatabase}.${targetTable}`];
-
-      const checkSumResult = await jianghuKnex.raw(`CHECKSUM TABLE ${targetDatabase}.${targetTable}, ${sourceDatabase}.${sourceTable}`);
-      const checkSumIsConsistent = checkSumResult[0][0].Checksum === checkSumResult[0][1].Checksum;
-
-      const sourceTableDDLResult = await jianghuKnex.raw(`SHOW CREATE TABLE ${sourceDatabase}.${sourceTable};`);
+      const sourceTableDDLResult = await knex.raw(`SHOW CREATE TABLE ${sourceDatabase}.${sourceTable};`);
       const sourceTableDDL = sourceTableDDLResult[0][0]['Create Table'];
-      const exceptTargetTableDDL = sourceTableDDL.replace(`CREATE TABLE \`${sourceTable}\``, `CREATE TABLE \`${targetTable}\``);
-      let DDLIsConsistent = false;
+      const exceptTargetTableDDL = sourceTableDDL
+        .replace(`CREATE TABLE \`${sourceTable}\``, `CREATE TABLE \`${targetTable}\``)
+        .replace(/AUTO_INCREMENT=\d+/, '');
+      let targetTableDDL = null;
+
       if (targetTableExist) {
-        const targetTableDDLResult = await jianghuKnex.raw(`SHOW CREATE TABLE ${targetDatabase}.${targetTable};`);
-        const targetTableDDL = targetTableDDLResult[0][0]['Create Table'];
-        if (targetTableDDL === exceptTargetTableDDL) {
-          DDLIsConsistent = true;
-        }
+        const targetTableDDLResult = await knex.raw(`SHOW CREATE TABLE ${targetDatabase}.${targetTable};`);
+        targetTableDDL = targetTableDDLResult[0][0]['Create Table'].replace(/AUTO_INCREMENT=\d+/, '');
       }
-
-      if (!checkSumIsConsistent || !DDLIsConsistent) {
-        await jianghuKnex.raw(`DROP TABLE IF EXISTS ${targetDatabase}.${targetTable};`);
-        await jianghuKnex.raw(exceptTargetTableDDL);
-        await jianghuKnex.raw(`REPLACE INTO ${targetDatabase}.${targetTable} select *from ${sourceDatabase}.${sourceTable};`);
-        const syncDesc = checkSumIsConsistent === false ?
-          '【表覆盖】数据不一致; 触发覆盖目标表逻辑;' :
-          '【表覆盖】结构不一致; 触发覆盖目标表逻辑;';
-        await createTableSyncLog({ jianghuKnex, tableSyncConfig, syncDesc, syncAction: '表覆盖' });
+      if (targetTableDDL !== exceptTargetTableDDL) {
+        await knex.raw(`DROP TABLE IF EXISTS ${targetDatabase}.${targetTable};`);
+        await knex.raw(exceptTargetTableDDL);
+        await knex.raw(`REPLACE INTO ${targetDatabase}.${targetTable} select *from ${sourceDatabase}.${sourceTable};`);
+        const syncDesc = '【表覆盖】结构不一致; 触发覆盖仓库表逻辑;';
+        await createTableSyncLog({ jianghuKnex, tableSyncConfig, syncDesc, syncAction: '仓库表覆盖' });
         logger.warn(`[${targetTable}]`, syncDesc);
-      } else {
-        logger.info(`[${targetTable}]`, '数据&结构一致; 无需覆盖;');
+        continue;
       }
+
+      const targetConnection = { ...this.app.config.knex.client.connection, database: targetDatabase };
+      const sourceConnection = { ...this.app.config.knex.client.connection, database: sourceDatabase };
+      const hyperDiffResult = await hyperDiff({
+        oldDatabaseConnectionConfig: targetConnection,
+        oldTable: targetTable,
+        newDatabaseConnectionConfig: sourceConnection,
+        newTable: sourceTable,
+        splitCount: 2,
+        stopThreshold: 10,
+        ignoreColumns: [],
+      });
+      let hyperDiffIsConsistent = hyperDiffResult.added.length === 0 && hyperDiffResult.removed.length === 0 && hyperDiffResult.changed.length === 0;
+      if (!hyperDiffIsConsistent) {
+        const { added, removed, changed } = hyperDiffResult;
+        if (added.length > 0) {
+          await knex(`${targetDatabase}.${targetTable}`).insert(added);
+        }
+        if (removed.length > 0) {
+          const idList = removed.map(item => item.id);
+          await knex(`${targetDatabase}.${targetTable}`).whereIn('id', idList).delete();
+        }
+        if (changed.length > 0) {
+          for (const item of changed) {
+            const { id, ...updateParam } = item.new;
+            await knex(`${targetDatabase}.${targetTable}`).where({ id }).update(updateParam);
+          }
+        }
+        const syncDesc = '【数据同步】数据不一致; 触发数据同步逻辑;';
+        await createTableSyncLog({ jianghuKnex, tableSyncConfig, syncDesc, syncAction: '数据同步' });
+        logger.warn(`[${targetTable}]`, syncDesc);
+        continue;
+      } 
+
+      logger.info(`[${targetTable}]`, '数据&结构一致; 无需覆盖;');
     }
-
-
   }
+
+  // async tableConsistentCheckAndSync({ tableSyncConfigList, allTableMap, targetDatabase }) {
+  //   const { jianghuKnex, logger } = this.app;
+
+  //   for (const tableSyncConfig of tableSyncConfigList) {
+  //     const { sourceDatabase, sourceTable } = tableSyncConfig;
+  //     const targetTable = `${sourceDatabase}__${sourceTable}`;
+  //     const targetTableExist = allTableMap[`${targetDatabase}.${targetTable}`];
+
+  //     const checkSumResult = await jianghuKnex.raw(`CHECKSUM TABLE ${targetDatabase}.${targetTable}, ${sourceDatabase}.${sourceTable}`);
+  //     const checkSumIsConsistent = checkSumResult[0][0].Checksum === checkSumResult[0][1].Checksum;
+
+  //     const sourceTableDDLResult = await jianghuKnex.raw(`SHOW CREATE TABLE ${sourceDatabase}.${sourceTable};`);
+  //     const sourceTableDDL = sourceTableDDLResult[0][0]['Create Table'];
+  //     const exceptTargetTableDDL = sourceTableDDL.replace(`CREATE TABLE \`${sourceTable}\``, `CREATE TABLE \`${targetTable}\``);
+  //     let DDLIsConsistent = false;
+  //     if (targetTableExist) {
+  //       const targetTableDDLResult = await jianghuKnex.raw(`SHOW CREATE TABLE ${targetDatabase}.${targetTable};`);
+  //       const targetTableDDL = targetTableDDLResult[0][0]['Create Table'];
+  //       if (targetTableDDL === exceptTargetTableDDL) {
+  //         DDLIsConsistent = true;
+  //       }
+  //     }
+
+  //     if (!checkSumIsConsistent || !DDLIsConsistent) {
+  //       await jianghuKnex.raw(`DROP TABLE IF EXISTS ${targetDatabase}.${targetTable};`);
+  //       await jianghuKnex.raw(exceptTargetTableDDL);
+  //       await jianghuKnex.raw(`REPLACE INTO ${targetDatabase}.${targetTable} select *from ${sourceDatabase}.${sourceTable};`);
+  //       const syncDesc = checkSumIsConsistent === false ?
+  //         '【表覆盖】数据不一致; 触发覆盖仓库表逻辑;' :
+  //         '【表覆盖】结构不一致; 触发覆盖仓库表逻辑;';
+  //       await createTableSyncLog({ jianghuKnex, tableSyncConfig, syncDesc, syncAction: '表覆盖' });
+  //       logger.warn(`[${targetTable}]`, syncDesc);
+  //     } else {
+  //       logger.info(`[${targetTable}]`, '数据&结构一致; 无需覆盖;');
+  //     }
+  //   }
+
+
+  // }
 
   async tableMysqlTriggerCheckAndSync({ tableSyncConfigList, targetDatabase }) {
     const { jianghuKnex } = this.app;
@@ -242,9 +317,9 @@ class UtilService extends Service {
     const columnListSelect = await jianghuKnex('information_schema.COLUMNS')
       .where({ TABLE_SCHEMA: sourceDatabase, TABLE_NAME: sourceTable })
       .select();
-    const columnList = columnListSelect.map(item => item.COLUMN_NAME);
-    const NEWColumnList = columnListSelect.map(item => 'NEW.' + item.COLUMN_NAME);
-    const updateColumnList = columnListSelect.map(item => `${item.COLUMN_NAME}=NEW.${item.COLUMN_NAME}`);
+    const columnList = columnListSelect.map(item => `\`${item.COLUMN_NAME}\``);
+    const NEWColumnList = columnListSelect.map(item => `NEW.\`${item.COLUMN_NAME}\``);
+    const updateColumnList = columnListSelect.map(item => `\`${item.COLUMN_NAME}\`=NEW.\`${item.COLUMN_NAME}\``);
 
     const INSERTTriggerName = `${targetTable}_INSERT`;
     const INSERTTriggerContentSql = `BEGIN
