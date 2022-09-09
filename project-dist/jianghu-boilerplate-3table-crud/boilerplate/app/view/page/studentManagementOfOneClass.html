@@ -58,7 +58,7 @@
       </v-btn>
     </v-row>
     <v-row class="pa-2 py-0">
-      <v-data-table show-select checkbox-color="success" :headers="headers"
+      <v-data-table show-select checkbox-color="success" :headers="drawerHeaders"
                     :loading="isDrawerTableLoading" :items="drawerTableData" item-key="studentId"
                     :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }" :items-per-page="20"
                     mobile-breakpoint="0" @item-selected="drawerItemSelected"
@@ -133,25 +133,25 @@ new Vue({
     isAllotEditDrawerShow: false,
     isEditDrawerShow: false,
     headers: [
+      {text: '班级ID', value: 'classId', width: 120},
+      {text: '学生ID', value: 'studentId', width: 120},
+      {text: '学生名字', value: 'name', width: 120},
+      {text: '性别', value: 'gender', width: 120},
+      {text: '出生日期', value: 'dateOfBirth', width: 120},
+      {text: '年级', value: 'level', width: 120},
+      {text: '身高', value: 'bodyHeight', width: 120},
+      {text: '学生状态', value: 'studentStatus', width: 120},
+      {text: '备注', value: 'remarks', width: 120},
+      {text: "操作者", value: "operationByUser", width: 120},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+    ],
+    drawerHeaders: [
       {text: '学生ID', value: 'studentId', width: 120},
       {text: '班级ID', value: 'classId', width: 120},
       {text: '备注', value: 'remark', width: 120},
       {text: "操作者", value: "operationByUser", width: 120},
       {text: "操作时间", value: "operationAt", width: 250},
       {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
-    ],
-    drawerHeaders: [
-
-      {text: '学生ID', value: 'studentId', width: 120},
-      {text: '学生名字', value: 'name', width: 120},
-      {text: '性别', value: 'gender', width: 120},
-      {text: '出生日期', value: 'dateOfBirth', width: 120},
-      {text: '班级ID', value: 'classId', width: 120},
-      {text: '年级', value: 'level', width: 120},
-      {text: '身高', value: 'bodyHeight', width: 120},
-      {text: '学生状态', value: 'studentStatus', width: 120},
-      {text: '备注', value: 'remarks', width: 120},
-      {text: "操作者", value: "operationByUser", width: 120},
     ],
     drawerTableData: [],
     drawerTableDataFromBackend: [],

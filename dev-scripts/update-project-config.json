@@ -14,6 +14,20 @@
     "repositoryUrl": "git@github.com:jianghujs/jianghujs-1table-crud.git"
   },
   {
+    "projectName": "basic",
+    "replaceList": [
+      {
+        "from": "jianghujs-basic",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_basic",
+        "to": "__database__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-basic.git"
+  },
+  {
     "projectName": "1table-crud-file",
     "replaceList": [
       {
