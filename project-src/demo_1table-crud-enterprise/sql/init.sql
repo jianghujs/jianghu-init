@@ -292,7 +292,7 @@ CREATE TABLE `_ui` (
   `uiActionId` varchar(255) DEFAULT NULL COMMENT 'action id; E.g: selectXXXByXXX',
   `desc` varchar(255) DEFAULT NULL COMMENT '描述',
   `uiActionConfig` text COMMENT 'ui 动作数据',
-  `appDataSchema` json DEFAULT NULL COMMENT 'ui 校验数据',
+  `appDataSchema` text COMMENT 'ui 校验数据',
   `operation` varchar(255) DEFAULT 'insert' COMMENT '操作; insert, update, jhInsert, jhUpdate, jhDelete jhRestore',
   `operationByUserId` varchar(255) DEFAULT NULL COMMENT '操作者userId',
   `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
