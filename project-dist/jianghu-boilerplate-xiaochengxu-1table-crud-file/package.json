@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-boilerplate-xiaochengxu-1table-crud-file",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "boilerplate for jianghu quickstart",
   "scripts": {
     "autod": "autod",
