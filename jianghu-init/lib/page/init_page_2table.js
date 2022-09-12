@@ -76,7 +76,7 @@ module.exports = class InitPage2Table extends CommandBase {
     });
     const tables = result.map(item => item.TABLE_NAME).filter(table => !table.startsWith('_'));
     // console.log(tables);
-
+    console.log('注意: 仅支持一(A表)对多(B表)');
     const { tableA } = await inquirer.prompt({
       name: 'tableA',
       type: 'list',
