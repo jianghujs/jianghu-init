@@ -1,4 +1,4 @@
-# jianghujs_demo_onetable
+# {{name}}
 
 ## 配置
 

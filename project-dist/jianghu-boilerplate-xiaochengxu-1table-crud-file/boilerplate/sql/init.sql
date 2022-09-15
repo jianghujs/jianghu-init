@@ -65,38 +65,8 @@ CREATE TABLE `_file` (
   `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`),
   KEY `fileId_index` (`fileId`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 68 COMMENT = '文件表; 软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 70 COMMENT = '文件表; 软删除未启用;';
 
-
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _file
-# ------------------------------------------------------------
-
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (43,'1660614688530_783371','testFile','高效程序员的45个习惯（修订版）敏捷开发修炼之道.pdf','1660614688530_783371_高效程序员的45个习惯（修订版）敏捷开发修炼之道.pdf','/testFile/1660614688530_783371_高效程序员的45个习惯（修订版）敏捷开发修炼之道.pdf',NULL,'ddd','16.90MB','jhInsert','G00002','郭靖','2022-08-16T09:51:28+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (44,'1660633861870_611024','testFile','1368个单词就够了.pdf','1660633861870_611024_1368个单词就够了.pdf','/testFile/1660633861870_611024_1368个单词就够了.pdf',NULL,NULL,'1329.84','jhInsert','G00002','郭靖','2022-08-16T15:11:01+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (45,'1660633939373_159227','testFile','1368个单词就够了.pdf','1660633939373_159227_1368个单词就够了.pdf','/testFile/1660633939373_159227_1368个单词就够了.pdf',NULL,NULL,'1329.84','jhInsert','G00002','郭靖','2022-08-16T15:12:19+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (46,'1660634107492_962264','testFile','1368个单词就够了.pdf','1660634107492_962264_1368个单词就够了.pdf','/testFile/1660634107492_962264_1368个单词就够了.pdf',NULL,NULL,'1329.84','jhInsert','G00002','郭靖','2022-08-16T15:15:07+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (47,'1660635273225_434912','testFile','1368个单词就够了.pdf','1660635273225_434912_1368个单词就够了.pdf','/testFile/1660635273225_434912_1368个单词就够了.pdf','application/pdf','33333','1329.84','jhUpdate','G00002','郭靖','2022-08-16T15:41:26+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (48,'1660635502178_659054','testFile','1368个单词就够了.pdf','1660635502178_659054_1368个单词就够了.pdf','/testFile/1660635502178_659054_1368个单词就够了.pdf','application/pdf','eeeeeee','1329.84','jhInsert','G00002','郭靖','2022-08-16T15:38:22+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (49,'1660635568857_184322','testFile','musk-min.jpg','1660635568857_184322_musk-min.jpg','/testFile/1660635568857_184322_musk-min.jpg','image/jpeg','ddddd','9.25','jhUpdate','G00002','郭靖','2022-08-16T15:41:07+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (50,'1660637055970_527178','testFile','函数.png','1660637055970_527178_函数.png','/testFile/1660637055970_527178_函数.png','image/png','kkkk','4.40','jhInsert','G00002','郭靖','2022-08-16T16:04:15+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (51,'1661132802037_658796','testFile','函数.png','1661132802037_658796_函数.png','/testFile/1661132802037_658796_函数.png','image/png',NULL,'4.40','jhInsert','G00002','郭靖','2022-08-22T09:46:42+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (52,'1661133208634_829810','testFile','圣经.png','1661133208634_829810_圣经.png','/testFile/1661133208634_829810_圣经.png','image/png',NULL,'4.05','jhInsert','G00002','郭靖','2022-08-22T09:53:28+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (53,'1661133254230_983227','testFile','函数.png','1661133254230_983227_函数.png','/testFile/1661133254230_983227_函数.png','image/png',NULL,'4.40','jhInsert','G00002','郭靖','2022-08-22T09:54:14+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (54,'1661913485538_633140','testFile','学校.png','1661913485538_633140_学校.png','/testFile/1661913485538_633140_学校.png','image/png','111','5.40','jhInsert','G00002','郭靖','2022-08-31T10:38:05+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (55,'1661913858945_896663','testFile','数据库.png','1661913858945_896663_数据库.png','/testFile/1661913858945_896663_数据库.png','image/png','111','5.11','jhInsert','G00002','郭靖','2022-08-31T10:44:18+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (56,'1661913878364_275160','testFile','avatar.png','1661913878364_275160_avatar.png','/testFile/1661913878364_275160_avatar.png','image/png','111','6.19','jhInsert','G00002','郭靖','2022-08-31T10:44:38+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (57,'1661913942261_914881','testFile','学校.png','1661913942261_914881_学校.png','/testFile/1661913942261_914881_学校.png','图片素材','111','5.40','jhInsert','G00002','郭靖','2022-08-31T10:45:42+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (58,'1661914047892_212328','testFile','avatar.png','1661914047892_212328_avatar.png','/testFile/1661914047892_212328_avatar.png','动态图片','222','6.19','jhInsert','G00002','郭靖','2022-08-31T10:47:27+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (59,'1661914071251_190888','testFile','m54j0qc54o5.jpeg','1661914071251_190888_m54j0qc54o5.jpeg','/testFile/1661914071251_190888_m54j0qc54o5.jpeg','image/jpeg','111','11.26','jhInsert','G00002','郭靖','2022-08-31T10:47:51+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (60,'1661915901277_621894','testFile','数据库.png','1661915901277_621894_数据库.png','/testFile/1661915901277_621894_数据库.png','1111',NULL,'5.11','jhInsert','G00002','郭靖','2022-08-31T11:18:21+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (61,'1661916005114_121757','testFile','圣经.png','圣经.png','/testFile/圣经.png','image/png',NULL,'4.05','jhInsert','G00002','郭靖','2022-08-31T11:20:05+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (62,'1661924533382_104564','testFile','colin.ico','1661924533382_104564_colin.ico','/testFile/1661924533382_104564_colin.ico','image/vnd.microsoft.icon',NULL,'23.06','jhInsert','G00002','郭靖','2022-08-31T13:42:13+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (63,'1662089259442_982131','testFile','圣经.png','1662089259442_982131_圣经.png','/testFile/1662089259442_982131_圣经.png','学生文件','','4.05','jhInsert','G00002','郭靖','2022-09-02T11:27:39+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (64,'1662102172379_506115','testFile','函数.png','1662102172379_506115_函数.png','/testFile/1662102172379_506115_函数.png','学生文件','','4.40','jhInsert','G00002','郭靖','2022-09-02T15:02:52+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (65,'1662104585612_693581','testFile','圣经.png','1662104585612_693581_圣经.png','/testFile/1662104585612_693581_圣经.png','image/png',NULL,'4.05','jhInsert','G00002','郭靖','2022-09-02T15:43:05+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (66,'1662106012914_160612','testFile','波吉_002.jpg','1662106012914_160612_波吉_002.jpg','/testFile/1662106012914_160612_波吉_002.jpg','image/jpeg',NULL,'14.01','jhInsert','G00002','郭靖','2022-09-02T16:06:52+08:00');
-INSERT INTO `_file` (`id`,`fileId`,`fileDirectory`,`filename`,`filenameStorage`,`downloadPath`,`fileType`,`fileDesc`,`binarySize`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (67,'1662106138932_427001','testFile','Java开发手册(黄山版).pdf','1662106138932_427001_Java开发手册(黄山版).pdf','/testFile/1662106138932_427001_Java开发手册(黄山版).pdf','application/pdf',NULL,'1461.61','jhUpdate','W00001','张三丰','2022-09-06T09:57:06+08:00');
 
 
 
@@ -156,7 +126,8 @@ CREATE TABLE `_page` (
 # DATA DUMP FOR TABLE: _page
 # ------------------------------------------------------------
 
-INSERT INTO `_page` (`id`,`pageId`,`pageFile`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help',NULL,'帮助','dynamicInMenu','1','insert',NULL,NULL,NULL);
+INSERT INTO `_page` (`id`,`pageId`,`pageFile`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help','helpV3','帮助','dynamicInMenu','11','insert',NULL,NULL,NULL);
+INSERT INTO `_page` (`id`,`pageId`,`pageFile`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'login','loginV3','登陆','','','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageFile`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (33,'fileManagement',NULL,'文件管理','showInMenu','2','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageFile`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (39,'studentFileManagement',NULL,'学生文件管理','showInMenu','3','update','vscode','vscode','2022-08-14T11:44:00+08:00');
 
@@ -180,7 +151,7 @@ CREATE TABLE `_record_history` (
   PRIMARY KEY (`id`),
   KEY `index_record_id` (`recordId`),
   KEY `index_table_action` (`table`, `operation`)
-) ENGINE = InnoDB AUTO_INCREMENT = 39 COMMENT = '数据历史表';
+) ENGINE = InnoDB AUTO_INCREMENT = 47 COMMENT = '数据历史表';
 
 
 
@@ -257,7 +228,7 @@ CREATE TABLE `_resource_request_log` (
   PRIMARY KEY (`id`),
   KEY `resourceId_index` (`resourceId`),
   KEY `packageId_index` (`packageId`)
-) ENGINE = InnoDB AUTO_INCREMENT = 847 COMMENT = '文件表; 软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 889 COMMENT = '文件表; 软删除未启用;';
 
 
 
@@ -332,7 +303,7 @@ CREATE TABLE `_ui` (
   `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
   `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 93 COMMENT = 'ui 施工方案';
+) ENGINE = InnoDB COMMENT = 'ui 施工方案';
 
 
 # ------------------------------------------------------------
@@ -459,8 +430,12 @@ CREATE TABLE `_user_group_role_page` (
 # DATA DUMP FOR TABLE: _user_group_role_page
 # ------------------------------------------------------------
 
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (19,'*','login','*','help','allow','帮助页; 开放给登陆用户;','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (21,'*','login','*','*','allow','所有页面; 开放给所有人;','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'*','public','*','login','allow','登陆页面; 开放所有用户;','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','login','*','help,manual','allow','工具页; 开放给登陆用户;','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'*','login','*','*','allow','所有页面; 开放给登陆用户;','insert',NULL,NULL,NULL);
+
+
+
 
 
 
@@ -489,9 +464,10 @@ CREATE TABLE `_user_group_role_resource` (
 # DATA DUMP FOR TABLE: _user_group_role_resource
 # ------------------------------------------------------------
 
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'*','*','*','xiaochengxu.*','allow','所有用户, 赋予所有xiaochengxu 接口访问权限','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','login','*','allPage.*','allow','用户信息等resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'*','login','*','*','allow','登录用户, 赋予所有resource权限','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'*','public','*','login.passwordLogin','allow','登陆resource, 开放给所有用户','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','login','*','allPage.*','allow','工具类resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'*','login','*','*','allow','所有resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
+
 
 
 
@@ -541,7 +517,7 @@ CREATE TABLE `student_file` (
   `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
   `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 194;
+) ENGINE = InnoDB AUTO_INCREMENT = 195;
 
 
 # ------------------------------------------------------------
@@ -551,6 +527,7 @@ CREATE TABLE `student_file` (
 INSERT INTO `student_file` (`id`,`downloadPath`,`filename`,`binarySize`,`studentName`,`docType`,`remarks`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (191,'/testFile/1662104585612_693581_圣经.png','圣经.png','4.05','mic','证书','证书---','jhUpdate','G00002','郭靖','2022-09-02T15:43:08+08:00');
 INSERT INTO `student_file` (`id`,`downloadPath`,`filename`,`binarySize`,`studentName`,`docType`,`remarks`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (192,'/testFile/1662106012914_160612_波吉_002.jpg','波吉_002.jpg','14.01','ddd','dd','ddd','insert','G00002','郭靖','2022-09-02T16:06:55+08:00');
 INSERT INTO `student_file` (`id`,`downloadPath`,`filename`,`binarySize`,`studentName`,`docType`,`remarks`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (193,'/testFile/1662106138932_427001_Java开发手册(黄山版).pdf','Java开发手册(黄山版).pdf','1461.61','ddd','dd','ddd','jhUpdate','W00001','张三丰','2022-09-06T09:57:36+08:00');
+INSERT INTO `student_file` (`id`,`downloadPath`,`filename`,`binarySize`,`studentName`,`docType`,`remarks`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (194,'/testFile/1662631915068_884486_鸭子.jpeg','鸭子.jpeg','21.40','小花','卡通',NULL,'jhUpdate','G00002','郭靖','2022-09-08T18:12:07+08:00');
 
 
 

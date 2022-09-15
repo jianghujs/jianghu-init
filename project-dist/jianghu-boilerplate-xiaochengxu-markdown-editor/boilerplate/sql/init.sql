@@ -100,11 +100,6 @@ CREATE TABLE `_file` (
 ) ENGINE = InnoDB COMMENT = '文件表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _file
-# ------------------------------------------------------------
-
-
 
 
 # ------------------------------------------------------------
@@ -145,6 +140,7 @@ DROP TABLE IF EXISTS `_page`;
 CREATE TABLE `_page` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pageId` varchar(255) DEFAULT NULL COMMENT 'pageId',
+  `pageFile` varchar(255) DEFAULT NULL COMMENT 'page文件指定; 默认使用pageId.html',
   `pageName` varchar(255) DEFAULT NULL COMMENT 'page name',
   `pageType` varchar(255) DEFAULT NULL COMMENT '页面类型; showInMenu, dynamicInMenu',
   `sort` varchar(255) DEFAULT NULL,
@@ -161,7 +157,8 @@ CREATE TABLE `_page` (
 # DATA DUMP FOR TABLE: _page
 # ------------------------------------------------------------
 
-INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`pageHook`) VALUES (2,'help','帮助','dynamicInMenu','11','insert',NULL,NULL,NULL,NULL);
+INSERT INTO `_page` (`id`,`pageId`,`pageFile`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help','helpV3','帮助','dynamicInMenu','11','insert',NULL,NULL,NULL);
+INSERT INTO `_page` (`id`,`pageId`,`pageFile`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'login','loginV3','登陆','','','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`pageHook`) VALUES (30,'categoryManagement','分类管理','showInMenu','1','insert',NULL,NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`pageHook`) VALUES (40,'article','文章预览','dynamicInMenu','7','insert',NULL,NULL,NULL,'{\n  \"beforeHook\":[\n    {\"field\": \"article\", \"service\": \"article\", \"serviceFunc\": \"getArticleAndFillArticles\"},\n\t\t{\"field\": \"constantUiMap\", \"service\": \"constantUi\", \"serviceFunc\": \"getConstantUiMap\"}\n  ]\n}');
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`pageHook`) VALUES (42,'articleEdit','文章编辑','dynamicInMenu','7','insert',NULL,NULL,NULL,NULL);
@@ -269,7 +266,7 @@ CREATE TABLE `_resource_request_log` (
   PRIMARY KEY (`id`),
   KEY `resourceId_index` (`resourceId`),
   KEY `packageId_index` (`packageId`)
-) ENGINE = InnoDB AUTO_INCREMENT = 6061 COMMENT = '文件表; 软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 6096 COMMENT = '文件表; 软删除未启用;';
 
 
 
@@ -346,32 +343,13 @@ CREATE TABLE `_ui` (
   `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
   `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`)
-) ENGINE = InnoDB AUTO_INCREMENT = 24 COMMENT = 'ui 施工方案';
+) ENGINE = InnoDB AUTO_INCREMENT = 20 COMMENT = 'ui 施工方案';
 
 
 # ------------------------------------------------------------
 # DATA DUMP FOR TABLE: _ui
 # ------------------------------------------------------------
 
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'firstDraftManagement','ui','refreshTableData','✅获取文章列表','{\"main\": [{\"function\": \"refreshTableData\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:22+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'firstDraftManagement','ui','startUpdateItem','✅打开更新抽屉','{\"main\": [{\"function\": \"prepareItemData\"}, {\"function\": \"openUpdateDialog\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:22+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'firstDraftManagement','ui','updateItem','✅更新发布状态','{\"before\": [{\"function\": \"confirmUpdateItemDialog\"}], \"main\": [{\"function\": \"doUpdateItem\"}, {\"function\": \"refreshTableData\"}], \"after\": [{\"function\": \"closeDrawerShow\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:23+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4,'firstDraftManagement','ui','goToXiaochengxuPage','✅打开文章编辑页','{\"main\":[{\"function\":\"goToXiaochengxuPage\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:23+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (5,'secondDraftManagement','ui','refreshTableData','✅获取文章列表','{\"main\": [{\"function\": \"refreshTableData\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:22+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'secondDraftManagement','ui','startUpdateItem','✅打开更新抽屉','{\"main\": [{\"function\": \"prepareItemData\"}, {\"function\": \"openUpdateDialog\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:22+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (7,'secondDraftManagement','ui','updateItem','✅更新发布状态','{\"before\": [{\"function\": \"confirmUpdateItemDialog\"}], \"main\": [{\"function\": \"doUpdateItem\"}, {\"function\": \"refreshTableData\"}], \"after\": [{\"function\": \"closeDrawerShow\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:23+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (8,'secondDraftManagement','ui','goToXiaochengxuPage','✅打开文章编辑页','{\"main\":[{\"function\":\"goToXiaochengxuPage\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:23+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (9,'thirdDraftManagement','ui','refreshTableData','✅获取表格数据','{\"main\": [{\"function\": \"refreshTableData\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:22+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (10,'thirdDraftManagement','ui','startUpdateItem','✅打开更新抽屉','{\"main\": [{\"function\": \"prepareItemData\"}, {\"function\": \"openUpdateDialog\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:22+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (11,'thirdDraftManagement','ui','updateItem','✅更新发布状态','{\"before\": [{\"function\": \"confirmUpdateItemDialog\"}], \"main\": [{\"function\": \"doUpdateItem\"}, {\"function\": \"refreshTableData\"}], \"after\": [{\"function\": \"closeDrawerShow\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:23+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (12,'thirdDraftManagement','ui','goToXiaochengxuPage','✅打开文章编辑页','{\"main\":[{\"function\":\"goToXiaochengxuPage\"}]}',NULL,'update','vscode','vscode','2022-07-27T15:43:23+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (13,'categoryManagement','ui','refreshTableData','✅获取分类列表','{\"main\": [{\"function\": \"refreshTableData\"}]}',NULL,'update','vscode','vscode','2022-07-26T22:36:49+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (14,'categoryManagement','ui','startCreateItem','✅打开新增抽屉','{\"main\": [{\"function\": \"clearItemData\"}, {\"function\": \"openCreateItemDialog\"}]}',NULL,'update','vscode','vscode','2022-07-26T22:36:49+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (15,'categoryManagement','ui','createItem','✅新增分类','{\"before\": [{\"function\": \"confirmCreateItemDialog\"}], \"main\": [{\"function\": \"doCreateItem\"}, {\"function\": \"refreshTableData\"}], \"after\": [{\"function\": \"closeDrawerShow\"}]}',NULL,'update','vscode','vscode','2022-07-26T22:36:49+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (16,'categoryManagement','ui','startUpdateItem','✅打开更新抽屉','{\"main\": [{\"function\": \"prepareItemData\"}, {\"function\": \"openUpdateDialog\"}]}',NULL,'update','vscode','vscode','2022-07-26T22:36:50+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (17,'categoryManagement','ui','updateItem','✅更新分类信息','{\"before\": [{\"function\": \"confirmUpdateItemDialog\"}], \"main\": [{\"function\": \"doUpdateItem\"}, {\"function\": \"refreshTableData\"}], \"after\": [{\"function\": \"closeDrawerShow\"}]}',NULL,'update','vscode','vscode','2022-07-26T22:36:50+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (18,'categoryManagement','ui','deleteItem','✅删除分类','{\"before\": [{\"function\": \"confirmDeleteItemDialog\"}], \"main\": [{\"function\": \"doDeleteItem\"}, {\"function\": \"refreshTableData\"}]}',NULL,'update','vscode','vscode','2022-07-26T22:36:50+08:00');
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (19,'categoryManagement','ui','goToDraftManagementPage','✅进入X稿管理页面','{\"main\":[{\"function\":\"goToDraftManagementPage\"}]}',NULL,'insert','vscode','vscode','2022-07-26T22:36:50+08:00');
 
 
 
@@ -472,15 +450,12 @@ CREATE TABLE `_user_group_role_page` (
 # DATA DUMP FOR TABLE: _user_group_role_page
 # ------------------------------------------------------------
 
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'*','adminGroup','*','*','allow','所有页面，开放给管理员','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','login','*','article','allow','文章页面，开放给登陆用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'*','public','*','login','allow','登陆页; 开放给所有用户;','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4,'*','login','*','manual','allow','操作手册页; 开放给登陆用户;','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (5,'*','login','*','help','allow','帮助页; 开放给登陆用户;','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'*','login','*','firstDraftManagement','allow','一稿页面，开放给登陆用户；','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (7,'*','login','*','categoryManagement','allow','分类管理页面，开放给登陆用户；','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (8,'*','login','*','articleEdit','allow','文章编辑页面，开放给登陆用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (9,'*','secondGroup','*','secondDraftManagement','allow','二稿页面，开放给小组长','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'*','public','*','login','allow','登陆页面; 开放所有用户;','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','login','*','help,manual','allow','工具页; 开放给登陆用户;','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'*','login','*','*','allow','所有页面; 开放给登陆用户;','insert',NULL,NULL,NULL);
+
+
+
 
 
 
@@ -510,15 +485,11 @@ CREATE TABLE `_user_group_role_resource` (
 # ------------------------------------------------------------
 
 INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'*','public','*','login.passwordLogin','allow','登陆resource, 开放给所有用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','public','*','allPage.getConstantList','allow','查询常量resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4,'*','login','*','categoryManagement.*','allow','分类管理resource, 开放给登陆用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (5,'*','login','*','firstDraftManagement.*','allow','一稿管理resource, 开放给登陆用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'*','adminGroup','*','*','allow','allPage reourse, 开放给管理员','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (7,'*','login','*','article.*','allow','article页面，开放给登陆用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (8,'*','login','*','articleEdit.*','allow','article编辑页面，开放给登陆用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (9,'*','login','*','xiaochengxu.getView','allow','获取小程序页面','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (10,'*','login','*','allPage.userInfo','allow','用户个人信息resource，开放给登陆用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (11,'*','secondGroup','*','secondDraftManagement.*','allow','二稿管理resource, 开放给二稿用户','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','login','*','allPage.*','allow','工具类resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'*','login','*','*','allow','所有resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
+
+
+
 
 
 
@@ -584,22 +555,22 @@ CREATE TABLE `access_control_student` (
 DROP TABLE IF EXISTS `article`;
 CREATE TABLE `article` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `articleId` bigint(20) DEFAULT NULL COMMENT '文章id; 10000 ++',
-  `articleStatus` varchar(255) DEFAULT NULL COMMENT '文章状态; firstDraft: 一稿; secondDraft: 二稿;  thirdDraft:三稿',
+  `articleId` bigint(20) DEFAULT NULL COMMENT '文章id, 10000 ++',
   `categoryId` varchar(255) DEFAULT NULL COMMENT '分类id',
   `articleGroupName` varchar(255) DEFAULT '' COMMENT '文章所属分组名',
-  `articleTagList` textmb4_unicode_520_ci COMMENT '标签; 用, 拼接',
-  `articlePublishStatus` varchar(255) DEFAULT '' COMMENT '文章发布状态; public, login, draft, deleted',
-  `articlePublishTime` varchar(255)mb4_unicode_520_ci DEFAULT NULL COMMENT '文章发布时间',
-  `articleTitle` varchar(255)mb4_unicode_520_ci DEFAULT NULL COMMENT '标题',
-  `articleCoverImage` varchar(255)mb4_unicode_520_ci DEFAULT NULL COMMENT '封面',
-  `articleContent` longtextmb4_unicode_520_ci COMMENT '编辑的内容',
-  `articleContentForSeo` longtextmb4_unicode_520_ci COMMENT 'HTML 用于渲染',
+  `articleTagList` text COMMENT '标签; 用, 拼接',
+  `articleStatus` varchar(255) DEFAULT NULL COMMENT '文章状态; firstDraft: 一稿; secondDraft: 二稿;  thirdDraft:三稿',
+  `articlePublishStatus` varchar(255) DEFAULT '' COMMENT '文章类型(状态)：public, login, draft, deleted',
+  `articlePublishTime` varchar(255) DEFAULT NULL COMMENT '文章发布时间',
+  `articleTitle` varchar(255) DEFAULT NULL COMMENT '标题',
+  `articleCoverImage` varchar(255) DEFAULT NULL COMMENT '封面',
+  `articleContent` longtext COMMENT '编辑的内容',
+  `articleContentForSeo` longtext COMMENT 'HTML 用于渲染',
   `articleAssignmentList` text COMMENT '文章作业 [{ }]',
   `articleAssignmentListWithAnswer` text COMMENT '文章作业答案 [{ }]',
-  `articleAudioUrl` varchar(1023)mb4_unicode_520_ci DEFAULT NULL COMMENT '默认音频URL唯一的',
+  `articleAudioUrl` varchar(1023) DEFAULT NULL COMMENT '默认音频URL唯一的',
   `articleVideoUrl` varchar(1023) DEFAULT '' COMMENT '默认视频URL',
-  `articleCreateTime` varchar(255)mb4_unicode_520_ci DEFAULT NULL COMMENT '创建时间',
+  `articleCreateTime` varchar(255) DEFAULT NULL COMMENT '创建时间',
   `articleCreateUserId` varchar(255) DEFAULT '' COMMENT '创建者用户ID',
   `articleCreateUsername` varchar(255) DEFAULT '' COMMENT '创建者用户名',
   `articleUpdateTime` varchar(255) DEFAULT '' COMMENT '更新时间',
@@ -616,12 +587,6 @@ CREATE TABLE `article` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1602;
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: article
-# ------------------------------------------------------------
-
-INSERT INTO `article` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1600,10000,'firstDraft','10000','','','login','2022-08-30T21:23:03+08:00',' 沁园春·长沙',NULL,'\n\n# 沁园春·长沙\n\n独立寒秋，湘（xiāng）江北去，橘子洲头。\n\n看万山红遍，层林尽染；漫江碧透，百舸(gě）争流。\n\n鹰击长空，鱼翔浅底，万类霜天竞自由。\n\n怅寥廓(chàng liáo kuò）， 问苍茫大地，谁主沉浮？\n\n携来百侣曾游，忆往昔峥嵘(zhēng róng）岁月稠(chóu）。\n\n恰同学少年，风华正茂；书生意气，挥斥方遒（qiú）。\n\n指点江山，激扬文字，粪土当年万户侯。\n\n曾记否，到中流击水，浪遏（è）飞舟？','<h1 id=\"h1-u6C81u56EDu6625B7u957Fu6C99\"><a class=\"reference-link\" name=\"沁园春·长沙\"></a><span class=\"header-link octicon octicon-link\"></span>沁园春·长沙</h1><p>独立寒秋，湘（xiāng）江北去，橘子洲头。</p>\n<p>看万山红遍，层林尽染；漫江碧透，百舸(gě）争流。</p>\n<p>鹰击长空，鱼翔浅底，万类霜天竞自由。</p>\n<p>怅寥廓(chàng liáo kuò）， 问苍茫大地，谁主沉浮？</p>\n<p>携来百侣曾游，忆往昔峥嵘(zhēng róng）岁月稠(chóu）。</p>\n<p>恰同学少年，风华正茂；书生意气，挥斥方遒（qiú）。</p>\n<p>指点江山，激扬文字，粪土当年万户侯。</p>\n<p>曾记否，到中流击水，浪遏（è）飞舟？</p>\n',NULL,NULL,NULL,'','2022-08-30T21:23:03+08:00','G00002','郭靖','2022-08-30T21:24:58+08:00','G00002','郭靖','jhUpdate','G00002','郭靖','2022-08-30T21:25:08+08:00');
-INSERT INTO `article` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1601,10001,'firstDraft','10000','','','public','2022-08-30T21:27:28+08:00','沁园春·雪',NULL,'北国风光，千里冰封，万里雪飘。望长城内外，惟余莽莽；大河上下，顿失滔滔。山舞银蛇，原驰（另作：原驱）蜡象，欲与天公试比高。须晴日，看红装（另作：银装）素裹，分外妖娆。\n\n江山如此多娇，引无数英雄竞折腰。惜秦皇汉武，略输文采；唐宗宋祖，稍逊风骚。一代天骄，成吉思汗，只识弯弓射大雕。俱往矣，数风流人物，还看今朝。','<p>北国风光，千里冰封，万里雪飘。望长城内外，惟余莽莽；大河上下，顿失滔滔。山舞银蛇，原驰（另作：原驱）蜡象，欲与天公试比高。须晴日，看红装（另作：银装）素裹，分外妖娆。</p>\n<p>江山如此多娇，引无数英雄竞折腰。惜秦皇汉武，略输文采；唐宗宋祖，稍逊风骚。一代天骄，成吉思汗，只识弯弓射大雕。俱往矣，数风流人物，还看今朝。</p>\n',NULL,NULL,NULL,'','2022-08-30T21:27:28+08:00','G00002','郭靖','2022-08-30T21:27:35+08:00','G00002','郭靖','jhUpdate','G00002','郭靖','2022-08-30T21:27:35+08:00');
 
 
 
@@ -662,42 +627,25 @@ CREATE TABLE `article_history` (
 
 
 # ------------------------------------------------------------
-# DATA DUMP FOR TABLE: article_history
-# ------------------------------------------------------------
-
-INSERT INTO `article_history` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1224,10000,'firstDraft','10000',NULL,'','public','2022-08-30T21:23:03+08:00','诗歌01',NULL,'# 诗歌\n\n## 标题\n\n### 标题2\n\n正文：\n\ntest','<h1 id=\"h1-u8BD7u6B4C\"><a class=\"reference-link\" name=\"诗歌\"></a><span class=\"header-link octicon octicon-link\"></span>诗歌</h1><h2 id=\"h2-u6807u9898\"><a class=\"reference-link\" name=\"标题\"></a><span class=\"header-link octicon octicon-link\"></span>标题</h2><h3 id=\"h3-u6807u98982\"><a class=\"reference-link\" name=\"标题2\"></a><span class=\"header-link octicon octicon-link\"></span>标题2</h3><p>正文：</p>\n<p>test</p>\n',NULL,NULL,NULL,NULL,'2022-08-30T21:23:03+08:00','G00002','郭靖','2022-08-30T21:23:03+08:00','G00002','郭靖','insert',NULL,NULL,'2022-08-30T21:23:03+08:00');
-INSERT INTO `article_history` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1225,10000,'firstDraft','10000','','','public','2022-08-30T21:23:03+08:00','诗歌01',NULL,'# 诗歌\n\n## 标题\n\n### 标题2\n\n正文：\n\ntest','<h1 id=\"h1-u8BD7u6B4C\"><a class=\"reference-link\" name=\"诗歌\"></a><span class=\"header-link octicon octicon-link\"></span>诗歌</h1><h2 id=\"h2-u6807u9898\"><a class=\"reference-link\" name=\"标题\"></a><span class=\"header-link octicon octicon-link\"></span>标题</h2><h3 id=\"h3-u6807u98982\"><a class=\"reference-link\" name=\"标题2\"></a><span class=\"header-link octicon octicon-link\"></span>标题2</h3><p>正文：</p>\n<p>test</p>\n',NULL,NULL,NULL,'','2022-08-30T21:23:03+08:00','G00002','郭靖','2022-08-30T21:23:05+08:00','G00002','郭靖','insert',NULL,NULL,'2022-08-30T21:23:05+08:00');
-INSERT INTO `article_history` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1226,10000,'firstDraft','10000','','','public','2022-08-30T21:23:03+08:00','诗歌01',NULL,'# 诗歌\n\n## 标题\n\n### 标题2\n\n正文：\n\ntest','<h1 id=\"h1-u8BD7u6B4C\"><a class=\"reference-link\" name=\"诗歌\"></a><span class=\"header-link octicon octicon-link\"></span>诗歌</h1><h2 id=\"h2-u6807u9898\"><a class=\"reference-link\" name=\"标题\"></a><span class=\"header-link octicon octicon-link\"></span>标题</h2><h3 id=\"h3-u6807u98982\"><a class=\"reference-link\" name=\"标题2\"></a><span class=\"header-link octicon octicon-link\"></span>标题2</h3><p>正文：</p>\n<p>test</p>\n',NULL,NULL,NULL,'','2022-08-30T21:23:03+08:00','G00002','郭靖','2022-08-30T21:23:17+08:00','G00002','郭靖','insert',NULL,NULL,'2022-08-30T21:23:17+08:00');
-INSERT INTO `article_history` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1227,10000,'firstDraft','10000','','','public','2022-08-30T21:23:03+08:00','诗歌01',NULL,'# 诗歌\n\n## 标题\n\n### 标题2\n\n正文：\n\ntest','<h1 id=\"h1-u8BD7u6B4C\"><a class=\"reference-link\" name=\"诗歌\"></a><span class=\"header-link octicon octicon-link\"></span>诗歌</h1><h2 id=\"h2-u6807u9898\"><a class=\"reference-link\" name=\"标题\"></a><span class=\"header-link octicon octicon-link\"></span>标题</h2><h3 id=\"h3-u6807u98982\"><a class=\"reference-link\" name=\"标题2\"></a><span class=\"header-link octicon octicon-link\"></span>标题2</h3><p>正文：</p>\n<p>test</p>\n',NULL,NULL,NULL,'','2022-08-30T21:23:03+08:00','G00002','郭靖','2022-08-30T21:23:19+08:00','G00002','郭靖','insert',NULL,NULL,'2022-08-30T21:23:19+08:00');
-INSERT INTO `article_history` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1228,10000,'firstDraft','10000','','','public','2022-08-30T21:23:03+08:00','诗歌01',NULL,'\n\n# 沁园春·长沙\n\n独立寒秋，湘（xiāng）江北去，橘子洲头。\n\n看万山红遍，层林尽染；漫江碧透，百舸(gě）争流。\n\n鹰击长空，鱼翔浅底，万类霜天竞自由。\n\n怅寥廓(chàng liáo kuò）， 问苍茫大地，谁主沉浮？\n\n携来百侣曾游，忆往昔峥嵘(zhēng róng）岁月稠(chóu）。\n\n恰同学少年，风华正茂；书生意气，挥斥方遒（qiú）。\n\n指点江山，激扬文字，粪土当年万户侯。\n\n曾记否，到中流击水，浪遏（è）飞舟？','<h1 id=\"h1-u6C81u56EDu6625B7u957Fu6C99\"><a class=\"reference-link\" name=\"沁园春·长沙\"></a><span class=\"header-link octicon octicon-link\"></span>沁园春·长沙</h1><p>独立寒秋，湘（xiāng）江北去，橘子洲头。</p>\n<p>看万山红遍，层林尽染；漫江碧透，百舸(gě）争流。</p>\n<p>鹰击长空，鱼翔浅底，万类霜天竞自由。</p>\n<p>怅寥廓(chàng liáo kuò）， 问苍茫大地，谁主沉浮？</p>\n<p>携来百侣曾游，忆往昔峥嵘(zhēng róng）岁月稠(chóu）。</p>\n<p>恰同学少年，风华正茂；书生意气，挥斥方遒（qiú）。</p>\n<p>指点江山，激扬文字，粪土当年万户侯。</p>\n<p>曾记否，到中流击水，浪遏（è）飞舟？</p>\n',NULL,NULL,NULL,'','2022-08-30T21:23:03+08:00','G00002','郭靖','2022-08-30T21:24:42+08:00','G00002','郭靖','insert',NULL,NULL,'2022-08-30T21:24:42+08:00');
-INSERT INTO `article_history` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1229,10000,'firstDraft','10000','','','public','2022-08-30T21:23:03+08:00','诗歌01',NULL,'\n\n# 沁园春·长沙\n\n独立寒秋，湘（xiāng）江北去，橘子洲头。\n\n看万山红遍，层林尽染；漫江碧透，百舸(gě）争流。\n\n鹰击长空，鱼翔浅底，万类霜天竞自由。\n\n怅寥廓(chàng liáo kuò）， 问苍茫大地，谁主沉浮？\n\n携来百侣曾游，忆往昔峥嵘(zhēng róng）岁月稠(chóu）。\n\n恰同学少年，风华正茂；书生意气，挥斥方遒（qiú）。\n\n指点江山，激扬文字，粪土当年万户侯。\n\n曾记否，到中流击水，浪遏（è）飞舟？','<h1 id=\"h1-u6C81u56EDu6625B7u957Fu6C99\"><a class=\"reference-link\" name=\"沁园春·长沙\"></a><span class=\"header-link octicon octicon-link\"></span>沁园春·长沙</h1><p>独立寒秋，湘（xiāng）江北去，橘子洲头。</p>\n<p>看万山红遍，层林尽染；漫江碧透，百舸(gě）争流。</p>\n<p>鹰击长空，鱼翔浅底，万类霜天竞自由。</p>\n<p>怅寥廓(chàng liáo kuò）， 问苍茫大地，谁主沉浮？</p>\n<p>携来百侣曾游，忆往昔峥嵘(zhēng róng）岁月稠(chóu）。</p>\n<p>恰同学少年，风华正茂；书生意气，挥斥方遒（qiú）。</p>\n<p>指点江山，激扬文字，粪土当年万户侯。</p>\n<p>曾记否，到中流击水，浪遏（è）飞舟？</p>\n',NULL,NULL,NULL,'','2022-08-30T21:23:03+08:00','G00002','郭靖','2022-08-30T21:24:46+08:00','G00002','郭靖','insert',NULL,NULL,'2022-08-30T21:24:46+08:00');
-INSERT INTO `article_history` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1230,10000,'firstDraft','10000','','','public','2022-08-30T21:23:03+08:00',' 沁园春·长沙',NULL,'\n\n# 沁园春·长沙\n\n独立寒秋，湘（xiāng）江北去，橘子洲头。\n\n看万山红遍，层林尽染；漫江碧透，百舸(gě）争流。\n\n鹰击长空，鱼翔浅底，万类霜天竞自由。\n\n怅寥廓(chàng liáo kuò）， 问苍茫大地，谁主沉浮？\n\n携来百侣曾游，忆往昔峥嵘(zhēng róng）岁月稠(chóu）。\n\n恰同学少年，风华正茂；书生意气，挥斥方遒（qiú）。\n\n指点江山，激扬文字，粪土当年万户侯。\n\n曾记否，到中流击水，浪遏（è）飞舟？','<h1 id=\"h1-u6C81u56EDu6625B7u957Fu6C99\"><a class=\"reference-link\" name=\"沁园春·长沙\"></a><span class=\"header-link octicon octicon-link\"></span>沁园春·长沙</h1><p>独立寒秋，湘（xiāng）江北去，橘子洲头。</p>\n<p>看万山红遍，层林尽染；漫江碧透，百舸(gě）争流。</p>\n<p>鹰击长空，鱼翔浅底，万类霜天竞自由。</p>\n<p>怅寥廓(chàng liáo kuò）， 问苍茫大地，谁主沉浮？</p>\n<p>携来百侣曾游，忆往昔峥嵘(zhēng róng）岁月稠(chóu）。</p>\n<p>恰同学少年，风华正茂；书生意气，挥斥方遒（qiú）。</p>\n<p>指点江山，激扬文字，粪土当年万户侯。</p>\n<p>曾记否，到中流击水，浪遏（è）飞舟？</p>\n',NULL,NULL,NULL,'','2022-08-30T21:23:03+08:00','G00002','郭靖','2022-08-30T21:24:56+08:00','G00002','郭靖','insert',NULL,NULL,'2022-08-30T21:24:56+08:00');
-INSERT INTO `article_history` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1231,10000,'firstDraft','10000','','','public','2022-08-30T21:23:03+08:00',' 沁园春·长沙',NULL,'\n\n# 沁园春·长沙\n\n独立寒秋，湘（xiāng）江北去，橘子洲头。\n\n看万山红遍，层林尽染；漫江碧透，百舸(gě）争流。\n\n鹰击长空，鱼翔浅底，万类霜天竞自由。\n\n怅寥廓(chàng liáo kuò）， 问苍茫大地，谁主沉浮？\n\n携来百侣曾游，忆往昔峥嵘(zhēng róng）岁月稠(chóu）。\n\n恰同学少年，风华正茂；书生意气，挥斥方遒（qiú）。\n\n指点江山，激扬文字，粪土当年万户侯。\n\n曾记否，到中流击水，浪遏（è）飞舟？','<h1 id=\"h1-u6C81u56EDu6625B7u957Fu6C99\"><a class=\"reference-link\" name=\"沁园春·长沙\"></a><span class=\"header-link octicon octicon-link\"></span>沁园春·长沙</h1><p>独立寒秋，湘（xiāng）江北去，橘子洲头。</p>\n<p>看万山红遍，层林尽染；漫江碧透，百舸(gě）争流。</p>\n<p>鹰击长空，鱼翔浅底，万类霜天竞自由。</p>\n<p>怅寥廓(chàng liáo kuò）， 问苍茫大地，谁主沉浮？</p>\n<p>携来百侣曾游，忆往昔峥嵘(zhēng róng）岁月稠(chóu）。</p>\n<p>恰同学少年，风华正茂；书生意气，挥斥方遒（qiú）。</p>\n<p>指点江山，激扬文字，粪土当年万户侯。</p>\n<p>曾记否，到中流击水，浪遏（è）飞舟？</p>\n',NULL,NULL,NULL,'','2022-08-30T21:23:03+08:00','G00002','郭靖','2022-08-30T21:24:58+08:00','G00002','郭靖','insert',NULL,NULL,'2022-08-30T21:24:58+08:00');
-INSERT INTO `article_history` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1232,10001,'firstDraft','10000',NULL,'','public','2022-08-30T21:27:28+08:00','沁园春·雪',NULL,'北国风光，千里冰封，万里雪飘。望长城内外，惟余莽莽；大河上下，顿失滔滔。山舞银蛇，原驰（另作：原驱）蜡象，欲与天公试比高。须晴日，看红装（另作：银装）素裹，分外妖娆。\n\n江山如此多娇，引无数英雄竞折腰。惜秦皇汉武，略输文采；唐宗宋祖，稍逊风骚。一代天骄，成吉思汗，只识弯弓射大雕。俱往矣，数风流人物，还看今朝。','<p>北国风光，千里冰封，万里雪飘。望长城内外，惟余莽莽；大河上下，顿失滔滔。山舞银蛇，原驰（另作：原驱）蜡象，欲与天公试比高。须晴日，看红装（另作：银装）素裹，分外妖娆。</p>\n<p>江山如此多娇，引无数英雄竞折腰。惜秦皇汉武，略输文采；唐宗宋祖，稍逊风骚。一代天骄，成吉思汗，只识弯弓射大雕。俱往矣，数风流人物，还看今朝。</p>\n',NULL,NULL,NULL,NULL,'2022-08-30T21:27:28+08:00','G00002','郭靖','2022-08-30T21:27:28+08:00','G00002','郭靖','insert',NULL,NULL,'2022-08-30T21:27:28+08:00');
-INSERT INTO `article_history` (`id`,`articleId`,`articleStatus`,`categoryId`,`articleGroupName`,`articleTagList`,`articlePublishStatus`,`articlePublishTime`,`articleTitle`,`articleCoverImage`,`articleContent`,`articleContentForSeo`,`articleAssignmentList`,`articleAssignmentListWithAnswer`,`articleAudioUrl`,`articleVideoUrl`,`articleCreateTime`,`articleCreateUserId`,`articleCreateUsername`,`articleUpdateTime`,`articleUpdateUserId`,`articleUpdateUsername`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1233,10001,'firstDraft','10000','','','public','2022-08-30T21:27:28+08:00','沁园春·雪',NULL,'北国风光，千里冰封，万里雪飘。望长城内外，惟余莽莽；大河上下，顿失滔滔。山舞银蛇，原驰（另作：原驱）蜡象，欲与天公试比高。须晴日，看红装（另作：银装）素裹，分外妖娆。\n\n江山如此多娇，引无数英雄竞折腰。惜秦皇汉武，略输文采；唐宗宋祖，稍逊风骚。一代天骄，成吉思汗，只识弯弓射大雕。俱往矣，数风流人物，还看今朝。','<p>北国风光，千里冰封，万里雪飘。望长城内外，惟余莽莽；大河上下，顿失滔滔。山舞银蛇，原驰（另作：原驱）蜡象，欲与天公试比高。须晴日，看红装（另作：银装）素裹，分外妖娆。</p>\n<p>江山如此多娇，引无数英雄竞折腰。惜秦皇汉武，略输文采；唐宗宋祖，稍逊风骚。一代天骄，成吉思汗，只识弯弓射大雕。俱往矣，数风流人物，还看今朝。</p>\n',NULL,NULL,NULL,'','2022-08-30T21:27:28+08:00','G00002','郭靖','2022-08-30T21:27:35+08:00','G00002','郭靖','insert',NULL,NULL,'2022-08-30T21:27:35+08:00');
-
-
-
-# ------------------------------------------------------------
 # SCHEMA DUMP FOR TABLE: category
 # ------------------------------------------------------------
 
 DROP TABLE IF EXISTS `category`;
 CREATE TABLE `category` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `categoryId` bigint(255) DEFAULT NULL COMMENT '分类ID',
-  `categoryName` varchar(255)mb4_unicode_520_ci DEFAULT '' COMMENT '分类名称',
-  `categoryGroup` varchar(255) DEFAULT NULL COMMENT '分类分组',
-  `categoryGroupSort` varchar(255) DEFAULT NULL COMMENT '分类分组排序',
-  `categoryArticleIgnoreTiltle` varchar(255) DEFAULT NULL COMMENT '分类目录中需要省略的文字',
-  `categoryIntro` textmb4_unicode_520_ci COMMENT '分类简介',
-  `categoryPublishStatus` varchar(255) DEFAULT '' COMMENT '发布状态',
-  `categoryCreateTime` varchar(255) DEFAULT '' COMMENT '创建时间',
-  `categoryCreateUserId` varchar(255) DEFAULT '' COMMENT '创建者UserId',
-  `categoryCreateUsername` varchar(255) DEFAULT '' COMMENT '创建者',
-  `categoryUpdateTime` varchar(255) DEFAULT '' COMMENT '修改时间',
-  `categoryUpdateUserId` varchar(255) DEFAULT '' COMMENT '修改者UserId',
-  `categoryUpdateUsername` varchar(255) DEFAULT '' COMMENT '修改者',
+  `categoryId` bigint(255) DEFAULT NULL COMMENT '分类id',
+  `categoryName` varchar(255) DEFAULT '',
+  `categoryArticleIgnoreTiltle` varchar(255) DEFAULT NULL COMMENT '目录中需要省略的文字',
+  `categoryIntro` text,
+  `categoryGroup` varchar(255) DEFAULT NULL,
+  `categoryGroupSort` varchar(255) DEFAULT NULL,
+  `categoryPublishStatus` varchar(255) DEFAULT '',
+  `categoryCreateTime` varchar(255) DEFAULT '',
+  `categoryCreateUserId` varchar(255) DEFAULT '',
+  `categoryCreateUsername` varchar(255) DEFAULT '',
+  `categoryUpdateTime` varchar(255) DEFAULT '',
+  `categoryUpdateUserId` varchar(255) DEFAULT '',
+  `categoryUpdateUsername` varchar(255) DEFAULT '',
   `operation` varchar(255) DEFAULT '',
   `operationByUserId` varchar(255) DEFAULT '',
   `operationByUser` varchar(255) DEFAULT '',
