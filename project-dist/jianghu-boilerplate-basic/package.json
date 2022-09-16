@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-boilerplate-basic",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "boilerplate for jianghu quickstart",
   "scripts": {
     "autod": "autod",
