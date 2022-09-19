@@ -17,7 +17,7 @@ module.exports = appInfo => {
 
   return {
     appId,
-    appTitle: '转录事工',
+    appTitle: '小程序-markdown编辑',
     appLogo: `${appId}/public/img/logo.png`,
     appType: 'single',
     appDirectoryLink: '/',

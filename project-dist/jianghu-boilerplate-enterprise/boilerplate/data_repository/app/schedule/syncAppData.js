@@ -5,7 +5,7 @@ module.exports = app => {
     schedule: {
       interval: '60s', // 1 分钟间隔; 2m 30s
       type: 'worker', // 只有一个worker执行
-      disable: app.config.dataSyncStatus === '禁用',
+      disable: app.config.dataSyncStatus !== '启用',
     },
     async task(ctx) {
       const startTime = new Date().getTime();

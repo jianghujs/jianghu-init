@@ -37,35 +37,6 @@ CREATE TABLE `_constant` (
 ) ENGINE = InnoDB COMMENT = '常量表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _constant
-# ------------------------------------------------------------
-
-
-
-
-# ------------------------------------------------------------
-# SCHEMA DUMP FOR TABLE: _file
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `_file`;
-CREATE TABLE `_file` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `fileId` varchar(255) DEFAULT NULL COMMENT 'fileId',
-  `fileDirectory` varchar(255) DEFAULT NULL COMMENT '文件保存路径;',
-  `filename` varchar(255) DEFAULT NULL COMMENT '文件名;',
-  `filenameStorage` varchar(255) DEFAULT NULL COMMENT '文件保存名',
-  `downloadPath` varchar(255) DEFAULT NULL COMMENT '文件下载路径',
-  `fileType` varchar(255) DEFAULT NULL COMMENT '文件类型;(预留字段)',
-  `fileDesc` varchar(255) DEFAULT NULL COMMENT '文件描述',
-  `binarySize` varchar(255) DEFAULT NULL COMMENT '文件二进制大小',
-  `operation` varchar(255) DEFAULT 'insert' COMMENT '操作; insert, update, jhInsert, jhUpdate, jhDelete jhRestore',
-  `operationByUserId` varchar(255) DEFAULT NULL COMMENT '操作者userId',
-  `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
-  `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `fileId_index` (`fileId`) USING BTREE
-) ENGINE = InnoDB COMMENT = '文件表; 软删除未启用;';
 
 
 
@@ -91,9 +62,6 @@ CREATE TABLE `_group` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 9 COMMENT = '群组表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _group
-# ------------------------------------------------------------
 
 INSERT INTO `_group` (`id`,`groupId`,`groupName`,`groupDesc`,`groupAvatar`,`groupExtend`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'adminGroup','管理组','管理组',NULL,'{}','insert',NULL,NULL,NULL);
 INSERT INTO `_group` (`id`,`groupId`,`groupName`,`groupDesc`,`groupAvatar`,`groupExtend`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'wudang','武当','武当',NULL,'{}','insert',NULL,NULL,NULL);
@@ -122,9 +90,6 @@ CREATE TABLE `_page` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 41 COMMENT = '页面表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _page
-# ------------------------------------------------------------
 
 INSERT INTO `_page` (`id`,`pageId`,`pageFile`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help','helpV3','帮助','dynamicInMenu','11','insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageFile`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'login','loginV3','登陆','','','insert',NULL,NULL,NULL);
@@ -181,9 +146,6 @@ CREATE TABLE `_resource` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 383 COMMENT = '请求资源表; 软删除未启用; resourceId=`${appId}.${pageId}.${actionId}`';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _resource
-# ------------------------------------------------------------
 
 INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (231,NULL,NULL,'login','passwordLogin','✅登陆','service','{}','{\"service\": \"user\", \"serviceFunction\": \"passwordLogin\"}','','','update',NULL,NULL,'2022-04-27T15:32:57+08:00');
 INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (251,NULL,NULL,'allPage','logout','✅登出','service','{}','{\"service\": \"user\", \"serviceFunction\": \"logout\"}','','','insert',NULL,NULL,NULL);
@@ -249,9 +211,6 @@ CREATE TABLE `_role` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 8 COMMENT = '角色表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _role
-# ------------------------------------------------------------
 
 INSERT INTO `_role` (`id`,`roleId`,`roleName`,`roleDesc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'administrator','系统管理员','','insert',NULL,NULL,NULL);
 INSERT INTO `_role` (`id`,`roleId`,`roleName`,`roleDesc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'boss','掌门','','insert',NULL,NULL,NULL);
@@ -279,9 +238,6 @@ CREATE TABLE `_test_case` (
 ) ENGINE = InnoDB COMMENT = '测试用例表';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _test_case
-# ------------------------------------------------------------
 
 
 
@@ -307,9 +263,6 @@ CREATE TABLE `_ui` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 78 COMMENT = 'ui 施工方案';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _ui
-# ------------------------------------------------------------
 
 
 
@@ -340,9 +293,6 @@ CREATE TABLE `_user` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 49 COMMENT = '用户表';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _user
-# ------------------------------------------------------------
 
 INSERT INTO `_user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`config`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (42,NULL,'admin','系统管理员','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'insert',NULL,NULL,NULL);
 INSERT INTO `_user` (`id`,`idSequence`,`userId`,`username`,`clearTextPassword`,`password`,`md5Salt`,`userStatus`,`userType`,`config`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (43,NULL,'W00001','张三丰','123456','38d61d315e62546fe7f1013e31d42f57','Xs4JSZnhiwsR','active',NULL,NULL,'insert',NULL,NULL,NULL);
@@ -374,9 +324,6 @@ CREATE TABLE `_user_group_role` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 579 COMMENT = '用户群组角色关联表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _user_group_role
-# ------------------------------------------------------------
 
 INSERT INTO `_user_group_role` (`id`,`userId`,`groupId`,`roleId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (568,'admin','adminGroup','administrator','insert',NULL,NULL,NULL);
 INSERT INTO `_user_group_role` (`id`,`userId`,`groupId`,`roleId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (569,'W00001','wudang','boss','insert',NULL,NULL,NULL);
@@ -409,16 +356,10 @@ CREATE TABLE `_user_group_role_page` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 31 COMMENT = '用户群组角色 - 页面 映射表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _user_group_role_page
-# ------------------------------------------------------------
 
 INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'*','public','*','login','allow','登陆页面; 开放所有用户;','insert',NULL,NULL,NULL);
 INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','login','*','help,manual','allow','工具页; 开放给登陆用户;','insert',NULL,NULL,NULL);
 INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'*','login','*','*','allow','所有页面; 开放给登陆用户;','insert',NULL,NULL,NULL);
-
-
-
 
 
 
@@ -443,16 +384,10 @@ CREATE TABLE `_user_group_role_resource` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 135 COMMENT = '用户群组角色 - 请求资源 映射表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _user_group_role_resource
-# ------------------------------------------------------------
 
 INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'*','public','*','login.passwordLogin','allow','登陆resource, 开放给所有用户','insert',NULL,NULL,NULL);
 INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','login','*','allPage.*','allow','工具类resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
 INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'*','login','*','*','allow','所有resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
-
-
-
 
 
 
@@ -502,9 +437,6 @@ CREATE TABLE `class` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 176;
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: class
-# ------------------------------------------------------------
 
 INSERT INTO `class` (`id`,`classId`,`className`,`remarks`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (161,'2021-01级-02班','正常','小虾米','jhUpdate','admin','系统管理员','2022-05-01T15:29:52+08:00');
 INSERT INTO `class` (`id`,`classId`,`className`,`remarks`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (174,'2021-01级-01班','正常',NULL,'jhUpdate','admin','系统管理员','2022-09-08T17:37:31+08:00');
@@ -534,6 +466,8 @@ CREATE TABLE `student` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `studentId` (`studentId`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 185;
+
+
 
 
 

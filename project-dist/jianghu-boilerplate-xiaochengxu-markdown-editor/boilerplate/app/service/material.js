@@ -255,9 +255,8 @@ class MaterialService extends Service {
             throw new BizError(errorInfoEnum.material_is_not_file);
         }
 
-        const fileId = `${Date.now()}`;
         const filename = path.substring(path.lastIndexOf('/')+1);
-        const filenameStorage = `${fileId}_${filename}`;
+        const filenameStorage = `${Date.now()}_${filename}`;
         const fileStoragePath = nodePath.join(articleMaterialDir, `${articleId}`);
         const isFileStorageExists = await exists(fileStoragePath);
         if (!isFileStorageExists) {

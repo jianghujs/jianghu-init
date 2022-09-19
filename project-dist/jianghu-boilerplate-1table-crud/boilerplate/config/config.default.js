@@ -17,7 +17,7 @@ module.exports = appInfo => {
 
   return {
     appId,
-    appTitle: '{{name}}',
+    appTitle: '1张表CRUD',
     appLogo: `${appId}/public/img/logo.png`,
     appType: 'single',
     appDirectoryLink: '/',

@@ -7,7 +7,7 @@ module.exports = appInfo => {
 
   assert(appInfo);
   return {
-    appDirectoryLink: '',
+    appDirectoryLink: 'http://127.0.0.1:7007/directory',
     debug: true,
     jiangHuConfig: {
       packageIdCheck: false,
@@ -32,7 +32,7 @@ module.exports = appInfo => {
           password: '123456',
           database: '{{dbPrefix}}directory',
         },
-        pool: { min: 0, max: 10 },
+        pool: { min: 0, max: 100 },
         acquireConnectionTimeout: 30000,
       },
       app: true,

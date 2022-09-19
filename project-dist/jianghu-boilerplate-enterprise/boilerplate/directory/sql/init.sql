@@ -19,37 +19,6 @@ CREATE TABLE `_cache` (
 
 
 # ------------------------------------------------------------
-# SCHEMA DUMP FOR TABLE: _file
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `_file`;
-CREATE TABLE `_file` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `fileId` varchar(255) DEFAULT NULL COMMENT 'fileId',
-  `fileDirectory` varchar(255) DEFAULT NULL COMMENT '文件保存路径;',
-  `filename` varchar(255) DEFAULT NULL COMMENT '文件名;',
-  `filenameStorage` varchar(255) DEFAULT NULL COMMENT '文件保存名',
-  `downloadPath` varchar(255) DEFAULT NULL COMMENT '文件下载路径',
-  `fileType` varchar(255) DEFAULT NULL COMMENT '文件类型;(预留字段)',
-  `fileDesc` varchar(255) DEFAULT NULL COMMENT '文件描述',
-  `binarySize` varchar(255) DEFAULT NULL COMMENT '文件二进制大小',
-  `operation` varchar(255) DEFAULT 'insert' COMMENT '操作; insert, update, jhInsert, jhUpdate, jhDelete jhRestore',
-  `operationByUserId` varchar(255) DEFAULT NULL COMMENT '操作者userId',
-  `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
-  `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `fileId_index` (`fileId`) USING BTREE
-) ENGINE = InnoDB COMMENT = '文件表; 软删除未启用;';
-
-
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _file
-# ------------------------------------------------------------
-
-
-
-
-# ------------------------------------------------------------
 # SCHEMA DUMP FOR TABLE: _group
 # ------------------------------------------------------------
 
@@ -70,9 +39,6 @@ CREATE TABLE `_group` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 COMMENT = '群组表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _group
-# ------------------------------------------------------------
 
 INSERT INTO `_group` (`id`,`groupId`,`groupName`,`groupDesc`,`groupAvatar`,`groupExtend`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'authorization','权限组',NULL,NULL,'{}','insert',NULL,NULL,NULL);
 
@@ -98,12 +64,9 @@ CREATE TABLE `_page` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 9 COMMENT = '页面表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _page
-# ------------------------------------------------------------
 
-INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help','帮助',NULL,NULL,NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'login','登陆',NULL,NULL,NULL,'insert',NULL,NULL,NULL);
+INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'help','帮助','helpV3',NULL,NULL,'insert',NULL,NULL,NULL);
+INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'login','登陆','loginV3',NULL,NULL,'insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (6,'manual','操作手册',NULL,NULL,NULL,'insert',NULL,NULL,NULL);
 INSERT INTO `_page` (`id`,`pageId`,`pageName`,`pageFile`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (8,'directory','目录',NULL,'showInMenu','1','insert',NULL,NULL,NULL);
 
@@ -127,7 +90,7 @@ CREATE TABLE `_record_history` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `index_record_id` (`recordId`) USING BTREE,
   KEY `index_table_action` (`table`, `operation`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 COMMENT = '数据历史表';
+) ENGINE = InnoDB AUTO_INCREMENT = 17 COMMENT = '数据历史表';
 
 
 
@@ -157,14 +120,11 @@ CREATE TABLE `_resource` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 264 COMMENT = '请求资源表; 软删除未启用; resourceId=`${appId}.${pageId}.${actionId}`';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _resource
-# ------------------------------------------------------------
 
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (231,NULL,NULL,'login','passwordLogin','✅登陆','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"passwordLogin\" }','','','update',NULL,NULL,'2022-08-25T23:40:05+08:00');
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (231,NULL,NULL,'login','passwordLogin','✅登陆','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"passwordLogin\" }','','','update',NULL,NULL,'2022-09-10T15:22:29+08:00');
 INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (251,NULL,NULL,'allPage','logout','✅登出','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"logout\" }','','','update',NULL,NULL,'2022-02-23T23:08:31+08:00');
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (253,NULL,NULL,'allPage','userInfo','✅获取用户信息','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"userInfo\" }','','','update',NULL,NULL,'2022-08-26T00:07:03+08:00');
-INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (263,NULL,NULL,'directory','selectItemList','✅查询目录','service',NULL,'{ \"service\": \"directory\", \"serviceFunction\": \"getDirectoryList\" }','','','update',NULL,NULL,'2022-08-26T00:07:03+08:00');
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (253,NULL,NULL,'allPage','userInfo','✅获取用户信息','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"userInfo\" }','','','update',NULL,NULL,'2022-09-10T15:22:59+08:00');
+INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (263,NULL,NULL,'directory','selectItemList','✅查询目录','service',NULL,'{ \"service\": \"directory\", \"serviceFunction\": \"getDirectoryList\" }','','','update',NULL,NULL,'2022-09-10T15:22:59+08:00');
 
 
 
@@ -193,7 +153,7 @@ CREATE TABLE `_resource_request_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `resourceId_index` (`resourceId`) USING BTREE,
   KEY `packageId_index` (`packageId`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 13 COMMENT = '文件表; 软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 34 COMMENT = '文件表; 软删除未启用;';
 
 
 
@@ -216,9 +176,6 @@ CREATE TABLE `_role` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 6 COMMENT = '角色表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _role
-# ------------------------------------------------------------
 
 INSERT INTO `_role` (`id`,`roleId`,`roleName`,`roleDesc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'appManager','应用负责人','','insert',NULL,NULL,NULL);
 INSERT INTO `_role` (`id`,`roleId`,`roleName`,`roleDesc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4,'teacher','老师','','insert',NULL,NULL,NULL);
@@ -246,9 +203,6 @@ CREATE TABLE `_test_case` (
 ) ENGINE = InnoDB COMMENT = '测试用例表';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _test_case
-# ------------------------------------------------------------
 
 
 
@@ -274,11 +228,7 @@ CREATE TABLE `_ui` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 COMMENT = 'ui 施工方案';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _ui
-# ------------------------------------------------------------
 
-INSERT INTO `_ui` (`id`,`pageId`,`uiActionType`,`uiActionId`,`desc`,`uiActionConfig`,`appDataSchema`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'directory','ui','refreshTableData','✅获取表格数据','{\"main\": [{\"function\": \"refreshTableData\"}]}',NULL,'insert',NULL,NULL,NULL);
 
 
 
@@ -302,9 +252,6 @@ CREATE TABLE `_user_group_role` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 582 COMMENT = '用户群组角色关联表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _user_group_role
-# ------------------------------------------------------------
 
 INSERT INTO `_user_group_role` (`id`,`userId`,`groupId`,`roleId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (568,'admin','authorization','appManager','insert',NULL,NULL,NULL);
 INSERT INTO `_user_group_role` (`id`,`userId`,`groupId`,`roleId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (569,'T66661G','authorization','teacher','insert',NULL,NULL,NULL);
@@ -334,15 +281,10 @@ CREATE TABLE `_user_group_role_page` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 22 COMMENT = '用户群组角色 - 页面 映射表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _user_group_role_page
-# ------------------------------------------------------------
 
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (17,'*','public','*','login','allow','登陆页; 开放给所有用户;','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (18,'*','login','*','manual','allow','操作手册页; 开放给登陆用户;','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (19,'*','login','*','help','allow','帮助页; 开放给登陆用户;','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (20,'*','authorization','appManager','userGroupRole','allow','权限管理页; 开放给应用管理者;','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (21,'*','authorization','appManager','*','allow','所有页面; 开放给应用管理者;','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'*','public','*','login','allow','登陆页面; 开放所有用户;','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','login','*','help,manual','allow','工具页; 开放给登陆用户;','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_page` (`id`,`user`,`group`,`role`,`page`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'*','login','*','*','allow','所有页面; 开放给登陆用户;','insert',NULL,NULL,NULL);
 
 
 
@@ -367,25 +309,10 @@ CREATE TABLE `_user_group_role_resource` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 77 COMMENT = '用户群组角色 - 请求资源 映射表; 软删除未启用;';
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: _user_group_role_resource
-# ------------------------------------------------------------
 
 INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'*','public','*','login.passwordLogin','allow','登陆resource, 开放给所有用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (11,'*','public','*','allPage.getConstantList','allow','查询常量resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (31,'*','login','*','allPage.logout','allow','登出resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (32,'*','login','*','allPage.refreshToken','allow','刷新authToken resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (33,'*','login','*','allPage.userInfo','allow','用户个人信息resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (34,'*','login','*','allPage.uploadByBase64','allow','上传文件resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (35,'*','login','*','allPage.uploadByStream','allow','上传文件resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (51,'*','authorization','appManager','*','allow','应用管理者, 赋予所有resource权限','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (52,'*','authorization','appManager','userGroupRole.*','allow','应用管理者, 赋予所有resource权限','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (71,'*','authorization','teacher','newStudent.*','allow','老师, 赋予所有newStudent页面resource的权限','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (72,'*','authorization','teacher','studentBill.*','allow','老师, 赋予所有studentBill页面resource的权限','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (73,'*','authorization','teacher','studentBillPayment.*','allow','老师, 赋予所有studentBillPayment页面resource的权限','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (74,'*','authorization','teacher','studentPayment.*','allow','老师, 赋予所有studentPayment页面resource的权限','insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (75,'*','public','*','directory.selectItemList','allow',NULL,'insert',NULL,NULL,NULL);
-INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (76,'*','login','*','allPage.downloadFileDirect','allow','下载文件，仅开放给所有登陆的用户','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'*','login','*','allPage.*','allow','工具类resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
+INSERT INTO `_user_group_role_resource` (`id`,`user`,`group`,`role`,`resource`,`allowOrDeny`,`desc`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'*','login','*','*','allow','所有resource, 开放给所有登陆成功的用户','insert',NULL,NULL,NULL);
 
 
 
@@ -412,7 +339,7 @@ CREATE TABLE `_user_session` (
   KEY `userId_index` (`userId`) USING BTREE,
   KEY `userId_deviceId_index` (`userId`, `deviceId`) USING BTREE,
   KEY `authToken_index` (`authToken`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 14 COMMENT = '用户session表; deviceId 维度;软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 15 COMMENT = '用户session表; deviceId 维度;软删除未启用;';
 
 
 
@@ -441,9 +368,6 @@ CREATE TABLE `directory` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 54;
 
 
-# ------------------------------------------------------------
-# DATA DUMP FOR TABLE: directory
-# ------------------------------------------------------------
 
 INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (13,'zhihu','知乎','搜索','10','01','https://www.zhihu.com/','有问题就会有答案',NULL,'public','insert',NULL,NULL,NULL);
 INSERT INTO `directory` (`id`,`appId`,`appName`,`appGroupName`,`appGroupNumber`,`appGroupItemSort`,`url`,`displayName`,`description`,`accessType`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (14,'baidu','百度','搜索','10','02','https://www.baidu.com','百度一下, 你就知道',NULL,'public','insert',NULL,NULL,NULL);

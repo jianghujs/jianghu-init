@@ -10,7 +10,7 @@
   "dependencies": {
     "dayjs": "1.11.0",
     "egg": "^2.15.1",
-    "@jianghujs/jianghu": "3.0.44",
+    "@jianghujs/jianghu": "3.0.65",
     "egg-scripts": "^2.11.0",
     "lodash": "4.17.21",
     "md5-node": "^1.0.1"
@@ -28,9 +28,9 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --port=7001 --title={{dbPrefix}}user_app_management",
+    "start": "egg-scripts start --daemon  --port=7006 --title={{dbPrefix}}user_app_management",
     "stop": "egg-scripts stop --title={{dbPrefix}}user_app_management",
-    "dev": "egg-bin dev --port=7001",
+    "dev": "egg-bin dev --port=7006",
     "debug": "egg-bin debug",
     "test": "npm run lint -- --fix && npm run test-local",
     "test-local": "egg-bin test",

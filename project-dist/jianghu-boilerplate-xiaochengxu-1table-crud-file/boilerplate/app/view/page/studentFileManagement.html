@@ -513,8 +513,7 @@ new Vue({
      * main:   [{"function":"downloadFile"}]
      */
      async downloadFile({ item }) {
-      const itemIndex = this.tableDataFromBackend.findIndex(v => v.fileId === item.fileId);
-      const { fileId, filename, downloadPath } = item;
+      const { filename, downloadPath } = item;
       window.vtoast.loading('文件下载进度0.00%');
       const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename, 
         onProgress: (total, loaded)=> {

@@ -5,7 +5,7 @@ const path = require('path');
 module.exports = appInfo => {
 
   return {
-    appDirectoryLink: 'http://127.0.0.1:7004/',
+    appDirectoryLink: 'http://127.0.0.1:7007/directory',
     static: {
       maxAge: 0,
       buffer: false,
@@ -29,9 +29,9 @@ module.exports = appInfo => {
           port: 3306,
           user: 'root',
           password: '123456',
-          database: '{{dbPrefix}}{{database}}'
+          database: '{{dbPrefix}}{{name}}'
         },
-        pool: { min: 0, max: 10 },
+        pool: { min: 0, max: 100 },
         acquireConnectionTimeout: 30000
       },
       app: true

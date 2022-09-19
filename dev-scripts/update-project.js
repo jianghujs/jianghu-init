@@ -62,6 +62,7 @@ const handler = async (config) => {
     `.tmp/${config.projectName}/**/*.js`,
     `.tmp/${config.projectName}/**/*.json`,
     `.tmp/${config.projectName}/**/*.md`,
+    `.tmp/${config.projectName}/**/*.sql`,
   ], config.replaceList)
   console.log('start replace database name')
   

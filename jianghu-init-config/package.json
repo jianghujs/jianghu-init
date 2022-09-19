@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-init-config",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "jianghu init boilerplate config",
   "files": [
     "index.js"
@@ -19,10 +19,6 @@
         "package": "@jianghujs/jianghu-boilerplate-1table-crud-file",
         "description": "Jianghu 1table crud with file"
       },
-      "1table-crud-enterprise": {
-        "package": "@jianghujs/jianghu-boilerplate-1table-crud-enterprise",
-        "description": "Jianghu 1table in enterprise"
-      },
       "2table-crud": {
         "package": "@jianghujs/jianghu-boilerplate-2table-crud",
         "description": "Jianghu 2table crud"
@@ -34,6 +30,10 @@
       "enterprise": {
         "package": "@jianghujs/jianghu-boilerplate-enterprise",
         "description": "Jianghu multi enterprise"
+      },
+      "1table-crud-enterprise": {
+        "package": "@jianghujs/jianghu-boilerplate-1table-crud-enterprise",
+        "description": "Jianghu 1table in enterprise"
       },
       "workflow": {
         "package": "@jianghujs/jianghu-boilerplate-workflow",

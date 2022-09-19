@@ -10,7 +10,7 @@
 
       <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0">
         <span class="body-2">共{{ tableDataFromBackend.length }}条记录</span>
-        <span class="body-2"><v-chip class="ma-2" small color="default">同步模式: {{ syncModel }}</v-chip></span>
+        <span class="body-2"><v-chip class="ma-2" small color="default">定时同步: {{ dataSyncStatus }}</v-chip></span>
       </v-col>
 
       <v-spacer></v-spacer>
@@ -60,7 +60,7 @@
       isMobile: window.innerWidth < 600,
       // 表格相关数据
       isFormValid: true,
-      syncModel: "<$ ctx.app.config.syncModel $>",
+      dataSyncStatus: "<$ ctx.app.config.dataSyncStatus $>",
       showFullData: false,
       showLeftMenu: window.innerWidth > 600,
       requireRules: [ v => !!v || 'This is required' ],

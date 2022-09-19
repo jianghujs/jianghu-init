@@ -13,7 +13,7 @@
         <v-btn color="primary" dark class="elevation-0 mr-2" @click="doUiAction('manualSyncAll', null)">全部-手动同步</v-btn>
         <template v-if="isMobile"><br></template>
         <span class="body-2">共{{ tableDataFromBackend.length }}条记录</span>
-        <span class="body-2"><v-chip class="ma-2" color="default">同步模式: {{ enableDataSync ? '启用' : '未启用' }}</v-chip></span>
+        <span class="body-2"><v-chip class="ma-2" color="default">定时同步: {{ dataSyncStatus }}</v-chip></span>
       </v-col>
 
       <v-spacer></v-spacer>
@@ -96,7 +96,7 @@
       isMobile: window.innerWidth < 600,
       // 表格相关数据
       isFormValid: true,
-      enableDataSync: "<$ ctx.app.config.enableDataSync $>",
+      dataSyncStatus: "<$ ctx.app.config.dataSyncStatus $>",
       requireRules: [ v => !!v || 'This is required' ],
       numberRules: [ v => !_.isEmpty(_.trim(v)) && !isNaN(v) || 'This is number'],
       constantCollection: {

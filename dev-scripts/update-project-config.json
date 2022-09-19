@@ -1,142 +1,21 @@
 [
+ 
   {
-    "projectName": "1table-crud",
+    "projectName": "1table-crud-enterprise",
     "replaceList": [
       {
-        "from": "jianghujs-1table-crud",
+        "from": "jianghujs_enterprise_",
+        "to": "{{dbPrefix}}"
+      },
+      {
+        "from": "1table-crud",
         "to": "__name__"
       },
       {
-        "from": "jianghujs_1table_crud",
-        "to": "__database__"
-      }
-    ],
-    "repositoryUrl": "git@github.com:jianghujs/jianghujs-1table-crud.git"
-  },
-  {
-    "projectName": "basic",
-    "replaceList": [
-      {
-        "from": "jianghujs-basic",
+        "from": "1table_crud",
         "to": "__name__"
-      },
-      {
-        "from": "jianghujs_basic",
-        "to": "__database__"
       }
     ],
-    "repositoryUrl": "git@github.com:jianghujs/jianghujs-basic.git"
-  },
-  {
-    "projectName": "1table-crud-file",
-    "replaceList": [
-      {
-        "from": "jianghujs-1table-crud-file",
-        "to": "__name__"
-      },
-      {
-        "from": "jianghujs_1table_crud_file",
-        "to": "__database__"
-      }
-    ],
-    "repositoryUrl": "git@github.com:jianghujs/jianghujs-1table-crud-file.git"
-  },
-  {
-    "projectName": "xiaochengxu-1table-crud",
-    "replaceList": [
-      {
-        "from": "jianghujs-xiaochengxu-1table-crud",
-        "to": "__name__"
-      },
-      {
-        "from": "jianghujs_xiaochengxu_1table_crud",
-        "to": "__database__"
-      }
-    ],
-    "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-1table-crud.git"
-  },
-  {
-    "projectName": "xiaochengxu-1table-crud-file",
-    "replaceList": [
-      {
-        "from": "jianghujs-xiaochengxu-1table-crud-file",
-        "to": "__name__"
-      },
-      {
-        "from": "jianghujs_xiaochengxu_1table_crud_file",
-        "to": "__database__"
-      }
-    ],
-    "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-1table-crud-file.git"
-  },
-  {
-    "projectName": "2table-crud",
-    "replaceList": [
-      {
-        "from": "table2",
-        "to": "__name__"
-      },
-      {
-        "from": "jianghujs_2table_crud",
-        "to": "__database__"
-      }
-    ],
-    "repositoryUrl": "git@github.com:jianghujs/jianghujs-2table-crud.git"
-  },
-  {
-    "projectName": "3table-crud",
-    "replaceList": [
-      {
-        "from": "jianghujs_demo_threetable",
-        "to": "__name__"
-      },
-      {
-        "from": "jianghujs-3table-crud",
-        "to": "__database__"
-      }
-    ],
-    "repositoryUrl": "git@github.com:jianghujs/jianghujs-3table-crud.git"
-  },
-  {
-    "projectName": "json-editor",
-    "replaceList": [
-      {
-        "from": "jianghujs-jsoneditor",
-        "to": "__name__"
-      },
-      {
-        "from": "jianghujs_jsoneditor",
-        "to": "__database__"
-      }
-    ],
-    "repositoryUrl": "git@github.com:jianghujs/jianghujs-json-editor.git"
-  },
-  {
-    "projectName": "workflow",
-    "replaceList": [
-      {
-        "from": "xianfeng-v1",
-        "to": "__name__"
-      },
-      {
-        "from": "xianfeng_v1",
-        "to": "__database__"
-      }
-    ],
-    "repositoryUrl": "git@github.com:jianghujs/jianghujs-workflow.git"
-  },
-  {
-    "projectName": "xiaochengxu-markdown-editor",
-    "replaceList": [
-      {
-        "from": "jianghujs-xiaochengxu-markdown-editor",
-        "to": "__name__"
-      },
-      {
-        "from": "jianghujs_xiaochengxu_markdown_editor",
-        "to": "__database__"
-      }
-    ],
-    "repositoryUrl": "git@gitea.openjianghu.org:jianghujs/jianghujs-xiaochengxu-markdown-editor.git"
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-enterprise-1table-crud.git"
   }
 ]

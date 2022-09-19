@@ -17,11 +17,11 @@ module.exports = appInfo => {
 
   return {
     appId,
-    appTitle: '江湖演示-初级',
+    appTitle: '文件管理',
     appLogo: `${appId}/public/img/logo.png`,
     appType: 'single',
     appDirectoryLink: '/',
-    indexPage: `/${appId}/page/fileManagement`,
+    indexPage: `/${appId}/page/studentFileManagement`,
     loginPage: `/${appId}/page/login`,
     helpPage: `/${appId}/page/help`,
     uploadDir,

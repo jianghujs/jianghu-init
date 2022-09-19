@@ -184,7 +184,6 @@ new Vue({
     constantCollection: {
     },
     overlay: false,
-    fileType: '',
     fileSrc: '',
     serverSearchInput: {
       studentId: null,
@@ -330,17 +329,18 @@ new Vue({
     },
     async doCreateItem() {
       const { docType, studentName, remarks } = this.addItem;
-      const fileType = '学生文件';
       const _this = this;
-      const {data: {status, appData: {resultData: { filename, downloadPath, binarySize }}} } = await window.jianghuAxios.httpUploadByStream({ file: this.addInputFile, fileDirectory: 'testFile',
-          onProgress: (total, loaded) => {
-            let progress = Number((loaded * 100 / total).toFixed(2))
-            window.vtoast.loading(`文件上传进度${progress}%`);
-            if (progress === 100) {
-              window.vtoast.success('文件上传成功');
-            }
+      const result = await window.jianghuAxios.httpUploadByStream({ file: this.addInputFile, fileDirectory: 'testFile',
+        onProgress: (total, loaded) => {
+          let progress = Number((loaded * 100 / total).toFixed(2))
+          window.vtoast.loading(`文件上传进度${progress}%`);
+          if (progress === 100) {
+            window.vtoast.success('文件上传成功');
           }
-        })
+        }
+      });
+      const { status } = result.data;
+      const { filename, downloadPath, binarySize } = result.data.appData.resultData;
       if (status === 'success') {
         await window.vtoast.loading("新增数据");
         await window.jianghuAxios({
@@ -455,8 +455,7 @@ new Vue({
      * main:   [{"function":"downloadFile"}]
      */
      async downloadFile({ item }) {
-      const itemIndex = this.tableDataFromBackend.findIndex(v => v.fileId === item.fileId);
-      const { fileId, filename, downloadPath } = item;
+      const { filename, downloadPath } = item;
       window.vtoast.loading('文件下载进度0.00%');
       const buffer = await window.jianghuAxios.httpDownloadByStream({ downloadPath, filename, 
         onProgress: (total, loaded)=> {

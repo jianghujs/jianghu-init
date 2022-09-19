@@ -6,7 +6,7 @@ module.exports = appInfo => {
 
   assert(appInfo);
   return {
-    dataSyncStatus: '禁用', // 是否启用同步，启用/禁用
+    dataSyncStatus: '禁用',
     knex: {
       client: {
         dialect: 'mysql',
@@ -17,7 +17,7 @@ module.exports = appInfo => {
           password: '123456',
           database: '{{dbPrefix}}data_repository',
         },
-        pool: { min: 0, max: 10 },
+        pool: { min: 0, max: 100 },
         acquireConnectionTimeout: 30000,
       },
       app: true,
