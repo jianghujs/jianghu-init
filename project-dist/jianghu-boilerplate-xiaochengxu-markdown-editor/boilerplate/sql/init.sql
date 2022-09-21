@@ -92,8 +92,6 @@ CREATE TABLE `_group` (
 
 
 
-INSERT INTO `_group` (`id`,`groupId`,`groupName`,`groupDesc`,`groupAvatar`,`groupExtend`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'adminGroup','管理组','管理组',NULL,'{}','insert',NULL,NULL,NULL);
-INSERT INTO `_group` (`id`,`groupId`,`groupName`,`groupDesc`,`groupAvatar`,`groupExtend`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'secondGroup','二稿组','二稿组',NULL,'{}','insert',NULL,NULL,NULL);
 
 
 
@@ -197,36 +195,6 @@ INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`acti
 INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (18,NULL,NULL,'firstDraftManagement','selectItemList','✅一稿管理-查询列表','sql','{}','{ \"table\": \"view01_article\", \"operation\": \"select\" }','','','insert',NULL,NULL,NULL);
 INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (19,NULL,NULL,'firstDraftManagement','selectCategoryList','✅一稿管理-查询分类列表','sql','{}','{ \"table\": \"view01_category\", \"operation\": \"select\" }','','','insert',NULL,NULL,NULL);
 INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (20,NULL,NULL,'firstDraftManagement','updateItem','✅一稿管理-更新文章信息','sql','{}','{ \"table\": \"article\", \"operation\": \"jhUpdate\" }','','','insert',NULL,NULL,NULL);
-
-
-
-# ------------------------------------------------------------
-# SCHEMA DUMP FOR TABLE: _resource_request_log
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `_resource_request_log`;
-CREATE TABLE `_resource_request_log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `resourceId` varchar(255) DEFAULT NULL COMMENT 'resource id;',
-  `packageId` varchar(255) DEFAULT NULL COMMENT 'resource package id',
-  `userIp` varchar(255) DEFAULT NULL COMMENT '用户ip;',
-  `userAgent` varchar(255) DEFAULT NULL COMMENT '设备信息',
-  `userId` varchar(255) DEFAULT NULL COMMENT '用户ID',
-  `deviceId` varchar(255) DEFAULT NULL COMMENT '设备id',
-  `userIpRegion` varchar(255) DEFAULT NULL COMMENT '用户Ip区域',
-  `executeSql` varchar(255) DEFAULT NULL COMMENT '执行的sql',
-  `requestBody` longtext COMMENT '请求body',
-  `responseBody` longtext COMMENT '响应body',
-  `responseStatus` varchar(255) DEFAULT NULL COMMENT '执行的结果;  success, fail',
-  `operation` varchar(255) DEFAULT 'insert' COMMENT '操作; insert, update, jhInsert, jhUpdate, jhDelete jhRestore',
-  `operationByUserId` varchar(255) DEFAULT NULL COMMENT '操作者userId',
-  `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
-  `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
-  PRIMARY KEY (`id`),
-  KEY `resourceId_index` (`resourceId`),
-  KEY `packageId_index` (`packageId`)
-) ENGINE = InnoDB AUTO_INCREMENT = 6096 COMMENT = '文件表; 软删除未启用;';
-
 
 
 

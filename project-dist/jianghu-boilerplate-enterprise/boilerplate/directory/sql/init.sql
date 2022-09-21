@@ -40,7 +40,6 @@ CREATE TABLE `_group` (
 
 
 
-INSERT INTO `_group` (`id`,`groupId`,`groupName`,`groupDesc`,`groupAvatar`,`groupExtend`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'authorization','权限组',NULL,NULL,'{}','insert',NULL,NULL,NULL);
 
 
 
@@ -125,36 +124,6 @@ INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`acti
 INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (251,NULL,NULL,'allPage','logout','✅登出','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"logout\" }','','','update',NULL,NULL,'2022-02-23T23:08:31+08:00');
 INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (253,NULL,NULL,'allPage','userInfo','✅获取用户信息','service',NULL,'{ \"service\": \"user\", \"serviceFunction\": \"userInfo\" }','','','update',NULL,NULL,'2022-09-10T15:22:59+08:00');
 INSERT INTO `_resource` (`id`,`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (263,NULL,NULL,'directory','selectItemList','✅查询目录','service',NULL,'{ \"service\": \"directory\", \"serviceFunction\": \"getDirectoryList\" }','','','update',NULL,NULL,'2022-09-10T15:22:59+08:00');
-
-
-
-# ------------------------------------------------------------
-# SCHEMA DUMP FOR TABLE: _resource_request_log
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `_resource_request_log`;
-CREATE TABLE `_resource_request_log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `resourceId` varchar(255) DEFAULT NULL COMMENT 'resource id;',
-  `packageId` varchar(255) DEFAULT NULL COMMENT 'resource package id',
-  `userIp` varchar(255) DEFAULT NULL COMMENT '用户ip;',
-  `userAgent` varchar(255) DEFAULT NULL COMMENT '设备信息',
-  `userId` varchar(255) DEFAULT NULL COMMENT '用户ID',
-  `deviceId` varchar(255) DEFAULT NULL COMMENT '设备id',
-  `userIpRegion` varchar(255) DEFAULT NULL COMMENT '用户Ip区域',
-  `executeSql` varchar(255) DEFAULT NULL COMMENT '执行的sql',
-  `requestBody` text COMMENT '请求body',
-  `responseBody` text COMMENT '响应body',
-  `responseStatus` varchar(255) DEFAULT NULL COMMENT '执行的结果;  success, fail',
-  `operation` varchar(255) DEFAULT 'insert' COMMENT '操作; insert, update, jhInsert, jhUpdate, jhDelete jhRestore',
-  `operationByUserId` varchar(255) DEFAULT NULL COMMENT '操作者userId',
-  `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
-  `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `resourceId_index` (`resourceId`) USING BTREE,
-  KEY `packageId_index` (`packageId`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 34 COMMENT = '文件表; 软删除未启用;';
-
 
 
 

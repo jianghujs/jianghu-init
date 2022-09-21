@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-boilerplate-xiaochengxu",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "boilerplate for Duoxing xiaochengxu quickstart",
   "scripts": {
     "autod": "autod",
