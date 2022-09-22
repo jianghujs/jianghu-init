@@ -99,7 +99,7 @@ SQL END!-->
   </v-form>
 </v-navigation-drawer>
 <!-- 编辑抽屉 -->
-<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" 
+<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%"
                      class="elevation-24">
   <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
     <v-row class="pt-8">
@@ -239,14 +239,14 @@ new Vue({
           break;
       }
     },
-    /** 
+    /**
      * uiActionId:  refreshTableData
      * description: ✅获取表格数据
     */
     async refreshTableData() {
       this.isTableLoading = true;
       const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const { data: { appData: { rows } } } = await window.jianghuAxios({
+      const { data: { appData: { resultData: {rows} } } } = await window.jianghuAxios({
         data: {
           appData: {
             pageId: '<=$ pageId $=>',
@@ -263,7 +263,7 @@ new Vue({
       this.isTableLoading = false;
     },
 
-    /** 
+    /**
      * uiActionId:  startCreateItem
      * description: ✅获取表格数据
     */
@@ -275,7 +275,7 @@ new Vue({
       this.isAddDrawerShow = true;
     },
 
-    /** 
+    /**
      * uiActionId:  createItem
      * description: ✅获取表格数据
     */
@@ -305,7 +305,7 @@ new Vue({
       this.isAddDrawerShow = false;
     },
 
-    /** 
+    /**
      * uiActionId:  startUpdateItem
      * description: ✅获取表格数据
     */
@@ -317,7 +317,7 @@ new Vue({
       this.isEditDrawerShow = true;
     },
 
-    /** 
+    /**
      * uiActionId:  updateItem
      * description: ✅获取表格数据
     */
@@ -343,7 +343,7 @@ new Vue({
       await window.vtoast.success("修改数据成功");
     },
 
-    /** 
+    /**
      * uiActionId:  deleteItem
      * description: ✅获取表格数据
     */
@@ -369,7 +369,7 @@ new Vue({
       await window.vtoast.success("删除数据成功");
     },
 
-    /** 
+    /**
      * uiActionId:  doRedirect
      * description: ✅获取表格数据
     */

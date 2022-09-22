@@ -64,7 +64,7 @@ SQL END!-->
       </template>
     </v-data-table>
     </v-card>
-    
+
 
   </v-container>
   <!-- 新增抽屉 -->
@@ -236,7 +236,7 @@ SQL END!-->
             break;
         }
       },
-      /** 
+      /**
        * uiActionId:  refreshTableData
        * description: ✅获取表格数据
       */
@@ -252,11 +252,11 @@ SQL END!-->
             }
           }
         });
-        this.tableDataFromBackend = result.data.appData.rows;
+        this.tableDataFromBackend = result.data.appData.resultData.rows;
         this.isTableLoading = false;
       },
 
-      /** 
+      /**
        * uiActionId:  startCreateItem
        * description: ✅获取表格数据
       */
@@ -269,7 +269,7 @@ SQL END!-->
         this.isAddDrawerShow = true;
       },
 
-      /** 
+      /**
        * uiActionId:  createItem
        * description: ✅获取表格数据
       */
@@ -302,7 +302,7 @@ SQL END!-->
         this.isAddDrawerShow = false;
       },
 
-      /** 
+      /**
        * uiActionId:  startUpdateItem
        * description: ✅获取表格数据
       */
@@ -314,8 +314,8 @@ SQL END!-->
         this.isEditDrawerShow = true;
       },
 
-      
-      /** 
+
+      /**
        * uiActionId:  updateItem
        * description: ✅获取表格数据
       */
@@ -341,7 +341,7 @@ SQL END!-->
         await window.vtoast.success("修改数据成功");
       },
 
-      /** 
+      /**
        * uiActionId:  deleteItem
        * description: ✅获取表格数据
       */

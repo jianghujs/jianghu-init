@@ -238,7 +238,7 @@ SQL END!-->
         }
       },
       // 获取所有<=$ nameA $=>的数据
-      /** 
+      /**
        * uiActionId:  refreshTableData
        * description: ✅获取表格数据
        * main:   [{"function":"refreshTableData"}]
@@ -255,12 +255,12 @@ SQL END!-->
             }
           }
         });
-        this.tableData = result.data.appData.rows;
+        this.tableData = result.data.appData.resultData.rows;
         this.isTableLoading = false;
       },
 
       // 获取所有<=$ nameB $=>的数据
-      /** 
+      /**
        * uiActionId:  getDrawerTableData
        * description: ✅获取内表格数据
        * main:   [{"function":"getDrawerTableData"}]
@@ -276,7 +276,7 @@ SQL END!-->
             }
           }
         });
-        this.drawerTableDataFromBackend = result.data.appData.rows;
+        this.drawerTableDataFromBackend = result.data.appData.resultData.rows;
         this.isDrawerTableLoading = false;
       },
 
@@ -287,7 +287,7 @@ SQL END!-->
           this.drawerTableData = _.differenceBy(this.drawerTableDataFromBackend, this.tableData, '<=$ primaryFieldB $=>');
         }
       },
-      /** 
+      /**
        * uiActionId:  allotItem
        * description: ✅获取表格数据
       */
@@ -308,8 +308,8 @@ SQL END!-->
         window.vtoast.success("批量新增成功");
         this.drawerItemSelectedClass = [];
       },
-      
-      /** 
+
+      /**
        * uiActionId:  buildRelation
        * description: ✅获取表格数据
       */
@@ -331,8 +331,8 @@ SQL END!-->
         });
       },
 
-    
-      /** 
+
+      /**
        * uiActionId:  startUpdateItem
        * description: ✅获取表格数据
        * main:   [{"function":"prepareItemData"},{"function":"openUpdateDialog"}]
@@ -345,7 +345,7 @@ SQL END!-->
         this.isEditDrawerShow = true;
       },
 
-      /** 
+      /**
        * uiActionId:  updateItem
        * description: ✅获取表格数据
       */
@@ -375,7 +375,7 @@ SQL END!-->
         this.isAllotEditDrawerShow = false;
       },
 
-      /** 
+      /**
        * uiActionId:  deleteRelation
        * description: ✅获取表格数据
       */

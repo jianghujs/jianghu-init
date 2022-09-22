@@ -244,8 +244,8 @@ new Vue({
           }
         }
       });
-      this.tableData = result.data.appData.rows;
-      this.tableDataFromBackend = result.data.appData.rows;
+      this.tableData = result.data.appData.resultData.rows;
+      this.tableDataFromBackend = result.data.appData.resultData.rows;
       this.isTableLoading = false;
     },
 
@@ -266,7 +266,7 @@ new Vue({
           }
         }
       });
-      this.drawerTableDataFromBackend = result.data.appData.rows;
+      this.drawerTableDataFromBackend = result.data.appData.resultData.rows;
       this.isDrawerTableLoading = false;
     },
 

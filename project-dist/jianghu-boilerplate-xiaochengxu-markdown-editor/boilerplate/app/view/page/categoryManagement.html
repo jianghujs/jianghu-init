@@ -35,7 +35,7 @@
       <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem')">新增</v-btn>
       <span class="body-2">共{{ tableData.length }}条记录</span>
     </v-col>
-   
+
   </v-row>
   <v-data-table fixed-header
                 :headers="headers"
@@ -56,7 +56,7 @@
       <v-badge color="success" :content="`${item.firstDraftCount}`" overlap>
         <v-btn small class="mr-2 default" @click.stop="doUiAction('goToDraftManagementPage', {item, articleStatus: 'firstDraft' })">
           一稿管理
-        </v-btn>  
+        </v-btn>
       </v-badge>
     </template>
   </v-data-table>
@@ -74,27 +74,27 @@
       </v-btn>
     </v-row>
     <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none">
-       
+
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类ID</span>
         <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="addItem['categoryId']"></v-text-field>
       </v-col>
-       
+
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类名称</span>
         <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="addItem['categoryName']"></v-text-field>
       </v-col>
-       
+
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类分组</span>
         <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="addItem['categoryGroup']"></v-text-field>
       </v-col>
-       
+
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类分组排序</span>
         <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="addItem['categoryGroupSort']"></v-text-field>
       </v-col>
-      
+
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类简介</span>
         <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="addItem['categoryIntro']"></v-text-field>
@@ -124,12 +124,12 @@
       </v-btn>
     </v-row>
     <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none">
-       
+
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类ID</span>
         <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['categoryId']" disabled></v-text-field>
       </v-col>
-       
+
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类名称</span>
         <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['categoryName']"></v-text-field>
@@ -139,7 +139,7 @@
         <span class="inputLabel">分类分组</span>
         <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['categoryGroup']"></v-text-field>
       </v-col>
-       
+
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类分组排序</span>
         <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['categoryGroupSort']"></v-text-field>
@@ -201,18 +201,18 @@ new Vue({
     tableDataFromBackend: [],
     headers: [
       {text: "ID", value: "id", width: 120, class: 'fixed', cellClass: 'fixed'},
-       
-      {text: "分类ID", value: "categoryId", width: 120}, 
-      {text: "分类名称", value: "categoryName", width: 200}, 
-      {text: "分类分组", value: "categoryGroup", width: 120}, 
-      {text: "分类分组排序", value: "categoryGroupSort", width: 120}, 
-      // {text: "分类目录中需要省略的文字", value: "categoryArticleIgnoreTiltle", width: 200}, 
-      {text: "分类简介", value: "categoryIntro", width: 120}, 
-      {text: "发布状态", value: "categoryPublishStatus", width: 120}, 
-      {text: "创建时间", value: "categoryCreateTime", width: 220}, 
-      {text: "创建者", value: "categoryCreateUsername", width: 120}, 
-      {text: "修改时间", value: "categoryUpdateTime", width: 220}, 
-      {text: "修改者", value: "categoryUpdateUsername", width: 120}, 
+
+      {text: "分类ID", value: "categoryId", width: 120},
+      {text: "分类名称", value: "categoryName", width: 200},
+      {text: "分类分组", value: "categoryGroup", width: 120},
+      {text: "分类分组排序", value: "categoryGroupSort", width: 120},
+      // {text: "分类目录中需要省略的文字", value: "categoryArticleIgnoreTiltle", width: 200},
+      {text: "分类简介", value: "categoryIntro", width: 120},
+      {text: "发布状态", value: "categoryPublishStatus", width: 120},
+      {text: "创建时间", value: "categoryCreateTime", width: 220},
+      {text: "创建者", value: "categoryCreateUsername", width: 120},
+      {text: "修改时间", value: "categoryUpdateTime", width: 220},
+      {text: "修改者", value: "categoryUpdateUsername", width: 120},
       {text: '操作', value: 'action', align: 'center', sortable: false, width: 450, class: 'fixed', cellClass: 'fixed'},
     ],
     isEditDrawerShow: false,
@@ -283,7 +283,7 @@ new Vue({
     async refreshTableData() {
       this.isTableLoading = true;
       const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const { data: { appData: { rows } } } = await window.jianghuAxios({
+      const { data: { appData: { resultData: {rows} } } } = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'categoryManagement',
@@ -301,13 +301,13 @@ new Vue({
     },
     // =================================uiAction 公共方法 end ======================================
 
-    /** 
+    /**
      * uiActionId:  refreshTableData
      * description: ✅获取表格数据
      * main:   [{"function":"refreshTableData"}]
     */
 
-    /** 
+    /**
      * uiActionId:  startCreateItem
      * description: ✅获取表格数据
      * main:   [{"function":"clearItemData"},{"function":"openCreateItemDialog"}]

@@ -92,7 +92,7 @@
           <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">备注</span>
           <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['remarks']"></v-text-field>
         </v-col>
-   
+
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生状态</span>
           <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['studentStatus']"></v-text-field>
@@ -310,8 +310,8 @@
             }
           }
         });
-        this.tableDataFromBackend = result.data.appData.rows;
-        this.tableData = result.data.appData.rows;
+        this.tableDataFromBackend = result.data.appData.resultData.rows;
+        this.tableData = result.data.appData.resultData.rows;
         this.isTableLoading = false;
       },
 
