@@ -59,7 +59,7 @@ CREATE TABLE `_group` (
   `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`),
   KEY `groupId_index` (`groupId`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 COMMENT = '群组表; 软删除未启用;';
+) ENGINE = InnoDB COMMENT = '群组表; 软删除未启用;';
 
 
 
@@ -114,7 +114,7 @@ CREATE TABLE `_record_history` (
   PRIMARY KEY (`id`),
   KEY `index_record_id` (`recordId`),
   KEY `index_table_action` (`table`, `operation`)
-) ENGINE = InnoDB AUTO_INCREMENT = 2257 COMMENT = '数据历史表';
+) ENGINE = InnoDB AUTO_INCREMENT = 14 COMMENT = '数据历史表';
 
 
 
@@ -195,9 +195,27 @@ INSERT INTO `_role` (`id`,`roleId`,`roleName`,`roleDesc`,`operation`,`operationB
 
 
 
+DROP TABLE IF EXISTS `_test_case`;
+CREATE TABLE `_test_case` (
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`pageId` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '页面Id',
+`testId` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '测试用例Id; 10000 ++',
+`testName` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '测试用例名',
+`uiActionIdList` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'uiAction列表; 一个测试用例对应多个uiActionId',
+`testOpeartion` text COLLATE utf8mb4_bin COMMENT '测试用例步骤;',
+`expectedResult` text COLLATE utf8mb4_bin COMMENT '期望结果',
+`operation` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '操作; jhInsert, jhUpdate, jhDelete jhRestore',
+`operationByUserId` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '操作者userId; recordContent.operationByUserId',
+`operationByUser` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '操作者用户名; recordContent.operationByUser',
+`operationAt` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '操作时间; recordContent.operationAt; E.g: 2021-05-28T10:24:54+08:00 ',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=197 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='测试用例表';
+
+
 # ------------------------------------------------------------
 # SCHEMA DUMP FOR TABLE: _ui
 # ------------------------------------------------------------
+
 
 DROP TABLE IF EXISTS `_ui`;
 CREATE TABLE `_ui` (
@@ -213,7 +231,7 @@ CREATE TABLE `_ui` (
   `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
   `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`)
-) ENGINE = InnoDB AUTO_INCREMENT = 92 COMMENT = 'ui 施工方案';
+) ENGINE = InnoDB COMMENT = 'ui 施工方案';
 
 
 
@@ -306,7 +324,7 @@ CREATE TABLE `_user_group_role_page` (
   `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
   `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`)
-) ENGINE = InnoDB AUTO_INCREMENT = 31 COMMENT = '用户群组角色 - 页面 映射表; 软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 4 COMMENT = '用户群组角色 - 页面 映射表; 软删除未启用;';
 
 
 
@@ -334,7 +352,7 @@ CREATE TABLE `_user_group_role_resource` (
   `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
   `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`)
-) ENGINE = InnoDB AUTO_INCREMENT = 135 COMMENT = '用户群组角色 - 请求资源 映射表; 软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 4 COMMENT = '用户群组角色 - 请求资源 映射表; 软删除未启用;';
 
 
 
@@ -367,7 +385,7 @@ CREATE TABLE `_user_session` (
   KEY `userId_index` (`userId`),
   KEY `userId_deviceId_index` (`userId`, `deviceId`) USING BTREE,
   KEY `authToken_index` (`authToken`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 27 COMMENT = '用户session表; deviceId 维度;软删除未启用;';
+) ENGINE = InnoDB AUTO_INCREMENT = 2 COMMENT = '用户session表; deviceId 维度;软删除未启用;';
 
 
 
@@ -415,7 +433,7 @@ CREATE TABLE `class` (
   `operationByUser` varchar(255) DEFAULT NULL COMMENT '操作者用户名',
   `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 125;
+) ENGINE = InnoDB AUTO_INCREMENT = 123;
 
 
 
@@ -449,10 +467,14 @@ CREATE TABLE `student` (
   `operationAt` varchar(255) DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `studentId` (`studentId`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 176;
+) ENGINE = InnoDB AUTO_INCREMENT = 5;
 
 
 
+INSERT INTO `student` (`id`,`studentId`,`name`,`gender`,`dateOfBirth`,`classId`,`level`,`bodyHeight`,`studentStatus`,`remarks`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (1,'G00001','小虾米','男',NULL,NULL,NULL,NULL,NULL,NULL,'insert','admin','系统管理员','2022-10-06T13:45:16+08:00');
+INSERT INTO `student` (`id`,`studentId`,`name`,`gender`,`dateOfBirth`,`classId`,`level`,`bodyHeight`,`studentStatus`,`remarks`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (2,'W00001','姜小白','女',NULL,NULL,NULL,NULL,NULL,NULL,'insert','admin','系统管理员','2022-10-06T13:46:06+08:00');
+INSERT INTO `student` (`id`,`studentId`,`name`,`gender`,`dateOfBirth`,`classId`,`level`,`bodyHeight`,`studentStatus`,`remarks`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (3,'X00001','鸣人','男',NULL,NULL,NULL,NULL,NULL,NULL,'insert','admin','系统管理员','2022-10-06T13:46:29+08:00');
+INSERT INTO `student` (`id`,`studentId`,`name`,`gender`,`dateOfBirth`,`classId`,`level`,`bodyHeight`,`studentStatus`,`remarks`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) VALUES (4,'Z00001','佐助','男',NULL,NULL,NULL,NULL,NULL,NULL,'insert','admin','系统管理员','2022-10-06T13:46:41+08:00');
 
 
 
@@ -472,7 +494,7 @@ CREATE TABLE `student_class` (
   `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `studentId` (`studentId`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 158;
+) ENGINE = InnoDB AUTO_INCREMENT = 162;
 
 
 
@@ -489,14 +511,12 @@ INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationBy
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (82,'H00006','华山01班','insert',NULL,NULL,NULL,NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (83,'H00006','华山02班','insert',NULL,NULL,NULL,NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (86,'111','武当02班','insert',NULL,NULL,NULL,NULL);
-INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (88,'111','丐帮02班','insert',NULL,NULL,NULL,NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (89,'111','华山01班','insert',NULL,NULL,NULL,NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (90,'111','华山02班','insert',NULL,NULL,NULL,NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (95,'D00001','华山03班','jhInsert','W00001','张三丰','2022-04-27T21:29:21+08:00',NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (100,'D00001','华山01班','jhInsert','W00001','张三丰','2022-04-29T16:10:13+08:00',NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (105,'H00001','undefined','jhInsert','W00001','张三丰','2022-05-07T21:19:22+08:00',NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (109,'D00001','华山02班','jhInsert','W00001','张三丰','2022-05-07T21:40:47+08:00',NULL);
-INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (110,'D00001','丐帮02班','jhUpdate','W00001','张三丰','2022-05-07T21:53:17+08:00','123');
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (111,'D00001','武当02班','jhInsert','W00001','张三丰','2022-05-07T21:54:40+08:00',NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (120,'admin','武当02班','jhInsert','admin','系统管理员','2022-08-26T21:43:44+08:00',NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (130,'100067','11150','jhInsert','admin','系统管理员','2022-09-09T02:01:14+08:00',NULL);
@@ -506,15 +526,13 @@ INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationBy
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (136,'121432','华山03班','jhInsert','admin','系统管理员','2022-09-09T02:01:57+08:00',NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (143,'admin','华山01班','jhInsert','admin','系统管理员','2022-09-09T02:06:14+08:00',NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (144,'admin','华山03班','jhInsert','admin','系统管理员','2022-09-09T02:06:14+08:00',NULL);
-INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (147,'121432','丐帮01班','jhInsert','admin','系统管理员','2022-09-09T02:14:21+08:00',NULL);
-INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (149,'G00003','丐帮01班','jhInsert','admin','系统管理员','2022-09-09T02:14:37+08:00',NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (150,'100067','华山03班','jhInsert','admin','系统管理员','2022-09-09T02:17:28+08:00',NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (151,'100067','华山01班','jhInsert','admin','系统管理员','2022-09-09T02:17:28+08:00',NULL);
-INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (152,'100067','丐帮01班','jhInsert','admin','系统管理员','2022-09-09T02:17:40+08:00',NULL);
-INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (154,'G00003','武当01班','jhInsert','admin','系统管理员','2022-09-09T02:23:08+08:00',NULL);
-INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (155,'100067','武当01班','jhInsert','admin','系统管理员','2022-09-09T02:23:08+08:00',NULL);
 INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (156,'121432','武当01班','jhInsert','admin','系统管理员','2022-09-09T02:23:14+08:00',NULL);
-INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (157,'admin','丐帮01班','jhInsert','admin','系统管理员','2022-09-09T02:23:27+08:00',NULL);
+INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (158,'G00001','丐帮02班','jhInsert','admin','系统管理员','2022-10-06T13:45:25+08:00',NULL);
+INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (159,'G00001','华山03班','jhInsert','admin','系统管理员','2022-10-06T13:45:25+08:00',NULL);
+INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (160,'G00001','丐帮01班','jhInsert','admin','系统管理员','2022-10-06T13:47:02+08:00',NULL);
+INSERT INTO `student_class` (`id`,`studentId`,`classId`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`,`remark`) VALUES (161,'X00001','丐帮01班','jhInsert','admin','系统管理员','2022-10-06T13:47:19+08:00',NULL);
 
 
 

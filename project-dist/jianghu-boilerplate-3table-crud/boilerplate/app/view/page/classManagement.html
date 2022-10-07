@@ -64,7 +64,7 @@
   </v-card>
 </v-container>
 <!-- 新增抽屉 -->
-<v-navigation-drawer v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%"
+<v-navigation-drawer v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%" 
                      class="elevation-24">
   <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
     <v-row class="pt-8">
@@ -104,7 +104,7 @@
   </v-form>
 </v-navigation-drawer>
 <!-- 编辑抽屉 -->
-<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%"
+<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" 
                      class="elevation-24">
   <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
     <v-row class="pt-8">
@@ -246,7 +246,7 @@ new Vue({
     async refreshTableData() {
       this.isTableLoading = true;
       const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const { data: { appData: { resultData: {rows} } } } = await window.jianghuAxios({
+      const { data: { appData: { resultData: { rows } } } } = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'classManagement',

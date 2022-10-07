@@ -160,7 +160,7 @@
       mdi-download
     </v-icon>
     <iframe v-if="previewFileType === 'pdf'" :src="'/<$ ctx.app.config.duoxingBot.serverAppId $>/public/pdf/web/viewer.html?file=' + previewFileUrl" frameborder="0"
-      style="width: 100vw; height: 100vh; padding: 50px 0 0 0;"></iframe>
+      style="width: 100vw; height: 100vh; padding: 50px 0 0 0;"></iframe>  
     <v-img v-if="previewFileType === 'img'" max-height="80vw" max-width="100vw"  :src="previewFileUrl"></v-img>
   </v-overlay>
 </xiaochengxu-layout-v3>
@@ -196,10 +196,10 @@ new Vue({
     tableDataFromBackend: [],
     headers: [
       {text: "ID", value: "id", width: 120, class: 'fixed', cellClass: 'fixed'},
-      {text: "文件名", value: "filename", width: 120},
+      {text: "文件名", value: "filename", width: 120}, 
       {text: "文件路径", value: "downloadPath", width: 400},
-      {text: "文件大小/KB", value: "binarySize", width: 120},
-      {text: "文档类型", value: "docType", width: 120},
+      {text: "文件大小/KB", value: "binarySize", width: 120}, 
+      {text: "文档类型", value: "docType", width: 120}, 
       {text: "学生名字", value: "studentName", width: 120},
       {text: "备注", value: "remarks", width: 120},
       {text: "操作者", value: "operationByUser", width: 120},
@@ -285,7 +285,7 @@ new Vue({
     async refreshTableData() {
       this.isTableLoading = true;
       const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const { data: { appData: { resultData: {rows} } } } = await window.jianghuAxios({
+      const { data: { appData: { rows } } } = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'studentFileManagement',
@@ -449,7 +449,7 @@ new Vue({
       await window.vtoast.success("删除数据成功");
     },
 
-    /**
+    /** 
      * uiActionId: previewFile
      * description: ✅预览文件
      * main:   [{"function":"previewFile"}]
@@ -471,14 +471,14 @@ new Vue({
 
       // 图片 & pdf ===》预览
       window.vtoast.loading(`${filename} 加载进度 0.0%`);
-      const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename,
+      const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename, 
         onProgress: (total, loaded)=> {
           let progress = Number((loaded * 100 / total).toFixed(2))
           window.vtoast.loading(`【${filename}】 加载进度 ${progress}%`);
           if (progress === 100) {
             window.vtoast.success(`【${filename}】 加载进度 ${progress}%`);
           }
-        }
+        } 
       });
       let arr = fileBase64.split(','),
         mime = arr[0].match(/:(.*?);/)[1],
@@ -498,16 +498,16 @@ new Vue({
       this.previewOverlay = true;
     },
 
-    /**
+    /** 
      * uiActionId: downloadPreviewFile
      * description: ✅下载正在预览的文件
      * main:   [{"function":"downloadPreviewFile"}]
     */
     async downloadPreviewFile() {
       window.jianghuAxios.downloadBase64ToChrome({ base64: this.previewFileBase64, filename: this.previewFilename})
-    },
+    }, 
 
-    /**
+    /** 
      * uiActionId: downloadFile
      * description: ✅下载
      * main:   [{"function":"downloadFile"}]
@@ -515,14 +515,14 @@ new Vue({
      async downloadFile({ item }) {
       const { filename, downloadPath } = item;
       window.vtoast.loading('文件下载进度0.00%');
-      const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename,
+      const fileBase64 = await window.jianghuAxios.socketDownloadByBase64({ downloadPath, filename, 
         onProgress: (total, loaded)=> {
           const progress = Number((loaded * 100 / total).toFixed(2));
           window.vtoast.loading(`文件下载进度${progress}%`);
           if (progress === 100) {
             window.vtoast.success('文件下载成功');
           }
-        }
+        } 
       });
       window.jianghuAxios.downloadBase64ToChrome({ base64: fileBase64, filename})
     },
