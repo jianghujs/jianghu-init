@@ -211,6 +211,7 @@ new Vue({
           await this.openCreateItemDialog();
           break;
         case 'createItem':
+          await this.prepareValidate();
           await this.confirmCreateItemDialog();
           await this.doCreateItem();
           await this.closeDrawerShow();
@@ -221,6 +222,7 @@ new Vue({
           await this.openUpdateDialog();
           break;
         case 'updateItem':
+          await this.prepareValidate();
           await this.confirmUpdateItemDialog();
           await this.doUpdateItem();
           await this.closeDrawerShow();
@@ -273,6 +275,13 @@ new Vue({
 
     async openCreateItemDialog() {
       this.isAddDrawerShow = true;
+    },
+
+    // 表单验证
+    async prepareValidate() {
+      if (await this.$refs.form.validate() === false) {
+        throw new Error("[prepareValidate] false");
+      }
     },
 
     /**
