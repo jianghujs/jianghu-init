@@ -248,7 +248,7 @@ new Vue({
     async refreshTableData() {
       this.isTableLoading = true;
       const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const { data: { appData: { resultData: {rows} } } } = await window.jianghuAxios({
+      const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: '<=$ pageId $=>',
@@ -260,7 +260,8 @@ new Vue({
           }
         }
       });
-
+      const { rows } = result.data.appData.resultData;
+      
       this.tableDataFromBackend = rows;
       this.isTableLoading = false;
     },

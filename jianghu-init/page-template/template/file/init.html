@@ -231,7 +231,7 @@
         const fileDesc = this.editItem.fileDesc;
         const file = this.inputFile
         window.vtoast.loading(`${file.name} 上传进度: 0.00%`);
-        const {data: {status, appData: {resultData: {downloadPath}}} } = await window.jianghuAxios.httpUploadByStream({
+        const result = await window.jianghuAxios.httpUploadByStream({
             fileDesc,
             file,
             fileDirectory: 'testFile',
@@ -243,7 +243,8 @@
               }
             }
           })
-        
+        const { status } = result.data;
+        const { downloadPath } = result.data.appData.resultData;
         if (status === 'success') {
           await window.jianghuAxios({
             data: {

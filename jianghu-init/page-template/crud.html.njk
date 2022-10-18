@@ -202,6 +202,7 @@ new Vue({
           await this.openCreateItemDialog();
           break;
         case 'createItem':
+          await this.prepareValidate();
           await this.confirmCreateItemDialog();
           await this.doCreateItem();
           await this.closeDrawerShow();
@@ -212,6 +213,7 @@ new Vue({
           await this.openUpdateDialog();
           break;
         case 'updateItem':
+          await this.prepareValidate();
           await this.confirmUpdateItemDialog();
           await this.doUpdateItem();
           await this.closeDrawerShow();
@@ -228,6 +230,16 @@ new Vue({
       }
     },
     // =================================uiAction 公共方法 start ======================================
+    /**
+     * uiActionId:  prepareValidate
+     * description: ✅表单校验
+    */
+    async prepareValidate() {
+      if (this.$refs.form.validate() === false) {
+        window.vtoast.fail({ message: "输入有误, 请检查!" });
+        throw new Error("[prepareValidate] false");
+      }
+    },
 
     /**
      * uiActionId:  refreshTableData
@@ -236,7 +248,7 @@ new Vue({
     async refreshTableData() {
       this.isTableLoading = true;
       const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const { data: { appData: { resultData: {rows} } } } = await window.jianghuAxios({
+      const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: '<=$ pageId $=>',
@@ -248,6 +260,7 @@ new Vue({
           }
         }
       });
+      const { rows } = result.data.appData.resultData;
 
       this.tableDataFromBackend = rows;
       this.isTableLoading = false;
