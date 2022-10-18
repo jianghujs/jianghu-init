@@ -300,7 +300,7 @@ new Vue({
     async refreshTableData() {
       this.isTableLoading = true;
       const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const { data: { appData: { rows } } } = await window.jianghuAxios({
+      const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'studentManagement',
@@ -313,7 +313,7 @@ new Vue({
         }
       });
 
-      this.tableDataFromBackend = rows;
+      this.tableDataFromBackend = result.data.appData.resultData.rows;
       this.isTableLoading = false;
     },
     // =================================uiAction 公共方法 end ======================================

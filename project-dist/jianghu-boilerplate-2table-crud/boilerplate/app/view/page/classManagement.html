@@ -85,7 +85,7 @@
         <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['classId']"></v-text-field>
       </v-col>
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生状态</span>
+        <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">班级名称</span>
         <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['className']"></v-text-field>
       </v-col>
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
@@ -117,7 +117,7 @@
         <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['classId']"></v-text-field>
       </v-col>
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">学生状态</span>
+        <span style="color: #3F4254;" :style="{'line-height': isMobile ? '20px' : '42px', 'font-weight': isMobile ? 400 : 500}">班级名称</span>
         <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['className']"></v-text-field>
       </v-col>
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
@@ -252,7 +252,7 @@ new Vue({
     async refreshTableData() {
       this.isTableLoading = true;
       const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const { data: { appData: { resultData: {rows} } } } = await window.jianghuAxios({
+      const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'classManagement',
@@ -265,8 +265,8 @@ new Vue({
         }
       });
 
-      this.tableDataFromBackend = rows;
-      this.tableData = rows;
+      this.tableDataFromBackend = result.data.appData.resultData.rows;
+      this.tableData = result.data.appData.resultData.rows;
       this.isTableLoading = false;
     },
 

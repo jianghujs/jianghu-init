@@ -285,7 +285,7 @@ new Vue({
     async refreshTableData() {
       this.isTableLoading = true;
       const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const { data: { appData: { rows } } } = await window.jianghuAxios({
+      const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'studentFileManagement',
@@ -298,8 +298,8 @@ new Vue({
         }
       });
 
-      this.tableDataFromBackend = rows;
-      this.tableData = rows;
+      this.tableDataFromBackend = result.data.appData.resultData.rows;
+      this.tableData = result.data.appData.resultData.rows;
       this.isTableLoading = false;
     },
     // =================================uiAction 公共方法 end ======================================

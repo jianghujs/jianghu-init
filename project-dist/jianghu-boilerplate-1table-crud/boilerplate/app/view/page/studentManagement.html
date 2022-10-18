@@ -91,7 +91,7 @@ SQL END!-->
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">学生ID</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['studentId']"></v-text-field>
+        <v-text-field class="cus-v-input " :rules="requireRules" required dense filled single-line v-model="addItem['studentId']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
@@ -300,6 +300,7 @@ new Vue({
           await this.openCreateItemDialog();
           break;
         case 'createItem':
+          await this.prepareValidate();
           await this.confirmCreateItemDialog();
           await this.doCreateItem();
           await this.closeDrawerShow();
@@ -310,6 +311,7 @@ new Vue({
           await this.openUpdateDialog();
           break;
         case 'updateItem':
+          await this.prepareValidate();
           await this.confirmUpdateItemDialog();
           await this.doUpdateItem();
           await this.closeDrawerShow();
@@ -334,7 +336,7 @@ new Vue({
     async refreshTableData() {
       this.isTableLoading = true;
       const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const { data: { appData: { rows } } } = await window.jianghuAxios({
+      const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'studentManagement',
@@ -347,7 +349,7 @@ new Vue({
         }
       });
 
-      this.tableDataFromBackend = rows;
+      this.tableDataFromBackend = result.data.appData.resultData.rows;
       this.isTableLoading = false;
     },
     // =================================uiAction 公共方法 end ======================================
@@ -362,6 +364,13 @@ new Vue({
     },
     async openCreateItemDialog() {
       this.isAddDrawerShow = true;
+    },
+
+    // 表单验证
+    async prepareValidate() {
+      if (await this.$refs.form.validate() === false) {
+        throw new Error("[prepareValidate] false");
+      }
     },
 
     /** 

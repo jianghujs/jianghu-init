@@ -41,7 +41,7 @@ module.exports = appInfo => {
       password: "123456",
       serverAppId: "duoxing",
       deviceType: "bot_xiaochengxu", // bot_databot, bot_chatbot, bot_xiaochengxu
-      xiaochengxuIndexPage: "fileManagement", // 默认首页: index
+      xiaochengxuIndexPage: "studentFileManagement", // 默认首页: index
     },
   };
 
