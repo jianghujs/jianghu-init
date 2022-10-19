@@ -370,6 +370,7 @@ new Vue({
     */
     async prepareItemData({item}) {
       this.editItem = {...item};
+      this.editInputFile = new File([new Blob()], item.filename);
     },
     async openUpdateDialog() {
       this.isEditDrawerShow = true;
@@ -389,7 +390,7 @@ new Vue({
     async doUpdateItem() {
       const { id, docType, studentName, remarks } = this.editItem;
       const updateParam = { docType, studentName, remarks };
-      if (this.editInputFile) {
+      if (this.editInputFile && this.editInputFile.size) {
         const result =  await window.jianghuAxios.httpUploadByStream({ file: this.editInputFile, fileDirectory: 'testFile',
           onProgress: (total, loaded) => {
             let progress = Number((loaded * 100 / total).toFixed(2))

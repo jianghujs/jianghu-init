@@ -141,7 +141,7 @@ new Vue({
       {text: '年级', value: 'level', width: 120},
       {text: '身高', value: 'bodyHeight', width: 120},
       {text: '学生状态', value: 'studentStatus', width: 120},
-      {text: '备注', value: 'remarks', width: 120},
+      {text: '备注', value: 'remark', width: 120},
       {text: "操作者", value: "operationByUser", width: 120},
       {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
     ],
@@ -213,7 +213,7 @@ new Vue({
           await this.doUpdateItem();
           await this.refreshTableData();
           await this.buildDrawerTableData();
-          await this.closeDrawerShow();
+          await this.closeDrawerShow("editDrawer");
           break;
         case 'deleteRelation':
           await this.confirmDeleteItemDialog();
@@ -366,8 +366,9 @@ new Vue({
       await window.vtoast.success("修改数据成功");
     },
 
-    async closeDrawerShow() {
-      this.isAllotEditDrawerShow = false;
+    async closeDrawerShow(drawer = 'allotEditDrawer') {
+      let isDrawerShow = `is${_.upperFirst(drawer)}Show`;
+      this[isDrawerShow] = false;
     },
 
     /**

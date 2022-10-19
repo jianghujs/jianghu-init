@@ -1,0 +1,127 @@
+<template id="page-passcode-validation">
+  <v-dialog 
+    v-model="isDialog" persistent="true" :hide-overlay="false" 
+    overlay-opacity="1"
+    transition="dialog-top-transition" max-width="600">
+    <v-card>
+      <v-toolbar color="primary title pl-5" dark>页面认证</v-toolbar>
+      <v-card-text>
+        <div style="height: 20px;"></div>
+        <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+          <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+            <span class="inputLabel">认证码</span>
+            <v-text-field class="cus-v-input" dense filled single-line type="password" v-model="passcodeOfUser"></v-text-field>
+            <p style="text-align: right;">认证成功后, {{ validationDurationHour }}小时内无需重复认证。</p>
+          </v-col>
+        </v-row>  
+      </v-card-text>
+      <v-card-actions class="justify-end">
+        <v-btn depressed class="mr-2 primary" @click="passcodeValidation">确定</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+</template>
+
+<script type="module">
+Vue.component("page-passcode-validation",{
+  template: '#page-passcode-validation',
+  props: {
+    validationDurationHour: {
+      type: Number,
+      default: 6,
+    },
+  },
+  data: () => ({
+    isDialog: false,
+    passcodeOfServer: '<$ page.passcode $>',
+    passcodeOfUser: null,
+    pageId: null,
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+  },
+  watch: {
+  },
+  async created() {
+    const urlPathList = window.location.pathname.split('/');
+    const pageId = urlPathList && urlPathList[urlPathList.length - 1];
+    this.pageId = pageId;
+
+    this.computeisDailog();
+  },
+  mounted() {},
+  methods: {
+    computeisDailog (){
+      if (!this.passcodeOfServer) {
+        this.isDialog = false;
+        return;
+      }
+
+      const pageValidation = this.getPageValidationFromLocalStorage({ pageId: this.pageId });
+      const { date, success } = pageValidation;
+      let duration = 999999;
+      try {
+        duration = dayjs().diff(date, 'hour');
+        // duration = dayjs().diff(date, 'minute');
+        // duration = dayjs().diff(date, 'second');
+      } catch (error) {
+        console.error("[created]", "date 解析异常");
+      }
+      if (success === true && duration < this.validationDurationHour) {
+        this.isDialog = false;;
+        return;
+      }
+
+      this.isDialog = true
+    },
+
+    getPageValidationFromLocalStorage ({ pageId }){
+      let pageValidationObj = {}
+      try {
+        const pageValidationObjStr  = localStorage.getItem(`${window.appInfo.appId}_page_validation_obj`);
+        pageValidationObj = JSON.parse(pageValidationObjStr || '{}');
+      } catch (error) {
+        console.error("[getPageValidationFromLocalStorage]", "json 数据异常");
+      }
+      return pageValidationObj[pageId] || {};
+    },
+
+    setPageValidationToLocalStorage ({ pageId, value }){
+      let pageValidationObj = {}
+      try {
+        const pageValidationObjStr  = localStorage.getItem(`${window.appInfo.appId}_page_validation_obj`);
+        pageValidationObj = JSON.parse(pageValidationObjStr || '{}');
+      } catch (error) {
+        console.error("[setPageValidationToLocalStorage]", "json 数据异常");
+      }
+      pageValidationObj[pageId] = value;
+      localStorage.setItem(`${window.appInfo.appId}_page_validation_obj`, JSON.stringify(pageValidationObj));
+    },
+
+    passcodeValidation () {
+      if (this.passcodeOfUser !== this.passcodeOfServer) {
+        window.vtoast.fail({ message: '页面认证失败' });
+      } 
+      if (this.passcodeOfUser === this.passcodeOfServer) {
+        this.setPageValidationToLocalStorage({ 
+          pageId: this.pageId, 
+          value: {
+            pageId: this.pageId,
+            date: dayjs(),
+            success: true,
+          }
+        });
+        this.isDialog = false;;
+      }
+    },
+  }
+})
+</script>
+
+<style>
+  .v-overlay {
+    margin-top: 70px;
+  }
+</style>
