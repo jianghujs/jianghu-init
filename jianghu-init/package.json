@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-init",
-  "version": "2.0.17",
+  "version": "2.0.18",
   "description": "Init jianghu app helper tools.",
   "main": "lib/entry.js",
   "scripts": {
@@ -27,6 +27,7 @@
     "knex": "^0.95.11",
     "log-symbols": "^3.0.0",
     "mkdirp": "^0.5.1",
+    "mysql": "2.18.1",
     "mysql-import": "^5.0.21",
     "mz-modules": "^2.1.0",
     "node-homedir": "^1.1.1",
