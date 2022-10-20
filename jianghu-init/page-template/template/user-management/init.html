@@ -31,6 +31,12 @@
                     mobile-breakpoint="0"
                     :class="{'mx-2': isMobile}"
                     class="elevation-0 mt-0 flex-fill d-flex flex-column">
+        <template v-slot:item.clearTextPassword="{ item }">
+          <span @click="copyPassword({item})" style="cursor: pointer;">
+            <v-icon small >mdi-content-copy</v-icon>
+            复制
+          </span>
+        </template>    
         <template v-slot:item.userType="{ item }">
           {{ getConstantCollectionItemText('userType', item.userType) }}
         </template>
@@ -395,7 +401,12 @@
           return constantCollectionItemFind.text;
         }
         return _value;
-      }
+      },
+
+      copyPassword({item}){
+        navigator.clipboard.writeText(item.clearTextPassword);
+        return window.vtoast.success("复制密码成功！")
+      },
     }
   })
 </script>
