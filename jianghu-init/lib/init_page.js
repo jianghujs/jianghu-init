@@ -27,32 +27,37 @@ const pageTypes = [
     value: 'manual-page',
     name: 'manual-page - generate manual page from a table',
     pageId: 'manual',
-    path: 'template/manual/'
+    path: 'template/manual/',
   }, {
     value: 'reset-password-page',
     name: 'reset-password-page - generate pages from reset-password',
     pageId: 'resetUserPassword',
-    path: 'template/reset-password/'
+    path: 'template/reset-password/',
   }, {
     value: 'record-history-page',
     name: 'record-history-page - generate pages from record-history',
     pageId: 'recordHistory',
-    path: 'template/record-history/'
+    path: 'template/record-history/',
   }, {
     value: 'user-management-page',
     name: 'user-management-page - generate pages from user-management',
     pageId: 'userManagement',
-    path: 'template/user-management/'
+    path: 'template/user-management/',
   }, {
     value: 'user-group-role-page',
     name: 'user-group-role-page - generate pages from user-group-role',
     pageId: 'userGroupRole',
-    path: 'template/user-group-role/'
+    path: 'template/user-group-role/',
   }, {
     value: 'user-page-resource-page',
     name: 'user-page-resource-page - generate pages from user-page-resource',
     pageId: 'userPageResource',
-    path: 'template/user-page-resource/'
+    path: 'template/user-page-resource/',
+  }, {
+    value: 'page-log',
+    name: 'page-log - view page log',
+    pageId: 'pageLog',
+    path: 'template/page-log/',
   }, {
     value: 'test-page',
     name: 'test-page - generate test page from a table',

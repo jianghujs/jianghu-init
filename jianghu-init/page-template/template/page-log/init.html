@@ -1,0 +1,153 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+
+
+<jh-layout-v3>
+
+
+  <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+    <v-card>
+    <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+
+        <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+          <v-select v-model="logFileSelected" :items="constantCollection.logFile" 
+            style="width: 350px; display: inline-block;"
+            prefix="文件:" hide-details dense filled single-line hide-no-data hide-selected />
+          <span class="body-2">共{{ tableData.length }}条记录</span>
+        </v-col>
+        <v-spacer></v-spacer>
+        <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+          <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+        </v-col>
+      </v-row>
+      <v-data-table fixed-header
+                    :headers="headers"
+                    :items="tableData"
+                    :search="searchInput"
+                    :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                    :items-per-page="100"
+                    mobile-breakpoint="0"
+                    :loading="isTableLoading"
+                    checkbox-color="success"
+                    class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      </v-data-table>
+    </v-card>
+  </v-container>
+
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+{% include 'common/resetTableMaxHeight.html' %}
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    // 表格相关数据
+    isFormValid: true,
+    requireRules: [
+      v => !!v || 'This is required',
+    ],
+    constantCollection: {
+      logFile: [],
+    },
+
+    logFileSelected: null,
+    searchInput: null,
+    isTableLoading: true,
+
+    tableDataFromBackend: [],
+    headers: [
+      {text: "访问时间", value: "date", width: 220, class: 'fixed', cellClass: 'fixed'}, 
+      {text: "访问页面Id", value: "pageId", width: 220}, 
+      {text: "访问页面", value: "pageName", width: 120}, 
+      {text: "访问用户Id", value: "userId", width: 120}, 
+      {text: "访问用户名", value: "username", width: 120}, 
+      {text: "设备Id", value: "deviceId", width: 120}, 
+      {text: "设备类型", value: "deviceType", width: 120}, 
+      {text: "服务器主机名", value: "hostname", width: 220}, 
+      {text: "服务进程Id", value: "pid", width: 120}, 
+    ],
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataFromBackend;
+    }
+  },
+  watch: {
+    logFileSelected() {
+      this.doUiAction('refreshTableData');
+    }
+  },
+  async created() {
+    await this.doUiAction('selectLogFileList');
+    if (this.constantCollection.logFile.length > 0) {
+      this.logFileSelected = this.constantCollection.logFile[0].filename;
+    }
+    await this.doUiAction('refreshTableData');
+  },
+  mounted() {},
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'selectLogFileList':
+          await this.selectLogFileList();
+          break;
+        case 'refreshTableData':
+          await this.refreshTableData();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          break;
+      }
+    },
+    // =================================uiAction 公共方法 start ======================================
+    async selectLogFileList() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: '<=$ pageId $=>',
+            actionId: 'selectLogFileList',
+            actionData: {},
+          }
+        }
+      });
+      const { rows } = result.data.appData.resultData;
+      this.constantCollection.logFile = rows.map(item => {
+        const { filename } = item;
+        return { text: filename, value: filename, filename };
+      });
+    },
+    async refreshTableData() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: '<=$ pageId $=>',
+            actionId: 'selectItemListFromLogFile',
+            actionData: { logFile: this.logFileSelected },
+          }
+        }
+      });
+      const { rows } = result.data.appData.resultData;
+
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    },
+    // =================================uiAction 公共方法 end ======================================
+  }
+})
+</script>
+
+<style scoped>
+</style>
+{% endblock %}
