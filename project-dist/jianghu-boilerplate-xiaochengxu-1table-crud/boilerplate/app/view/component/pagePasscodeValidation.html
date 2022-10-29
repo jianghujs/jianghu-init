@@ -46,9 +46,8 @@ Vue.component("page-passcode-validation",{
   },
   async created() {
     const urlPathList = window.location.pathname.split('/');
-    const pageId = urlPathList && urlPathList[urlPathList.length - 1];
-    this.pageId = pageId;
-
+    const urlParams = new URLSearchParams(location.search);
+    this.pageId = urlParams.get('pageId');
     this.computeisDailog();
   },
   mounted() {},

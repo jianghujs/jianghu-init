@@ -8,8 +8,8 @@
     "framework": "@jianghujs/jianghu"
   },
   "dependencies": {
-    "@jianghujs/jianghu": "3.0.74",
-    "@jianghujs/jianghu-duoxing": "2.0.11",
+    "@jianghujs/jianghu": "3.0.80",
+    "@jianghujs/jianghu-duoxing": "2.0.14",
     "egg": "^2.15.1"
   },
   "devDependencies": {

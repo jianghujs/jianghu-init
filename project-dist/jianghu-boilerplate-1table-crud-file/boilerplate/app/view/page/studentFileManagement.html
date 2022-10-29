@@ -469,6 +469,9 @@ new Vue({
             window.vtoast.success('文件下载成功');
           }
         }
+      }).catch(err => {
+        window.vtoast.fail({ message: err.errorReason });
+        throw err;
       });
       window.jianghuAxios.downloadBufferToChrome({ buffer, filename });
     },
