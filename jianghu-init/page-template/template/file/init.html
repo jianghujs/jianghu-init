@@ -100,7 +100,7 @@
     el: '#app',
     template: '#app-template',
     vuetify: new Vuetify(),
-    data: {
+    data: () => ({
       isMobile: window.innerWidth < 600,
       // 表格相关数据
       isFormValid: true,
@@ -128,6 +128,14 @@
       fileType: '',
       fileSrc: '',
       previewPrefix: `/<$ ctx.app.config.appId $>/upload`,
+    }),
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+      tableData() {
+        return this.tableDataFromBackend;
+      }
     },
     watch: {},
     async created() {
