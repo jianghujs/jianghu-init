@@ -206,12 +206,14 @@ SQL END!-->
           case 'allotItem':
             await this.confirmAllotItemDialog();
             await this.doAllotItem();
+            await this.clearAllotItemData();
             await this.refreshTableData();
             await this.buildDrawerTableData();
             break;
           case 'buildRelation':
             await this.confirmAllotItemDialog();
             await this.doBuildRelation(uiActionData);
+            await this.clearAllotItemData();
             await this.refreshTableData();
             await this.buildDrawerTableData();
             break;
@@ -306,6 +308,9 @@ SQL END!-->
           await this.buildRelationImpl(<=$ primaryFieldB $=>);
         }
         window.vtoast.success("批量新增成功");
+      },
+
+      async clearAllotItemData() {
         this.drawerItemSelectedClass = [];
       },
 
