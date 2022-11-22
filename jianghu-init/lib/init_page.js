@@ -5,6 +5,7 @@ const InitPage1TableFile = require('./page/init_page_1table_file');
 const InitPage2Table = require('./page/init_page_2table');
 const InitPage3Table = require('./page/init_page_3table');
 const InitPageTestPage = require('./page/init_page_test_page');
+const InitComponentCrudRelateTable = require('./page/init_component_crud_relate_table');
 const InitPageStatic = require('./page/init_page_static');
 const InitPageManual = require('./page/init_page_manual');
 const CommandBase = require('./command_base');
@@ -59,6 +60,9 @@ const pageTypes = [
     pageId: 'pageLog',
     path: 'template/page-log/',
   }, {
+    value: 'component-crud-relate-table',
+    name: 'component-crud - generate component from a relate table for targetPage',
+  }, {
     value: 'test-page',
     name: 'test-page - generate test page from a table',
   }];
@@ -93,6 +97,8 @@ module.exports = class InitPageCommand extends CommandBase {
       await new InitPage3Table().run(process.cwd(), this.argv);
     } else if (pageType === 'test-page') {
       await new InitPageTestPage().run(process.cwd(), this.argv);
+    } else if (pageType === 'component-crud-relate-table') {
+      await new InitComponentCrudRelateTable().run(process.cwd(), this.argv);
     } else if (pageType === 'manual-page') {
       await new InitPageManual().run(process.cwd(), pageTypes.find(o => o.value === pageType));
     } else {
