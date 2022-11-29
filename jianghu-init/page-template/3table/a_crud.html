@@ -18,9 +18,12 @@ SQL END!-->
 
 <jh-layout-v3>
   <template slot="serverSearch">
-    <v-row class="flex-none" :dense="isMobile" :class="{'pb-4': isMobile, 'ma-0': !isMobile}" align="center" style="height: 100%;">
+    <v-row :dense="isMobile" :class="{'pb-4': isMobile}" align="center" :style="{margin: isMobile ? '-12px' : '0'}">
       <v-spacer v-if="!isMobile"></v-spacer>
-      <v-col cols="12" xs="12" sm="3" md="3" xl="3" :class="{'pr-0': !isMobile}" :style="{'max-width': '80px'}">
+      <v-col cols="6" sm="6" md="3" xl="3" :class="{'pr-0': !isMobile}">
+        <v-select class="cus-v-input " dense filled single-line clearable hide-details label="xxx"></v-select>
+      </v-col>
+      <v-col cols="6" sm="3" md="3" xl="2" :class="{'pr-0': !isMobile}" :style="{'max-width': !isMobile ? '80px' : 'unset'}">
         <v-btn color="success" class="elevation-0" block dark @click="doUiAction('refreshTableData')">查询</v-btn>
       </v-col>
     </v-row>
