@@ -71,14 +71,14 @@ SQL END!-->
   <v-navigation-drawer v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%"
                        class="elevation-24">
     <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
-      <v-row class="pt-8">
-        <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">新增信息</span>
+      <v-row  class="ma-0 pb-6 pt-10" justify="center" align="center" :class="{'px-4': isMobile, 'px-10': !isMobile}">
+        <span class="title">新增信息</span>
         <v-spacer></v-spacer>
-        <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isAddDrawerShow = false">
+        <v-btn class="elevation-0" fab x-small @click="isAddDrawerShow = false">
           <v-icon dark>mdi-close</v-icon>
         </v-btn>
       </v-row>
-      <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+      <v-row class="ma-0" :class="{'px-7': !isMobile, 'px-0': isMobile, 'pb-4': isMobile}">
         //===// <=% for f in tableBFields %=>
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
@@ -105,7 +105,7 @@ SQL END!-->
 <!--        </v-menu>-->
 <!--      </v-col>-->
       </v-row>
-      <v-row class="justify-end mx-0 mt-8 mb-8" :class="{'px-10': !isMobile, 'px-4': isMobile}">
+      <v-row class="mx-0 justify-end mt-4" :class="{'px-4': isMobile, 'px-10': !isMobile, 'mb-8': isMobile}">
         <v-btn color="success" @click="doUiAction('createItem')">新增</v-btn>
         <v-btn class="ml-2" @click="isAddDrawerShow = false">取消</v-btn>
       </v-row>
@@ -115,21 +115,21 @@ SQL END!-->
   <v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%"
                        class="elevation-24">
     <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
-      <v-row class="pt-8">
-        <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">编辑信息</span>
+      <v-row  class="ma-0 pb-6 pt-10" justify="center" align="center" :class="{'px-4': isMobile, 'px-10': !isMobile}">
+        <span class="title">编辑信息</span>
         <v-spacer></v-spacer>
-        <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+        <v-btn class="elevation-0" fab x-small @click="isEditDrawerShow = false">
           <v-icon dark>mdi-close</v-icon>
         </v-btn>
       </v-row>
-      <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+      <v-row class="ma-0" :class="{'px-7': !isMobile, 'px-0': isMobile, 'pb-4': isMobile}">
         //===// <=% for f in tableBFields %=>
         <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
           <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
         </v-col>//===// <=% endfor %=>
       </v-row>
-      <v-row class="justify-end mx-0 mt-8 mb-8" :class="{'px-10': !isMobile, 'px-4': isMobile}">
+      <v-row class="mx-0 justify-end mt-4" :class="{'px-4': isMobile, 'px-10': !isMobile, 'mb-8': isMobile}">
         <v-btn color="success" @click="doUiAction('updateItem')">保存</v-btn>
         <v-btn class="ml-2" @click="isEditDrawerShow = false">取消</v-btn>
       </v-row>
