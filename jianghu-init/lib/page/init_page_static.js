@@ -45,15 +45,18 @@ module.exports = class InitPagePublic extends CommandBase {
   /**
    * 生成 crud
    */
-  async generateCrud({pageId: defaultPageId, path }) {
+  async generateCrud({ pageId: defaultPageId, path, queryPageId = true }) {
 
     this.info('开始生成 CRUD');
-    const { pageId } = await inquirer.prompt({
-      name: 'pageId',
-      type: 'input',
-      message: 'Please input pageId',
-      default: defaultPageId
-    });
+    let pageId = defaultPageId;
+    if (queryPageId) {
+      pageId = (await inquirer.prompt({
+        name: 'pageId',
+        type: 'input',
+        message: 'Please input pageId',
+        default: defaultPageId,
+      })).pageId;
+    }
     if (!pageId) {
       this.info('为输入page，流程结束');
       return;
@@ -116,8 +119,8 @@ module.exports = class InitPagePublic extends CommandBase {
     }
     // console.log('context', context);
     let result = nunjucks.renderString(listTemplate, context);
-    
-    result = result.replace(/<!--SQL START([\s\S]*)SQL END!-->/, '')
+
+    result = result.replace(/<!--SQL START([\s\S]*)SQL END!-->/, '');
     fs.writeFileSync(filepath, result);
     return true;
   }
@@ -134,7 +137,7 @@ module.exports = class InitPagePublic extends CommandBase {
         // const appId = `${tableCamelCase}Management`;
         // sql = sql.replace(/\{\{appId}}/g, appId);
         // console.log(sql);
-    
+
         for (const line of sql.split('\n')) {
           if (!line) {
             continue;
@@ -168,7 +171,7 @@ module.exports = class InitPagePublic extends CommandBase {
             return false;
           }
         }
-        
+
         fs.writeFileSync(servicePath, service);
         return true;
       }

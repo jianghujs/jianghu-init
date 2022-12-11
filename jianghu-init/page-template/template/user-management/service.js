@@ -47,7 +47,7 @@ class {{pageId}}Service extends Service {
     const userExistCountResult = await jianghuKnex(tableEnum._user, this.ctx).where({ userId }).count('*', { as: 'count' });
     const userExistCount = userExistCountResult[0].count;
     if (userExistCount > 0) {
-      throw new BizError(errorInfoEnum.user_id_exist);
+      throw new BizError(errorInfoEnum.request_user_not_exist);
     }
     const insertParams = _.pick(actionData, [ 'username', 'contactNumber', 'gender',
       'birthday', 'signature', 'email', 'userType',
@@ -64,7 +64,7 @@ class {{pageId}}Service extends Service {
     const userExistCountResult = await jianghuKnex(tableEnum._user, this.ctx).where({ userId }).count('*', {as: 'count'});
     const userExistCount = userExistCountResult[0].count;
     if (userExistCount === 0) {
-      throw new BizError(errorInfoEnum.user_not_exist);
+      throw new BizError(errorInfoEnum.request_user_not_exist);
     }
     const md5Salt = idGenerateUtil.randomString(12);
     const password = md5(`${clearTextPassword}_${md5Salt}`);

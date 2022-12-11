@@ -3,6 +3,7 @@
 const inquirer = require('inquirer');
 const CommandInitProject = require('./init_project');
 const CommandInitPage = require('./init_page');
+const CommandInitTool = require('./init_tool');
 
 const initTypes = [
   {
@@ -11,6 +12,9 @@ const initTypes = [
   }, {
     value: 'page',
     name: 'page - Generate manage or test page from database table.',
+  }, {
+    value: 'tool',
+    name: 'tool - Add some tools to manage your app.',
   }];
 
 /**
@@ -23,7 +27,7 @@ module.exports = class Entry {
     let passArgv = process.argv.slice(2);
     let initType = passArgv[0];
 
-    if (initType !== 'project' && initType !== 'page') {
+    if (initType !== 'project' && initType !== 'page' && initType !== 'tool') {
       // 需要指定是 page 还是 project
       const answer = await inquirer.prompt({
         name: 'initType',
@@ -41,6 +45,8 @@ module.exports = class Entry {
       await new CommandInitProject().run(process.cwd(), passArgv);
     } else if (initType === 'page') {
       await new CommandInitPage().run(process.cwd(), passArgv);
+    } else if (initType === 'tool') {
+      await new CommandInitTool().run(process.cwd(), passArgv);
     }
 
     process.exit();

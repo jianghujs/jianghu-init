@@ -121,7 +121,7 @@ class {{pageId}}Service extends Service {
     const { recordHistoryId } = actionData;
     const recordHistory = await jianghuKnex(tableEnum._record_history).where({ id: recordHistoryId }).first();
     if (!recordHistory) {
-      throw new BizError(errorInfoEnum.data_exception);
+      throw new BizError(errorInfoEnum.data_not_found);
     }
 
     const { table, recordId, recordContent } = recordHistory;
