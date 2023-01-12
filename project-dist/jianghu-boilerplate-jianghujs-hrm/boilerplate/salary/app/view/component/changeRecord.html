@@ -1,0 +1,518 @@
+<template id="change-record">
+
+<!--   <template slot="serverSearch">
+    <v-row class="ma-0 align-center flex-none pa-0" :class="{'pa-2': !isMobile, 'pa-2': isMobile}" style="justify-content: end">
+      <v-col :class="{'pt-2': isMobile, 'pl-0': isMobile, 'pr-0': !isMobile}" style="max-width: 77px">
+        <v-btn
+          class="elevation-0"
+          color="success"
+          dark
+          @click="doUiAction('refreshTableData')"
+        >
+          查询
+        </v-btn>
+      </v-col>
+    </v-row>
+  </template>-->
+
+<!-- 页面主要内容 -->
+<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+  <v-card>
+    <v-data-table fixed-header
+                  :headers="headers"
+                  :items="tableData"
+                  :search="searchInput"
+                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                  :items-per-page="20"
+                  mobile-breakpoint="0"
+                  :loading="isTableLoading"
+                  checkbox-color="success"
+                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      <template v-slot:item.change="{ item }">
+        {{getConstText('changeReason', item.changeReason)}}
+      </template>
+      <template v-slot:item.status="{ item }">
+        {{getConstText('status', item.status)}}
+      </template>
+      <template v-slot:item.action="{ item }">
+        <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">详情</v-btn>
+      </template>
+    </v-data-table>
+  </v-card>
+  <!-- 编辑抽屉 -->
+  <v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" class="elevation-24">
+    <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+      <v-row class="pt-8">
+        <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">单个调薪</span>
+        <v-spacer></v-spacer>
+        <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+          <v-icon dark>mdi-close</v-icon>
+        </v-btn>
+      </v-row>
+      <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+        <v-col v-if="editItem.isMake" cols="12" sm="12" md="12" xl="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">定薪细则</span>
+          <!-- 定薪 -->
+          <v-simple-table>
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th class="text-left">
+                    定薪项
+                  </th>
+                  <th class="text-left">
+                    试用期工资
+                  </th>
+                  <th class="text-left">
+                    转正后工资
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(item, index) in editItem.proSalary.newSalary"
+                  :key="item.name"
+                >
+                  <td>{{ item.name }}</td>
+                  <td>
+                    <v-text-field class="cus-v-input " :readonly="editItem.employeeStatus == 1 || !editItem.isAccess" type="number" dense filled single-line v-model="item.value"></v-text-field>
+                  </td>
+                  <td>
+                    <v-text-field :readonly="!editItem.isAccess" class="cus-v-input " type="number" dense filled single-line v-model="editItem.salary.newSalary[index].value"></v-text-field>
+                  </td>
+                </tr>
+                <tr>
+                  <td>合计</td>
+                  <td>{{ newProSalarySum }}</td>
+                  <td>{{ newSalarySum }}</td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
+        </v-col>
+         
+        <v-col v-else cols="12" sm="12" md="12" xl="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">调薪细则</span>
+          <span v-if="editItem.employeeStatus > 1" class="inputLabel">试用期工资</span>
+          <!-- 定薪 -->
+          <v-simple-table v-if="editItem.employeeStatus > 1" >
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th class="text-left">
+                    调薪项
+                  </th>
+                  <th class="text-left">
+                    调薪前
+                  </th>
+                  <th class="text-left">
+                    调薪后
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(item, index) in editItem.proSalary.newSalary"
+                  :key="item.name"
+                >
+                  <td>{{ item.name }}</td>
+                  <td>
+                    <v-text-field v-if="editItem.proSalary.oldSalary[index]" class="cus-v-input " :readonly="editItem.employeeStatus == 1 || !editItem.isAccess" type="number" dense filled single-line v-model="editItem.proSalary.oldSalary[index].value"></v-text-field>
+                  </td>
+                  <td>
+                    <v-text-field :readonly="!editItem.isAccess" class="cus-v-input " type="number" dense filled single-line v-model="item.value"></v-text-field>
+                  </td>
+                </tr>
+                <tr>
+                  <td>合计</td>
+                  <td>{{ oldProSalarySum }}</td>
+                  <td>{{ newProSalarySum }}</td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
+          <span class="inputLabel">转正后工资</span>
+          <!-- 定薪 -->
+          <v-simple-table >
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th class="text-left">
+                    调薪项
+                  </th>
+                  <th class="text-left">
+                    调薪前
+                  </th>
+                  <th class="text-left">
+                    调薪后
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(item, index) in editItem.salary.newSalary"
+                  :key="item.name"
+                >
+                  <td>{{ item.name }}</td>
+                  <td>
+                    <v-text-field v-if="editItem.salary.oldSalary[index]" class="cus-v-input " :readonly="editItem.employeeStatus == 1 || !editItem.isAccess" type="number" dense filled single-line v-model="editItem.salary.oldSalary[index].value"></v-text-field>
+                  </td>
+                  <td>
+                    <v-text-field :readonly="!editItem.isAccess" class="cus-v-input " type="number" dense filled single-line v-model="item.value"></v-text-field>
+                  </td>
+                </tr>
+                <tr>
+                  <td>合计</td>
+                  <td>{{ oldSalarySum }}</td>
+                  <td>{{ newSalarySum }}</td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
+        </v-col>
+         
+        <v-col v-if="!editItem.isMake" cols="6" sm="12" md="6" xl="6" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">调薪原因</span>
+          <v-select class="cus-v-input " dense filled single-line label="班级ID" v-model="editItem.changeReason"
+          :items="constantCollection.changeReason" item-text="text" item-value="value"></v-select>
+        </v-col>
+        <v-col v-if="!editItem.isMake" cols="6" sm="12" md="6" xl="6" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">调薪生效日期</span>
+          <v-menu  :readonly="!editItem.isAccess" class="cus-v-input " offset-y max-width="290">
+            <template v-slot:activator="{ on, attrs }">
+              <v-text-field class="cus-v-input " dense filled single-line v-on="on" label="调薪生效日期" v-model="editItem.enableDate"></v-text-field>
+            </template>
+            <v-date-picker color="success" elevation="20" v-model="editItem.enableDate"></v-date-picker>
+         </v-menu>
+        </v-col>
+        <v-col cols="12" sm="12" md="12" xl="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">备注</span>
+          <v-textarea :readonly="!editItem.isAccess" class="cus-v-input " dense filled single-line v-model="editItem['remarks']" filled single-line auto-grow rows="4"></v-textarea>
+        </v-col>
+      </v-row>
+      <v-row v-if="editItem.isAccess" class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+        <v-btn v-if="editItem.isMake" color="success" @click="doUiAction('updateItem', {type: 'makeEmployeeArchives'})">定薪提交</v-btn>
+        <v-btn v-else color="success" @click="doUiAction('updateItem', {type: 'updateEmployeeArchives'})">调薪提交</v-btn>
+        <v-btn class="ml-2" @click="isEditDrawerShow = false">取消</v-btn>
+      </v-row>
+    </v-form>
+  </v-navigation-drawer>
+</v-container>
+
+</template>
+
+<script type="module">
+Vue.component('change-record', {
+  template: '#change-record',
+  props: ['employeeId', 'changeReasonList', 'employeeName'],
+  data: () => ({
+    // 表格相关数据
+    isFormValid: true,
+    requireRules: [
+      v => !!v || 'This is required',
+    ],
+    constantCollection: {
+      // 状态 0 未生效 1 已生效 2 已取消
+      status: [
+        { text: '未生效', value: 0 },
+        { text: '已生效', value: 1 },
+        { text: '已取消', value: 2 },
+      ],
+      changeReason: [],
+    },
+
+    serverSearchInput: {
+      studentId: null,
+      classId: null
+    },
+    searchInput: null,
+    isTableLoading: true,
+    tableDataFromBackend: [],
+    headers: [
+      {text: "记录类型", value: "recordType", width: 120}, 
+      {text: "调薪原因", value: "change", width: 120}, 
+      {text: "生效日期", value: "enableDate", width: 120}, 
+      {text: "状态", value: "status", width: 120}, 
+      {text: "试用期调整前工资", value: "proBeforeSum", width: 120}, 
+      {text: "试用期调整后工资", value: "proAfterSum", width: 120}, 
+      {text: "正式调整前工资 json", value: "beforeSum", width: 120}, 
+      {text: "正式调整后工资", value: "afterSum", width: 120}, 
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+    ],
+    isEditDrawerShow: false,
+    editItem: {},
+    isAddDrawerShow: false,
+    addItem: {}
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataFromBackend;
+    }
+  },
+  watch: {
+    'editItem.proSalary.newSalary': {
+      deep: true,
+      handler(newVal, oldVal) {
+        this.newProSalarySum = parseFloat(newVal.reduce((total, item) => {
+          return +total + +item.value;
+        }, 0));
+      }
+    },
+    'editItem.proSalary.oldSalary': {
+      deep: true,
+      handler(newVal, oldVal) {
+        this.oldProSalarySum = parseFloat(newVal.reduce((total, item) => {
+          return +total + +item.value;
+        }, 0));
+      }
+    },
+    'editItem.salary.newSalary': {
+      deep: true,
+      handler(newVal, oldVal) {
+        this.newSalarySum = parseFloat(newVal.reduce((total, item) => {
+          return +total + +item.value;
+        }, 0));
+      }
+    },
+    'editItem.salary.oldSalary': {
+      deep: true,
+      handler(newVal, oldVal) {
+        this.oldSalarySum = parseFloat(newVal.reduce((total, item) => {
+          return +total + +item.value;
+        }, 0));
+      }
+    },
+  },
+  async created() {
+    this.constantCollection.changeReason = this.changeReasonList;
+    await this.doUiAction('refreshTableData');
+  },
+  mounted() {},
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'refreshTableData':
+          await this.refreshTableData();
+          break;
+        case 'startCreateItem':
+          await this.clearItemData();
+          await this.openCreateItemDialog();
+          break;
+        case 'createItem':
+          await this.prepareValidate();
+          await this.confirmCreateItemDialog();
+          await this.doCreateItem();
+          await this.closeDrawerShow();
+          await this.refreshTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareItemData(uiActionData);
+          await this.openUpdateDialog();
+          break;
+        case 'updateItem':
+          await this.prepareValidate();
+          await this.confirmUpdateItemDialog();
+          await this.doUpdateItem(uiActionData);
+          await this.closeDrawerShow();
+          await this.refreshTableData();
+          break;
+        case 'deleteItem':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteItem(uiActionData);
+          await this.refreshTableData();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          break;
+      }
+    },
+    // =================================uiAction 公共方法 start ======================================
+    /**
+     * uiActionId:  prepareValidate
+     * description: ✅表单校验
+    */
+    async prepareValidate() {
+      if (this.$refs.form.validate() === false) {
+        window.vtoast.fail({ message: "输入有误, 请检查!" });
+        throw new Error("[prepareValidate] false");
+      }
+    },
+
+    /**
+     * uiActionId:  refreshTableData
+     * description: ✅获取表格数据
+    */
+    async refreshTableData() {
+      this.isTableLoading = true;
+      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'changeRecord',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {employeeId: this.employeeId},
+            orderBy: [{column: 'id', order: 'desc'}]
+          }
+        }
+      });
+      const { rows } = result.data.appData.resultData;
+      if (rows.length) {
+        rows[0].isAccess = true
+      }
+      rows.forEach(item => {
+        item.enableDate = item.enableDate ? dayjs(item.enableDate).format('YYYY-MM-DD') : '';
+        item.proSalary = JSON.parse(item.proSalary);
+        item.salary = JSON.parse(item.salary);
+      });
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    },
+    // =================================uiAction 公共方法 end ======================================
+
+
+    /**
+     * uiActionId:  startCreateItem
+     * description: ✅获取表格数据
+    */
+    async clearItemData() {
+      this.addItem = {};
+    },
+    async openCreateItemDialog() {
+      this.isAddDrawerShow = true;
+    },
+
+    /**
+     * uiActionId:  createItem
+     * description: ✅获取表格数据
+    */
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doCreateItem() {
+      const { id, ...data } = this.addItem;
+      await window.vtoast.loading("新增数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'changeRecord',
+            actionId: 'insertItem',
+            actionData: data
+          }
+        }
+      })
+      await window.vtoast.success("新增数据成功");
+    },
+    async closeDrawerShow() {
+      this.isEditDrawerShow = false;
+      this.isAddDrawerShow = false;
+    },
+
+    /**
+     * uiActionId:  startUpdateItem
+     * description: ✅获取表格数据
+    */
+    async prepareItemData({item}) {
+      const { employeeId, changeType, status, changeRecordList, proSalary, salary, remarks, enableDate, recordType, changeReason, isAccess, id } = item;
+      let proSalaryRe;
+      let salaryRe;
+      let isMake = false;
+      if (Array.isArray(proSalary)) {
+        proSalaryRe = {oldSalary: [], newSalary: proSalary};
+        salaryRe = {oldSalary: [], newSalary: salary};
+        isMake = true;
+      } else {
+        proSalaryRe = proSalary;
+        salaryRe = salary;
+      }
+      this.editItem = {
+        id,
+        isAccess,
+        employeeId,
+        recordType,
+        proSalary: proSalaryRe,
+        salary: salaryRe,
+        remarks,
+        changeReason: 0,
+        enableDate,
+        status,
+        changeRecordList,
+        employeeName: this.employeeName,
+        isMake
+      };
+    },
+    async openUpdateDialog() {
+      this.isEditDrawerShow = true;
+    },
+    /**
+     * uiActionId:  updateItem
+     * description: ✅获取表格数据
+    */
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doUpdateItem({type}) {
+      const { recordType, proSalary, salary, templateId, remarks, changeReason, enableDate, employeeId, employeeStatus, id } = this.editItem;
+      await window.vtoast.loading("提交调薪");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'archivesManagement',
+            actionId: type,
+            actionData: {recordType, proSalary, salary, templateId, remarks, changeReason, enableDate, employeeId, employeeStatus, id}
+          }
+        }
+      })
+      await window.vtoast.success("提交成功");
+    },
+
+    /**
+     * uiActionId:  deleteItem
+     * description: ✅获取表格数据
+    */
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doDeleteItem({item}) {
+      const { id } = item;
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'changeRecord',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: { id: id }
+          }
+        }
+      });
+      await window.vtoast.success("删除数据成功");
+    },
+    getConstText(constName, constValue) {
+      console.log(constName, constValue);
+      const constData = this.constantCollection[constName];
+      if (!constData) {
+        return constValue;
+      }
+      const constItem = constData.find(item => item.value == constValue);
+      console.log(constItem);
+      if (!constItem) {
+        return constValue;
+      }
+      return constItem.text;
+    },
+  }
+})
+</script>
+
+<style scoped>
+</style>

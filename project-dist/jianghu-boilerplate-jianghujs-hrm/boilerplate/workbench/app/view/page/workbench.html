@@ -1,0 +1,293 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+<jh-layout-v3>
+  <v-row>
+    <v-col cols="8">
+      <v-card :class="{'px-2': isMobile}" class="mb-5">
+        <div class="d-flex pa-4">
+          <h5>人事概况</h5>
+          <span class="text--secondary text-caption ml-2">（2022.11.01-2022.11.30）</span>
+        </div>
+        <v-row>
+          <v-col cols="12">
+            <v-card class="d-flex flex-row flex-wrap ml-3" elevation="0">
+              <template v-for="(status, index) in constantCollection.status" :key="index">
+                <v-card
+                  elevation="0"
+                  class="pa-3 text-center" style="flex: 1;border-right: 1px solid #f5f5f5;border-radius: 0;">
+                  <div class="mb-2">{{status.text}}</div>
+                  <div><span class="primary--text">{{status.num || 0}}</span> 人</div>
+                </v-card>
+              </template>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-card>
+
+      <v-card :class="{'px-2': isMobile}" class="mb-5">
+        <div class="d-flex pa-4">
+          <h5>招聘动态</h5>
+          <span class="text--secondary text-caption ml-2">（2022.11.01-2022.11.30）</span>
+        </div>
+        <v-row>
+          <v-col cols="12">
+            <v-card class="d-flex flex-row flex-wrap ml-3" elevation="0">
+              <template v-for="(status, index) in constantCollection.status1" :key="index">
+                <v-card
+                  elevation="0"
+                  class="pa-3 text-center" style="flex: 1;border-right: 1px solid #f5f5f5;border-radius: 0;">
+                  <div class="mb-2">{{status.text}}</div>
+                  <div><span class="primary--text">{{status.num || 0}}</span> 人</div>
+                </v-card>
+              </template>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-card>
+
+      <v-card :class="{'px-2': isMobile}" class="mb-5">
+        <div class="d-flex pa-4">
+          <h5>上月薪资概况</h5>
+        </div>
+        <v-row>
+          <v-col cols="8">
+            <v-card class="d-flex flex-row flex-wrap ml-3" elevation="0">
+              <template v-for="(status, index) in constantCollection.status2" :key="index">
+                <v-card
+                  elevation="0"
+                  class="pa-3 text-center" style="flex: 1;border-right: 1px solid #f5f5f5;border-radius: 0;">
+                  <div class="mb-2">{{status.text}}</div>
+                  <div><span class="primary--text">{{status.num || 0}}</span> 人</div>
+                </v-card>
+              </template>
+            </v-card>
+          </v-col>
+          <v-col cols="4">
+            <div class="text-center">
+              <h4>部门薪资占比</h4>
+              <div class="text--secondary text-caption mt-3">暂无数据</div>
+            </div>
+          </v-col>
+        </v-row>
+      </v-card>
+
+      <v-card :class="{'px-2': isMobile}" class="mb-5">
+        <div class="d-flex pa-4">
+          <h5>绩效考核</h5>
+          <span class="text--secondary text-caption ml-2">（2022.11.01-2022.11.30）</span>
+        </div>
+        <v-row>
+          <v-col cols="12">
+            <v-tabs dense v-model="actionTab" class="px-4 pb-4">
+              <v-tab v-for="(tab, index) in tabs" :key="index">{{tab.title}}</v-tab>
+            </v-tabs>
+          </v-col>
+        </v-row>
+      </v-card>
+    </v-col>
+    <v-col cols="4">
+      <v-card :class="{'px-2': isMobile}" class="mb-5">
+        <div class="d-flex pa-4">
+          <h5>待办提醒</h5>
+        </div>
+        <v-row>
+          <v-col cols="12">
+            <v-card class="d-flex flex-row flex-wrap ml-3" elevation="0">
+              <template v-for="(status, index) in constantCollection.status3" :key="index">
+                <v-card
+                  elevation="0"
+                  class="pa-3 text-center" style="flex: 1;border-right: 1px solid #f5f5f5;border-radius: 0;">
+                  <div class="mb-2">{{status.text}}</div>
+                  <div><span class="primary--text">{{status.num || 0}}</span> 人</div>
+                </v-card>
+              </template>
+            </v-card>
+            <v-card class="d-flex flex-row flex-wrap ml-3 mt-2" elevation="0">
+              <template v-for="(status, index) in constantCollection.status4" :key="index">
+                <v-card
+                  elevation="0"
+                  class="pa-3 text-center" style="flex: 1;border-right: 1px solid #f5f5f5;border-radius: 0;">
+                  <div class="mb-2">{{status.text}}</div>
+                  <div><span class="primary--text">{{status.num || 0}}</span> 人</div>
+                </v-card>
+              </template>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-card>
+
+      <v-card :class="{'px-2': isMobile}" class="mb-5">
+        <div class="d-flex pa-4">
+          <h5>日历</h5>
+        </div>
+        <div class="text-center">
+          <v-date-picker
+            v-model="picker"
+            color="green lighten-1"
+          ></v-date-picker>
+        </div>
+        <div class="pa-4">
+          <v-btn block color="primary">添加备忘录</v-btn>
+        </div>
+        <div class="pa-4">
+          <h4>当天事项</h4>
+          <div class="text--secondary text-caption mt-3 text-center">暂无数据</div>
+        </div>
+      </v-card>
+    </v-col>
+  </v-row>
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+{% include 'component/drawerForm.html' %}
+{% include 'component/editForm.html' %}
+{% include 'component/globalHandler.html' %}
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    globalHandler: new GlobalHandler(),
+    statusFilter: [],
+    searchText: null,
+    tableFilterKeyword: null,
+    isFormValid: true,
+    requireRules: [
+      v => !!v || '此项为必填项',
+    ],
+    constantCollection: {
+      status: [
+          {text: "在职", value: 1},
+          {text: "入职", value: 2},
+          {text: "待入职", value: 3},
+          {text: "离职", value: 4},
+          {text: "待离职", value: 5},
+          {text: "转正", value: 6},
+          {text: "调岗", value: 7},
+      ],
+      status1: [
+          {text: "正在招聘职位", value: 1},
+          {text: "评选中", value: 2},
+          {text: "待入职", value: 3},
+          {text: "已入职", value: 4},
+      ],
+      status2: [
+          {text: "计薪人员", value: 1},
+          {text: "实发工资", value: 2},
+      ],
+      status3: [
+          {text: "待审核薪资", value: 1},
+          {text: "待离职", value: 2},
+          {text: "合同到期", value: 3},
+      ],
+      status4: [
+          {text: "待转正", value: 4},
+          {text: "待入职", value: 5},
+          {text: "生日", value: 6},
+      ],
+    },
+    tabs: [
+      { title: '已完成考核', action: 'post' },
+      { title: '进行中考核', action: 'basic' },
+    ],
+    serverSearchForm: {
+      postName: null,
+      select: {},
+      searchSummary: null,
+    },
+    isTableLoading: true,
+    tableDataBackups: [],
+    headers: [],
+    editItem: {},
+    isEditDrawerShow: false,
+    currentClickButton: {},
+    actionTab: 0,
+    isDetailDrawerShow: false,  
+    picker: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataBackups;
+    },
+    getEditItem() {
+      return this.editItem;
+    },
+  },
+  watch: {
+    searchText(value) {
+      value = value && value.toLowerCase();
+      const {constantCollection: {status = []}} = this;
+      if (value) {
+        this.statusFilter = status.slice()
+            .filter((v) => v.text && (v.text.toLowerCase().includes(value) || v.text.includes(value)))
+        return false;
+      }
+      this.statusFilter = status.slice();
+    },
+  },
+  async created() {
+    // await this.doUiAction('getTableData');
+  },
+  async mounted() {
+  },
+  methods: {
+    dayjs,
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData()
+          break;
+        case 'handleTableButton':
+          await this.globalHandler.handleTableButton(uiActionData, this)
+          break;
+        case 'saveInfo':
+          await this.saveInfo();
+          break;
+      }
+    },
+    /**
+     * 获取表格数据
+     */
+    async getTableData() {
+      this.isTableLoading = true;
+      const where = _.omitBy(this.serverSearchForm.select, _.isNull);
+      const {rows, count} = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'recruitPpostManagement',
+            actionId: 'selectItemList',
+            where,
+            whereLike: {
+              postName: this.serverSearchForm.postName,
+            },
+            limit: _.size(where) === 0 ? 200 : 99999999,
+            orderBy: [
+              {column: 'createTime', order: 'desc'}
+            ]
+          }
+        }
+      })).data.appData.resultData;
+      this.tableDataBackups = rows;
+      this.isTableLoading = false;  
+    },
+    /**
+     * 保存数据
+     */
+    async saveInfo() {
+      await this.doUiAction(`${this.currentClickButton.action}Save`);
+    },
+  }
+})
+</script>
+
+<style scoped>
+
+</style>
+{% endblock %}

@@ -1,0 +1,279 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+<jh-layout-v3>
+<template slot="serverSearch">
+  <v-row class="ma-0 align-center" :class="{'pa-0': isMobile, 'pa-2': !isMobile}" style="justify-content: end">
+    <v-col cols="12" sm="12" xs="5" md="2" xl="2" class="pb-3" :class="{'px-0': isMobile, 'pt-0': isMobile}">
+      <v-text-field v-model="serverSearchForm.candidateName" prefix="姓名：" color="success" class="cus-v-input"
+                    :class="{'mr-2': !isMobile}" dense filled single-line></v-text-field>
+    </v-col>
+    <v-col class="pl-0" :class="{'pr-0': isMobile, 'pt-0': isMobile}" style="max-width: 77px">
+      <v-btn
+          class="elevation-0"
+          color="success"
+          dark
+          @click="getTableData">
+        查询
+      </v-btn>
+    </v-col>
+  </v-row>
+</template>
+
+<v-card :class="{'px-2': isMobile}" class="mb-5">
+  <v-row>
+    <v-col cols="12">
+      <v-card class="d-flex flex-row flex-wrap mx-3" outlined>
+        <template v-for="(status, index) in constantCollection.status" :key="index">
+          <v-card
+            class="pa-3 text-center" style="flex: 1;border-right: 1px solid #f5f5f5;border-radius: 0;">
+            <div class="mb-2">{{status.text}}</div>
+            <div>{{status.num || 0}}</div>
+          </v-card>
+        </template>
+      </v-card>
+    </v-col>
+  </v-row>
+</v-card>
+
+<!-- 页面主要内容 -->
+<v-card :class="{'px-2': isMobile}">
+  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 "
+         :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+    <v-btn color="success" dark class="elevation-0 mr-2"
+        @click.stop="doUiAction('handleTableButton', { title: '新建候选人', action: 'add' })">新建候选人
+    </v-btn>
+    <span style="margin-right: 10px;">{{ serverSearchForm.searchSummary }}</span>
+    <v-spacer></v-spacer>
+    <v-col cols="12" xs="6" sm="4" md="3" xl="3" class="pr-0">
+      <v-text-field v-model="tableFilterKeyword" color="success" prefix="表格过滤：" class="cus-v-input" dense filled
+                    single-line></v-text-field>
+    </v-col>
+  </v-row>
+  <v-data-table :headers="detailHeaders" :items="tableData" :search="tableFilterKeyword"
+                mobile-breakpoint="0"
+                :loading="isTableLoading " checkbox-color="success" class="elevation-0"
+                :options="{
+            itemsPerPage: 15
+        }">
+    <template v-slot:item.action="{ item }">
+      <v-btn small class="mr-2 success" @click.stop="doUiAction('handleTableButton', { title: '详情', action: 'detail', item })">详情</v-btn>
+    </template>
+  </v-data-table>
+</v-card>
+
+<drawer-form v-model="isEditDrawerShow"
+  ref="form"
+  :headers="detailHeaders"
+  :editItem="editItem"
+  :currentClickButton="currentClickButton"
+  :constantCollection="constantCollection"
+  @save="doUiAction('saveInfo')"
+>
+</drawer-form>
+
+<!-- 员工详情 -->
+<v-navigation-drawer v-if="isDetailDrawerShow" v-model="isDetailDrawerShow" :permanent="isDetailDrawerShow" fixed temporary right width="80%" class="elevation-24">
+  <v-row class="pt-8">
+    <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">【{{editItem.candidateName}}】详情</span>
+    <v-spacer></v-spacer>
+    <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isDetailDrawerShow = false">
+      <v-icon dark>mdi-close</v-icon>
+    </v-btn>
+  </v-row>
+  <v-row class="ma-0 mb-2" :class="{'px-10': !isMobile, 'px-4': isMobile}">
+     <v-tabs dense v-model="actionTab">
+      <v-tab v-for="(tab, index) in tabs" :key="index">{{tab.title}}</v-tab>
+    </v-tabs>
+  </v-row>
+  <div class="mt-4 mb-10">
+    <template v-if="tabs[actionTab]['action'] !== 'record'">
+      <edit-form 
+        :headers="drawerHeaders"
+        :editItem="editItem"
+        :currentClickButton="currentClickButton"
+        :constantCollection="constantCollection"
+        @save="doUiAction('saveInfo')">
+      </edit-form>
+    </template>
+    <template v-else>
+      <div class="mx-10">
+        <v-timeline dense>
+          <v-timeline-item small v-for="(record, index) in recordData" :key="index">
+            <span class="text--secondary mr-3">{{record.time}}</span>{{record.content}}
+          </v-timeline-item>
+        </v-timeline>
+      </div>
+    </template>
+  </div>
+</v-navigation-drawer>
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+{% include 'component/drawerForm.html' %}
+{% include 'component/editForm.html' %}
+{% include 'component/globalHandler.html' %}
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    globalHandler: new GlobalHandler(),
+    statusFilter: [],
+    searchText: null,
+    tableFilterKeyword: null,
+    isFormValid: true,
+    requireRules: [
+      v => !!v || '此项为必填项',
+    ],
+    constantCollection: {
+      status: [
+          {text: "全部", value: 1},
+          {text: "新候选人", value: 2},
+          {text: "初选通过", value: 3},
+          {text: "安排面试", value: 4},
+          {text: "面试通过", value: 5},
+          {text: "已发offer", value: 6},
+          {text: "待入职", value: 7},
+          {text: "已淘汰", value: 8},
+          {text: "已入职", value: 8},
+      ],
+    },
+    serverSearchForm: {
+      candidateName: null,
+      select: {},
+      searchSummary: null,
+    },
+    isTableLoading: true,
+    tableDataBackups: [],
+    headers: [],
+    editItem: {},
+    isEditDrawerShow: false,
+    currentClickButton: {},
+    actionTab: 0,
+    isDetailDrawerShow: false,
+    tabs: [
+      { title: '详细资料', action: 'detail' },
+      { title: '材料附件', action: 'material' },
+      { title: '操作记录', action: 'record' },
+    ],
+    recordData: [
+      {time: '2022-11-11 23:53', content: 'dizzy 为李四修改了参保方案,由【空】修改为【test2】'},
+      {time: '2022-11-11 21:53', content: 'dizzy 为李四修改了参保方案,由【test】修改为【空】'},
+      {time: '2022-11-11 20:53', content: 'admin 新建了员工'}
+    ],
+    detailHeaders: [
+      { text: "姓名", value: "candidateName" },
+      { text: "应聘职位", value: "applyQuitTime" },
+      { text: "用人部门", value: "salarySettlementTime", edit: false, },
+      { text: "候选人状态", value: "quitType", type: 'select', edit: false, },
+      { text: "手机号", value: "quitReason" },
+      { text: "性别", value: "remarks" },
+      { text: "年龄", value: "planQuitTime" },
+      { text: "邮箱", value: "applyQuitTime" },
+      { text: "招聘负责人", value: "salarySettlementTime", edit: false, },
+      { text: "工作年限", value: "quitType" },
+      { text: "学历", value: "quitReason" },
+      { text: "毕业院校", value: "remarks" },
+      { text: "最近工作单位", value: "planQuitTime" },
+      { text: "招聘渠道", value: "applyQuitTime"},
+      { text: "面试时间", value: "salarySettlementTime", edit: false, },
+      { text: "面试轮次", value: "quitType", edit: false, },
+      { text: "面试官", value: "quitReason", edit: false, },
+      { text: "面试方式", value: "remarks", edit: false, },
+      { text: "其他面试官", value: "quitReason", edit: false, },
+      { text: "创建时间", value: "remarks", edit: false, },
+      { text: '操作', value: 'action', align: 'center', sortable: false, width: 250, class: 'fixed', cellClass: 'fixed', edit: false, }
+    ],
+    materialHeaders: [
+      { text: "上传材料附件", value: "planQuitTime", type: 'file' },
+    ],
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataBackups;
+    },
+    getEditItem() {
+      return this.editItem;
+    },
+    drawerHeaders(){
+      return this[`${this.tabs[this.actionTab]['action']}Headers`] || []
+    }
+  },
+  watch: {
+    searchText(value) {
+      value = value && value.toLowerCase();
+      const {constantCollection: {status = []}} = this;
+      if (value) {
+        this.statusFilter = status.slice()
+            .filter((v) => v.text && (v.text.toLowerCase().includes(value) || v.text.includes(value)))
+        return false;
+      }
+      this.statusFilter = status.slice();
+    },
+  },
+  async created() {
+    await this.doUiAction('getTableData');
+  },
+  async mounted() {
+  },
+  methods: {
+    dayjs,
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData()
+          break;
+        case 'handleTableButton':
+          await this.globalHandler.handleTableButton(uiActionData, this)
+          break;
+        case 'saveInfo':
+          await this.saveInfo();
+          break;
+      }
+    },
+    /**
+     * 获取表格数据
+     */
+    async getTableData() {
+      this.isTableLoading = true;
+      const where = _.omitBy(this.serverSearchForm.select, _.isNull);
+      const {rows, count} = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'candidateManagement',
+            actionId: 'selectItemList',
+            where,
+            whereLike: {
+              candidateName: this.serverSearchForm.candidateName,
+            },
+            limit: _.size(where) === 0 ? 200 : 99999999,
+            orderBy: [
+              {column: 'createTime', order: 'desc'}
+            ]
+          }
+        }
+      })).data.appData.resultData;
+      this.tableDataBackups = rows;
+      this.isTableLoading = false;  
+    },
+    /**
+     * 保存数据
+     */
+    async saveInfo() {
+      await this.doUiAction(`${this.currentClickButton.action}Save`);
+    },
+  }
+})
+</script>
+
+<style scoped>
+
+</style>
+{% endblock %}

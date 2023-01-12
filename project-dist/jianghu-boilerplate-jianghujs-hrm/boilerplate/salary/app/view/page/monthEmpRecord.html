@@ -1,0 +1,673 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+
+
+<jh-layout-v3>
+
+<!--   <template slot="serverSearch">
+    <v-row class="ma-0 align-center flex-none pa-0" :class="{'pa-2': !isMobile, 'pa-2': isMobile}" style="justify-content: end">
+      <v-col :class="{'pt-2': isMobile, 'pl-0': isMobile, 'pr-0': !isMobile}" style="max-width: 77px">
+        <v-btn
+          class="elevation-0"
+          color="success"
+          dark
+          @click="doUiAction('refreshTableData')"
+        >
+          查询
+        </v-btn>
+      </v-col>
+    </v-row>
+  </template>-->
+<template slot="breadcrumbsList">
+  计薪周期 - {{ lastYear ? lastYear + '年' + lastMonth + '月' : '暂无记录' }}
+</template>
+<!-- 页面主要内容 -->
+<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+  <v-card>
+  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+
+      <v-col cols="12" xs="8" sm="8" md="8" xl="8" class="pl-0">
+        <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('createMonthRecord', {next: false})">核算工资</v-btn>
+        <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('createSlipRecord')">发送工资条</v-btn>
+        <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('createMonthRecord', {next: true})">创建下月工资表</v-btn>
+        <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('editOnline')">在线编辑</v-btn>
+        <span class="body-2">共{{ tableData.length }}条记录</span>
+      </v-col>
+
+      <v-spacer></v-spacer>
+
+      <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+        <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+      </v-col>
+    </v-row>
+    <v-data-table fixed-header
+                  :headers="headers"
+                  :items="tableData"
+                  :search="searchInput"
+                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                  :items-per-page="20"
+                  mobile-breakpoint="0"
+                  :loading="isTableLoading"
+                  checkbox-color="success"
+                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      <template v-slot:item.action="{ item }">
+        <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
+        <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
+      </template>
+    </v-data-table>
+  </v-card>
+</v-container>
+
+<!-- 新增 -->
+<v-navigation-drawer v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%" class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">新增信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isAddDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">sEmpRecordId</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['sEmpRecordId']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">每月生成薪资id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['sRecordId']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">员工id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['employeeId']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">实际计薪时长</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['actualWorkDay']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">月计薪时长</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['needWorkDay']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">年</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['year']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">月</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['month']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">createTime</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['createTime']"></v-text-field>
+      </v-col>
+       
+    </v-row>
+    <v-row class="justify-end pr-6">
+      <v-btn color="success" @click="doUiAction('createItem')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">新增</v-btn>
+      <v-btn class="ml-2" @click="isAddDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+
+
+<!-- 编辑抽屉 -->
+<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">编辑信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">sEmpRecordId</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['sEmpRecordId']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">每月生成薪资id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['sRecordId']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">员工id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['employeeId']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">实际计薪时长</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['actualWorkDay']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">月计薪时长</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['needWorkDay']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">年</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['year']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">月</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['month']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">createTime</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['createTime']"></v-text-field>
+      </v-col>
+       
+<!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
+<!--        &lt;!&ndash; 必填字段样式 demo :rules="requireRules" &ndash;&gt;-->
+<!--            <span class="inputLabel">学生ID</span>-->
+<!--        <v-text-field class="cus-v-input " dense filled single-line label="学生ID" v-model="editItem.studentId" :rules="requireRules"></v-text-field>-->
+<!--      </v-col>-->
+<!--      &lt;!&ndash; select 字段 demo &ndash;&gt;-->
+<!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
+<!--            <span class="inputLabel">班级ID</span>-->
+<!--        <v-select class="cus-v-input " dense filled single-line clearable label="班级ID" v-model="editItem.classId" :items="constantCollection.classId"></v-select>-->
+<!--      </v-col>-->
+<!--      &lt;!&ndash; 日期选择 demo &ndash;&gt;-->
+<!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
+<!--        <span class="inputLabel">出生日期</span>-->
+<!--        <v-menu class="cus-v-input " offset-y max-width="290">-->
+<!--          <template v-slot:activator="{ on, attrs }">-->
+<!--            <v-text-field class="cus-v-input " dense filled single-line v-on="on" label="出生日期" v-model="editItem.dateOfBirth"></v-text-field>-->
+<!--          </template>-->
+<!--          <v-date-picker color="success" elevation="20" v-model="editItem.dateOfBirth"></v-date-picker>-->
+<!--        </v-menu>-->
+<!--      </v-col>-->
+    </v-row>
+    <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+      <v-btn color="success" @click="doUiAction('updateItem')">保存</v-btn>
+      <v-btn class="ml-2" @click="isEditDrawerShow = false">取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+<v-navigation-drawer v-model="isEditOnlineDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="100%" class="elevation-24">
+  <v-row class="pt-8">
+    <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">在线编辑</span>
+    <v-spacer></v-spacer>
+    <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+      <v-icon dark>mdi-close</v-icon>
+    </v-btn>
+  </v-row>
+  <v-row :class="{'px-12': !isMobile, 'px-6': isMobile}">
+    <v-data-table fixed-header
+    :headers="headers.filter(item => !['action', 'id', 'actualWorkDay', 'needWorkDay', 'year', 'month'].includes(item.value))"
+    :items="tableData"
+    :search="searchInput"
+    :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+    :items-per-page="20"
+    mobile-breakpoint="0"
+    :loading="isTableLoading"
+    checkbox-color="success"
+    class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+    <template v-slot:item.10101="{item}">
+      <v-text-field v-model="item[10101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.10102="{item}">
+      <v-text-field v-model="item[10102]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.10103="{item}">
+      <v-text-field v-model="item[10103]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.20101="{item}">
+      <v-text-field v-model="item[20101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.20102="{item}">
+      <v-text-field v-model="item[20102]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.20103="{item}">
+      <v-text-field v-model="item[20103]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.20104="{item}">
+      <v-text-field v-model="item[20104]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.30101="{item}">
+      <v-text-field v-model="item[30101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.40101="{item}">
+      <v-text-field v-model="item[40101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.40102="{item}">
+      <v-text-field v-model="item[40102]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.40103="{item}">
+      <v-text-field v-model="item[40103]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.50101="{item}">
+      <v-text-field v-model="item[50101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.60101="{item}">
+      <v-text-field v-model="item[60101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.70101="{item}">
+      <v-text-field v-model="item[70101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.80101="{item}">
+      <v-text-field v-model="item[80101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.80102="{item}">
+      <v-text-field v-model="item[80102]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.90101="{item}">
+      <v-text-field v-model="item[90101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.90102="{item}">
+      <v-text-field v-model="item[90102]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.90103="{item}">
+      <v-text-field v-model="item[90103]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.100101="{item}">
+      <v-text-field v-model="item[100101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.100102="{item}">
+      <v-text-field v-model="item[100102]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.110101="{item}">
+      <v-text-field v-model="item[110101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.120101="{item}">
+      <v-text-field v-model="item[120101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.130101="{item}">
+      <v-text-field v-model="item[130101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.140101="{item}">
+      <v-text-field v-model="item[140101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.150101="{item}">
+      <v-text-field v-model="item[150101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.160101="{item}">
+      <v-text-field v-model="item[160101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.160102="{item}">
+      <v-text-field v-model="item[160102]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.160103="{item}">
+      <v-text-field v-model="item[160103]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.170101="{item}">
+      <v-text-field v-model="item[170101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.180101="{item}">
+      <v-text-field v-model="item[180101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.190101="{item}">
+      <v-text-field v-model="item[190101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.190102="{item}">
+      <v-text-field v-model="item[190102]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.190103="{item}">
+      <v-text-field v-model="item[190103]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.190104="{item}">
+      <v-text-field v-model="item[190104]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.190105="{item}">
+      <v-text-field v-model="item[190105]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.190106="{item}">
+      <v-text-field v-model="item[190106]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.200101="{item}">
+      <v-text-field v-model="item[200101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.210101="{item}">
+      <v-text-field v-model="item[210101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.220101="{item}">
+      <v-text-field v-model="item[220101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.230101="{item}">
+      <v-text-field v-model="item[230101]" filled single-line hide-details></v-text-field>
+    </template>
+    <template v-slot:item.240101="{item}">
+      <v-text-field v-model="item[240101]" filled single-line hide-details></v-text-field>
+    </template>
+  </v-data-table>
+  </v-row>
+  <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+    <v-btn color="success" @click="">保存</v-btn>
+    <v-btn class="ml-2" @click="isEditOnlineDrawerShow = false">取消</v-btn>
+  </v-row>
+</v-navigation-drawer>
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    // 表格相关数据
+    isFormValid: true,
+    requireRules: [
+      v => !!v || 'This is required',
+    ],
+    constantCollection: {
+    },
+
+    serverSearchInput: {
+      studentId: null,
+      classId: null
+    },
+    searchInput: null,
+    isTableLoading: true,
+    tableDataFromBackend: [],
+    headers: [
+      {text: "ID", value: "id", width: 90, class: 'fixed', cellClass: 'fixed'},
+      {text: "员工", value: "employeeName", width: 120}, 
+      {text: "实际计薪时长", value: "actualWorkDay", width: 120}, 
+      {text: "月计薪时长", value: "needWorkDay", width: 120}, 
+      {text: "年", value: "year", width: 120}, 
+      {text: "月", value: "month", width: 120}, 
+    ],
+    isEditDrawerShow: false,
+    editItem: {},
+    isAddDrawerShow: false,
+    addItem: {},
+    lastYear: '',
+    lastMonth: '',
+    isEditOnlineDrawerShow: false,
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataFromBackend;
+    }
+  },
+  watch: {},
+  async created() {
+    this.doUiAction('getLastConfig');
+    await this.doUiAction('refreshTableData');
+  },
+  mounted() {},
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'refreshTableData':
+          await this.refreshTableData();
+          break;
+        case 'getLastConfig':
+          await this.getLastConfig();
+          break;
+        case 'startCreateItem':
+          await this.clearItemData();
+          await this.openCreateItemDialog();
+          break;
+        case 'createItem':
+          await this.prepareValidate();
+          await this.confirmCreateItemDialog();
+          await this.doCreateItem();
+          await this.closeDrawerShow();
+          await this.refreshTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareItemData(uiActionData);
+          await this.openUpdateDialog();
+          break;
+        case 'updateItem':
+          await this.prepareValidate();
+          await this.confirmUpdateItemDialog();
+          await this.doUpdateItem();
+          await this.closeDrawerShow();
+          await this.refreshTableData();
+          break;
+        case 'createMonthRecord':
+          await this.confirmCreateMonthRecordDialog(uiActionData);
+          await this.doCreateMonthRecord(uiActionData);
+          await this.getLastConfig();
+          await this.refreshTableData();
+          break;
+        case 'editOnline':
+          await this.openEditOnlineDialog();
+          break;
+        case 'createSlipRecord':
+          await this.doCreateSlipRecord(uiActionData);
+          break;
+        case 'deleteItem':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteItem(uiActionData);
+          await this.refreshTableData();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          break;
+      }
+    },
+    // =================================uiAction 公共方法 start ======================================
+    /**
+     * uiActionId:  prepareValidate
+     * description: ✅表单校验
+    */
+    async prepareValidate() {
+      if (this.$refs.form.validate() === false) {
+        window.vtoast.fail({ message: "输入有误, 请检查!" });
+        throw new Error("[prepareValidate] false");
+      }
+    },
+
+    /**
+     * uiActionId:  refreshTableData
+     * description: ✅获取表格数据
+    */
+    async refreshTableData() {
+      this.isTableLoading = true;
+      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'monthEmpRecord',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {},
+            whereLike: serverSearchInput,
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+      const { rows } = result.data.appData.resultData;
+
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    },
+
+    async getLastConfig() {
+      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'monthEmpRecord',
+            actionId: 'getLastConfig',
+            actionData: {},
+            limit: 1,
+            orderBy: [{column: 'year', order: 'desc'},{column: 'month', order: 'desc'}]
+          }
+        }
+      });
+      const { year, month, salaryOption } = result.data.appData.resultData;
+      
+      this.lastYear = year;
+      this.lastMonth = month;
+      salaryOption.forEach(item => {
+        this.headers.push({text: item.name, value: item.code + '', width: 120});
+      });
+      this.headers.push({text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'});
+    },
+    // =================================uiAction 公共方法 end ======================================
+
+
+    async openEditOnlineDialog() {
+      this.isEditOnlineDrawerShow = true;
+    },
+    /**
+     * uiActionId:  startCreateItem
+     * description: ✅获取表格数据
+    */
+    async clearItemData() {
+      this.addItem = {};
+    },
+    async openCreateItemDialog() {
+      this.isAddDrawerShow = true;
+    },
+
+    /**
+     * uiActionId:  createItem
+     * description: ✅获取表格数据
+    */
+    async confirmCreateMonthRecordDialog({next}) {
+      if (next && await window.confirmDialog({title: "提示", content: "新建下月工资表，当前的工资表将归入历史工资表中，且历史工资表数据不可修改。请确认现在就开始做下月工资吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+
+    /**
+     * uiActionId:  createItem
+     * description: ✅获取表格数据
+    */
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doCreateItem() {
+      const { id, ...data } = this.addItem;
+      await window.vtoast.loading("新增数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'monthEmpRecord',
+            actionId: 'insertItem',
+            actionData: data
+          }
+        }
+      })
+      await window.vtoast.success("新增数据成功");
+    },
+    async doCreateMonthRecord({next}) {
+      await window.vtoast.loading("核算工资");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'monthEmpRecord',
+            actionId: 'createMonthRecord',
+            actionData: { year: this.lastYear, month: next ? this.lastMonth + 1 : this.lastMonth }
+          }
+        }
+      })
+      await window.vtoast.success("操作成功");
+    },
+    async doCreateSlipRecord() {
+      await window.vtoast.loading("生成工资条");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'monthEmpRecord',
+            actionId: 'createSlipRecord',
+            actionData: { year: this.lastYear, month: this.lastMonth }
+          }
+        }
+      })
+      await window.vtoast.success("操作成功");
+    },
+    async closeDrawerShow() {
+      this.isEditDrawerShow = false;
+      this.isAddDrawerShow = false;
+    },
+
+    /**
+     * uiActionId:  startUpdateItem
+     * description: ✅获取表格数据
+    */
+    async prepareItemData({item}) {
+      this.editItem = {...item};
+    },
+    async openUpdateDialog() {
+      this.isEditDrawerShow = true;
+    },
+    /**
+     * uiActionId:  updateItem
+     * description: ✅获取表格数据
+    */
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doUpdateItem() {
+      const { id, ...data } = this.editItem;
+      await window.vtoast.loading("修改数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'monthEmpRecord',
+            actionId: 'updateItem',
+            actionData: data,
+            where: {id}
+          }
+        }
+      })
+      await window.vtoast.success("修改数据成功");
+    },
+
+    /**
+     * uiActionId:  deleteItem
+     * description: ✅获取表格数据
+    */
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doDeleteItem({item}) {
+      const { id } = item;
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'monthEmpRecord',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: { id: id }
+          }
+        }
+      });
+      await window.vtoast.success("删除数据成功");
+    },
+  }
+})
+</script>
+
+<style scoped>
+  .v-text-field--filled>.v-input__control>.v-input__slot {
+    align-items: stretch;
+    min-height: unset;
+  }
+</style>
+{% endblock %}

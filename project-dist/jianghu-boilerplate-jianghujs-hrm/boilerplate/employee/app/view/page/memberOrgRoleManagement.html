@@ -1,0 +1,497 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+<jh-layout-v3>
+<!-- 页面主要内容 -->
+<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+  <v-card>
+    <v-row class="ma-0 pa-0">
+      <v-col cols="12" xs="3" sm="4" md="3" xl="2" style="border-right: 1px solid #EEEEEE">
+        <v-treeview
+            @update:active="onTreeChange"
+            shaped
+            hoverable
+            activatable
+            :open="openTree"
+            :items="orgTree"
+            dense
+        ></v-treeview>
+      </v-col>
+      <v-col cols="12" xs="9" sm="8" md="9" xl="10">
+        <v-expansion-panels multiple v-model="activePanel" accordion dense>
+          <table-tree 
+            :table-data="tableData" 
+            :nodeHeaders="nodeHeaders"
+            :isTableLoading="isTableLoading"
+            :activePanel="activePanel"
+            @doUiAction="doUiAction"
+          /></table-tree>
+        </v-expansion-panels>
+      </v-col>
+    </v-row>
+  </v-card>
+</v-container>
+
+<!-- 新增 -->
+<v-navigation-drawer v-if="isAddDrawerShow" v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%" class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">【{{editItem.orgName}}】添加职员</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isAddDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+      <v-data-table 
+        fixed-header
+        :headers="nodeHeaders"
+        :items="memberData"
+        :search="searchInput"
+        :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+        :items-per-page="20"
+        mobile-breakpoint="0"
+        :loading="isTableLoading"
+        checkbox-color="success"
+        class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      <template v-slot:item.action="{ item }">
+      <v-btn small class=" success" v-if="item.orgId !== editItem.orgId" @click="doUiAction('createItem', {item})">加入</v-btn>
+      <!-- <v-btn small class=" error" v-else @click="doUiAction('deleteItem', {item})">移出</v-btn> -->
+      </template>
+      </v-data-table>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+
+
+<!-- 编辑抽屉 -->
+<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">编辑信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">职员名</span>
+        <v-text-field class="cus-v-input " disabled dense filled single-line v-model="editItem['employeeName']"></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">组织</span>
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable color="success"
+        v-model="editItem['orgId']" :items="constantCollection['org']"
+        :rules="requireRules">
+        <template v-slot:item="data">
+          {{data.item.textRender}}
+        </template>
+      </v-select>
+      </v-col>
+    </v-row>
+    <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+      <v-btn color="success" @click="doUiAction('updateItem')">保存</v-btn>
+      <v-btn class="ml-2" @click="isEditDrawerShow = false">取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+{% include 'component/tableTree.html' %}
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    // 表格相关数据
+    isFormValid: true,
+    requireRules: [
+      v => !!v || 'This is required',
+    ],
+    constantCollection: {
+      org: []
+    },
+    serverSearchInput: {
+      studentId: null,
+      classId: null
+    },
+    searchInput: null,
+    isTableLoading: true,
+    tableDataFromBackend: [],
+    expanded: [],
+    tableDataTree: [],
+    currentOrgId: null,
+    orgBackend: [],
+    orgTree: [],
+    openTree: [],
+    nodeHeaders: [
+      { text: "姓名", value: "employeeName", required: true},
+      { text: "手机", value: "mobile", required: true},
+      { text: "邮箱", value: "email", required: true},
+      { text: "证件类型", value: "idType", type: 'select' },
+      { text: "证件号码", value: "idNumber" },
+      { text: "性别", value: "sex", type: 'select' },
+      {text: "操作者", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 250},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+    ],
+    groupHeaders: [
+      {text: "部门", value: "orgName", width: 120},
+    ],
+    isEditDrawerShow: false,
+    editItem: {},
+    isAddDrawerShow: false,
+    addItem: {},
+    activePanel: [0],
+    memberData: []
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataTree;
+    }
+  },
+  watch: {
+  },
+  async created() {
+    await this.doUiAction('refreshOrgData');
+    await this.doUiAction('refreshMemberData');
+    await this.getOrg();
+  },
+  mounted() {},
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'refreshOrgData':
+          await this.refreshOrgData();
+          break;
+        case 'refreshMemberData':
+          await this.refreshMemberData();
+          break;
+        case 'startCreateItem':
+          await this.clearItemData(uiActionData);
+          await this.openCreateItemDialog();
+          await this.refreshMemberList();
+          break;
+        case 'createItem':
+          await this.confirmCreateItemDialog();
+          await this.doCreateItem(uiActionData);
+          await this.refreshMemberList();
+          await this.refreshMemberData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareItemData(uiActionData);
+          await this.openUpdateDialog();
+          break;
+        case 'updateItem':
+          await this.prepareValidate();
+          await this.confirmUpdateItemDialog();
+          await this.doUpdateItem();
+          await this.closeDrawerShow();
+          await this.refreshMemberData();
+          break;
+        case 'deleteItem':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteItem(uiActionData);
+          await this.refreshMemberData();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          break;
+      }
+    },
+    // =================================uiAction 公共方法 start ======================================
+    async getOrg(){;
+      const {rows} = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'orgManagement',
+            actionId: 'selectItemList',
+            orderBy: [{ column: 'orgPath', order: 'asc' }]
+          }
+        }
+      })).data.appData.resultData;
+      this.setOrgConstant(rows)
+    },
+    // 设置组织常量
+    setOrgConstant(rows){
+      const org = rows.map(item => {
+        const level = item.orgPath.split('-').length;
+        return { text: item.orgName, value: item.orgId, textRender: _.repeat('- ', level - 1) + item.orgName }
+      })
+      this.$set(this.constantCollection, 'org', org) 
+    },
+    /**
+     * uiActionId:  prepareValidate
+     * description: ✅表单校验
+     */
+    async prepareValidate() {
+      if (this.$refs.form.validate() === false) {
+        window.vtoast.fail({ message: "输入有误, 请检查!" });
+        throw new Error("[prepareValidate] false");
+      }
+    },
+    onTreeChange(event) {
+      console.log("onTreeChange", event)
+      // 动态构建打开的层级ID
+      const insertId = (target, parentId) => {
+        target.forEach(item => {
+          if(item.id === event[0]) {
+            if(parentId) {
+              this.openTree.push(...parentId);
+            }
+            this.openTree.push(event[0]);
+          } else {
+            if(item.children) {
+              insertId(item.children, [...(parentId || []), item.id])
+            }
+          }
+        })
+      }
+      insertId(this.orgBackend, null);
+      this.currentOrgId = this.orgBackend.find(item => item.id === event[0]).orgId;
+      this.doUiAction("refreshMemberData");
+    },
+
+    /**
+     * uiActionId:  refreshMemberData
+     * description: ✅获取表格数据
+     */
+    async refreshOrgData() {
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'orgManagement',
+            actionId: 'selectItemList',
+            orderBy: [{column: 'orgId', order: 'desc'}]
+          }
+        }
+      });
+      const {rows} = result.data.appData.resultData;
+      this.orgBackend = rows;
+      this.orgTree = rows.filter(item => !item.orgParentId);
+      const buildTree = (target, resource) => {
+        target = target.map(item => {
+          const children = rows.filter(child => child.orgParentId === item.orgId);
+          if(!_.isEmpty(children)) {
+            item.children = children;
+            item.children = buildTree(item.children, rows);
+          }
+          item.name = item.orgName;
+          return item;
+        })
+        target.name = target.orgName;
+        return target;
+      }
+
+      this.orgTree = buildTree(this.orgTree, rows);
+      if(!_.isEmpty(this.orgTree)) {
+        this.openTree = [this.orgTree[0].id];
+      }
+      console.log("this.orgBackend", this.orgTree);
+    },
+    async refreshMemberData() {
+      this.isTableLoading = true;
+      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'memberOrgRoleManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {
+              orgPrentId: this.currentOrgId
+            },
+            whereLike: serverSearchInput,
+            orderBy: [{column: 'memberId', order: 'desc'}]
+          }
+        }
+      });
+      const { rows } = result.data.appData.resultData;
+
+      this.tableDataFromBackend = rows;
+      const buildMemberList = (target) => {
+        return target.map(item => {
+          const memberList = rows.filter(row => row.orgId === item.orgId);
+          if(!_.isEmpty(memberList)) {
+            item.memberList = memberList;
+          }
+          if(!_.isEmpty(item.children)) {
+            this.expanded.push(item);
+            item.children = buildMemberList(item.children);
+          }
+          return item;
+        });
+      }
+      this.tableDataTree = Object.assign({}, this.tableDataTree, buildMemberList(this.orgTree));
+      this.isTableLoading = false;
+    },
+    async refreshMemberList() {
+        this.isTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'employeeManagement',
+              actionId: 'selectItemList',
+              limit: 200,
+              where: { orgId: null}
+            }
+          }
+        });
+        const { rows } = result.data.appData.resultData;
+        this.memberData = rows;
+        this.isTableLoading = false;
+    },
+    async closeDrawerShow() {
+      this.isEditDrawerShow = false;
+      this.isAddDrawerShow = false;
+    },
+    // =================================uiAction 公共方法 end ======================================
+    /**
+     * uiActionId:  startCreateItem
+     */
+    async clearItemData({ item }) {
+      this.editItem = {...item};
+      this.memberData = [];
+    },
+    async openCreateItemDialog() {
+      this.isAddDrawerShow = true;
+    },
+    /**
+   * uiActionId:  createItem
+   * description: ✅新增数据
+   */
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doCreateItem({ item: member }) {
+        const org = this.editItem
+        if (!org.orgId || !member.memberId) {
+          await window.vtoast.error("操作失败");
+        }
+        await window.vtoast.loading("新增数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'memberOrgRoleManagement',
+              actionId: 'insertItem',
+              actionData: {
+                orgId: org.orgId,
+                memberId: member.employeeId
+              }
+            }
+          }
+        })
+        await window.vtoast.success("新增数据成功");
+    },
+    /**
+     * uiActionId:  startUpdateItem
+     */
+    async prepareItemData({item}) {
+      this.editItem = {...item};
+    },
+    async openUpdateDialog() {
+      this.isEditDrawerShow = true;
+    },
+    /**
+     * uiActionId:  updateItem
+     * description: ✅更新数据
+     */
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doUpdateItem() {
+      const { id, orgId } = this.editItem;
+      await window.vtoast.loading("修改数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'memberOrgRoleManagement',
+            actionId: 'updateItem',
+            where: { id },
+            actionData: { orgId }
+          }
+        }
+      })
+      await window.vtoast.success("修改数据成功");
+    },
+    /**
+     * uiActionId:  deleteItem
+     * description: ✅删除数据
+     */
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doDeleteItem({ item: member }) {
+      if (!member.orgId || !member.memberId) {
+        await window.vtoast.error("操作失败");
+      }
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'memberOrgRoleManagement',
+            actionId: 'deleteItem',
+            where: {
+              memberId: member.memberId,
+              orgId: member.orgId
+            },
+          }
+        }
+      })
+      await window.vtoast.success("操作成功");
+    },
+  }
+})
+</script>
+
+<style scoped>
+.v-treeview-node__root {
+  cursor: pointer;
+}
+table > tbody > tr > td.fixed-expand-1, table > thead > tr > th.fixed-expand-1,
+table > tbody > tr > td.fixed-expand-2, table > thead > tr > th.fixed-expand-2 {
+  position: sticky !important;
+  position: -webkit-sticky !important;
+  right: 0;
+  z-index: 10;
+  background: white;
+  border: none;
+  box-shadow: none;
+}
+table > tbody > tr > td.fixed-expand-2, table > thead > tr > th.fixed-expand-2 {
+  right: 58px;
+}
+.theme--light.v-data-table .v-row-group__header .v-icon {
+  font-size: 18px;
+}
+.theme--light.v-data-table .v-row-group__header {
+  background: #FBFBFB;
+  font-weight: 600;
+}
+.theme--light.v-data-table .v-row-group__header ~ tr:not(.v-row-group__header) > td:first-child {
+  padding-left: 40px;
+}
+.v-data-table__expanded td:nth-child(1){
+  width: 0;
+}
+.v-data-table>.v-data-table__wrapper tbody tr.v-data-table__expanded__content{
+  box-shadow: none;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,508 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+
+
+<jh-layout-v3>
+  <template slot="serverSearch">
+    <v-row class="ma-0 align-center" :class="{'pa-0': isMobile, 'pa-2': !isMobile}" style="justify-content: end">
+      <v-col cols="4" sm="4" xs="3" md="3" xl="2" class="pb-3" :class="{'pt-0': isMobile}">
+        <v-select 
+          class="cus-v-input " 
+          dense filled 
+          single-line 
+          prefix="年度：" 
+          v-model="serverSearchInput.year" 
+          :items="constantCollection.year">
+        </v-select>
+      </v-col>
+      <v-col class="px-0" :class="{'pt-0': isMobile}" style="max-width: 56px">
+        <v-btn
+            class="elevation-0"
+            color="success"
+            dark
+            @click="doUiAction('refreshTableData')">
+          查询
+        </v-btn>
+      </v-col>
+    </v-row>
+  </template>
+<!-- 页面主要内容 -->
+<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+  <v-card>
+  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+
+      <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+        <v-btn
+          v-if="maxMonth < 12"
+            class="elevation-0"
+            color="success"
+            dark
+            @click="doUiAction('createItem')">
+          新建次月报表
+        </v-btn>
+        <span class="body-2">共{{ tableData.length }}条记录</span>
+      </v-col>
+
+      <v-spacer></v-spacer>
+
+      <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+        <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+      </v-col>
+    </v-row>
+    <v-data-table fixed-header
+                  :headers="headers"
+                  :items="tableData"
+                  :search="searchInput"
+                  :items-per-page="20"
+                  mobile-breakpoint="0"
+                  :loading="isTableLoading"
+                  checkbox-color="success"
+                  hide-default-footer
+                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      <template v-slot:item.action="{ item }">
+        <v-btn small class=" success" @click="doUiAction('toDetail', {item})">查看详情</v-btn>
+        <v-btn v-if="item.isNew" small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
+      </template>
+    </v-data-table>
+  </v-card>
+</v-container>
+
+<!-- 新增 -->
+<v-navigation-drawer v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%" class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">新增信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isAddDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">i_emp_record_id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['i_emp_record_id']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">每月生成社保id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['iRecordId']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">员工id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['employee_id']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">社保方案id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['scheme_id']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">年</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['year']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">月</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['month']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">个人社保金额</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['personal_insurance_amount']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">个人公积金金额</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['personal_provident_fund_amount']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">公司社保金额</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['corporate_insurance_amount']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">公司社保金额</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['corporate_provident_fund_amount']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">create_time</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['create_time']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">每月社保状态 0 停保 1 正常</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['status']"></v-text-field>
+      </v-col>
+       
+    </v-row>
+    <v-row class="justify-end pr-6">
+      <v-btn color="success" @click="doUiAction('createItem')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">新增</v-btn>
+      <v-btn class="ml-2" @click="isAddDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+
+
+<!-- 编辑抽屉 -->
+<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" class="elevation-24">
+  <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+    <v-row class="pt-8">
+      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">编辑信息</span>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
+        <v-icon dark>mdi-close</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">i_emp_record_id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['i_emp_record_id']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">每月生成社保id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['iRecordId']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">员工id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['employee_id']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">社保方案id</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['scheme_id']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">年</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['year']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">月</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['month']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">个人社保金额</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['personal_insurance_amount']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">个人公积金金额</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['personal_provident_fund_amount']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">公司社保金额</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['corporate_insurance_amount']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">公司社保金额</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['corporate_provident_fund_amount']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">create_time</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['create_time']"></v-text-field>
+      </v-col>
+       
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">每月社保状态 0 停保 1 正常</span>
+        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['status']"></v-text-field>
+      </v-col>
+       
+<!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
+<!--        &lt;!&ndash; 必填字段样式 demo :rules="requireRules" &ndash;&gt;-->
+<!--            <span class="inputLabel">学生ID</span>-->
+<!--        <v-text-field class="cus-v-input " dense filled single-line label="学生ID" v-model="editItem.studentId" :rules="requireRules"></v-text-field>-->
+<!--      </v-col>-->
+<!--      &lt;!&ndash; select 字段 demo &ndash;&gt;-->
+<!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
+<!--            <span class="inputLabel">班级ID</span>-->
+<!--        <v-select class="cus-v-input " dense filled single-line clearable label="班级ID" v-model="editItem.classId" :items="constantCollection.classId"></v-select>-->
+<!--      </v-col>-->
+<!--      &lt;!&ndash; 日期选择 demo &ndash;&gt;-->
+<!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
+<!--        <span class="inputLabel">出生日期</span>-->
+<!--        <v-menu class="cus-v-input " offset-y max-width="290">-->
+<!--          <template v-slot:activator="{ on, attrs }">-->
+<!--            <v-text-field class="cus-v-input " dense filled single-line v-on="on" label="出生日期" v-model="editItem.dateOfBirth"></v-text-field>-->
+<!--          </template>-->
+<!--          <v-date-picker color="success" elevation="20" v-model="editItem.dateOfBirth"></v-date-picker>-->
+<!--        </v-menu>-->
+<!--      </v-col>-->
+    </v-row>
+    <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+      <v-btn color="success" @click="doUiAction('updateItem')">保存</v-btn>
+      <v-btn class="ml-2" @click="isEditDrawerShow = false">取消</v-btn>
+    </v-row>
+  </v-form>
+</v-navigation-drawer>
+
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    // 表格相关数据
+    isFormValid: true,
+    requireRules: [
+      v => !!v || 'This is required',
+    ],
+    constantCollection: {
+      year: []
+    },
+
+    serverSearchInput: {
+      year: '',
+    },
+    searchInput: null,
+    isTableLoading: true,
+    tableDataFromBackend: [],
+    headers: [
+      {text: "月份", value: "title", width: 110}, 
+      {text: "参保人数", value: "num", width: 100}, 
+      {text: "个人社保", value: "personalInsuranceAmount", width: 100}, 
+      {text: "公司社保", value: "corporateInsuranceAmount", width: 100}, 
+      {text: "个人公积金", value: "personalProvidentFundAmount", width: 100}, 
+      {text: "公司公积金", value: "corporateProvidentFundAmount", width: 100}, 
+      {text: "停保人数", value: "stopCount", width: 100}, 
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+    ],
+    isEditDrawerShow: false,
+    editItem: {},
+    isAddDrawerShow: false,
+    addItem: {},
+    yearDialog: false
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataFromBackend;
+    },
+    maxMonth() {
+      if (!this.tableDataFromBackend.length) {
+        return 0;
+      }
+      return _.maxBy(this.tableDataFromBackend, 'month').month;
+    }
+  },
+  watch: {
+    yearDialog(val) {
+      if (val){
+        val && this.$nextTick(() => (this.$refs.yearPicker.activePicker = 'YEAR'))
+      }
+    }
+  },
+  async created() {
+    this.setDefaultYearAndOptions();
+    await this.doUiAction('refreshTableData');
+  },
+  mounted() {},
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'refreshTableData':
+          await this.refreshTableData();
+          break;
+        case 'createItem':
+          await this.confirmCreateItemDialog();
+          await this.doCreateItem();
+          await this.refreshTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareItemData(uiActionData);
+          await this.openUpdateDialog();
+          break;
+        case 'updateItem':
+          await this.prepareValidate();
+          await this.confirmUpdateItemDialog();
+          await this.doUpdateItem();
+          await this.closeDrawerShow();
+          await this.refreshTableData();
+          break;
+        case 'deleteItem':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteItem(uiActionData);
+          await this.refreshTableData();
+          break;
+        case 'toDetail':
+          await this.toDetail(uiActionData);
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          break;
+      }
+    },
+    // =================================uiAction 公共方法 start ======================================
+    /**
+     * uiActionId:  prepareValidate
+     * description: ✅表单校验
+    */
+    async prepareValidate() {
+      if (this.$refs.form.validate() === false) {
+        window.vtoast.fail({ message: "输入有误, 请检查!" });
+        throw new Error("[prepareValidate] false");
+      }
+    },
+
+    /**
+     * uiActionId:  refreshTableData
+     * description: ✅获取表格数据
+    */
+    async refreshTableData() {
+      this.isTableLoading = true;
+      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'insuranceSchemeManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            whereLike: serverSearchInput,
+            orderBy: [{column: 'month', order: 'desc'}]
+          }
+        }
+      });
+      const { rows } = result.data.appData.resultData;
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    },
+    // =================================uiAction 公共方法 end ======================================
+    async saveYear(date) {
+      this.serverSearchInput.year = date + '';
+      this.$refs.yearPicker.activePicker = 'YEAR'
+      this.yearDialog = false;
+    },
+    async setDefaultYearAndOptions() {
+      this.serverSearchInput.year = new Date().getFullYear() + '';
+      for (let i = 1; i > -6; i--) {
+        this.constantCollection.year.push(new Date().getFullYear() + i + '');
+      }
+    },
+
+    /**
+     * uiActionId:  startCreateItem
+     * description: ✅获取表格数据
+    */
+    async clearItemData() {
+      this.addItem = {};
+    },
+    async openCreateItemDialog() {
+      this.isAddDrawerShow = true;
+    },
+
+    /**
+     * uiActionId:  createItem
+     * description: ✅获取表格数据
+    */
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "提示", content: "新建次月社保，本月数据将不可修改。请确认要新建次月社保吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doCreateItem() {
+      await window.vtoast.loading("新增数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'insuranceSchemeManagement',
+            actionId: 'insertMonthRecord'
+          }
+        }
+      })
+      await window.vtoast.success("新增数据成功");
+    },
+    async closeDrawerShow() {
+      this.isEditDrawerShow = false;
+      this.isAddDrawerShow = false;
+    },
+
+    /**
+     * uiActionId:  startUpdateItem
+     * description: ✅获取表格数据
+    */
+    async prepareItemData({item}) {
+      this.editItem = {...item};
+    },
+    async openUpdateDialog() {
+      this.isEditDrawerShow = true;
+    },
+    /**
+     * uiActionId:  updateItem
+     * description: ✅获取表格数据
+    */
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doUpdateItem() {
+      const { id, ...data } = this.editItem;
+      await window.vtoast.loading("修改数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'insuranceSchemeManagement',
+            actionId: 'updateItem',
+            actionData: data,
+            where: {id}
+          }
+        }
+      })
+      await window.vtoast.success("修改数据成功");
+    },
+
+    /**
+     * uiActionId:  deleteItem
+     * description: ✅获取表格数据
+    */
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doDeleteItem({item}) {
+      const { iRecordId } = item;
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'insuranceSchemeManagement',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: { iRecordId: iRecordId }
+          }
+        }
+      });
+      await window.vtoast.success("删除数据成功");
+    },
+    async toDetail({item}) {
+      location.href = `/${window.appInfo.appId}/page/insuranceSchemeDetail?recordId=${item.iRecordId}`
+    },
+  }
+})
+</script>
+
+<style scoped>
+</style>
+{% endblock %}

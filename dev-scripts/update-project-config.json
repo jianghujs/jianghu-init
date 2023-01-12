@@ -166,5 +166,15 @@
       }
     ],
     "repositoryUrl": "git@github.com:jianghujs/jianghujs-enterprise-1table-crud.git"
+  },
+  {
+    "projectName": "jianghujs-hrm",
+    "replaceList": [
+      {
+        "from": "demo_xiaoapp",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@gitea.openjianghu.org:zhiyuan/jianghujs-hrm.git"
   }
 ]

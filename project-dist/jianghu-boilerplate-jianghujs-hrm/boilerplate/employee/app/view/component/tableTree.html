@@ -1,0 +1,94 @@
+<script type="text/x-template" id="table-tree">
+    <v-expansion-panel
+        v-for="(group,i) in tableData"
+        :key="i"
+    >
+      <v-expansion-panel-header>
+        <div>
+          <span>{{ group.orgName }}</span>
+          <v-btn color="success" dark small class="elevation-0 ml-2" @click.stop="doUiAction('startCreateItem', {item: group})">新增</v-btn>
+        </div>
+      </v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <v-data-table 
+            v-if="group.memberList"
+            fixed-header
+            hide-default-footer
+            :headers="nodeHeaders"
+            :items="group.memberList"
+            :search="searchInput"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            checkbox-color="success"
+            class="elevation-0 mb-2 mb-xs-4 flex-fill d-flex flex-column"
+            dense>
+            <template v-slot:item.action="{ item }">
+              <v-btn small class=" success" @click.stop="doUiAction('startUpdateItem', {item})">修改</v-btn>
+              <v-btn small class=" error" @click.stop="doUiAction('deleteItem', {item})">移除</v-btn>
+            </template>
+        </v-data-table>
+        <v-expansion-panels dense>
+          <table-tree 
+            v-if="group.children"
+            v-for="(child,childIndex) in group.children"
+            :key="child.orgId"
+            :table-data="[child]" 
+            :nodeHeaders="nodeHeaders"
+            :isTableLoading="isTableLoading"
+            :activePanel="[0]"
+            @doUiAction="doUiAction"
+          /></table-tree>
+        </v-expansion-panels>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+</script>
+
+<script>
+  Vue.component("table-tree", {
+    template: "#table-tree",
+    props: {
+      tableData: {
+        type: Object,
+        default: {}
+      },
+      nodeHeaders: {
+        type: Object,
+        default: {}
+      },
+      isTableLoading: {
+        type: Boolean,
+        default: false
+      },
+      activePanel: {
+        type: Array,
+        default: []
+      }
+    },
+    watch: {
+      tableData: {
+        immediate: true,
+        async handler(val) {
+
+        },
+        deep: true
+      }
+    },
+    data() {
+      return {
+        searchInput: null,
+      };
+    },
+    mounted() {
+   
+    },
+    methods: {
+      doUiAction(uiActionId, uiActionData){
+        this.$emit('doUiAction', uiActionId, uiActionData)
+      }
+    }
+  });
+</script>
+
+<style scoped>
+
+</style>

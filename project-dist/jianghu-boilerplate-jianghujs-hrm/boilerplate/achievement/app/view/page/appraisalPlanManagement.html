@@ -1,0 +1,237 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+<jh-layout-v3>
+
+  <v-card :class="{'px-2': isMobile}" class="mb-5">
+    <v-row>
+      <v-col cols="6">
+        <v-card class="d-flex flex-row flex-wrap ml-3" outlined>
+          <template v-for="(status, index) in constantCollection.status" :key="index">
+            <v-card
+              class="pa-3 text-center" style="flex: 1;border-right: 1px solid #f5f5f5;border-radius: 0;">
+              <div class="mb-2">{{status.text}}</div>
+              <div>{{status.num || 0}}</div>
+            </v-card>
+          </template>
+        </v-card>
+      </v-col>
+      <v-col cols="6">
+        <v-card class="d-flex flex-row flex-wrap mr-3" outlined>
+          <template v-for="(status, index) in constantCollection.status2" :key="index">
+            <v-card
+              class="pa-3 text-center" style="flex: 1;border-right: 1px solid #f5f5f5;border-radius: 0;">
+              <div class="mb-2">{{status.text}}</div>
+              <div>{{status.num || 0}}</div>
+            </v-card>
+          </template>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-card>
+
+<!-- 页面主要内容 -->
+<v-card :class="{'px-2': isMobile}">
+  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 "
+         :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+    <v-btn color="success" dark class="elevation-0 mr-2"
+        @click.stop="doUiAction('handleTableButton', { title: '新建考核', action: 'add' })">新建考核
+    </v-btn>
+    <span style="margin-right: 10px;">{{ serverSearchForm.searchSummary }}</span>
+    <v-spacer></v-spacer>
+    <v-col cols="12" xs="6" sm="4" md="3" xl="3" class="pr-0">
+      <v-text-field v-model="tableFilterKeyword" color="success" prefix="表格过滤：" class="cus-v-input" dense filled
+                    single-line></v-text-field>
+    </v-col>
+  </v-row>
+  <v-data-table :headers="headers" :items="tableData" :search="tableFilterKeyword"
+                mobile-breakpoint="0"
+                :loading="isTableLoading " checkbox-color="success" class="elevation-0"
+                :options="{
+            itemsPerPage: 15
+        }">
+    <template v-slot:item.action="{ item }">
+      <v-btn small class="mr-2 success" @click.stop="doUiAction('handleTableButton', { title: '详情', action: 'edit', item })">查看考核设置</v-btn>
+      <v-btn small class="mr-2 success" @click.stop="doUiAction('stopRecruiting')">删除考核</v-btn>
+      <v-btn small class="mr-2 success" @click.stop="doUiAction('stopRecruiting')">开启考核</v-btn>
+    </template>
+  </v-data-table>
+</v-card>
+
+<drawer-form v-model="isEditDrawerShow"
+  ref="form"
+  :headers="detailHeaders"
+  :editItem="editItem"
+  :currentClickButton="currentClickButton"
+  :constantCollection="constantCollection"
+  @save="doUiAction('saveInfo')"
+>
+</drawer-form>
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+{% include 'component/drawerForm.html' %}
+{% include 'component/editForm.html' %}
+{% include 'component/globalHandler.html' %}
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    globalHandler: new GlobalHandler(),
+    statusFilter: [],
+    searchText: null,
+    tableFilterKeyword: null,
+    isFormValid: true,
+    requireRules: [
+      v => !!v || '此项为必填项',
+    ],
+    constantCollection: {
+      status: [
+          {text: "未开始考核", value: 1},
+          {text: "进行中考核", value: 2},
+          {text: "已归档", value: 2},
+      ],
+      status2: [
+          {text: "目标填写/目标确认中", value: 1},
+          {text: "结果评定中", value: 2},
+          {text: "结果确认中", value: 2},
+      ],
+    },
+    serverSearchForm: {
+      appraisalName: null,
+      select: {},
+      searchSummary: null,
+    },
+    isTableLoading: true,
+    tableDataBackups: [],
+    headers: [],
+    editItem: {},
+    isEditDrawerShow: false,
+    currentClickButton: {},
+    actionTab: 0,
+    isDetailDrawerShow: false,
+    tabs: [
+      { title: '详细资料', action: 'detail' },
+      { title: '操作记录', action: 'record' },
+    ],
+    recordData: [
+      {time: '2022-11-11 23:53', content: 'dizzy 为李四修改了参保方案,由【空】修改为【test2】'},
+      {time: '2022-11-11 21:53', content: 'dizzy 为李四修改了参保方案,由【test】修改为【空】'},
+      {time: '2022-11-11 20:53', content: 'admin 新建了员工'}
+    ],
+    headers: [
+      { text: "考核名称", value: "appraisalName" },
+      { text: "当前阶段", value: "applyQuitTime" },
+      { text: "考核时间", value: "salarySettlementTime" },
+      { text: "考核范围", value: "quitType", type: 'select' },
+      { text: "考核模板", value: "quitReason" },
+      { text: "考核人数", value: "quitReason" },
+      { text: "目标待填写", value: "remarks" },
+      { text: "目标待确认", value: "planQuitTime" },
+      { text: "结果待评定", value: "applyQuitTime" },
+      { text: "结果待确认", value: "salarySettlementTime"},
+      { text: '操作', value: 'action', align: 'center', sortable: false, width: 350, class: 'fixed', cellClass: 'fixed', edit: false, }
+    ],
+    detailHeaders: [
+      { text: "考核名称", value: "appraisalName" },
+      { text: "考核时间", value: "salarySettlementTime" },
+      { text: "考核开始时间", value: "quitType", type: 'select' },
+      { text: "考核结束时间", value: "appraisalName" },
+      { text: "考核表模板", value: "applyQuitTime" },
+      { text: "考核目标填写人", value: "salarySettlementTime" },
+      { text: "考核目标确认人", value: "quitType", type: 'select' },
+      { text: "考核结果评定人", value: "quitReason" },
+      { text: "考核结果确认人", value: "quitReason" },
+      { text: "考核规则", value: "remarks" },
+      { text: "等级", value: "planQuitTime" },
+      { text: "分数范围", value: "applyQuitTime" },
+      { text: "人数比例范围", value: "salarySettlementTime"},
+      { text: "考核范围", value: "quitType", type: 'select' },
+    ],
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataBackups;
+    },
+    getEditItem() {
+      return this.editItem;
+    },
+  },
+  watch: {
+    searchText(value) {
+      value = value && value.toLowerCase();
+      const {constantCollection: {status = []}} = this;
+      if (value) {
+        this.statusFilter = status.slice()
+            .filter((v) => v.text && (v.text.toLowerCase().includes(value) || v.text.includes(value)))
+        return false;
+      }
+      this.statusFilter = status.slice();
+    },
+  },
+  async created() {
+    await this.doUiAction('getTableData');
+  },
+  async mounted() {
+  },
+  methods: {
+    dayjs,
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData()
+          break;
+        case 'handleTableButton':
+          await this.globalHandler.handleTableButton(uiActionData, this)
+          break;
+        case 'saveInfo':
+          await this.saveInfo();
+          break;
+      }
+    },
+    /**
+     * 获取表格数据
+     */
+    async getTableData() {
+      this.isTableLoading = true;
+      const where = _.omitBy(this.serverSearchForm.select, _.isNull);
+      const {rows, count} = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'appraisalPlanManagement',
+            actionId: 'selectItemList',
+            where,
+            whereLike: {
+              appraisalName: this.serverSearchForm.appraisalName,
+            },
+            limit: _.size(where) === 0 ? 200 : 99999999,
+            orderBy: [
+              {column: 'createTime', order: 'desc'}
+            ]
+          }
+        }
+      })).data.appData.resultData;
+      this.tableDataBackups = rows;
+      this.isTableLoading = false;  
+    },
+    /**
+     * 保存数据
+     */
+    async saveInfo() {
+      await this.doUiAction(`${this.currentClickButton.action}Save`);
+    },
+  }
+})
+</script>
+
+<style scoped>
+
+</style>
+{% endblock %}

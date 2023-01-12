@@ -1,0 +1,75 @@
+<script>
+class GlobalHandler {
+
+  async confirmEditItemDialog(label) {
+    if (!await window.confirmDialog({ title: label, content: `确定${label}吗？` })) {
+      throw new Error(`[confirmEditItemDialog ${label}] 取消`);
+    }
+  }
+
+  async editItemSuccess(label, that) {
+    await window.vtoast.success(`${label}成功`);
+    that.isEditDrawerShow = false;
+  }
+
+
+  async validateSaveItem(that) {
+    if (!that.$refs.form.validate()) {
+      window.vtoast.fail('数据不合法');
+      throw new Error('[validateSaveItem] 数据不合法');
+    }
+  }
+
+  /**
+   * 常量解析
+   */
+  parseConstantValue(key, _value, constantCollection) {
+    const constantCollectionItemFind = constantCollection[key].find(({ value }) => value === _value);
+    if (constantCollectionItemFind) {
+      return constantCollectionItemFind.text;
+    }
+    return _value;
+  }
+
+  /**
+   * 点击表格数据按钮
+   */
+  async handleTableButton(button, that) {
+    const { title, action } = button
+    that.editType = action;
+    that.currentClickButton = { action, title };
+    if(action === 'addEmployee'){
+      that.editItem = {};
+    }else{
+      that.editItem = { ...button.item };
+      if(action === 'change'){
+        that.editItem.changeType =  title === '调整部门/岗位' ? 5 : 6
+      }
+    }
+    if(action === 'detail'){
+      that.isDetailDrawerShow = true;
+    }else{
+      that.addInformation(button)
+    }
+  }
+
+  setHeaderThToFixed(that) {
+    if (!that.isMobile) {
+      that.headers[that.headers.length - 1].class = 'fixed'
+      that.headers[that.headers.length - 1].cellClass = 'fixed'
+    }
+  }
+
+
+  /**
+   * 获取并设置页面路径参数
+   */
+  getLocationParams(key, that) {
+    const urlParams = new URLSearchParams(location.search);
+    const value = urlParams.get(key);
+    if (value) {
+      that.serverSearchForm[key] = value;
+    }
+  }
+}
+</script>

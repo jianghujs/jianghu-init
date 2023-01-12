@@ -1,0 +1,320 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+
+<!-- 3 table 下  的单表 crud 页面 -->
+
+
+<jh-layout-v3>
+
+<!--   <template slot="serverSearch">
+    <v-row class="ma-0 align-center flex-none pa-0" :class="{'pa-2': !isMobile, 'pa-2': isMobile}" style="justify-content: end">
+      <v-col :class="{'pt-2': isMobile, 'pl-0': isMobile, 'pr-0': !isMobile}" style="max-width: 77px">
+        <v-btn
+          class="elevation-0"
+          color="success"
+          dark
+          @click="doUiAction('refreshTableData')"
+        >
+          查询
+        </v-btn>
+      </v-col>
+    </v-row>
+  </template>-->
+
+<!-- 页面主要内容 -->
+<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+  <v-card>
+  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+
+      <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+        <span class="body-2">共{{ tableData.length }}条记录</span>
+      </v-col>
+
+      <v-spacer></v-spacer>
+
+      <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+        <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+      </v-col>
+    </v-row>
+    <v-data-table fixed-header
+                  :headers="headers"
+                  :items="tableData"
+                  :search="searchInput"
+                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                  :items-per-page="20"
+                  mobile-breakpoint="0"
+                  :loading="isTableLoading"
+                  checkbox-color="success"
+                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      
+      <template v-slot:item.clock="{ item }">
+        {{ getConstValue('clockType', item.clockType) }}
+      </template>
+      <template v-slot:item.type="{ item }">
+        {{ getConstValue('type', item.type) }}
+      </template>
+      <template v-slot:item.action="{ item }">
+        <!-- <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
+        <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn> -->
+      </template>
+    </v-data-table>
+  </v-card>
+</v-container>
+
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    // 表格相关数据
+    isFormValid: true,
+    requireRules: [
+      v => !!v || 'This is required',
+    ],
+    constantCollection: {
+      // 打卡类型 1 上班打卡 2 下班打卡
+      clockType: [
+        { text: '上班打卡', value: 1 },
+        { text: '下班打卡', value: 2 },
+      ],
+      // 打卡类型 1手机端打卡 2手工录入
+      type: [
+        { text: '手机端打卡', value: 1 },
+        { text: '手工录入', value: 2 },
+      ],
+    },
+
+    serverSearchInput: {
+      studentId: null,
+      classId: null
+    },
+    searchInput: null,
+    isTableLoading: true,
+    tableDataFromBackend: [],
+    headers: [
+      {text: "ID", value: "id", width: 120, class: 'fixed', cellClass: 'fixed'},
+       
+      {text: "员工", value: "employeeName", width: 120}, 
+      {text: "打卡时间", value: "clockTime", width: 120}, 
+      {text: "打卡类型 1 上班打卡 2 下班打卡", value: "clock", width: 120}, 
+      {text: "上班日期", value: "attendanceTime", width: 120}, 
+      {text: "打卡类型 1手机端打卡 2手工录入", value: "type", width: 120}, 
+      {text: "考勤地址", value: "address", width: 120}, 
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+    ],
+    isEditDrawerShow: false,
+    editItem: {},
+    isAddDrawerShow: false,
+    addItem: {}
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataFromBackend;
+    }
+  },
+  watch: {},
+  async created() {
+    await this.doUiAction('refreshTableData');
+  },
+  mounted() {},
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'refreshTableData':
+          await this.refreshTableData();
+          break;
+        case 'startCreateItem':
+          await this.clearItemData();
+          await this.openCreateItemDialog();
+          break;
+        case 'createItem':
+          await this.prepareValidate();
+          await this.confirmCreateItemDialog();
+          await this.doCreateItem();
+          await this.closeDrawerShow();
+          await this.refreshTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareItemData(uiActionData);
+          await this.openUpdateDialog();
+          break;
+        case 'updateItem':
+          await this.prepareValidate();
+          await this.confirmUpdateItemDialog();
+          await this.doUpdateItem();
+          await this.closeDrawerShow();
+          await this.refreshTableData();
+          break;
+        case 'deleteItem':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteItem(uiActionData);
+          await this.refreshTableData();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          break;
+      }
+    },
+    // =================================uiAction 公共方法 start ======================================
+    /**
+     * uiActionId:  prepareValidate
+     * description: ✅表单校验
+    */
+    async prepareValidate() {
+      if (this.$refs.form.validate() === false) {
+        window.vtoast.fail({ message: "输入有误, 请检查!" });
+        throw new Error("[prepareValidate] false");
+      }
+    },
+
+    /**
+     * uiActionId:  refreshTableData
+     * description: ✅获取表格数据
+    */
+    async refreshTableData() {
+      this.isTableLoading = true;
+      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'clockManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {},
+            whereLike: serverSearchInput,
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+      const { rows } = result.data.appData.resultData;
+
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    },
+    // =================================uiAction 公共方法 end ======================================
+
+
+    /**
+     * uiActionId:  startCreateItem
+     * description: ✅获取表格数据
+    */
+    async clearItemData() {
+      this.addItem = {};
+    },
+    async openCreateItemDialog() {
+      this.isAddDrawerShow = true;
+    },
+
+    /**
+     * uiActionId:  createItem
+     * description: ✅获取表格数据
+    */
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doCreateItem() {
+      const { id, ...data } = this.addItem;
+      await window.vtoast.loading("新增数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'clockManagement',
+            actionId: 'insertItem',
+            actionData: data
+          }
+        }
+      })
+      await window.vtoast.success("新增数据成功");
+    },
+    async closeDrawerShow() {
+      this.isEditDrawerShow = false;
+      this.isAddDrawerShow = false;
+    },
+
+    /**
+     * uiActionId:  startUpdateItem
+     * description: ✅获取表格数据
+    */
+    async prepareItemData({item}) {
+      this.editItem = {...item};
+    },
+    async openUpdateDialog() {
+      this.isEditDrawerShow = true;
+    },
+    /**
+     * uiActionId:  updateItem
+     * description: ✅获取表格数据
+    */
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doUpdateItem() {
+      const { id, ...data } = this.editItem;
+      await window.vtoast.loading("修改数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'clockManagement',
+            actionId: 'updateItem',
+            actionData: data,
+            where: {id}
+          }
+        }
+      })
+      await window.vtoast.success("修改数据成功");
+    },
+
+    /**
+     * uiActionId:  deleteItem
+     * description: ✅获取表格数据
+    */
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doDeleteItem({item}) {
+      const { id } = item;
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'clockManagement',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: { id: id }
+          }
+        }
+      });
+      await window.vtoast.success("删除数据成功");
+    },
+    getConstValue(key, value) {
+      const constValue = this.constantCollection[key];
+      if (constValue) {
+        const result = constValue.find(item => item.value === value);
+        return result ? result.text : value;
+      }
+      return value;
+    }
+  }
+})
+</script>
+
+<style scoped>
+</style>
+{% endblock %}

@@ -1,0 +1,96 @@
+
+<template id="emp-project-record-list">
+
+<!-- 页面主要内容 -->
+<v-card outlined>
+  <v-row no-gutters class="ma-0 align-center px-2">
+    <v-data-table fixed-header
+                  :headers="headers"
+                  :items="tableData"
+                  :items-per-page="20"
+                  mobile-breakpoint="0"
+                  :loading="isTableLoading"
+                  checkbox-color="success"
+                  hide-default-footer
+                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      <template v-slot:item.total="{ item }">
+        {{ item.corporateAmount + item.personalAmount }}
+      </template>
+      <template v-slot:body.append>
+        <tr>
+          <th>缴费总价</th>
+          <th></th>
+          <th></th> 
+          <th></th>
+          <th>{{_.sumBy(tableData,'corporateAmount')}}</th>
+          <th>{{_.sumBy(tableData,'personalAmount')}}</th>
+          <th>{{(_.sumBy(tableData,'personalAmount') + _.sumBy(tableData,'corporateAmount')).toFixed(2)}}</th>
+        </tr>
+      </template>
+    </v-data-table>
+  </v-row>
+</v-card>
+</template>
+
+<script type="module">
+Vue.component('emp-project-record-list', {
+  template: '#emp-project-record-list',
+  props: ['iEmpRecordId'],
+  data: () => ({
+    isTableLoading: false,
+    tableDataFromBackend: [],
+    headers: [
+      //1 养老保险基数 2 医疗保险基数 3 失业保险基数 4 工伤保险基数 5 生育保险基数 6 补充大病医疗保险 7 补充养老保险 8 公积金
+      {text: "项目名称", value: "projectName", width: 120}, 
+      {text: "默认基数", value: "defaultAmount", width: 120}, 
+      {text: "公司比例", value: "corporateProportion", width: 120}, 
+      {text: "个人比例", value: "personalProportion", width: 120}, 
+      {text: "公司缴纳金额", value: "corporateAmount", width: 120}, 
+      {text: "个人缴纳金额", value: "personalAmount", width: 120}, 
+      {text: "合计缴费", value: "total", width: 120}, 
+    ],
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataFromBackend;
+    }
+  },
+  watch: {
+    iEmpRecordId: {
+      handler: function (val, oldVal) {
+        if (val) {
+          this.getTableData();
+        }
+      },
+      immediate: true
+    }
+  },
+  async created() {
+    this.getTableData();
+  },
+  mounted() {},
+  methods: {
+    async getTableData() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'insuranceSchemeDetail',
+            actionId: 'getEmpProjectRecordList',
+            where: {iEmpRecordId: this.iEmpRecordId},
+          }
+        }
+      })
+      const { rows } = result.data.appData.resultData;
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    }
+  }
+});
+</script>
+
+<style scoped>
+</style>

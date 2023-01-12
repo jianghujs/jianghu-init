@@ -1,0 +1,112 @@
+<script>
+    const constantCollection = {
+      // 证件类型
+      idType: [
+        { text: '身份证', value: 1 }, 
+        { text: '港澳通行证', value: 2 }, 
+        { text: '台湾通行证', value: 3 }, 
+        { text: '护照', value: 4 }, 
+        { text: '其他', value: 5 }
+      ],
+      // 性别
+      sex: [
+        { text: '男', value: 1 }, 
+        { text: '女', value: 2 }
+      ],
+      // 生日类型
+      birthdayType: [
+        { text: '阳历', value: 1 }, 
+        { text: '农历', value: 2 }
+      ],
+      // 删除状态
+      isDel: [
+        { text: '未删除', value: 0 }, 
+        { text: '删除', value: 1 }
+      ],
+      // 员工状态
+      status: [
+          {text: "正式", value: 1},
+          {text: "试用", value: 2},
+          {text: "实习", value: 3},
+          {text: "兼职", value: 4},
+          {text: "劳务", value: 5},
+          {text: "顾问", value: 6},
+          {text: "返聘", value: 7},
+          {text: "外包", value: 8},
+      ],
+      // 聘用形式
+      employmentForms: [
+        {text: "正式", value: 1},
+        {text: "试用", value: 2},
+      ],
+      // 在职状态
+      entryStatus: [
+          {text: "在职", value: 1},
+          {text: "待入职", value: 2},
+          {text: "待离职", value: 3},
+          {text: "已离职", value: 4},
+      ],
+      // 最高学历
+      highestEducation: [
+        { text: '小学', value: 1 },
+        { text: '初中', value: 2 },
+        { text: '中专', value: 3 },
+        { text: '中职', value: 4 },
+        { text: '中技', value: 5 },
+        { text: '高中', value: 6 },
+        { text: '大专', value: 7 },
+        { text: '本科', value: 8 },
+        { text: '硕士', value: 9 },
+        { text: '博士', value: 10 },
+        { text: '博士后', value: 11 },
+        { text: '其他', value: 12 }
+      ],
+      // 试用期
+      probation: [
+        { text: '无试用期', value: 0 },
+        { text: '1个月', value: 1 },
+        { text: '2个月', value: 2 },
+        { text: '3个月', value: 3 },
+        { text: '4个月', value: 4 },
+        { text: '5个月', value: 5 },
+        { text: '6个月', value: 6 }
+      ],
+      // 离职类型
+      quitType: [
+        { text: '主动离职', value: 1 },
+        { text: '被动离职', value: 2 },
+        { text: '退休', value: 3 },
+      ],
+      // 离职原因
+      quitReason: [
+        { text: '家庭原因', value: 1} ,
+        { text: '身体原因', value: 2} ,
+        { text: '薪资原因', value: 3} ,
+        { text: '交通不便', value: 4} ,
+        { text: '工作压力', value: 5} ,
+        { text: '管理问题', value: 6} ,
+        { text: '无晋升机会', value: 7} ,
+        { text: '职业规划', value: 8} ,
+        { text: '合同到期放弃续签', value: 9},
+        { text: '已其他个人原因离职', value: 10},
+        { text: '试用期内辞退', value: 11},
+        { text: '违反公司条例', value: 12},
+        { text: '组织调整/裁员', value: 13},
+        { text: '绩效不达标辞退', value: 14},
+        { text: '合同到期不续签', value: 15},
+        { text: '其他原因被动离职', value: 16}
+      ],
+      // 异动类型
+      changeType: [
+        { text: '调岗', value: 5 },
+        { text: '晋升', value: 6 },
+        { text: '降级', value: 7 }
+      ],
+      // 异动原因
+      changeReason: [
+        { text: '组织架构调整', value: 1 }, 
+        { text: '个人申请', value: 2 }, 
+        { text: '工作安排', value: 3 }
+      ] 
+    }
+</script>

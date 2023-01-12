@@ -1,0 +1,585 @@
+{% extends 'template/jhTemplateV3.html'%}
+
+{% block vue_template %}
+
+
+<jh-layout-v3>
+  <!-- <template slot="serverSearch">
+    <v-row class="ma-0 align-center" :class="{'pa-0': isMobile, 'pa-2': !isMobile}" style="justify-content: end">
+      <v-col cols="4" sm="4" xs="3" md="3" xl="2" class="pb-3" :class="{'pt-0': isMobile}">
+        <v-select 
+          class="cus-v-input " 
+          dense filled 
+          single-line 
+          prefix="年度：" 
+          v-model="serverSearchInput.year" 
+          :items="constantCollection.year">
+        </v-select>
+      </v-col>
+      <v-col class="px-0" :class="{'pt-0': isMobile}" style="max-width: 56px">
+        <v-btn
+            class="elevation-0"
+            color="success"
+            dark
+            @click="doUiAction('refreshTableData')">
+          查询
+        </v-btn>
+      </v-col>
+    </v-row>
+  </template> -->
+  <!-- 页面主要内容 -->
+  <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+    <v-card>
+      <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 "
+        :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+
+        <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+          <v-btn v-if="maxMonth < 12" class="elevation-0" color="success" dark
+            @click="doUiAction('startCreateInsurance')">
+            添加参保人员
+          </v-btn>
+          <span class="body-2">共{{ tableData.length }}条记录</span>
+        </v-col>
+
+        <v-spacer></v-spacer>
+
+        <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+          <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+        </v-col>
+      </v-row>
+      <v-data-table fixed-header :headers="headers" :items="tableData" :search="searchInput" :items-per-page="20"
+        mobile-breakpoint="0" :loading="isTableLoading" checkbox-color="success" hide-default-footer
+        class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+        <template v-slot:item.action="{ item }">
+          <v-btn small class="mr-2" color="success" @click="doUiAction('getEmpProjectRecordList', {item})">查看详情</v-btn>
+        </template>
+      </v-data-table>
+    </v-card>
+  </v-container>
+  <v-dialog v-model="isSelectEmployeeListDialogShow" scrollable max-width="500px">
+    <v-card>
+      <v-card-title>选择参保员工</v-card-title>
+      <v-divider></v-divider>
+      <v-card-text style="height: 100px;" class="d-flex aligin-center justify-center">
+        <v-autocomplete v-if="isSelectEmployeeListDialogLoading === false" :items="constantCollection.employeeList"
+          v-model="selectedEmployeeList" auto-select-first chips dense filled multiple rounded small-chips
+          item-text="employeeName" item-value="employeeId"></v-autocomplete>
+        <v-progress-circular v-else indeterminate color="primary" class="mx-auto"></v-progress-circular>
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-btn color="blue darken-1" text @click="isSelectEmployeeListDialogShow = false">
+          取消
+        </v-btn>
+        <v-btn color="blue darken-1" text @click="doUiAction('insertEmployeeRecord')">
+          保存
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- 新增 -->
+  <v-navigation-drawer v-model="isEmpProjectRecordListDialogShow" :permanent="isEmpProjectRecordListDialogShow" fixed
+    temporary right width="80%" class="elevation-24">
+    <v-form v-model="isFormValid" v-if="isEmpProjectRecordListDialogShow" ref="form" lazy-validation>
+      <v-row no-gutters justify="center" align="center" class=" pb-6 pt-10"
+        :class="{'px-4': isMobile, 'px-12': !isMobile}">
+        <span class="title">{{viewItem.employeeName}}</span>
+        <v-spacer></v-spacer>
+        <v-btn class="elevation-0 mr-4" color="primary" @click="doUiAction('startUpdateItem', {item: viewItem})">
+          编辑
+        </v-btn>
+        <v-btn class="elevation-0" fab x-small @click="isEmpProjectRecordListDialogShow = false">
+          <v-icon dark>mdi-close</v-icon>
+        </v-btn>
+      </v-row>
+      <v-row class="ma-0 px-8" :class="{'px-3': isMobile, 'pb-7': isMobile}">
+
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">参保城市</span>
+          <v-text-field class="cus-v-input " dense filled single-line readonly v-model="viewItem['city']">
+          </v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">身份证号</span>
+          <v-text-field class="cus-v-input " dense filled single-line readonly v-model="viewItem['idNumber']">
+          </v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">个人社保号</span>
+          <v-text-field class="cus-v-input " dense filled single-line readonly v-model="viewItem['socialSecurityNum']">
+          </v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">个人公积金号</span>
+          <v-text-field class="cus-v-input " dense filled single-line readonly
+            v-model="viewItem['accumulationFundNum']"></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">参保方案</span>
+          <v-text-field class="cus-v-input " dense filled single-line readonly v-model="viewItem['schemeName']">
+          </v-text-field>
+        </v-col>
+        <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <emp-project-record-list ref="empProjectRecordList" :iEmpRecordId="viewItem.iEmpRecordId">
+          </emp-project-record-list>
+        </v-col>
+      </v-row>
+      <v-row class="justify-end pr-6">
+        <v-btn color="success" @click="doUiAction('createItem')"
+          :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">新增
+        </v-btn>
+        <v-btn class="ml-2" @click="isAddDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}"
+          :class="{'mr-4': isMobile}">取消</v-btn>
+      </v-row>
+    </v-form>
+  </v-navigation-drawer>
+
+
+  <!-- 编辑抽屉 -->
+  <v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="70%"
+    class="elevation-24">
+    <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+      <v-row no-gutters justify="center" align="center" class=" pb-6 pt-10"
+        :class="{'px-4': isMobile, 'px-12': !isMobile}">
+        <span class="title">编辑参保信息</span>
+        <v-spacer></v-spacer>
+        <v-btn class="elevation-0" fab x-small @click="isEditDrawerShow = false">
+          <v-icon dark>mdi-close</v-icon>
+        </v-btn>
+      </v-row>
+      <v-row class="ma-0" :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+
+        <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">参保方案</span>
+          <v-select class="cus-v-input " dense filled single-line label="班级ID" v-model="editItem.schemeId"
+            :items="constantCollection.schemeList" item-text="schemeName" item-value="schemeId"></v-select>
+        </v-col>
+        <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+          <span class="inputLabel">社保各项基数</span>
+        </v-col>
+        <v-col cols="6" sm="6" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}" v-for="(project, index) in editItem.projectList">
+          <span class="inputLabel">{{project.projectName}}</span>
+          <v-text-field class="cus-v-input " dense filled single-line v-model="project.defaultAmount"></v-text-field>
+        </v-col>
+
+        <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
+        <!--        &lt;!&ndash; 必填字段样式 demo :rules="requireRules" &ndash;&gt;-->
+        <!--            <span class="inputLabel">学生ID</span>-->
+        <!--        <v-text-field class="cus-v-input " dense filled single-line label="学生ID" v-model="editItem.studentId" :rules="requireRules"></v-text-field>-->
+        <!--      </v-col>-->
+        <!--      &lt;!&ndash; select 字段 demo &ndash;&gt;-->
+        <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
+        <!--            <span class="inputLabel">班级ID</span>-->
+        <!--        <v-select class="cus-v-input " dense filled single-line clearable label="班级ID" v-model="editItem.classId" :items="constantCollection.classId"></v-select>-->
+        <!--      </v-col>-->
+        <!--      &lt;!&ndash; 日期选择 demo &ndash;&gt;-->
+        <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
+        <!--        <span class="inputLabel">出生日期</span>-->
+        <!--        <v-menu class="cus-v-input " offset-y max-width="290">-->
+        <!--          <template v-slot:activator="{ on, attrs }">-->
+        <!--            <v-text-field class="cus-v-input " dense filled single-line v-on="on" label="出生日期" v-model="editItem.dateOfBirth"></v-text-field>-->
+        <!--          </template>-->
+        <!--          <v-date-picker color="success" elevation="20" v-model="editItem.dateOfBirth"></v-date-picker>-->
+        <!--        </v-menu>-->
+        <!--      </v-col>-->
+      </v-row>
+      <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
+        <v-btn color="success" @click="doUiAction('updateItem')">保存</v-btn>
+        <v-btn class="ml-2" @click="isEditDrawerShow = false">取消</v-btn>
+      </v-row>
+    </v-form>
+  </v-navigation-drawer>
+
+</jh-layout-v3>
+
+{% endblock %}
+
+{% block vue_body %}
+{% include 'component/empProjectRecordList.html' %}
+
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: () => ({
+      // 表格相关数据
+      isFormValid: true,
+      requireRules: [
+        v => !!v || 'This is required',
+      ],
+      constantCollection: {
+        year: [],
+        employeeList: [],
+        schemeList: [],
+        projectListBySchemeId: {}
+      },
+
+      serverSearchInput: {
+        year: '',
+      },
+      searchInput: null,
+      isTableLoading: true,
+      tableDataFromBackend: [],
+      headers: [
+        { text: "姓名", value: "employeeName", width: 110 },
+        { text: "工号", value: "", width: 80 },
+        { text: "部门", value: "name", width: 100 },
+        { text: "入职日期", value: "entryTime", width: 110 },
+        { text: "手机号码", value: "mobile", width: 110 },
+        { text: "参保城市", value: "city", width: 110 },
+        { text: "参保方案", value: "schemeName", width: 110 },
+        { text: "个人社保费", value: "personalInsuranceAmount", width: 110 },
+        { text: "公司社保费", value: "corporateInsuranceAmount", width: 110 },
+        { text: "个人公积金", value: "personalProvidentFundAmount", width: 110 },
+        { text: "公司公积金", value: "corporateProvidentFundAmount", width: 110 },
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed' },
+      ],
+      isEditDrawerShow: false,
+      editItem: {},
+      isAddDrawerShow: false,
+      viewItem: {},
+      yearDialog: false,
+      recordId: '',
+      // 手动添加参保人员
+      isSelectEmployeeListDialogShow: false,
+      selectedEmployeeList: [],
+      isSelectEmployeeListDialogLoading: false,
+      // 用户详情抽屉
+      isEmpProjectRecordListDialogShow: false
+    }),
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+      tableData() {
+        return this.tableDataFromBackend;
+      },
+      maxMonth() {
+        if (!this.tableDataFromBackend.length) {
+          return 0;
+        }
+        return _.maxBy(this.tableDataFromBackend, 'month').month;
+      }
+    },
+    watch: {
+      yearDialog(val) {
+        if (val) {
+          val && this.$nextTick(() => (this.$refs.yearPicker.activePicker = 'YEAR'))
+        }
+      },
+      'editItem.schemeId'(val) {
+        this.editItem.projectList = [...this.constantCollection.projectListBySchemeId[val]];
+      }
+    },
+    async created() {
+      const searchParams = new URLSearchParams(location.search.substring(1));
+      this.recordId = searchParams.get('recordId');
+      this.doUiAction('getMonthRecordInfo');
+      this.doUiAction('getMonthEmpList');
+      this.doUiAction('getSchemeList');
+      this.doUiAction('getSchemeProjectList');
+    },
+    mounted() { },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'getMonthRecordInfo':
+            await this.getMonthRecordInfo();
+            break;
+          case 'getMonthEmpList':
+            await this.getMonthEmpList();
+            break;
+          case 'startCreateInsurance':
+            await this.openSelectEmployeeListDialog();
+            await this.getNotinEmpListEmployeeList();
+            break;
+          case 'insertEmployeeRecord':
+            await this.doInsertEmployeeRecord();
+            await this.getMonthEmpList();
+            break;
+          case 'getEmpProjectRecordList':
+            await this.prepareEmpProjectRecordList(uiActionData);
+            break;
+          case 'getSchemeList':
+            await this.getSchemeList(uiActionData);
+            break;
+          case 'getSchemeProjectList':
+            await this.getSchemeProjectList(uiActionData);
+            break;
+          case 'createItem':
+            await this.confirmCreateItemDialog();
+            await this.doCreateItem();
+            await this.refreshTableData();
+            break;
+          case 'startUpdateItem':
+            await this.prepareItemData(uiActionData);
+            await this.openUpdateDialog();
+            break;
+          case 'updateItem':
+            await this.prepareValidate();
+            await this.confirmUpdateItemDialog();
+            await this.doUpdateItem();
+            await this.closeDrawerShow();
+            await this.getMonthEmpList();
+            await this.refreshEmpProjectRecordList();
+            break;
+          case 'deleteItem':
+            await this.confirmDeleteItemDialog();
+            await this.doDeleteItem(uiActionData);
+            await this.refreshTableData();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      // =================================uiAction 公共方法 start ======================================
+      /**
+       * uiActionId:  prepareValidate
+       * description: ✅表单校验
+      */
+      async prepareValidate() {
+        if (this.$refs.form.validate() === false) {
+          window.vtoast.fail({ message: "输入有误, 请检查!" });
+          throw new Error("[prepareValidate] false");
+        }
+      },
+
+      /**
+       * uiActionId:  refreshTableData
+       * description: ✅获取表格数据
+      */
+      async getMonthRecordInfo() {
+        this.isTableLoading = true;
+        const serverSearchInput = _.pickBy(this.serverSearchInput, value => !!value);
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'insuranceSchemeDetail',
+              actionId: 'getMonthRecordInfo',
+              actionData: {},
+              where: { iRecordId: this.recordId },
+            }
+          }
+        });
+        const { rows } = result.data.appData.resultData;
+        this.recordInfo = rows ? rows[0] : {};
+        this.isTableLoading = false;
+      },
+      async getMonthEmpList() {
+        this.isTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'insuranceSchemeDetail',
+              actionId: 'getMonthEmpList',
+              where: { iRecordId: this.recordId },
+              orderBy: [{ column: 'month', order: 'desc' }]
+            }
+          }
+        });
+        const { rows } = result.data.appData.resultData;
+        rows.forEach(item => {
+          item.entryTime = item.entryTime ? dayjs(item.entryTime).format('YYYY-MM-DD') : '';
+        })
+        this.tableDataFromBackend = rows;
+        this.isTableLoading = false;
+      },
+      async getSchemeList() {
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'insuranceSchemeDetail',
+              actionId: 'getSchemeList',
+              where: { isDel: 0 },
+            }
+          }
+        });
+        const { rows } = result.data.appData.resultData;
+        this.constantCollection.schemeList = rows;
+      },
+      async getSchemeProjectList() {
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'insuranceSchemeDetail',
+              actionId: 'getSchemeProjectList',
+              where: { isDel: 0 },
+            }
+          }
+        });
+        const { rows } = result.data.appData.resultData;
+        this.constantCollection.projectListBySchemeId = _.groupBy(rows, 'schemeId');
+      },
+      // =================================uiAction 公共方法 end ======================================
+      async saveYear(date) {
+        this.serverSearchInput.year = date + '';
+        this.$refs.yearPicker.activePicker = 'YEAR'
+        this.yearDialog = false;
+      },
+      async setDefaultYearAndOptions() {
+        this.serverSearchInput.year = new Date().getFullYear() + '';
+        for (let i = 1; i > -6; i--) {
+          this.constantCollection.year.push(new Date().getFullYear() + i + '');
+        }
+      },
+      async openSelectEmployeeListDialog() {
+        this.isSelectEmployeeListDialogShow = true;
+      },
+      async getNotinEmpListEmployeeList() {
+        this.isSelectEmployeeListDialogLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'insuranceSchemeDetail',
+              actionId: 'getEmployeeList',
+              whereOptions: [['entryStatus', '!=', 2]],
+            }
+          }
+        });
+        const { rows } = result.data.appData.resultData;
+        // 不在列表内的员工并且离职没有超过半年的员工
+        this.constantCollection.employeeList = rows.filter(item => {
+          return !this.tableDataFromBackend.some(item2 => item2.employeeId === item.employeeId) &&
+            (item.entryStatus != 4 || item.entryStatus == 4 && (dayjs().diff(dayjs(item.planQuitTime), 'month') < 6));
+        });
+        this.isSelectEmployeeListDialogLoading = false;
+      },
+      async doInsertEmployeeRecord() {
+        this.isSelectEmployeeListDialogLoading = true;
+        console.log(this.selectedEmployeeList);
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'insuranceSchemeDetail',
+              actionId: 'insertEmployeeRecord',
+              actionData: {
+                iRecordId: this.recordId,
+                employeeIdList: this.selectedEmployeeList
+              }
+            }
+          }
+        });
+        this.isSelectEmployeeListDialogLoading = false;
+        this.isSelectEmployeeListDialogShow = false;
+      },
+
+      /**
+       * uiActionId:  startCreateItem
+       * description: ✅获取表格数据
+      */
+      async clearItemData() {
+        this.addItem = {};
+      },
+      async openCreateItemDialog() {
+        this.isAddDrawerShow = true;
+      },
+
+      /**
+       * uiActionId:  createItem
+       * description: ✅获取表格数据
+      */
+      async confirmCreateItemDialog() {
+        if (await window.confirmDialog({ title: "提示", content: "新建次月社保，本月数据将不可修改。请确认要新建次月社保吗？" }) === false) {
+          throw new Error("取消");
+        }
+      },
+      async doCreateItem() {
+        await window.vtoast.loading("新增数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'insuranceSchemeManagement',
+              actionId: 'insertMonthRecord'
+            }
+          }
+        })
+        await window.vtoast.success("新增数据成功");
+      },
+      async closeDrawerShow() {
+        this.isEditDrawerShow = false;
+        this.isAddDrawerShow = false;
+      },
+
+      /**
+       * uiActionId:  startUpdateItem
+       * description: ✅获取表格数据
+      */
+      async prepareItemData({ item }) {
+        this.editItem = { ...item };
+        this.editItem['projectList'] = [...this.constantCollection.projectListBySchemeId[this.editItem.schemeId]];
+      },
+      /**
+       * uiActionId:  startUpdateItem
+       * description: ✅获取表格数据
+      */
+      async prepareEmpProjectRecordList({ item }) {
+        this.viewItem = { ...item };
+        this.isEmpProjectRecordListDialogShow = true;
+      },
+      async openUpdateDialog() {
+        this.isEditDrawerShow = true;
+      },
+      /**
+       * uiActionId:  updateItem
+       * description: ✅获取表格数据
+      */
+      async confirmUpdateItemDialog() {
+        if (await window.confirmDialog({ title: "修改", content: "确定修改吗？" }) === false) {
+          throw new Error("取消");
+        }
+      },
+      async doUpdateItem() {
+        const { iEmpRecordId, projectList, schemeId, employeeId } = this.editItem;
+        await window.vtoast.loading("修改数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'insuranceSchemeDetail',
+              actionId: 'updateEmpSchemeRecord',
+              actionData: {iEmpRecordId, projectList, schemeId, employeeId}
+            }
+          }
+        })
+        await window.vtoast.success("修改数据成功");
+      },
+      async refreshEmpProjectRecordList() {
+        this.viewItem.schemeId = this.editItem.schemeId + '';
+        this.$refs.empProjectRecordList.getTableData()
+      },
+
+      /**
+       * uiActionId:  deleteItem
+       * description: ✅获取表格数据
+      */
+      async confirmDeleteItemDialog() {
+        if (await window.confirmDialog({ title: "删除", content: "确定删除吗？" }) === false) {
+          throw new Error("取消");
+        }
+      },
+      async doDeleteItem({ item }) {
+        const { id } = item;
+        await window.vtoast.loading("删除数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'insuranceSchemeManagement',
+              actionId: 'deleteItem',
+              actionData: {},
+              where: { id: id }
+            }
+          }
+        });
+        await window.vtoast.success("删除数据成功");
+      },
+    }
+  })
+</script>
+
+<style scoped>
+  .title {
+    font-weight: bold !important;
+  }
+</style>
+{% endblock %}

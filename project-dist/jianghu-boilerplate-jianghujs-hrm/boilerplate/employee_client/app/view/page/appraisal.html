@@ -1,0 +1,225 @@
+{% extends 'template/jhTemplateV4.html'%}
+
+{% block vue_template %}
+<jh-layout-v4>
+<!-- 页面主要内容 -->
+<v-card :class="{'px-2': isMobile}" class="rounded-lg">
+  <div class="d-flex justify-space-between align-center pa-4">
+    <div class="d-flex align-center">
+      <v-text-field 
+          v-model="serverSearchForm.employeeName" 
+          prefix="考核名称：" 
+          color="success" 
+          class="cus-v-input"
+          dense filled single-line
+          append-icon="mdi-magnify"
+          @click:append="getTableData">
+        </v-text-field>
+        <v-btn-toggle
+          v-if="actionTab === 0"
+          v-model="serverSearchForm.select.employmentForms"
+          mandatory
+          class="ml-4"
+        >
+          <v-btn v-for="(btn, index) in constantCollection.status" :key="index" small>
+            {{btn.text}}
+          </v-btn>
+        </v-btn-toggle>
+        <v-btn-toggle
+        v-if="actionTab === 2"
+        v-model="serverSearchForm.select.employmentForms"
+        mandatory
+        class="ml-4"
+      >
+        <v-btn v-for="(btn, index) in constantCollection.status2" :key="index" small>
+          {{btn.text}}
+        </v-btn>
+      </v-btn-toggle>
+    </div>
+    <div>
+      <span style="font-size: 13px;">{{ serverSearchForm.searchSummary }}</span>
+    </div>
+  </div>
+  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 "
+         :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+    <v-tabs dense v-model="actionTab" style="width: auto;" class="custom-tabs">
+      <v-tab v-for="(tab, index) in tabs" :key="index">{{tab.title}}</v-tab>
+    </v-tabs>
+  </v-row>
+  <v-data-table 
+      :headers="tableHeaders" 
+      :items="tableData" 
+      :search="tableFilterKeyword"
+      mobile-breakpoint="0"
+      :loading="isTableLoading " 
+      checkbox-color="success" 
+      fixed-header 
+      :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+      :items-per-page="-1"
+      class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+  </v-data-table>
+</v-card>
+</jh-layout-v4>
+
+{% endblock %}
+
+{% block vue_body %}
+{% include 'component/drawerForm.html' %}
+{% include 'component/editForm.html' %}
+{% include 'component/globalHandler.html' %}
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    globalHandler: new GlobalHandler(),
+    statusFilter: [],
+    searchText: null,
+    tableFilterKeyword: null,
+    isFormValid: true,
+    requireRules: [
+      v => !!v || '此项为必填项',
+    ],
+    constantCollection: {
+      status: [
+          {text: "待填写", value: 1},
+          {text: "已填写", value: 2},
+      ],
+      status2: [
+          {text: "待评定", value: 1},
+          {text: "已评定", value: 2},
+      ],
+    },
+    serverSearchForm: {
+      postName: null,
+      select: {},
+      searchSummary: '共0条记录',
+    },
+    isTableLoading: false,
+    tableDataBackups: [],
+    headers: [],
+    editItem: {},
+    isEditDrawerShow: false,
+    currentClickButton: {},
+    actionTab: 0,
+    isDetailDrawerShow: false,
+    tabs: [
+      { title: '我的绩效', action: 'myAppraisal' },
+      { title: '目标待确认', action: 'basic' },
+      { title: '结果评定', action: 'contract' },
+      { title: '结果待确认', action: 'insurance' },
+    ],
+    headers: [
+      { text: "序号", value: "month" },
+      { text: "考核名称", value: "applyQuitTime" },
+      { text: "考核时间", value: "salarySettlementTime" },
+      { text: "考核状态", value: "quitType", type: 'select' },
+      { text: "跟进人", value: "quitReason" },
+      { text: "评分", value: "month" },
+      { text: "考核结果", value: "applyQuitTime" },
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+    ],
+    headers2: [
+      { text: "序号", value: "month" },
+      { text: "姓名", value: "applyQuitTime" },
+      { text: "手机号", value: "salarySettlementTime" },
+      { text: "部门", value: "quitType", type: 'select' },
+      { text: "考核名称", value: "quitReason" },
+      { text: "考核状态", value: "month" },
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+    ],
+    headers3: [
+      { text: "序号", value: "month" },
+      { text: "考核名称", value: "applyQuitTime" },
+      { text: "考核时间", value: "salarySettlementTime" },
+      { text: "待确认/总人数", value: "quitType", type: 'select' },
+      { text: "等级分布", value: "quitReason" },
+    ]
+  }),
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    tableData() {
+      return this.tableDataBackups;
+    },
+    getEditItem() {
+      return this.editItem;
+    },
+    tableHeaders(){
+      const index = this.actionTab;
+      return index === 0 ? this.headers : (index === 1 || index === 2) ? this.headers2 : this.headers3;
+    }
+  },
+  watch: {
+    searchText(value) {
+      value = value && value.toLowerCase();
+      const {constantCollection: {status = []}} = this;
+      if (value) {
+        this.statusFilter = status.slice()
+            .filter((v) => v.text && (v.text.toLowerCase().includes(value) || v.text.includes(value)))
+        return false;
+      }
+      this.statusFilter = status.slice();
+    },
+  },
+  async created() {
+    // await this.doUiAction('getTableData');
+  },
+  async mounted() {
+  },
+  methods: {
+    dayjs,
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData()
+          break;
+        case 'handleTableButton':
+          await this.globalHandler.handleTableButton(uiActionData, this)
+          break;
+        case 'saveInfo':
+          await this.saveInfo();
+          break;
+      }
+    },
+    /**
+     * 获取表格数据
+     */
+    async getTableData() {
+      this.isTableLoading = true;
+      const where = _.omitBy(this.serverSearchForm.select, _.isNull);
+      const {rows, count} = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'recruitPpostManagement',
+            actionId: 'selectItemList',
+            where,
+            whereLike: {
+              postName: this.serverSearchForm.postName,
+            },
+            limit: _.size(where) === 0 ? 200 : 99999999,
+            orderBy: [
+              {column: 'createTime', order: 'desc'}
+            ]
+          }
+        }
+      })).data.appData.resultData;
+      this.tableDataBackups = rows;
+      this.isTableLoading = false;  
+    },
+    /**
+     * 保存数据
+     */
+    async saveInfo() {
+      await this.doUiAction(`${this.currentClickButton.action}Save`);
+    },
+  }
+})
+</script>
+
+<style scoped>
+
+</style>
+{% endblock %}
