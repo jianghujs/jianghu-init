@@ -1,0 +1,556 @@
+{% extends 'template/jhTemplateV4.html'%}
+
+{% block vueTemplate %}
+<script type="text/html" id="app-template">
+<div>
+<v-app id="inspire" mobile-breakpoint="sm">
+  <jhMenu/>
+  <v-main class="d-flex flex-column" style="margin-top: 60px">
+    <!-- 头部内容 >>>>>>>>>>>>> -->
+    <div class="pageSecondBar d-flex px-8">
+      <div>
+        <div>
+          <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
+            <!-- 帮助页按钮 -->
+            <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
+          </div>
+          <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+        </div>
+
+      </div>
+      <v-spacer></v-spacer>
+      <!-- 右上角功能切换菜单 >>>>>>>>>>>>> -->
+      <div class="d-flex mt-2">
+        <v-spacer></v-spacer>
+        <v-tabs v-model="pageTab" height="36" slider-size="0" class="mt-2" color="success" active-class="customActiveClass" style="width: auto; flex: none; border-radius: 5px; overflow: hidden;">
+          <v-tab>接口管理</v-tab>
+          <v-tab>页面管理</v-tab>
+        </v-tabs>
+      </div>
+    </div>
+    <!-- <<<<<<<<<<< 头部内容 -->
+
+    <div class="pageBodyContainer px-8" style="flex: 1;">
+      <!-- 页面内容 >>>>>>>>>>>>> -->
+      <v-container class="fullScreen d-flex flex-column pa-0">
+        <v-card class="rounded-lg">
+          <!--表格 头部 >>>>>>>>>>>>> -->
+          <v-row class="ma-0 align-center flex-none pt-0 pa-4 pb-0">
+            <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0">
+              <v-btn color="success" dark small class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)">新增</v-btn>
+            </v-col>
+            <v-spacer></v-spacer>
+            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="px-0 py-xs-0">
+              <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+          <!-- <<<<<<<<<<< 表格头部功能 -->
+          <v-data-table :headers="tabPageHeaders"
+                        :items="tableDataFromBackend"
+                        :search="searchInput"
+                        :loading="isTableLoading"
+                        checkbox-color="success"
+                        mobile-breakpoint="0"
+                        :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+                        :items-per-page="20"
+                        :class="{'zebraLine': showTableZebraLine }"
+                        fixed-header
+                        class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column"
+          >
+            <!--页面类型-->
+            <template v-slot:item.pageType="{ item }">
+              {{ getConstantText('pageType', item.pageType) }}
+            </template>
+            <!--表格 操作按钮-->
+            <template v-slot:item.action="{ item }">
+                  <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateItem', item)">
+                    <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+                  </span>
+              <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                    <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+                  </span>
+            </template>
+            <!-- 表格 底部 -->
+            <template v-slot:footer.prepend>
+
+              <v-menu top offset-y :close-on-content-click="false">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn v-bind="attrs" v-on="on" icon>
+                    <v-icon>mdi-menu</v-icon>
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item>
+                    <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </template>
+            <!-- 表格分页 -->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+              <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+            </template>
+          </v-data-table>
+        </v-card>
+      </v-container>
+      <!-- 抽屉mask -->
+      <v-overlay app :value="isCreateDrawerShow || isHelpPageDrawerShow"></v-overlay>
+      <!-- 新增抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isCreateDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
+        <v-form v-model="isFormValid" ref="form" lazy-validation>
+          <!-- 抽屉的头部标题 -->
+          <v-row>
+            <span class="title pa-6 pl-8">新增信息</span>
+          </v-row>
+          <!-- 抽屉的主体 >>>>>>>>>>>>> -->
+          <!-- 接口表单 >>>>>>>>>>>>> -->
+          <v-row class="mt-0 px-6" v-if="pageTab === 0">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">pageId</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.pageId"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">actionId</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.actionId"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">resourceType</span>
+              <v-select class="cus-v-input" dense filled single-line clearable v-model="createItem.resourceType" :items="constantCollection.resourceType"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">accessControlTable</span>
+              <v-select class="cus-v-input" dense filled single-line clearable v-model="createItem.accessControlTable"
+                        :items="constantCollection.accessControlTable"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">resourceHook</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.resourceHook"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">appDataSchema</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.appDataSchema"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="12" xl="12" class="pb-xs-4 pb-3">
+              <span class="inputLabel">resourceData</span>
+              <v-textarea class="cus-v-input" dense filled single-line v-model="createItem.resourceData"></v-textarea>
+            </v-col>
+            <v-col cols="12" sm="12" md="12" xl="12" class="pb-xs-4 pb-3">
+              <span class="inputLabel">desc</span>
+              <v-textarea class="cus-v-input" dense filled single-line v-model="createItem.desc"></v-textarea>
+            </v-col>
+          </v-row>
+          <!-- <<<<<<<<<<< 接口表单 -->
+          <!--页面表单 >>>>>>>>>>>>> -->
+          <v-row class="mt-0 px-6"v-if="pageTab === 1">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">pageId</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.pageId" :rules="requireRules"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">pageName</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.pageName"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">pageType</span>
+              <v-select class="cus-v-input" dense filled single-line clearable v-model="createItem.pageType" :items="constantCollection.pageType"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">sort</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.sort"></v-text-field>
+            </v-col>
+          </v-row>
+          <!-- <<<<<<<<<<< 页面表单 -->
+          <!-- <<<<<<<<<<< 抽屉的主体 -->
+          <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
+          <v-row class="justify-end mx-0 mt-8 px-6">
+            <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+            <v-btn class="ml-2" @click="isCreateDrawerShow = false" small>取消</v-btn>
+          </v-row>
+          <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
+        </v-form>
+        <!-- 抽屉的关闭按钮 -->
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShow = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<< 新增抽屉 -->
+      <!-- 编辑抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isCreateDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
+        <v-form v-model="isFormValid" ref="form" lazy-validation>
+          <!-- 抽屉的头部标题 -->
+          <v-row>
+            <span class="title pa-6 pl-8">新增信息</span>
+          </v-row>
+          <!-- 抽屉的主体 >>>>>>>>>>>>> -->
+          <!-- 接口表单 >>>>>>>>>>>>> -->
+          <v-row class="mt-0 px-6" v-if="pageTab === 0">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">pageId</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.pageId"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">actionId</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.actionId"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">resourceType</span>
+              <v-select class="cus-v-input" dense filled single-line clearable v-model="createItem.resourceType" :items="constantCollection.resourceType"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">accessControlTable</span>
+              <v-select class="cus-v-input" dense filled single-line clearable v-model="createItem.accessControlTable"
+                        :items="constantCollection.accessControlTable"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">resourceHook</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.resourceHook"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">appDataSchema</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.appDataSchema"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="12" xl="12">
+              <span class="inputLabel">resourceData</span>
+              <v-textarea class="cus-v-input" dense filled single-line v-model="createItem.resourceData"></v-textarea>
+            </v-col>
+            <v-col cols="12" sm="12" md="12" xl="12">
+              <span class="inputLabel">desc</span>
+              <v-textarea class="cus-v-input" dense filled single-line v-model="createItem.desc"></v-textarea>
+            </v-col>
+          </v-row>
+          <!-- <<<<<<<<<<< 接口表单 -->
+          <!--页面表单 >>>>>>>>>>>>> -->
+          <v-row class="mt-0 px-6"v-if="pageTab === 1">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">pageId</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.pageId" :rules="requireRules"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">pageName</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.pageName"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">pageType</span>
+              <v-select class="cus-v-input" dense filled single-line clearable v-model="createItem.pageType" :items="constantCollection.pageType"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <span class="inputLabel">sort</span>
+              <v-text-field class="cus-v-input" dense filled single-line v-model="createItem.sort"></v-text-field>
+            </v-col>
+          </v-row>
+          <!-- <<<<<<<<<<< 页面表单 -->
+          <!-- <<<<<<<<<<< 抽屉的主体 -->
+          <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
+          <v-row class="justify-end mx-0 mt-8 px-6">
+            <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+            <v-btn class="ml-2" @click="isCreateDrawerShow = false" small>取消</v-btn>
+          </v-row>
+          <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
+        </v-form>
+        <!-- 抽屉的关闭按钮 -->
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShow = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<< 编辑抽屉 -->
+    </div>
+    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?pageId=<$ ctx.packagePage.pageId $>`" width="100%" height="100%"></iframe>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<< 帮助页抽屉 -->
+  </v-main>
+</v-app>
+<jhToast/>
+<jhMask/>
+<jhConfirmDialog/>
+</div>
+</script>
+
+<div id="app">
+</div>
+{% endblock %}
+
+{% block vueScript %}
+
+{% include 'common/fixedTableHeightV4.html' %}
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: {
+    breadcrumbs: window.breadcrumbs,
+    isHelpPageDrawerShow: false,
+    // 表格相关数据
+    isMobile: window.innerWidth < 600,
+    isFormValid: true,
+    showTableZebraLine: false,
+    pageTab: 0,
+    showLeftMenu: window.innerWidth > 600,
+    requireRules: [v => !!v || 'This is required'],
+    constantCollection: {
+      accessControlTable: [{"value": "_access_control_a000", "text": "_access_control_a000"}],
+      resourceType: [{"value": "service", "text": "service"}, {"value": "sql", "text": "sql"}],
+      pageType: [{"value": "common", "text": "common"}, {"value": "showInMenu", "text": "顶部菜单"}, {"value": "dynamicInMenu", "text": "动态菜单"}, {"value": "avatarInMenu", "text": "用户菜单"}],
+    },
+
+    searchInput: null,
+    isTableLoading: true,
+    tableDataFromBackend: [],
+    pageTableDataFromBackend: [],
+    tabPageHeaders: [],
+    resourceHeaders: [
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
+      {text: "pageId", value: "pageId", width: 120},
+      {text: "actionId", value: "actionId", width: 120},
+      {text: "resourceType", value: "resourceType", width: 120},
+      {text: "accessControlTable", value: "accessControlTable"},
+      {text: "resourceHook", value: "resourceHook", width: 120},
+      {text: "appDataSchema", value: "appDataSchema", width: 120},
+      {text: "resourceData", value: "resourceData", width: 400},
+      {text: "desc", value: "desc", width: 260},
+      {text: "操作人", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 250},
+    ],
+
+    pageHeaders: [
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
+      {text: "pageId", value: "pageId", width: 120},
+      {text: "pageName", value: "pageName", width: 120},
+      {text: "pageType", value: "pageType", width: 120},
+      {text: "sort", value: "sort", width: 120},
+      {text: "操作人", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 250},
+    ],
+
+    isCreateDrawerShow: false,
+    createItem: {},
+    isUpdateDrawerShow: false,
+    updateItem: {},
+    pageId: 'Resource'
+  },
+  watch: {
+    pageTab(value) {
+      this.tableDataFromBackend = [];
+      if (value === 0) {
+        this.pageId = 'Resource'
+        this.tabPageHeaders = this.resourceHeaders;
+      }
+      if (value === 1) {
+        this.pageId = 'Page'
+        this.tabPageHeaders = this.pageHeaders;
+      }
+      this.doUiAction('getTableData');
+    }
+  },
+  async created() {
+    this.tabPageHeaders = this.resourceHeaders;
+  },
+  mounted() {
+    this.doUiAction('getTableData');
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData(uiActionData);
+          break;
+        case 'startCreateItem':
+          await this.prepareCreateItem(uiActionData);
+          await this.openCreateItemDrawer(uiActionData);
+          break;
+        case 'createItem':
+          await this.prepareValidate(uiActionData);
+          await this.confirmCreateItemDialog(uiActionData);
+          await this.doCreateItem(uiActionData);
+          await this.getTableData(uiActionData);
+          await this.closeDrawerShow(uiActionData);
+          break;
+        case 'startUpdateItem':
+          await this.prepareUpdateItem(uiActionData);
+          await this.openUpdateItemDrawer(uiActionData);
+          break;
+        case 'updateItem':
+          await this.prepareValidate(uiActionData);
+          await this.confirmUpdateItemDialog(uiActionData);
+          await this.doUpdateItem(uiActionData);
+          await this.getTableData(uiActionData);
+          await this.closeDrawerShow(uiActionData);
+          break;
+        case 'deleteItem':
+          await this.confirmDeleteItemDialog(uiActionData);
+          await this.doDeleteItem(uiActionData);
+          await this.getTableData(uiActionData);
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
+
+    /**
+     * description: ✅获取表格数据
+     */
+    async getTableData() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'resourcePageManagement',
+            actionId: `selectItemListOf${this.pageId}`
+          }
+        }
+      });
+      this.tableDataFromBackend = result.data.appData.resultData.rows;
+      this.isTableLoading = false;
+    },
+
+    /**
+     * description: ✅准备新增表单数据
+     */
+    async prepareCreateItem() {
+      this.createItem = {};
+    },
+
+    /**
+     * description: ✅打开新增抽屉
+     */
+    async openCreateItemDrawer() {
+      this.isCreateDrawerShow = true;
+    },
+
+    /**
+     * description: ✅表单验证
+     */
+    async prepareValidate() {
+      if (await this.$refs.form.validate() === false) {
+        throw new Error("[prepareValidate] false");
+      }
+    },
+
+    /**
+     * description: ✅新增确认弹窗
+     */
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("[confirmCreateFormDialog] 否");
+      }
+    },
+    /**
+     * description: ✅新增resource
+     */
+    async doCreateItem() {
+      await window.vtoast.loading("保存中");
+      delete this.createItem.id;
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'resourcePageManagement',
+            actionId: `insertItemOf${this.pageId}`,
+            actionData: this.createItem
+          }
+        }
+      })
+      await window.vtoast.success("保存成功");
+    },
+
+    /**
+     * description: ✅关闭新增抽屉
+     */
+    async closeDrawerShow() {
+      this.isCreateDrawerShow = false;
+    },
+
+    /**
+     * description: ✅准备修改表单数据
+     */
+    async prepareUpdateItem(item) {
+      this.updateItem = _.cloneDeep(item);
+    },
+
+    /**
+     * description: ✅打开更新抽屉
+     */
+    async openUpdateItemDrawer() {
+      this.isCreateDrawerShow = true;
+    },
+
+    /**
+     * description: ✅更新数据弹窗确认
+     */
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("[confirmUpdateItemDialog] 否");
+      }
+    },
+
+    /**
+     * description: ✅更新数据resource
+     */
+    async doUpdateItem() {
+      await window.vtoast.loading("保存中");
+      const id = this.createItem.id;
+      delete this.createItem.id;
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'resourcePageManagement',
+            actionId: `updateItemOf${this.pageId}`,
+            actionData: this.createItem,
+            where: {id: id}
+          }
+        }
+      })
+      await window.vtoast.success("修改成功");
+    },
+
+
+    /**
+     * description: ✅删除数据弹窗确认
+     */
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("[confirmDeleteItemDialog] 否");
+      }
+    },
+    /**
+     * description: ✅删除数据resource
+     */
+    async doDeleteItem() {
+      window.vtoast.loading('正在删除')
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'resourcePageManagement',
+            actionId: `deleteItemOf${this.pageId}`,
+            where: {id: this.createItem.id}
+          }
+        }
+      });
+      window.vtoast.success('删除成功')
+    },
+
+    /**
+     * description: ✅数据字段值转文字
+     */
+    getConstantText(key, _value) {
+      const constantCollectionItemFind = this.constantCollection[key].find(({value}) => value === _value);
+      if (constantCollectionItemFind) {
+        return constantCollectionItemFind.text;
+      }
+      return _value;
+    }
+  }
+})
+</script>
+<style>
+.customActiveClass {
+  background: #4caf50 !important;
+  color: #ffffff !important;
+}
+</style>
+
+{% endblock %}

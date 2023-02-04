@@ -1,91 +1,146 @@
-{% extends 'template/jhTemplateV3.html'%}
+{% extends 'template/jhTemplateV4.html'%}
 
-{% block vue_template %}
+{% block vueTemplate %}
 
-<jh-layout-v3>
+<script type="text/html" id="app-template">
+  <div>
+    <v-app id="inspire" mobile-breakpoint="sm">
+      <jhMenu />
+      <v-main class="d-flex flex-column" style="margin-top: 60px">
+        <!-- 头部内容 >>>>>>>>>>>>> -->
+        <div class="d-flex" :style="{'flex-wrap': isMobile ? 'wrap' : 'nowrap'}" :class="{'px-8': !isMobile, 'px-4': isMobile}"><div>
+            <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
+              <!-- 帮助页按钮 -->
+              <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
+            </div>
+            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          </div>
+        </div>
+        <!-- <<<<<<<<<<<<< 头部内容 -->
 
-  <!-- 页面主要内容 -->
+        <div class="pageBodyContainer px-8" style="flex: 1;">
+          <!-- 页面内容 >>>>>>>>>>>>> -->
+          <v-card :class="{'px-2': isMobile}">
+            <v-row class="ma-0  align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+              <v-col cols="12" xs="12" sm="6" md="6" xl="6" class="pl-0">
+                <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)" small>新增同步表</v-btn>
+                <v-btn color="primary" dark class="elevation-0 mr-2" @click="doUiAction('manualSyncAll', null)" small>全部-手动同步</v-btn>
+                <template v-if="isMobile"><br></template>
+                <span class="body-2"><v-chip class="ma-2" color="default">定时同步: {{ dataSyncStatus }}</v-chip></span>
+              </v-col>
 
-  <v-card :class="{'px-2': isMobile}">
-    <v-row class="ma-0  align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
-      <v-col cols="12" xs="12" sm="6" md="6" xl="6" class="pl-0">
-        <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)">新增同步表</v-btn>
-        <v-btn color="primary" dark class="elevation-0 mr-2" @click="doUiAction('manualSyncAll', null)">全部-手动同步</v-btn>
-        <template v-if="isMobile"><br></template>
-        <span class="body-2">共{{ tableDataFromBackend.length }}条记录</span>
-        <span class="body-2"><v-chip class="ma-2" color="default">定时同步: {{ dataSyncStatus }}</v-chip></span>
-      </v-col>
+              <v-spacer></v-spacer>
 
-      <v-spacer></v-spacer>
+              <v-col cols="12" xs="12" sm="6" md="3" xl="3" class="px-0">
+                <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+              </v-col>
 
-      <v-col cols="12" xs="12" sm="6" md="3" xl="3" class="px-0">
-        <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
-      </v-col>
-
-    </v-row>
-    <v-data-table
+            </v-row>
+            <v-data-table 
+                  fixed-header
                   :headers="headers"
-                  :items="tableDataFromBackend"
+                  :items="tableData"
                   :search="searchInput"
-                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
-                  :items-per-page="-1"
-                  :loading="isTableLoading"
-                  checkbox-color="success"
-                  :class="{'mx-2': isMobile}"
-
+                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+                  :items-per-page="20"
                   mobile-breakpoint="0"
-                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-      <template v-slot:item.operationAt="{ item }">
-        {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
-      </template>
-      <template v-slot:item.lastSyncTime="{ item }">
-        {{ item.lastSyncTime && dayjs(item.lastSyncTime).format('YYYY-MM-DD HH:mm:ss') }}
-      </template>
-      <template v-slot:item.action="{ item }">
-        <v-btn small class="mr-2" color="success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
-        <v-btn small class="mr-2" color="error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
-        <v-btn small class="mr-2" color="" @click="doUiAction('manualSyncOneTable', {item})">同步</v-btn>
-      </template>
-    </v-data-table>
-  </v-card>
+                  :loading="isTableLoading"
+                  checkbox-color="success" 
+                  :class="{'zebraLine': showTableZebraLine }"
+                  class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+                <template v-slot:footer.prepend>
+                  <span class="ml-2 table-search-hint-text">共{{ tableData.length }}条记录</span>
+                  <v-menu top offset-y :close-on-content-click="false">
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn v-bind="attrs" v-on="on" icon>
+                        <v-icon>mdi-menu</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item>
+                        <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </template>
+                <template v-slot:footer.page-text="pagination">
+                  <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                  <span class="ml-1">共{{pagination.itemsLength}}条</span>
+                </template>
+                <template v-slot:item.operationAt="{ item }">
+                  {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
+                </template>
+                <template v-slot:item.lastSyncTime="{ item }">
+                  {{ item.lastSyncTime && dayjs(item.lastSyncTime).format('YYYY-MM-DD HH:mm:ss') }}
+                </template>
+                <template v-slot:item.action="{ item }">
+                  <v-btn v-for="tableButton of tableButtonList" :color="tableButton.color" outlined x-small class="elevation-0 mr-2" @click="doUiAction(tableButton.action, {item, button: tableButton})">{{ tableButton.text }}</v-btn>
+                </template>
+              </v-data-table>
+          </v-card>
 
-  <!-- 编辑抽屉 -->
-  <v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="80%"
-                       class="elevation-24">
-    <v-form v-model="isFormValid" ref="form" lazy-validation  v-if="isEditDrawerShow">
-      <v-row class="pt-8">
-        <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-8': isMobile}">{{ currentClickButton.title }}信息</span>
-        <v-spacer></v-spacer>
-        <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
-          <v-icon dark>mdi-close</v-icon>
-        </v-btn>
-      </v-row>
-      <v-row  :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
-        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">数据库</span>
-          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="数据库" :rules="requireRules" v-model="editItem.sourceDatabase" :items="constantCollection.sourceDatabase"></v-select>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">表格</span>
-          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="表格" :rules="requireRules" v-model="editItem.sourceTable" :items="constantCollection.sourceTable"></v-select>
-        </v-col>
-        <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">同步间隔（分）</span>
-          <v-text-field class="cus-v-input mr-2" dense filled single-line label="同步间隔（分）" type="number" :rules="numberRules" v-model="editItem.syncTimeSlot"></v-text-field>
-        </v-col>
-      </v-row>
-      <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
-        <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)">保存</v-btn>
-        <v-btn class="elevation-0 mr-2 ml-2" @click="isEditDrawerShow = false">取消</v-btn>
-      </v-row>
-    </v-form>
-  </v-navigation-drawer>
-</jh-layout-v3>
+          <!-- 编辑抽屉 -->
+          <v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="80%"
+                              class="elevation-24">
+            <v-form v-model="isFormValid" ref="form" lazy-validation  v-if="isEditDrawerShow">
+              <!--抽屉标题-->
+              <v-row>
+                <span class="title pa-6" :class="{'pl-8': !isMobile, 'pl-6': isMobile}">编辑信息</span>
+              </v-row>
+              <!--抽屉表单-->
+              <v-row class="mt-0" :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+                <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                <span class="inputLabel">数据库</span>
+                  <v-select class="cus-v-input mr-2" dense filled single-line clearable label="数据库" :rules="requireRules" v-model="editItem.sourceDatabase" :items="constantCollection.sourceDatabase"></v-select>
+                </v-col>
+                <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                <span class="inputLabel">表格</span>
+                  <v-select class="cus-v-input mr-2" dense filled single-line clearable label="表格" :rules="requireRules" v-model="editItem.sourceTable" :items="constantCollection.sourceTable"></v-select>
+                </v-col>
+                <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                <span class="inputLabel">同步间隔（分）</span>
+                  <v-text-field class="cus-v-input mr-2" dense filled single-line label="同步间隔（分）" type="number" :rules="numberRules" v-model="editItem.syncTimeSlot"></v-text-field>
+                </v-col>
+              </v-row>
+              <!--抽屉操作按钮-->
+              <v-row class="mx-0 justify-end mt-4" :class="{'px-4': isMobile, 'px-6': !isMobile, 'mb-8': isMobile}">
+                <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)" small>保存</v-btn>
+                <v-btn class="elevation-0 mr-2 ml-2" @click="isEditDrawerShow = false" small>取消</v-btn>
+              </v-row>
+            </v-form>
+            <!--抽屉关闭按钮-->
+            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isEditDrawerShow = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-navigation-drawer>
+          <!-- <<<<<<<<<<<<< 页面内容 -->
+        </div>
+
+        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+        <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" class="elevation-24">
+          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?markdownPath#1.tableSyncConfig.md`" width="100%" height="100%"></iframe>
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShow = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+
+      </v-main>
+    </v-app>
+
+    <jhToast />
+    <jhMask />
+    <jhConfirmDialog />
+  </div>
+</script>
+
+<div id="app">
+</div>
 
 
 {% endblock %}
 
-{% block vue_body %}
+{% block vueScript %}
 
 <script type="module">
   new Vue({
@@ -93,6 +148,7 @@
     template: '#app-template',
     vuetify: new Vuetify(),
     data: {
+      showTableZebraLine: true,
       isMobile: window.innerWidth < 600,
       // 表格相关数据
       isFormValid: true,
@@ -106,26 +162,28 @@
       isEditDrawerShow: false,
       searchInput: null,
       isTableLoading: true,
-      tableDataFromBackend: [],
+      tableData: [],
       headers: [
-        {text: "数据库", value: "sourceDatabase", width: 140, class: 'fixed', cellClass: 'fixed'},
+        {text: '操作', value: 'action', align: 'center', sortable: false, width: 250, class: 'fixed', cellClass: 'fixed'},
+        {text: "数据库", value: "sourceDatabase", width: 140},
         {text: "表格", value: "sourceTable", width: 140},
         {text: "同步间隔/同步检查间隔（分）", value: "syncTimeSlot", width: 140},
         {text: "同步状态", value: "syncDesc", width: 200},
         {text: "最后一次触发同步的时间", value: "lastSyncTime", width: 140},
         {text: '操作时间', value: 'operationAt', width: 200},
         {text: "操作人", value: "operationByUser", width: 140},
-        {text: '操作', value: 'action', align: 'center', sortable: false, width: 250, class: 'fixed', cellClass: 'fixed'},
       ],
 
       currentClickButton: {title: '新增', action: 'add'},
       editItem: {},
       tableButtonList: [
-        {text: '修改', buttonType: 'edit', color: 'success',},
-        {text: '删除', buttonType: 'delete', color: 'error',},
-        {text: '手动同步', buttonType: 'manualSyncOneTable', color: ''},
+        {text: '修改', buttonType: 'edit', color: 'success', action: 'startUpdateItem'},
+        {text: '删除', buttonType: 'delete', color: 'error', action: 'deleteItem'},
+        {text: '同步', buttonType: 'sync', color: 'info', action: 'manualSyncOneTable'},
       ],
-      dialogSaveInfoAction: ''
+      dialogSaveInfoAction: '',
+      breadcrumbs: window.breadcrumbs,
+      isHelpPageDrawerShow: false,
     },
     watch: {
       editItem: {
@@ -244,7 +302,7 @@
           }
         });
 
-        this.tableDataFromBackend = result.data.appData.resultData.rows;
+        this.tableData = result.data.appData.resultData.rows;
         this.isTableLoading = false;
       },
 
@@ -402,4 +460,6 @@
   })
 </script>
 
+<style scoped>
+</style>
 {% endblock %}

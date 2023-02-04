@@ -1,62 +1,116 @@
-{% extends 'template/jhTemplateV3.html'%}
+{% extends 'template/jhTemplateV4.html'%}
 
-{% block vue_template %}
+{% block vueTemplate %}
 
-<jh-layout-v3>
+<script type="text/html" id="app-template">
+  <div>
+    <v-app id="inspire" mobile-breakpoint="sm">
+      <jhMenu />
+      <v-main class="d-flex flex-column" style="margin-top: 60px">
+        <!-- 头部内容 >>>>>>>>>>>>> -->
+        <div class="d-flex" :style="{'flex-wrap': isMobile ? 'wrap' : 'nowrap'}" :class="{'px-8': !isMobile, 'px-4': isMobile}"><div>
+            <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
+              <!-- 帮助页按钮 -->
+              <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
+            </div>
+            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          </div>
+        </div>
+        <!-- <<<<<<<<<<<<< 头部内容 -->
 
-  <!-- 页面主要内容 -->
-  <v-card :class="{'px-2': isMobile}">
-    <v-row class="ma-0  align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
-
-      <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0">
-        <span class="body-2">共{{ tableDataFromBackend.length }}条记录</span>
-        <span class="body-2"><v-chip class="ma-2" small color="default">定时同步: {{ dataSyncStatus }}</v-chip></span>
-      </v-col>
-
-      <v-spacer></v-spacer>
-
-      <v-col cols="12" xs="12" sm="4" md="3" xl="3" class="px-0">
-        <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
-      </v-col>
-
-    </v-row>
-    <v-data-table
+        <div class="pageBodyContainer px-8" style="flex: 1;">
+          <!-- 页面内容 >>>>>>>>>>>>> -->
+          <v-card :class="{'px-2': isMobile}">
+            <v-row class="ma-0  align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+        
+              <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0">
+                <span class="body-2"><v-chip class="ma-2" small color="default">定时同步: {{ dataSyncStatus }}</v-chip></span>
+              </v-col>
+        
+              <v-spacer></v-spacer>
+        
+              <v-col cols="12" xs="12" sm="4" md="3" xl="3" class="px-0">
+                <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+              </v-col>
+        
+            </v-row>
+            <v-data-table 
+                  fixed-header
                   :headers="headers"
-                  :items="tableDataFromBackend"
+                  :items="tableData"
                   :search="searchInput"
-                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
                   :items-per-page="20"
-                  :loading="isTableLoading"
-                  checkbox-color="success"
-                  :class="{'mx-2': isMobile}"
                   mobile-breakpoint="0"
-                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-      <template v-slot:item.syncTime="{ item }">
-        {{ item.syncTime && dayjs(item.syncTime).format('YYYY-MM-DD HH:mm:ss') }}
-      </template>
-      <template v-slot:item.operationAt="{ item }">
-        {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
-      </template>
-      <template v-slot:item.action="{ item }">
-        <v-btn small class="mr-2" :class="tableButton.color" v-for="tableButton of tableButtonList" @click="handleTableButton(tableButton, item)">
-          {{ tableButton.text }}
-        </v-btn>
-      </template>
-    </v-data-table>
-  </v-card>
-</jh-layout-v3>
+                  :loading="isTableLoading"
+                  checkbox-color="success" 
+                  :class="{'zebraLine': showTableZebraLine }"
+                  class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+                <template v-slot:footer.prepend>
+                  <span class="ml-2 table-search-hint-text">共{{ tableData.length }}条记录</span>
+                  <v-menu top offset-y :close-on-content-click="false">
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn v-bind="attrs" v-on="on" icon>
+                        <v-icon>mdi-menu</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item>
+                        <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </template>
+                <template v-slot:footer.page-text="pagination">
+                  <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                  <span class="ml-1">共{{pagination.itemsLength}}条</span>
+                </template>
+                <template v-slot:item.syncTime="{ item }">
+                  {{ item.syncTime && dayjs(item.syncTime).format('YYYY-MM-DD HH:mm:ss') }}
+                </template>
+                <template v-slot:item.operationAt="{ item }">
+                  {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
+                </template>
+                <template v-slot:item.action="{ item }">
+                  <v-btn v-for="tableButton of tableButtonList" :color="tableButton.color" outlined x-small class="elevation-0 mr-2" @click="doUiAction(tableButton.action, {item, button: tableButton})">{{ tableButton.text }}</v-btn>
+                </template>
+              </v-data-table>
+          </v-card>
+          <!-- <<<<<<<<<<<<< 页面内容 -->
+        </div>
 
+        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+        <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" class="elevation-24">
+          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?markdownPath#2.tableSyncLog.md`" width="100%" height="100%"></iframe>
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShow = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+
+      </v-main>
+    </v-app>
+
+    <jhToast />
+    <jhMask />
+    <jhConfirmDialog />
+  </div>
+</script>
+
+<div id="app">
+</div>
 
 
 {% endblock %}
 
-{% block vue_body %}
+{% block vueScript %}
 <script type="module">
   new Vue({
     el: '#app',
     template: '#app-template',
     vuetify: new Vuetify(),
     data: {
+      showTableZebraLine: true,
       isMobile: window.innerWidth < 600,
       // 表格相关数据
       isFormValid: true,
@@ -69,7 +123,7 @@
       isEditDrawerShow: false,
       searchInput: null,
       isTableLoading: true,
-      tableDataFromBackend: [],
+      tableData: [],
       headers: [
         {text: "数据库", value: "sourceDatabase", width: 140, class: 'fixed', cellClass: 'fixed'},
         {text: "表格", value: "sourceTable", width: 140},
@@ -77,6 +131,8 @@
         {text: "同步状态", value: "syncDesc", width: 300},
         {text: "同步时间", value: "syncTime", width: 200},
       ],
+      breadcrumbs: window.breadcrumbs,
+      isHelpPageDrawerShow: false,
     },
     watch: {
       showFullData() {
@@ -117,7 +173,7 @@
           }
         });
 
-        this.tableDataFromBackend = result.data.appData.resultData.rows;
+        this.tableData = result.data.appData.resultData.rows;
         this.isTableLoading = false;
       },
       dayjs: dayjs,

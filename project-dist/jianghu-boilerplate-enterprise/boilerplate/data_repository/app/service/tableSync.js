@@ -7,6 +7,8 @@ const validateUtil = require('@jianghujs/jianghu/app/common/validateUtil');
 const hyperDiff = require('@jianghujs/jianghu/app/common/hyperDiff');
 const _ = require('lodash');
 const { BizError, errorInfoEnum } = require('../constant/error');
+const Knex = require('knex');
+
 const actionDataScheme = Object.freeze({
   syncTable: {
     type: 'object',
@@ -83,12 +85,17 @@ class UtilService extends Service {
       throw new BizError(errorInfoEnum.data_not_found);
     }
     const { sourceDatabase, sourceTable } = tableSyncConfig;
-    const targetTable = `${sourceDatabase}__${sourceTable}`;
 
     await jianghuKnex(tableEnum.table_sync_config)
       .where({ id })
       .delete();
 
+    // 如果是 json 则表明为外部数据库，不需要删除 trigger
+    if (sourceDatabase.startsWith('{')) {
+      return;
+    }
+
+    const targetTable = `${sourceDatabase}__${sourceTable}`;
     const DELETETriggerName = `${targetTable}_DELETE`;
     await jianghuKnex.raw(`DROP TRIGGER IF EXISTS ${sourceDatabase}.${DELETETriggerName};`);
     const INSERTTriggerName = `${targetTable}_INSERT`;
@@ -122,12 +129,38 @@ class UtilService extends Service {
     const targetDatabase = this.getTargetDatabase();
     const lastSyncTime = dayjs().format();
     const currentMinute = dayjs().diff(dayjs().format('YYYY-MM-DD'), 'minute');
+    const outsideKnexMap = {};
 
     let tableSyncConfigList = await jianghuKnex(tableEnum.table_sync_config)
       .where(tableSyncConfigSelectParams)
       .select();
     const allTable = await jianghuKnex('information_schema.tables').select('table_schema as database', 'table_name as tableName');
     const allTableMap = Object.fromEntries(allTable.map(obj => [ `${obj.database}.${obj.tableName}`, obj ]));
+
+    // 准备外部数据库 knex，并补充外部数据库表结构信息
+    const validTableSyncConfigList = [];
+    for (const tableSyncConfig of tableSyncConfigList) {
+      const { sourceDatabase } = tableSyncConfig;
+      if (sourceDatabase.startsWith('{') && !outsideKnexMap[sourceDatabase]) {
+        const { name, ...knexConfig } = JSON.parse(sourceDatabase);
+        try {
+          outsideKnexMap[sourceDatabase] = Knex({ client: 'mysql', connection: knexConfig });
+          const outsideKnex = outsideKnexMap[sourceDatabase];
+          const allTableOutside = await outsideKnex('information_schema.tables').select('table_schema as database', 'table_name as tableName');
+          allTableOutside.forEach(obj => allTableMap[`${sourceDatabase}.${obj.tableName}`] = obj);
+        } catch (err) {
+          delete outsideKnexMap[sourceDatabase]
+          const syncDesc = '【数据库连接】外部连接失败;' + err;
+          await jianghuKnex(tableEnum.table_sync_config)
+            .where({ id: tableSyncConfig.id })
+            .update({ syncDesc, lastSyncTime });
+          logger.error(`[database-${name}]【数据库连接】外部连接失败`, syncDesc); 
+          continue;
+        }
+      }
+      validTableSyncConfigList.push(tableSyncConfig);
+    }
+    tableSyncConfigList = validTableSyncConfigList;
 
     tableSyncConfigList = await this.tableExistCheck({ tableSyncConfigList, allTableMap, targetDatabase });
     if (useSyncTimeSlotFilter === true) {
@@ -145,9 +178,9 @@ class UtilService extends Service {
       .whereIn('id', tableSyncConfigIdList)
       .update({ syncDesc: '同步中', lastSyncTime });
 
-    await this.tableConsistentCheckAndSync({ tableSyncConfigList, allTableMap, targetDatabase });
+    await this.tableConsistentCheckAndSync({ tableSyncConfigList, allTableMap, targetDatabase, outsideKnexMap });
     await this.tableMysqlTriggerCheckAndSync({ tableSyncConfigList, targetDatabase });
-    await this.clearUselessMysqlTrigger();
+    await this.clearUselessMysqlTrigger({ allTableMap, outsideKnexMap });
 
     // 标记为正常
     await jianghuKnex(tableEnum.table_sync_config)
@@ -162,7 +195,11 @@ class UtilService extends Service {
     const lastSyncTime = dayjs().format();
     for (const tableSyncConfig of tableSyncConfigList) {
       const { sourceDatabase, sourceTable } = tableSyncConfig;
-      const targetTable = `${sourceDatabase}__${sourceTable}`;
+      let targetTable = `${sourceDatabase}__${sourceTable}`;
+      if (sourceDatabase.startsWith('{')) {
+        const { name } = JSON.parse(sourceDatabase);
+        targetTable = `${name.toLowerCase()}__${sourceTable}`;
+      }
       const sourceTableExist = allTableMap[`${sourceDatabase}.${sourceTable}`];
       const targetTableExist = allTableMap[`${targetDatabase}.${targetTable}`];
 
@@ -189,36 +226,56 @@ class UtilService extends Service {
     return newTableSyncConfigList;
   }
 
-  async tableConsistentCheckAndSync({ tableSyncConfigList, allTableMap, targetDatabase }) {
+  async tableConsistentCheckAndSync({ tableSyncConfigList, allTableMap, targetDatabase, outsideKnexMap }) {
     const { knex, jianghuKnex, logger } = this.app;
     for (const tableSyncConfig of tableSyncConfigList) {
       
       const { sourceDatabase, sourceTable } = tableSyncConfig;
-      const targetTable = `${sourceDatabase}__${sourceTable}`;
+
+      const sourceKnex = outsideKnexMap[sourceDatabase] || knex;
+      const targetKnex = outsideKnexMap[targetDatabase] || knex;
+      const targetConnection = { ...this.app.config.knex.client.connection, database: targetDatabase };
+      let sourceConnection = { ...this.app.config.knex.client.connection, database: sourceDatabase };
+
+      let outsideMode = false
+      let targetTable = `${sourceDatabase}__${sourceTable}`;
+      let sourceDatabaseInDb = sourceDatabase;
+      if (sourceDatabase.startsWith('{')) {
+        outsideMode = true
+        const { name, ...knexConfig } = JSON.parse(sourceDatabase);
+        sourceConnection = knexConfig;
+        sourceDatabaseInDb = knexConfig.database;
+        targetTable = `${name.toLowerCase()}__${sourceTable}`;
+      }
+
       const targetTableExist = allTableMap[`${targetDatabase}.${targetTable}`];
-      const sourceTableDDLResult = await knex.raw(`SHOW CREATE TABLE ${sourceDatabase}.${sourceTable};`);
+      const sourceTableDDLResult = await sourceKnex.raw(`SHOW CREATE TABLE ${sourceDatabaseInDb}.${sourceTable};`);
       const sourceTableDDL = sourceTableDDLResult[0][0]['Create Table'];
       const exceptTargetTableDDL = sourceTableDDL
         .replace(`CREATE TABLE \`${sourceTable}\``, `CREATE TABLE \`${targetTable}\``)
-        .replace(/AUTO_INCREMENT=\d+/, '');
+        .replace(/AUTO_INCREMENT=\d+ ?/, '');
       let targetTableDDL = null;
 
       if (targetTableExist) {
-        const targetTableDDLResult = await knex.raw(`SHOW CREATE TABLE ${targetDatabase}.${targetTable};`);
-        targetTableDDL = targetTableDDLResult[0][0]['Create Table'].replace(/AUTO_INCREMENT=\d+/, '');
+        const targetTableDDLResult = await targetKnex.raw(`SHOW CREATE TABLE ${targetDatabase}.${targetTable};`);
+        targetTableDDL = targetTableDDLResult[0][0]['Create Table'].replace(/AUTO_INCREMENT=\d+ ?/, '');
       }
       if (targetTableDDL !== exceptTargetTableDDL) {
-        await knex.raw(`DROP TABLE IF EXISTS ${targetDatabase}.${targetTable};`);
-        await knex.raw(exceptTargetTableDDL);
-        await knex.raw(`REPLACE INTO ${targetDatabase}.${targetTable} select *from ${sourceDatabase}.${sourceTable};`);
-        const syncDesc = '【表覆盖】结构不一致; 触发覆盖仓库表逻辑;';
-        await createTableSyncLog({ jianghuKnex, tableSyncConfig, syncDesc, syncAction: '仓库表覆盖' });
-        logger.warn(`[${targetTable}]`, syncDesc);
-        continue;
+        await targetKnex.raw(`DROP TABLE IF EXISTS ${targetDatabase}.${targetTable};`);
+        await targetKnex.raw(exceptTargetTableDDL);
+        if (outsideMode) {
+          const syncDesc = '【表覆盖】结构不一致; 由于外部库，未触发覆盖仓库表逻辑;';
+          await createTableSyncLog({ jianghuKnex, tableSyncConfig, syncDesc, syncAction: '外部库不触发仓库表覆盖' });
+          logger.warn(`[${targetTable}]`, syncDesc);
+        } else {
+          await targetKnex.raw(`REPLACE INTO ${targetDatabase}.${targetTable} select * from ${sourceDatabase}.${sourceTable};`);
+          const syncDesc = '【表覆盖】结构不一致; 触发覆盖仓库表逻辑;';
+          await createTableSyncLog({ jianghuKnex, tableSyncConfig, syncDesc, syncAction: '仓库表覆盖' });
+          logger.warn(`[${targetTable}]`, syncDesc);
+          continue;
+        }
       }
 
-      const targetConnection = { ...this.app.config.knex.client.connection, database: targetDatabase };
-      const sourceConnection = { ...this.app.config.knex.client.connection, database: sourceDatabase };
       const hyperDiffResult = await hyperDiff({
         oldDatabaseConnectionConfig: targetConnection,
         oldTable: targetTable,
@@ -254,46 +311,6 @@ class UtilService extends Service {
     }
   }
 
-  // async tableConsistentCheckAndSync({ tableSyncConfigList, allTableMap, targetDatabase }) {
-  //   const { jianghuKnex, logger } = this.app;
-
-  //   for (const tableSyncConfig of tableSyncConfigList) {
-  //     const { sourceDatabase, sourceTable } = tableSyncConfig;
-  //     const targetTable = `${sourceDatabase}__${sourceTable}`;
-  //     const targetTableExist = allTableMap[`${targetDatabase}.${targetTable}`];
-
-  //     const checkSumResult = await jianghuKnex.raw(`CHECKSUM TABLE ${targetDatabase}.${targetTable}, ${sourceDatabase}.${sourceTable}`);
-  //     const checkSumIsConsistent = checkSumResult[0][0].Checksum === checkSumResult[0][1].Checksum;
-
-  //     const sourceTableDDLResult = await jianghuKnex.raw(`SHOW CREATE TABLE ${sourceDatabase}.${sourceTable};`);
-  //     const sourceTableDDL = sourceTableDDLResult[0][0]['Create Table'];
-  //     const exceptTargetTableDDL = sourceTableDDL.replace(`CREATE TABLE \`${sourceTable}\``, `CREATE TABLE \`${targetTable}\``);
-  //     let DDLIsConsistent = false;
-  //     if (targetTableExist) {
-  //       const targetTableDDLResult = await jianghuKnex.raw(`SHOW CREATE TABLE ${targetDatabase}.${targetTable};`);
-  //       const targetTableDDL = targetTableDDLResult[0][0]['Create Table'];
-  //       if (targetTableDDL === exceptTargetTableDDL) {
-  //         DDLIsConsistent = true;
-  //       }
-  //     }
-
-  //     if (!checkSumIsConsistent || !DDLIsConsistent) {
-  //       await jianghuKnex.raw(`DROP TABLE IF EXISTS ${targetDatabase}.${targetTable};`);
-  //       await jianghuKnex.raw(exceptTargetTableDDL);
-  //       await jianghuKnex.raw(`REPLACE INTO ${targetDatabase}.${targetTable} select *from ${sourceDatabase}.${sourceTable};`);
-  //       const syncDesc = checkSumIsConsistent === false ?
-  //         '【表覆盖】数据不一致; 触发覆盖仓库表逻辑;' :
-  //         '【表覆盖】结构不一致; 触发覆盖仓库表逻辑;';
-  //       await createTableSyncLog({ jianghuKnex, tableSyncConfig, syncDesc, syncAction: '表覆盖' });
-  //       logger.warn(`[${targetTable}]`, syncDesc);
-  //     } else {
-  //       logger.info(`[${targetTable}]`, '数据&结构一致; 无需覆盖;');
-  //     }
-  //   }
-
-
-  // }
-
   async tableMysqlTriggerCheckAndSync({ tableSyncConfigList, targetDatabase }) {
     const { jianghuKnex } = this.app;
 
@@ -312,6 +329,10 @@ class UtilService extends Service {
     const { jianghuKnex, logger } = this.app;
 
     const { sourceDatabase, sourceTable } = tableSyncConfig;
+    // 外部数据库不需要建 trigger
+    if (sourceDatabase.startsWith('{')) {
+      return;
+    }
     const targetTable = `${sourceDatabase}__${sourceTable}`;
 
     const columnListSelect = await jianghuKnex('information_schema.COLUMNS')
@@ -380,15 +401,14 @@ class UtilService extends Service {
   }
 
 
-  async clearUselessMysqlTrigger() {
+  async clearUselessMysqlTrigger({ allTableMap, outsideKnexMap }) {
 
     const { jianghuKnex, logger } = this.app;
     const targetDatabase = this.getTargetDatabase();
 
     let tableSyncConfigList = await jianghuKnex(tableEnum.table_sync_config).select();
-    const allTable = await jianghuKnex('information_schema.tables').select('table_schema as database', 'table_name as tableName');
-    const allTableMap = Object.fromEntries(allTable.map(obj => [ `${obj.database}.${obj.tableName}`, obj ]));
-
+    // 过滤 knex 连接失败的外部表同步配置
+    tableSyncConfigList = tableSyncConfigList.filter(o => !o.sourceDatabase.startsWith('{') || outsideKnexMap[o.sourceDatabase])
     tableSyncConfigList = await this.tableExistCheck({ tableSyncConfigList, allTableMap, targetDatabase });
 
     const triggerList = await jianghuKnex('information_schema.triggers')

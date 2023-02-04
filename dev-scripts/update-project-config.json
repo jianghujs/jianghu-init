@@ -176,5 +176,19 @@
       }
     ],
     "repositoryUrl": "git@gitea.openjianghu.org:zhiyuan/jianghujs-hrm.git"
+  },
+  {
+    "projectName": "advanced",
+    "replaceList": [
+      {
+        "from": "jianghujs-advanced",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_advanced",
+        "to": "__database__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-advanced.git"
   }
 ]

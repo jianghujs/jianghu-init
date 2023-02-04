@@ -1,0 +1,788 @@
+<!-- 3 table 下  的单表 crud 页面 -->
+
+<!--SQL START
+-- 以下为 jianghu init 工具生成的参考 SQL，使用后删除
+-- 创建 page
+INSERT INTO `_page` (`pageId`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT 'studentManagement','页面','showInMenu','5','jhInsert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_page` WHERE `pageId`='studentManagement');
+
+-- 创建 resource
+INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'studentManagement','selectItemList','✅查询-查询列表','sql','{}','{ \"table\": \"student\", \"operation\": \"select\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='studentManagement' AND `actionId`='selectItemList');
+INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'studentManagement','insertItem','✅查询-添加成员','sql','{}','{ \"table\": \"student\", \"operation\": \"insert\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='studentManagement' AND `actionId`='insertItem');
+INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'studentManagement','updateItem','✅查询-更新成员','sql','{}','{ \"table\": \"student\", \"operation\": \"update\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='studentManagement' AND `actionId`='updateItem');
+INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'studentManagement','deleteItem','✅查询-删除信息','sql','{}','{ \"table\": \"student\", \"operation\": \"delete\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='studentManagement' AND `actionId`='deleteItem');
+SQL END!-->
+{% extends 'template/jhTemplateV4.html'%}
+
+{% block vueTemplate %}
+<script type="text/html" id="app-template">
+  <div>
+    <v-app id="inspire" mobile-breakpoint="sm">
+      <jhMenu/>
+      <v-main class="d-flex flex-column" style="margin-top: 60px">
+        <!-- 头部内容 >>>>>>>>>>>>> -->
+        <div class="pageSecondBar d-flex px-8"><div>
+            <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
+              <!-- 帮助页按钮 -->
+              <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
+            </div>
+            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          </div>
+          <v-spacer v-if="isMobile"></v-spacer>
+          <!--页面右上角提示信息-->
+          <template slot="serverSearch">
+            <div v-if="!isMobile" style="text-align: right;" :style="{'line-height': isMobile ? '22px' : '64px', 'font-size': isMobile ? '12px' : '14px'}" :class="{ 'mt-0': isMobile}">
+              <span class="grey pa-2" style="border-radius: 4px; color: #ffffff">此页面用来演示1page-2table-示例2：勾选学生信息，查看/修改学生任务</span>
+            </div>
+          </template>
+        </div>
+        <!-- <<<<<<<<<<<<< 头部内容 -->
+
+        <div class="pageBodyContainer px-8" style="flex: 1;">
+
+          <!-- 页面内容 >>>>>>>>>>>>> -->
+          <v-container class="fullScreen d-flex flex-column pa-0">
+            <v-card class="rounded-lg">
+              <!--表格 头部 >>>>>>>>>>>>> -->
+              <v-row class="ma-0 align-center flex-none pt-0 pa-4 pb-0">
+                <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0">
+                  <v-btn color="success" dark small class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)">新增</v-btn>
+                </v-col>
+                <v-spacer></v-spacer>
+                <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="px-0 py-xs-0">
+                  <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+                </v-col>
+              </v-row>
+              <!-- <<<<<<<<<<< 表格头部 -->
+              <v-data-table :headers="headers"
+                            :items="tableDataFromBackend"
+                            :search="searchInput"
+                            :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+                            :items-per-page="20"
+                            v-model="selectedRows"
+                            mobile-breakpoint="0"
+                            :loading="isTableLoading"
+                            :class="{'zebraLine': showTableZebraLine }"
+                            checkbox-color="success"
+                            fixed-header
+                            show-select
+                            single-select
+                            @click:row="(item, row) => {
+                              row.select(true);
+                            }"
+                            :data-bottom="selectStudentId ? 200 : 0"
+                            item-key="studentId"
+                            class="fixed-table-height first-select elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column"
+              >
+                <!-- 表格操作按钮 -->
+                <template v-slot:item.action="{ item }">
+                  <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateItem', item)">
+                    <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+                  </span>
+                  <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                    <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+                  </span>
+                </template>
+                <!-- 表格 底部 -->
+                <template v-slot:footer.prepend>
+
+                  <v-menu top offset-y :close-on-content-click="false">
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn v-bind="attrs" v-on="on" icon>
+                        <v-icon>mdi-menu</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item>
+                        <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </template>
+                <!-- 表格分页 -->
+                <template v-slot:footer.page-text="pagination">
+                  <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+                  <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+                </template>
+              </v-data-table>
+            </v-card>
+            <!-- 任务 >>>>>>>>>>>>>  -->
+            <v-card class="rounded-lg mt-2" v-if="selectStudentId">
+              <!--任务 task 头部 >>>>>>>>>>>>> -->
+              <v-row class="ma-0 align-center flex-none pt-0 pa-4 pb-0">
+                <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0">
+                  <v-btn color="success" dark small class="elevation-0 mr-2" @click="doUiAction('startTaskCreateItem', null)">新增任务</v-btn>
+                </v-col>
+                <v-spacer></v-spacer>
+                <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="px-0 py-xs-0">
+                  <v-text-field v-model="taskSearchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+                </v-col>
+              </v-row>
+              <!-- <<<<<<<<<<< 任务 task 头部 -->
+              <!--任务 task 表格 >>>>>>>>>>>>> -->
+              <v-data-table fixed-header
+                            :headers="taskHeaders"
+                            :items="tableTaskDataFromBackend"
+                            :search="taskSearchInput"
+                            :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+                            :items-per-page="20"
+                            mobile-breakpoint="0"
+                            :loading="isTaskTableLoading"
+                            :class="{'zebraLine': showTableZebraLine }"
+                            checkbox-color="success"
+                            class="first-select elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+                <!-- 表格操作按钮 -->
+                <template v-slot:item.action="{ item }">
+                    <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startTaskUpdateItem', item)">
+                      <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+                    </span>
+                  <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteTaskItem', item)">
+                      <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+                    </span>
+                </template>
+              </v-data-table>
+              <!-- <<<<<<<<<<< 任务 task 表格 -->
+            </v-card>
+            <!-- <<<<<<<<<<< 任务 -->
+          </v-container>
+          <!-- 编辑抽屉 -->
+          <v-overlay app :value="isCreateDrawerShow || isUpdateDrawerShow || isCreateTaskDrawerShow || isUpdateTaskDrawerShow || isHelpPageDrawerShow"></v-overlay>
+          <!-- 新增 -->
+          <v-navigation-drawer v-model="isCreateDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
+            <v-form v-model="isFormValid" v-if="isCreateDrawerShow" ref="form" lazy-validation>
+              <!-- 抽屉的头部标题 -->
+              <v-row>
+                <span class="title pa-6 pl-8">新增信息</span>
+              </v-row>
+              <!-- 抽屉的主体 >>>>>>>>>>>>> -->
+              <v-row class="mt-0 px-6">
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">学生ID</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['studentId']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">学生名字</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['name']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">性别</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['gender']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">出生日期</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['dateOfBirth']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">班级ID</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['classId']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">年级</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['level']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">身高</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['bodyHeight']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">学生状态</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['studentStatus']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">备注</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['remarks']"></v-text-field>
+                </v-col>
+
+              </v-row>
+              <!-- <<<<<<<<<<< 抽屉的主体 -->
+              <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
+              <v-row class="justify-end mx-0 mt-8 px-6">
+                <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+                <v-btn class="ml-2" @click="isCreateDrawerShow = false" small>取消</v-btn>
+              </v-row>
+              <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
+            </v-form>
+            <!-- 抽屉的关闭按钮 -->
+            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShow = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-navigation-drawer>
+
+          <!-- 编辑抽屉 -->
+          <v-navigation-drawer v-model="isUpdateDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
+            <v-form v-model="isFormValid" v-if="isUpdateDrawerShow" ref="form" lazy-validation>
+              <!-- 抽屉的头部标题 -->
+              <v-row>
+                <span class="title pa-6 pl-8">修改信息</span>
+              </v-row>
+              <!-- 抽屉的主体 >>>>>>>>>>>>> -->
+              <v-row class="mt-0 px-6">
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">学生ID</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['studentId']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">学生名字</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['name']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">性别</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['gender']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">出生日期</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['dateOfBirth']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">班级ID</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['classId']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">年级</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['level']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">身高</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['bodyHeight']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">学生状态</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['studentStatus']"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">备注</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['remarks']"></v-text-field>
+                </v-col>
+              </v-row>
+              <!-- <<<<<<<<<<< 抽屉的主体 -->
+              <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
+              <v-row class="justify-end mx-0 mt-8 px-6">
+                <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+                <v-btn class="ml-2" @click="isUpdateDrawerShow = false" small>取消</v-btn>
+              </v-row>
+              <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
+            </v-form>
+            <!-- 抽屉的关闭按钮 -->
+            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShow = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-navigation-drawer>
+
+          <!-- task 新增抽屉 >>>>>>>>>>>>> -->
+          <v-navigation-drawer v-model="isCreateTaskDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
+            <v-form v-model="isFormValid" v-if="isCreateTaskDrawerShow" ref="form" lazy-validation>
+              <!-- 抽屉的头部标题 -->
+              <v-row>
+                <span class="title pa-6 pl-8">新增任务</span>
+              </v-row>
+              <!-- 抽屉的主体 >>>>>>>>>>>>> -->
+              <v-row class="px-10">
+                <v-col cols="12" sm="12" md="4" xl="3">
+                  <span class="inputLabel">任务</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createTaskItem['taskName']"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="12" md="4" xl="3">
+                  <span class="inputLabel">任务评语</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="createTaskItem['taskComment']"></v-text-field>
+                </v-col>
+              </v-row>
+              <!-- <<<<<<<<<<< 抽屉的主体 -->
+              <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
+              <v-row class="justify-end mx-0 mt-8 px-6">
+                <v-btn color="success" @click="doUiAction('createTaskItem')" small>保存</v-btn>
+                <v-btn class="ml-2" @click="isCreateTaskDrawerShow = false" small>取消</v-btn>
+              </v-row>
+              <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
+            </v-form>
+            <!-- 抽屉的关闭按钮 -->
+            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateTaskDrawerShow = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-navigation-drawer>
+          <!-- <<<<<<<<<<< task 新增抽屉 -->
+
+          <!-- task 编辑抽屉 >>>>>>>>>>>>> -->
+          <v-navigation-drawer v-model="isUpdateTaskDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
+            <v-form v-model="isFormValid" v-if="isUpdateTaskDrawerShow" ref="form" lazy-validation>
+              <!-- 抽屉的头部标题 -->
+              <v-row>
+                <span class="title pa-6 pl-8">新增任务</span>
+              </v-row>
+              <!-- 抽屉的主体 >>>>>>>>>>>>> -->
+              <v-row class="px-10">
+                <v-col cols="12" sm="12" md="4" xl="3">
+                  <span class="inputLabel">任务</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateTaskItem['taskName']"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="12" md="4" xl="3">
+                  <span class="inputLabel">任务评语</span>
+                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateTaskItem['taskComment']"></v-text-field>
+                </v-col>
+              </v-row>
+              <!-- <<<<<<<<<<< 抽屉的主体 -->
+              <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
+              <v-row class="justify-end mx-0 mt-8 px-6">
+                <v-btn color="success" @click="doUiAction('updateTaskItem')" small>保存</v-btn>
+                <v-btn class="ml-2" @click="isUpdateTaskDrawerShow = false" small>取消</v-btn>
+              </v-row>
+              <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
+            </v-form>
+            <!-- 抽屉的关闭按钮 -->
+            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateTaskDrawerShow = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-navigation-drawer>
+          <!-- <<<<<<<<<<< task 编辑抽屉 -->
+        </div>
+        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+        <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
+          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?pageId=<$ ctx.packagePage.pageId $>`" width="100%" height="100%"></iframe>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<< 帮助页抽屉 -->
+      </v-main>
+    </v-app>
+    <jhToast/>
+    <jhMask/>
+    <jhConfirmDialog/>
+  </div>
+</script>
+
+<div id="app">
+</div>
+{% endblock %}
+
+{% block vueScript %}
+
+{% include 'common/fixedTableHeightV4.html' %}
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    breadcrumbs: window.breadcrumbs,
+    isHelpPageDrawerShow: false,
+    // 表格相关数据
+    isMobile: window.innerWidth < 600,
+    showTableZebraLine: true,
+    // 表格相关数据
+    isFormValid: true,
+    requireRules: [v => !!v || 'This is required'],
+    constantCollection: {},
+    searchInput: null,
+    taskSearchInput: null,
+    isTableLoading: true,
+    isTaskTableLoading: true,
+    tableDataFromBackend: [],
+    tableTaskDataFromBackend: [],
+    // 一级表格头
+    headers: [
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed-prevIsSelect', cellClass: 'fixed-prevIsSelect'},
+      {text: "学生ID", value: "studentId", width: 120},
+      {text: "学生名字", value: "name", width: 120},
+      {text: "性别", value: "gender", width: 60},
+      {text: "出生日期", value: "dateOfBirth", width: 120},
+      {text: "班级ID", value: "classId", width: 60},
+      {text: "年级", value: "level", width: 80},
+      {text: "身高", value: "bodyHeight", width: 60},
+      {text: "学生状态", value: "studentStatus", width: 80},
+      {text: "备注", value: "remarks", width: 120},
+      {text: "操作者", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 250},
+    ],
+    // 二级表格头
+    taskHeaders: [
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
+      {text: "学生ID", value: "studentId", width: 130},
+      {text: "任务", value: "taskName", width: 230},
+      {text: "任务评语", value: "taskComment", width: 230},
+      {text: "操作者", value: "operationByUser", width: 230},
+      {text: "操作时间", value: "operationAt", width: 250},
+    ],
+    // 一级表格相关变量
+    selectedItem: 0,
+    selectedRows: [],
+    isUpdateDrawerShow: false,
+    updateItem: {},
+    isCreateDrawerShow: false,
+    createItem: {},
+    // 二级表格相关变量
+    isUpdateTaskDrawerShow: false,
+    updateTaskItem: {},
+    isCreateTaskDrawerShow: false,
+    createTaskItem: {}
+  }),
+  computed: {
+    // 选中行，自动映射选中行的ID
+    selectStudentId() {
+      return this.selectedRows.length ? this.selectedRows[0].studentId : null;
+    },
+  },
+  watch: {
+    // 响应行数据的变动
+    selectStudentId() {
+      if(this.selectStudentId) {
+        this.doUiAction("getTaskTableData")
+      }
+      // 选中行，重置表格高度，显示二级表格
+      requestAnimationFrame(resetTableMaxHeight);
+    }
+  },
+  async created() {
+    await this.doUiAction('getTableData');
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData();
+          break;
+        case 'getTaskTableData':
+          await this.getTaskTableData();
+          break;
+        case 'startCreateItem':
+          await this.prepareCreateItem();
+          await this.openCreateItemDialog();
+          break;
+        case 'startTaskCreateItem':
+          await this.prepareTaskItemData();
+          await this.openCreateTaskItemDrawer();
+          break;
+        case 'createItem':
+          await this.confirmCreateItemDialog();
+          await this.doCreateItem();
+          await this.closeDrawerShow();
+          await this.getTableData();
+          break;
+        case 'createTaskItem':
+          await this.confirmCreateItemDialog();
+          await this.doCreateTaskItem();
+          await this.closeDrawerShow();
+          await this.getTaskTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareUpdateItem(uiActionData);
+          await this.openUpdateDrawer();
+          break;
+        case 'startTaskUpdateItem':
+          await this.prepareTaskUpdateData(uiActionData);
+          await this.openUpdateTaskItemDrawer();
+          break;
+        case 'updateItem':
+          await this.confirmUpdateItemDialog();
+          await this.doUpdateItem();
+          await this.closeDrawerShow();
+          await this.getTableData();
+          break;
+        case 'updateTaskItem':
+          await this.confirmUpdateItemDialog();
+          await this.doUpdateTaskItem();
+          await this.closeDrawerShow();
+          await this.getTaskTableData();
+          break;
+        case 'deleteItem':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteItem(uiActionData);
+          await this.getTableData();
+          break;
+        case 'deleteTaskItem':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteTaskItem(uiActionData);
+          await this.getTaskTableData();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
+    // ------ 一级表格方法 ---------------------------------------
+    /**
+     * description: ✅获取一级表格数据
+     */
+    async getTableData() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'studentManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {},
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+
+      this.tableDataFromBackend = result.data.appData.resultData.rows;
+      this.isTableLoading = false;
+    },
+
+    /**
+     * description: ✅准备一级表新增表单数据
+     */
+    async prepareCreateItem() {
+      this.createItem = {};
+    },
+
+    /**
+     * description: ✅打开一级表格的新增抽屉
+     */
+    async openCreateItemDialog() {
+      this.isCreateDrawerShow = true;
+    },
+
+    /**
+     * description: ✅一级表新增弹窗确认
+     */
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+
+    /**
+     * description: ✅一级表新增resource
+     */
+    async doCreateItem() {
+      const {id, ...data} = this.createItem;
+      await window.vtoast.loading("新增数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'studentManagement',
+            actionId: 'insertItem',
+            actionData: data
+          }
+        }
+      })
+      await window.vtoast.success("新增数据成功");
+    },
+    /**
+     * description: ✅准备一级表更新表单数据
+     */
+    async prepareUpdateItem(item) {
+      this.updateItem = {...item};
+    },
+
+    /**
+     * description: ✅打开一级表更新抽屉
+     */
+    async openUpdateDrawer() {
+      this.isUpdateDrawerShow = true;
+    },
+    /**
+     * description: ✅一级表更新弹窗确认
+     */
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    /**
+     * description: ✅一级表更新resource
+     */
+    async doUpdateItem() {
+      const {id, ...data} = this.updateItem;
+      await window.vtoast.loading("修改数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'studentManagement',
+            actionId: 'updateItem',
+            actionData: data,
+            where: {id}
+          }
+        }
+      })
+      await window.vtoast.success("修改数据成功");
+    },
+
+    /**
+     * description: ✅一级表删除弹窗确认
+     */
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+
+    /**
+     * description: ✅一级表删除resource
+     */
+    async doDeleteItem(item) {
+      const {id} = item;
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'studentManagement',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: {id: id}
+          }
+        }
+      });
+      await window.vtoast.success("删除数据成功");
+    },
+    // ------ 二级表格方法 ---------------------------------------
+    /**
+     * description: ✅获取二级表格数据
+     */
+    async getTaskTableData() {
+      this.isTaskTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'taskOfStudent',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {studentId: this.selectStudentId},
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+
+      this.tableTaskDataFromBackend = result.data.appData.resultData.rows;
+      this.isTaskTableLoading = false;
+    },
+    /**
+     * description: ✅准备二级表新增表单数据
+     */
+    async prepareTaskItemData() {
+      this.createTaskItem = {};
+    },
+
+    /**
+     * description: ✅打开二级表新增抽屉
+     */
+    async openCreateTaskItemDrawer() {
+      this.isCreateTaskDrawerShow = true;
+    },
+
+    /**
+     * description: ✅二级表新增resource
+     */
+    async doCreateTaskItem() {
+      const {id, ...data} = this.createTaskItem;
+      await window.vtoast.loading("新增任务数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'taskOfStudent',
+            actionId: 'insertItem',
+            actionData: data
+          }
+        }
+      })
+      await window.vtoast.success("新增任务数据成功");
+    },
+    /**
+     * description: ✅准备二级表更新表单数据
+     */
+    async prepareTaskUpdateData(item) {
+      this.updateTaskItem = _.cloneDeep(item);
+    },
+
+    /**
+     * description: ✅打开二级更新抽屉
+     */
+    async openUpdateTaskItemDrawer() {
+      this.isUpdateTaskDrawerShow = true;
+    },
+
+    /**
+     * description: ✅二级表更新resource
+     */
+    async doUpdateTaskItem() {
+      const {id, ...data} = this.updateTaskItem;
+      await window.vtoast.loading("修改任务数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'taskOfStudent',
+            actionId: 'updateItem',
+            actionData: data,
+            where: {id}
+          }
+        }
+      })
+      await window.vtoast.success("修改任务数据成功");
+    },
+
+    /**
+     * description: ✅二级数据删除resource
+     */
+    async doDeleteTaskItem(item) {
+      const {id} = item;
+      await window.vtoast.loading("删除任务数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'taskOfStudent',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: { id: id }
+          }
+        }
+      });
+      await window.vtoast.success("删除任务数据成功");
+    },
+    /**
+     * description: ✅关闭所有的抽屉
+     */
+    async closeDrawerShow() {
+      this.isUpdateDrawerShow = false;
+      this.isCreateDrawerShow = false;
+      this.isCreateTaskDrawerShow = false;
+      this.isCreateTaskDrawerShow = false;
+    },
+  }
+})
+</script>
+
+<style>
+  /* first-select 第一个td是个选择框，需要固定 */
+  /* 固定表头部第一个字段 */
+  .first-select table > tbody > tr > td:nth-child(1),
+  .first-select table > thead > tr > th:nth-child(1)
+  {
+    position: sticky !important;
+    position: -webkit-sticky !important;
+    left: 0;
+    z-index: 20!important;
+    background: white;
+    border-right: none;
+    padding-left: 10px!important;
+  }
+  /* fixed-prevIsSelect，第一个td是选择框，后边的fixed-prevIsSelect，left自动增加固定宽度 */
+  /* 固定表头部第二个字段 */
+  .first-select table > tbody > tr > td.fixed-prevIsSelect:nth-child(2),
+  .first-select table > thead > tr > th.fixed-prevIsSelect:nth-child(2)
+  {
+    position: sticky !important;
+    position: -webkit-sticky !important;
+    left: 44px;
+    z-index: 20!important;
+    background: white;
+    border-right: none;
+  }
+</style>
+{% endblock %}

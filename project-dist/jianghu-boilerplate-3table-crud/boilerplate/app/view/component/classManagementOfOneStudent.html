@@ -1,0 +1,447 @@
+<!--classManagementOfOneStudent.html start-->
+<script type="text/x-template" id="classManagementOfOneStudent">
+    <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+        <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pb-0': !isMobile, 'pa-2': isMobile}">
+            <!--分配新班级按钮-->
+            <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+                <v-btn dark color="success" @click="isAllotEditDrawerShow = true" class="elevation-0 mr-2" small>分配新班级</v-btn>
+            </v-col>
+            <v-spacer></v-spacer>
+            <!--表格过滤-->
+            <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+                <v-text-field v-model="searchInput" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+            </v-col>
+        </v-row>
+
+        <!--表格-->
+        <v-data-table fixed-header :headers="headers" :items="tableData" :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+            :items-per-page="20" :dense="isMobile" :loading="isTableLoading" checkbox-color="success" mobile-breakpoint="0"
+            :class="{'zebraLine': showTableZebraLine }"
+            class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+            <template v-slot:item.operationAt="{ item }">
+                {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
+            </template>
+            <!--表格底部右侧功能按钮-->
+            <template v-slot:footer.prepend>
+                <span class="ml-2 table-search-hint-text"></span>
+                <v-menu top offset-y :close-on-content-click="false">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn v-bind="attrs" v-on="on" icon>
+                            <v-icon>mdi-menu</v-icon>
+                        </v-btn>
+                    </template>
+                    <v-list>
+                        <v-list-item>
+                            <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+            </template>
+            <!--表格底部右侧分页-->
+            <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            </template>
+            <!--表格行操作按钮-->
+            <template v-slot:item.action="{ item }">
+                <span role="button" class="success--text font-weight-medium font-size-3 pr-1"
+                    @click="doUiAction('startUpdateItem',  {item})">
+                    <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>编辑
+                </span>
+                <span role="button" class="success--text font-weight-medium font-size-3"
+                    @click="doUiAction('deleteRelation',  {item})">
+                    <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+                </span>
+            </template>
+        </v-data-table>
+
+        <!-- 分配班级弹窗 -->
+        <v-dialog v-model="isAllotEditDrawerShow" :fullscreen="isMobile" scrollable persistent width="80%" overlay-opacity="0.1"
+        content-class="fixed-dialog-height">
+            <v-card flat>
+                <v-card-title>
+                    <div class="d-flex justify-space-between align-center" style="width: 100%;">
+                        <div><v-btn dark color="success" elevation="0" @click="doUiAction('allotItem')" small>保存选中</v-btn></div>
+                        <div>
+                            <v-btn class="elevation-0" fab x-small @click="isAllotEditDrawerShow = false">
+                                <v-icon dark>mdi-close</v-icon>
+                            </v-btn>
+                        </div>
+                    </div>
+                </v-card-title>
+                <v-card-text class="px-0 pb-0">
+                    <v-data-table fixed-header show-select checkbox-color="success" :headers="drawerHeaders"
+                        :loading="isDrawerTableLoading" :items="drawerTableData" item-key="classId" :dense="isMobile"
+                        :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+                        :items-per-page="20" mobile-breakpoint="0" @item-selected="drawerItemSelected"
+                        @toggle-select-all="drawerToggleSelectAll" :class="{'zebraLine': showTableZebraLine }"
+                        class="fixed-first-column table-height-full fixed-table-wrapper-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+                        <template v-slot:footer.prepend>
+                            <span class="ml-2 table-search-hint-text"></span>
+                            <v-menu top offset-y :close-on-content-click="false">
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon>
+                                        <v-icon>mdi-menu</v-icon>
+                                    </v-btn>
+                                </template>
+                                <v-list>
+                                    <v-list-item>
+                                        <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
+                                    </v-list-item>
+                                </v-list>
+                            </v-menu>
+                        </template>
+                        <template v-slot:footer.page-text="pagination">
+                            <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                            <span class="ml-1">共{{pagination.itemsLength}}条</span>
+                        </template>
+                        <template v-slot:item.action="{ item }">
+                            <span role="button" class="success--text font-weight-medium font-size-3 pr-2"
+                                @click="doUiAction('buildRelation',  {item})">
+                                <v-icon size="14" class="success--text">mdi-plus</v-icon>新增
+                            </span>
+                        </template>
+                    </v-data-table>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
+
+        <!-- 编辑弹窗 -->
+        <v-dialog v-model="isEditDrawerShow" :fullscreen="isMobile" scrollable persistent width="80%" overlay-opacity="0.1"
+        content-class="fixed-dialog-height">
+            <v-card flat>
+                <v-card-title>
+                    <div class="d-flex justify-space-between align-center" style="width: 100%;">
+                        <div style="font-size: 16px;">编辑信息</div>
+                        <div>
+                            <v-btn class="elevation-0" fab x-small @click="isEditDrawerShow = false">
+                                <v-icon dark>mdi-close</v-icon>
+                            </v-btn>
+                        </div>
+                    </div>
+                </v-card-title>
+                <v-card-text class="px-0">
+                    <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+                        <v-row class="mt-0 mx-0" :class="{'px-4': !isMobile, 'pb-7': isMobile}">
+                            <v-col cols="12" sm="12" md="4" xl="3"
+                                :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                                <span class="inputLabel">学生ID</span>
+                                <v-text-field class="cus-v-input " dense filled single-line
+                                    v-model="editItem['studentId']"></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="4" xl="3"
+                                :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                                <span class="inputLabel">班级ID</span>
+                                <v-text-field class="cus-v-input " dense filled single-line
+                                    v-model="editItem['classId']"></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="4" xl="3"
+                                :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                                <span class="inputLabel">备注</span>
+                                <v-text-field class="cus-v-input " dense filled single-line
+                                    v-model="editItem['remark']"></v-text-field>
+                            </v-col>
+                        </v-row>
+                    </v-form>
+                </v-card-text>
+                <v-card-actions class="justify-end pa-6">
+                    <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+                    <v-btn class="ml-2" @click="isEditDrawerShow = false" small>取消</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+    </v-container>
+</script>
+
+<script>
+   Vue.component('classManagementOfOneStudent', {
+    template: "#classManagementOfOneStudent",
+    vueComponent: 'classManagementOfOneStudent',
+    vuetify: new Vuetify(),
+    props: {
+      studentId: {
+        type: String,
+        default: null
+      }
+    },
+    data: () => ({
+      showTableZebraLine: true,
+      searchInput: null,
+      isTableLoading: true,
+      isDrawerTableLoading: true,
+      isAllotEditDrawerShow: false,
+      isEditDrawerShow: false,
+      headers: [
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
+        { text: '学生ID', value: 'studentId', width: 120 }, 
+        { text: '班级ID', value: 'classId', width: 120 }, 
+        { text: '备注', value: 'remark', width: 120 }, 
+        { text: "操作者", value: "operationByUser", width: 120 },
+        { text: "操作时间", value: "operationAt", width: 250 },
+      ],
+      drawerHeaders: [
+        { text: '班级ID', value: 'classId', width: 120 }, 
+        { text: '门派ID', value: 'menPaiId', width: 120 }, 
+        { text: '门派名', value: 'menPaiName', width: 120 }, 
+        { text: '备注', value: 'remarks', width: 120 }, 
+        { text: '班级状态', value: 'classStatus', width: 120 }, 
+        { text: "操作者", value: "operationByUser", width: 120 },
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'},
+      ],
+      drawerTableData: [],
+      drawerTableDataFromBackend: [],
+      tableData: [],
+      drawerItemSelectedClass: [],
+      isFormValid: true,
+        requireRules: [
+        v => !!v || 'This is required',
+      ],
+      constantCollection: {},
+      editItem: {}
+    }),
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+    },
+    watch: {},
+    async created() {
+      await this.doUiAction('refreshTableData');
+      await this.doUiAction('getDrawerTableData');
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'refreshTableData':
+            await this.refreshTableData();
+            break;
+          case 'getDrawerTableData':
+            await this.getDrawerTableData();
+            await this.buildDrawerTableData();
+            break;
+          case 'allotItem':
+            await this.confirmAllotItemDialog();
+            await this.doAllotItem();
+            await this.clearAllotItemData();
+            await this.refreshTableData();
+            await this.buildDrawerTableData();
+            break;
+          case 'buildRelation':
+            await this.confirmAllotItemDialog();
+            await this.doBuildRelation(uiActionData);
+            await this.clearAllotItemData();
+            await this.refreshTableData();
+            await this.buildDrawerTableData();
+            break;
+          case 'startUpdateItem':
+            await this.prepareItemData(uiActionData);
+            await this.openUpdateDialog();
+            break;
+          case 'updateItem':
+            await this.confirmUpdateItemDialog();
+            await this.doUpdateItem();
+            await this.refreshTableData();
+            await this.buildDrawerTableData();
+            await this.closeDrawerShow();
+            break;
+          case 'deleteRelation':
+            await this.confirmDeleteItemDialog();
+            await this.doDeleteRelation(uiActionData);
+            await this.refreshTableData();
+            await this.buildDrawerTableData();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      },
+
+      test(){
+
+      },
+
+      // 获取所有学生的数据
+      /**
+       * uiActionId:  refreshTableData
+       * description: ✅获取表格数据
+       * main:   [{"function":"refreshTableData"}]
+      */
+      async refreshTableData() {
+        this.isTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'classManagementOfOneStudent',
+              actionId: 'selectCurrentList',
+              where: { studentId: this.studentId },
+              orderBy: [{ column: 'operationAt', order: 'desc' }]
+            }
+          }
+        });
+        this.tableData = result.data.appData.resultData.rows;
+        this.isTableLoading = false;
+      },
+
+      // 获取所有班级的数据
+      /**
+       * uiActionId:  getDrawerTableData
+       * description: ✅获取内表格数据
+       * main:   [{"function":"getDrawerTableData"}]
+      */
+      async getDrawerTableData() {
+        this.isDrawerTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'classManagementOfOneStudent',
+              actionId: 'selectAllList',
+              orderBy: [{ column: 'operationAt', order: 'desc' }]
+            }
+          }
+        });
+        this.drawerTableDataFromBackend = result.data.appData.resultData.rows;
+        this.isDrawerTableLoading = false;
+      },
+
+      buildDrawerTableData() {
+        if (_.isEmpty(this.drawerTableDataFromBackend)) {
+          this.drawerTableData = [];
+        } else {
+          this.drawerTableData = _.differenceBy(this.drawerTableDataFromBackend, this.tableData, 'classId');
+        }
+      },
+      /**
+       * uiActionId:  allotItem
+       * description: ✅获取表格数据
+      */
+      async confirmAllotItemDialog() {
+        this.isAllotEditDrawerShow = true;
+        if (await window.confirmDialog({title: "确定将班级分配给此学生吗", content: "确定分配吗？"}) === false) {
+          throw new Error("[confirmAllotItemDialog] 否");
+        }
+      },
+
+      async doAllotItem() {
+        this.isAllotEditDrawerShow = false;
+        for (let i = 0; i < this.drawerItemSelectedClass.length; i++) {
+          window.vtoast.loading(`正在新增 第${i + 1}个`);
+          const { classId } = this.drawerItemSelectedClass[i];
+          await this.buildRelationImpl(classId);
+        }
+        window.vtoast.success("批量新增成功");
+      },
+
+      async clearAllotItemData() {
+        this.drawerItemSelectedClass = [];
+      },
+
+      /**
+       * uiActionId:  buildRelation
+       * description: ✅获取表格数据
+      */
+      async doBuildRelation({ item: {classId} }) {
+        this.isAllotEditDrawerShow = false;
+        window.vtoast.loading("正在新增");
+        await this.buildRelationImpl(classId);
+        window.vtoast.success("新增成功");
+      },
+      async buildRelationImpl(classId) {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'classManagementOfOneStudent',
+              actionId: 'insertItem',
+              actionData: { studentId: this.studentId, classId }
+            }
+          }
+        });
+      },
+
+
+      /**
+       * uiActionId:  startUpdateItem
+       * description: ✅获取表格数据
+       * main:   [{"function":"prepareItemData"},{"function":"openUpdateDialog"}]
+      */
+      async prepareItemData({item}) {
+        this.editItem = {...item};
+      },
+
+      async openUpdateDialog() {
+        this.isEditDrawerShow = true;
+      },
+
+      /**
+       * uiActionId:  updateItem
+       * description: ✅获取表格数据
+      */
+      async confirmUpdateItemDialog() {
+        if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+          throw new Error("[confirmUpdateItemDialog] 否");
+        }
+      },
+
+      async doUpdateItem() {
+        const {id, ...data} = this.editItem;
+        await window.vtoast.loading("修改数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'classManagementOfOneStudent',
+              actionId: 'updateItem',
+              actionData: data,
+              where: {id: id}
+            }
+          }
+        })
+        await window.vtoast.success("修改数据成功");
+      },
+
+      async closeDrawerShow() {
+        this.isAllotEditDrawerShow = false;
+      },
+
+      /**
+       * uiActionId:  deleteRelation
+       * description: ✅获取表格数据
+      */
+      async confirmDeleteItemDialog() {
+        if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+          throw new Error("[confirmDeleteItemDialog] 否");
+        }
+      },
+      async doDeleteRelation({ item }) {
+        window.vtoast.loading("删除中");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'classManagementOfOneStudent',
+              actionId: 'deleteItem',
+              where: { id: item.id }
+            }
+          }
+        });
+        window.vtoast.success("删除成功");
+      },
+      drawerItemSelected({ item, value }) {
+          console.log(item, value);
+          if (value) {
+              this.drawerItemSelectedClass.push(item);
+          } else {
+              this.drawerItemSelectedClass = _.reject(this.drawerItemSelectedClass, ['classId', item.classId]);
+          }
+      },
+      drawerToggleSelectAll({ items, value }) {
+          console.log(items, value);
+          if (value) {
+              this.drawerItemSelectedClass = items;
+          } else {
+              this.drawerItemSelectedClass = [];
+          }
+      },
+      dayjs: dayjs,
+    }
+  })
+</script>
+<!--classManagementOfOneStudent.html end-->
