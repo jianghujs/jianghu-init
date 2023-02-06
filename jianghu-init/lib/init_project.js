@@ -101,7 +101,7 @@ module.exports = class InitProjectCommand extends CommandBase {
     // 获取数据库配置
     const dbSetting = await this.getDbSetting(boilerplate, projectName, database);
     dbSetting.dbPrefix = dbSetting.dbPrefix || dbPrefix || '';
-    if (this.demoProject.includes(boilerplate.name)) {
+    if (!this.multiDemoProject.includes(boilerplate.name) && !this.inMultiDemoProject.includes(boilerplate.name)) {
       dbSetting.dbPrefix = '';
     }
 
