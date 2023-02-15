@@ -146,6 +146,21 @@
     .cus-v-input .v-input__icon--append button{
       font-size: 18px;
     }
+    .v-data-table.zebraLine tr:nth-child(even), .v-data-table.zebraLine tr:nth-child(even) td.fixed{
+       background-color: #F9FAFA;
+    }
+    .theme--light.v-data-table>.v-data-table__wrapper>table>tbody>tr:hover:not(.v-data-table__expanded__content):not(.v-data-table__empty-wrapper){
+      background: rgb(76,175,80, 0.1) !important;
+    }
+    .theme--light.v-data-table>.v-data-table__wrapper>table>tbody>tr:hover td.fixed{
+      background: rgb(76,175,80, 0.01) !important;
+    }
+    .theme--light.v-data-table .v-data-footer{
+      justify-content: end;
+    }
+    .v-application--is-ltr .v-data-footer__select{
+      margin-left: 30px;
+    }
   </style>
 
   {% block css %}

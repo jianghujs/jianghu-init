@@ -11,12 +11,6 @@ module.exports = appInfo => {
       enableUserInfoCache: true,
       userInfoCacheRefreshInterval: '10s',
     },
-    static: {
-      maxAge: 0,
-      buffer: false,
-      preload: false,
-      maxFiles: 0,
-    },
     logger: {
       outputJSON: true,
       level: 'INFO',

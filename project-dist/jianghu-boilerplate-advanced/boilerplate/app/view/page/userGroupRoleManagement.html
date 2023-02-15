@@ -3,13 +3,11 @@
 {% block vueTemplate %}
 <script type="text/html" id="app-template">
 <div>
-<v-app id="inspire" mobile-breakpoint="sm">
-  <jhMenu/>
-
-
-  <v-main class="d-flex flex-column" style="margin-top: 60px">
+<v-app mobile-breakpoint="sm">
+  <jh-menu />
+  <v-main class="mt-15">
     <!--用户、组织、角色 切换抽屉 >>>>>>>>>>>>> -->
-    <v-navigation-drawer app left width="270" hide-overlay style="z-index: 80" :style="{'top': isMobile ? 0 : '60px'}" v-model="showLeftMenu">
+    <v-navigation-drawer app left width="270" style="z-index: 80" :style="{'top': isMobile ? 0 : '60px'}" v-model="showLeftMenu">
       <template v-slot:prepend>
         <v-tabs color="success" v-model="dataType">
           <v-tab class="pa-0">用户</v-tab>
@@ -21,13 +19,13 @@
         </v-btn>
         <v-col>
           <v-text-field
-              label="搜索" dense
-              color="success"
-              class="cus-v-input"
-              placeholder="搜索"
-              v-model="tabsSearchKeyword"
-              prepend-inner-icon="mdi-text-search"
-              filled single-line
+            label="搜索" dense
+            color="success"
+            class="jh-v-input"
+            placeholder="搜索"
+            v-model="tabsSearchKeyword"
+            prepend-inner-icon="mdi-text-search"
+            filled single-line
           ></v-text-field>
         </v-col>
       </template>
@@ -39,10 +37,10 @@
           </span>
         </div>
       </template>
-      <v-list-item-group  v-else v-model="selectedItemIndex" mandatory dense color="success">
+      <v-list-item-group v-else v-model="currentItemIndex" mandatory dense color="success">
         <v-list-item
-            v-for="item in dataTypeData"
-            :key="item.value"
+          v-for="item in dataTypeData"
+          :key="item.value"
         >
           <v-list-item-content>
             <v-list-item-title class="d-flex">
@@ -58,26 +56,24 @@
     </v-navigation-drawer>
     <!-- <<<<<<<<<<<<< 组织、角色、用户 切换抽屉 -->
     <!-- 头部内容 >>>>>>>>>>>>> -->
-    <div class="pageSecondBar d-flex px-8">
-      <div>
-        <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
-          <!-- 帮助页按钮 -->
-          <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
-        </div>
-        <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+    <div class="jh-page-second-bar px-8">
+      <div class="pt-3 text-h7 font-weight-bold">用户、组织、角色
+        <!-- 帮助页按钮 -->
+        <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
       </div>
+      <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
 
     <!-- 页面主要内容 -->
-    <div class="pageBodyContainer px-8" style="flex: 1;">
+    <div class="jh-page-body-container px-8">
       <v-btn
-          color="success"
-          class="ma-2 white--text"
-          fab absolute right bottom
-          style="bottom: 68px; z-index: 101"
-          v-if="isMobile"
-          @click="showLeftMenu = !showLeftMenu"
+        color="success"
+        class="ma-2 white--text"
+        fab absolute right bottom
+        style="bottom: 68px; z-index: 101"
+        v-if="isMobile"
+        @click="showLeftMenu = !showLeftMenu"
       >
         <v-icon dark>
           mdi-menu-open
@@ -85,219 +81,214 @@
       </v-btn>
 
       <!-- 页面内容 >>>>>>>>>>>>> -->
-      <v-container class="fullScreen d-flex flex-column pa-0">
-        <v-card class="rounded-lg">
-          <!--表格 头部 >>>>>>>>>>>>> -->
-          <v-row class="ma-0 flex-none pt-0 pb-0">
-            <v-col :style="{maxWidth: 'calc(100% - ' + (isMobile ? 0 : 270) + 'px)'}" class="d-flex flex-column ma-0 pa-0">
-              <!--中间表格 头部 >>>>>>>>>>>>> -->
-              <v-row class="ma-0 align-center flex-none pt-0 pa-4">
-                <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0 d-flex align-center">
-                  <v-btn color="success" dark small class="elevation-0 mr-2" @click="doUiAction('startCreateUserGroupRoleItem', null)">新增</v-btn>
-                  <!--显示全部 开关 >>>>>>>>>>>>> -->
-                  <div style="border-radius: 4px; padding-top: 1px" class="pr-2 mr-4">
-                    <v-switch class="d-inline-block ma-0 pa-0" color="success" style="white-space: nowrap"
-                              v-model="showAllData" label="显示全部"
-                              hide-details
-                              @change="doUiAction('getUserGroupRoleList')"
-                    ></v-switch>
-                  </div>
-                  <!-- <<<<<<<<<<< 显示全部 开关 -->
-                </v-col>
 
-                <v-spacer></v-spacer>
-
-                <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="px-0">
-                  <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
-                </v-col>
+      <v-card class="rounded-lg">
+        <!--表格 头部 >>>>>>>>>>>>> -->
+        <v-row class="ma-0 py-0">
+          <v-col :style="{maxWidth: 'calc(100% - ' + (isMobile ? 0 : 270) + 'px)'}" class="ma-0 pa-0">
+            <!--中间表格 头部 >>>>>>>>>>>>> -->
+            <v-row class="ma-0 pa-4 pb-0">
+              <v-btn color="success" dark small class="elevation-0 mr-2" @click="doUiAction('startCreateRelationDataItem', null)">新增</v-btn>
+              <!--显示全部 开关 >>>>>>>>>>>>> -->
+              <div class="mr-4">
+                <v-switch
+                  class="ma-0 pa-0" color="success"
+                  v-model="isFullDataShown" label="显示全部"
+                  hide-details
+                  @change="doUiAction('getRelationDataList')"
+                ></v-switch>
+              </div>
+              <v-spacer></v-spacer>
+              <!--搜索过滤-->
+              <v-col cols="12" xs="8" sm="4" md="6" xl="2" class="pa-0">
+                <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+              </v-col>
+            </v-row>
+            <!-- <<<<<<<<<<< 中间表格 头部 -->
+            <!--中间表格 主体 >>>>>>>>>>>>> -->
+            <v-data-table
+              fixed-header
+              :headers="relationDataTableHeader"
+              :items="relationDataListFromBackend"
+              :search="searchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+              :items-per-page="20"
+              mobile-breakpoint="0"
+              :loading="isTableLoading"
+              :class="{'zebraLine': isTableZebraLineShown }"
+              checkbox-color="success"
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+              <!--角色ID-->
+              <template v-slot:item.roleId="{ item }">
+                {{ (constantObj.userType.find(({value}) => value === item.roleId) || roleListFromBackend.find(({value}) => value === item.roleId) || {}).text }}
+              </template>
+              <!-- 表格操作按钮 -->
+              <template v-slot:item.action="{ item }">
+                <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateRelationDataItem', item)">
+                  <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+                </span>
+                <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteRelationDataItem', item)">
+                  <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+                </span>
+              </template>
+              <!--没有数据-->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <!-- 表格分页 -->
+              <template v-slot:footer.page-text="pagination">
+                <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+                <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+              </template>
+            </v-data-table>
+            <!-- <<<<<<<<<<< 中间表格 主体 -->
+          </v-col>
+          <!--右侧用户、组织、角色信息 >>>>>>>>>>>>> -->
+          <v-col style="max-width: 270px; border-left: 1px solid #eee;" class="px-6" v-if="!isMobile">
+            <v-list-item-title style="font-size: 18px!important; font-weight: bold;" class="pt-3">{{ dataTypeName + '信息' }}</v-list-item-title>
+            <v-form ref="formCurrentDataTypeDetail" lazy-validation>
+              <!--右侧信息表单 >>>>>>>>>>>>> -->
+              <v-list-item v-for="item of dataTypeFieldList" class="pl-0 pt-4 pr-0">
+                <v-select
+                  v-if="item.type === 'select'"
+                  class="jh-v-input" dense filled single-line
+                  item-value="value"
+                  :label="item.text" v-model="currentDataTypeItem[item.value]"
+                  :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules" :items="constantObj[item.value]"></v-select>
+                <v-textarea
+                  v-else-if="item.type === 'textarea'" class="jh-v-input" dense filled single-line :label="item.text" v-model="currentDataTypeItem[item.value]"
+                  :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules"></v-textarea>
+                <v-text-field
+                  v-else class="jh-v-input" dense filled single-line :label="item.text" v-model="currentDataTypeItem[item.value]"
+                  :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules"></v-text-field>
+              </v-list-item>
+              <!-- <<<<<<<<<<< 右侧信息表单 -->
+              <!--右侧信息表单 操作按钮-->
+              <v-row class="justify-end ma-0 py-2">
+                <v-btn color="error" small @click="doUiAction('deleteCurrentDataTypeItem')" class="mr-4">删除</v-btn>
+                <v-btn color="success" small @click="doUiAction('updateCurrentDataTypeItem')">修改</v-btn>
               </v-row>
-              <!-- <<<<<<<<<<< 中间表格 头部 -->
-              <!--中间表格 主体 >>>>>>>>>>>>> -->
-              <v-data-table fixed-header
-                            :headers="userGroupRoleTableHeader"
-                            :items="userGroupRoleListFromBackend"
-                            :search="searchInput"
-                            :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-                            :items-per-page="20"
-                            mobile-breakpoint="0"
-                            :loading="isTableLoading"
-                            :class="{'zebraLine': showTableZebraLine }"
-                            checkbox-color="success"
-                            class="fixed-table-height first-select elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-                <!--角色ID-->
-                <template v-slot:item.roleId="{ item }">
-                  {{ (constantCollection.userType.find(({value}) => value === item.roleId) || roleListFromBackend.find(({value}) => value === item.roleId) || {}).text }}
-                </template>
-                <!-- 表格操作按钮 -->
-                <template v-slot:item.action="{ item }">
-                  <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateUserGroupRoleItem', item)">
-                    <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
-                  </span>
-                  <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteUserGroupRoleItem', item)">
-                    <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
-                  </span>
-                </template>
-                <!-- 表格 底部 -->
-                <template v-slot:footer.prepend>
-
-                  <v-menu top offset-y :close-on-content-click="false">
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn v-bind="attrs" v-on="on" icon>
-                        <v-icon>mdi-menu</v-icon>
-                      </v-btn>
-                    </template>
-                    <v-list>
-                      <v-list-item>
-                        <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                </template>
-                <!-- 表格分页 -->
-                <template v-slot:footer.page-text="pagination">
-                  <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
-                  <span class="ml-1">共{{ pagination.itemsLength }}条</span>
-                </template>
-              </v-data-table>
-              <!-- <<<<<<<<<<< 中间表格 主体 -->
-            </v-col>
-            <!--右侧用户、组织、角色信息 >>>>>>>>>>>>> -->
-            <v-col style="max-width: 270px; border-left: 1px solid #eee;" class="px-6" v-if="!isMobile">
-              <v-list-item-title style="font-size: 18px!important; font-weight: bold;" class="pt-3">{{ dataTypeName + '信息' }}</v-list-item-title>
-              <v-form v-model="isCurrentItemFormValid" ref="formCurrentDataTypeDetail" lazy-validation>
-                <!--右侧信息表单 >>>>>>>>>>>>> -->
-                <v-list-item v-for="item of dataTypeFieldList" class="pl-0 pt-4 pr-0">
-                  <v-select v-if="item.type === 'select'"
-                            class="cus-v-input" dense filled single-line
-                            item-value="value"
-                            :label="item.text" v-model="currentDataTypeItem[item.value]"
-                            :rules="item.require == false ? nullRules : requireRules" :items="constantCollection[item.value]"></v-select>
-                  <v-textarea v-else-if="item.type === 'textarea'" class="cus-v-input" dense filled single-line :label="item.text" v-model="currentDataTypeItem[item.value]"
-                              :rules="item.require == false ? nullRules : requireRules"></v-textarea>
-                  <v-text-field v-else class="cus-v-input" dense filled single-line :label="item.text" v-model="currentDataTypeItem[item.value]"
-                                :rules="item.require == false ? nullRules : requireRules"></v-text-field>
-                </v-list-item>
-                <!-- <<<<<<<<<<< 右侧信息表单 -->
-                <!--右侧信息表单 操作按钮-->
-                <v-row class="pa-5">
-                  <v-spacer></v-spacer>
-                  <v-btn color="error" small @click="doUiAction('deleteCurrentDataTypeItem')" class="mr-4">删除</v-btn>
-                  <v-btn color="success" small @click="doUiAction('updateCurrentDataTypeItem')">修改</v-btn>
-                </v-row>
-              </v-form>
-            </v-col>
-            <!--修改当前数据（用户、组织、角色） >>>>>>>>>>>>> -->
-            <v-dialog v-else v-model="isUpdateCurrentDataTypeDialog" width="800px">
-              <v-card>
-                <v-card-title class="text-h5  lighten-2  pt-6">
-                  {{ dataTypeName + '信息' }}
-                </v-card-title>
-                <v-card-text>
-                  <v-form v-model="isCurrentItemFormValid" ref="formCurrentDataTypeDetail" lazy-validation>
-                    <!--右侧信息表单 >>>>>>>>>>>>> -->
-                    <v-list-item v-for="item of dataTypeFieldList" class="pl-0 pt-4 pr-0">
-                      <v-select v-if="item.type === 'select'"
-                                class="cus-v-input" dense filled single-line
-                                item-value="value"
-                                :label="item.text" v-model="currentDataTypeItem[item.value]"
-                                :rules="item.require == false ? nullRules : requireRules" :items="constantCollection[item.value]"></v-select>
-                      <v-textarea v-else-if="item.type === 'textarea'" class="cus-v-input" dense filled single-line :label="item.text" v-model="currentDataTypeItem[item.value]"
-                                  :rules="item.require == false ? nullRules : requireRules"></v-textarea>
-                      <v-text-field v-else class="cus-v-input" dense filled single-line :label="item.text" v-model="currentDataTypeItem[item.value]"
-                                    :rules="item.require == false ? nullRules : requireRules"></v-text-field>
-                    </v-list-item>
-                    <!-- <<<<<<<<<<< 右侧信息表单 -->
-                  </v-form>
-                </v-card-text>
-                <!--弹窗操作按钮 >>>>>>>>>>>>> -->
-                <v-card-actions class="py-4">
-                  <v-spacer></v-spacer>
-                  <v-btn color="success" small @click.stop="doUiAction('updateCurrentDataTypeItem')"> 保存</v-btn>
-                  <v-btn color="error" small @click.stop="doUiAction('deleteCurrentDataTypeItem')">删除</v-btn>
-                  <v-btn class="elevation-0 mr-2" small @click.stop="isUpdateCurrentDataTypeDialog = false">取消</v-btn>
-                </v-card-actions>
-                <!-- <<<<<<<<<<< 弹窗操作按钮 -->
-              </v-card>
-            </v-dialog>
-            <!--<<<<<<<<<<< 添加新组织弹窗 -->
-            <!-- <<<<<<<<<<< 右侧用户、组织、角色信息 -->
-          </v-row>
-        </v-card>
-      </v-container>
+            </v-form>
+          </v-col>
+          <!--修改当前数据（用户、组织、角色） >>>>>>>>>>>>> -->
+          <v-dialog v-else v-model="isUpdateCurrentDataTypeDialog" width="800px">
+            <v-card>
+              <v-card-title class="text-h5  lighten-2  pt-6">
+                {{ dataTypeName + '信息' }}
+              </v-card-title>
+              <v-card-text>
+                <v-form ref="formCurrentDataTypeDetail" lazy-validation>
+                  <!--右侧信息表单 >>>>>>>>>>>>> -->
+                  <v-list-item v-for="item of dataTypeFieldList" class="pl-0 pt-4 pr-0">
+                    <v-select
+                      v-if="item.type === 'select'"
+                      class="jh-v-input" dense filled single-line
+                      item-value="value"
+                      :label="item.text" v-model="currentDataTypeItem[item.value]"
+                      :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules" :items="constantObj[item.value]"></v-select>
+                    <v-textarea
+                      v-else-if="item.type === 'textarea'" class="jh-v-input" dense filled single-line :label="item.text" v-model="currentDataTypeItem[item.value]"
+                      :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules"></v-textarea>
+                    <v-text-field
+                      v-else class="jh-v-input" dense filled single-line :label="item.text" v-model="currentDataTypeItem[item.value]"
+                      :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules"></v-text-field>
+                  </v-list-item>
+                  <!-- <<<<<<<<<<< 右侧信息表单 -->
+                </v-form>
+              </v-card-text>
+              <!--弹窗操作按钮 >>>>>>>>>>>>> -->
+              <v-card-actions class="justify-end py-4">
+                <v-btn color="success" small @click.stop="doUiAction('updateCurrentDataTypeItem')"> 保存</v-btn>
+                <v-btn color="error" small @click.stop="doUiAction('deleteCurrentDataTypeItem')">删除</v-btn>
+                <v-btn class="elevation-0 mr-2" small @click.stop="isUpdateCurrentDataTypeDialog = false">取消</v-btn>
+              </v-card-actions>
+              <!-- <<<<<<<<<<< 弹窗操作按钮 -->
+            </v-card>
+          </v-dialog>
+          <!--<<<<<<<<<<< 添加新组织弹窗 -->
+          <!-- <<<<<<<<<<< 右侧用户、组织、角色信息 -->
+        </v-row>
+      </v-card>
       <!-- 抽屉遮罩层 -->
-      <v-overlay app :value="isUserGroupRoleCreateDrawerShow || isUserGroupRoleUpdateDrawerShow || isHelpPageDrawerShow"></v-overlay>
-      <!-- 新增userGroupRole抽屉 >>>>>>>>>>>>> -->
-      <v-navigation-drawer v-model="isUserGroupRoleCreateDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
-        <v-form v-model="isUserGroupRoleFormValid" ref="createUserGroupRoleForm" lazy-validation>
+
+      <!-- 新增relationData抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isRelationDataCreateDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+        <v-form ref="createRelationDataForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
           <v-row>
-            <span class="title pa-6 pl-8">{{ currentOperation.title }}信息</span>
+            <span class="text-h7 pa-6 pl-8">{{ currentOperation.title }}信息</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
           <v-row class="mt-0 px-6">
             <v-col cols="12" sm="12" md="4">
-              <span class="inputLabel">UserID</span>
-              <v-select class="cus-v-input" dense filled single-line clearable :rules="requireRules" v-model="createUserGroupRoleFormData.userId" :items="userListFromBackend"></v-select>
+              <span class="jh-input-label">UserID</span>
+              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.userId" :items="userListFromBackend"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="inputLabel">GroupID</span>
-              <v-select class="cus-v-input" dense filled single-line clearable :rules="requireRules" v-model="createUserGroupRoleFormData.groupId" :items="groupListFromBackend"></v-select>
+              <span class="jh-input-label">GroupID</span>
+              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.groupId" :items="groupListFromBackend"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="inputLabel">RoleId</span>
-              <v-select class="cus-v-input" dense filled single-line clearable :rules="requireRules" v-model="createUserGroupRoleFormData.roleId" :items="roleListFromBackend"></v-select>
+              <span class="jh-input-label">RoleId</span>
+              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.roleId" :items="roleListFromBackend"></v-select>
             </v-col>
           </v-row>
           <!-- <<<<<<<<<<< 抽屉的主体 -->
           <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
           <v-row class="justify-end mx-0 mt-8 px-6">
-            <v-btn color="success" @click="doUiAction('createUserGroupRoleItem')" small>保存</v-btn>
-            <v-btn color="color" class="ml-2" @click="isUserGroupRoleCreateDrawerShow = false" small>取消</v-btn>
+            <v-btn color="success" @click="doUiAction('createRelationDataItem')" small>保存</v-btn>
+            <v-btn color="color" class="ml-2" @click="isRelationDataCreateDrawerShow = false" small>取消</v-btn>
           </v-row>
           <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
         </v-form>
         <!-- 抽屉的关闭按钮 -->
-        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUserGroupRoleCreateDrawerShow = false">
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isRelationDataCreateDrawerShow = false">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-navigation-drawer>
-      <!-- <<<<<<<<<<< 新增userGroupRole抽屉 -->
-      <!-- 编辑userGroupRole抽屉 >>>>>>>>>>>>> -->
-      <v-navigation-drawer v-model="isUserGroupRoleUpdateDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
-        <v-form v-model="isUserGroupRoleFormValid" ref="updateUserGroupRoleForm" lazy-validation>
+      <!-- <<<<<<<<<<< 新增relationData抽屉 -->
+      <!-- 编辑relationData抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isRelationDataUpdateDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+        <v-form ref="updateRelationDataForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
           <v-row>
-            <span class="title pa-6 pl-8">{{ currentOperation.title }}信息</span>
+            <span class="text-h7 pa-6 pl-8">{{ currentOperation.title }}信息</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
           <v-row class="mt-0 px-6">
             <v-col cols="12" sm="12" md="4">
-              <span class="inputLabel">UserID</span>
-              <v-select class="cus-v-input" dense filled single-line clearable :rules="requireRules" v-model="updateUserGroupRoleFormData.userId" :items="userListFromBackend"></v-select>
+              <span class="jh-input-label">UserID</span>
+              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.userId" :items="userListFromBackend"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="inputLabel">GroupID</span>
-              <v-select class="cus-v-input" dense filled single-line clearable :rules="requireRules" v-model="updateUserGroupRoleFormData.groupId" :items="groupListFromBackend"></v-select>
+              <span class="jh-input-label">GroupID</span>
+              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.groupId" :items="groupListFromBackend"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="inputLabel">RoleId</span>
-              <v-select class="cus-v-input" dense filled single-line clearable :rules="requireRules" v-model="updateUserGroupRoleFormData.roleId" :items="roleListFromBackend"></v-select>
+              <span class="jh-input-label">RoleId</span>
+              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.roleId" :items="roleListFromBackend"></v-select>
             </v-col>
           </v-row>
           <!-- <<<<<<<<<<< 抽屉的主体 -->
           <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
           <v-row class="justify-end mx-0 mt-8 px-6">
-            <v-btn color="success" @click="doUiAction('updateUserGroupRoleItem')" small>保存</v-btn>
-            <v-btn color="color" class="ml-2" @click="isUserGroupRoleUpdateDrawerShow = false" small>取消</v-btn>
+            <v-btn color="success" @click="doUiAction('updateRelationDataItem')" small>保存</v-btn>
+            <v-btn color="color" class="ml-2" @click="isRelationDataUpdateDrawerShow = false" small>取消</v-btn>
           </v-row>
           <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
         </v-form>
         <!-- 抽屉的关闭按钮 -->
-        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUserGroupRoleUpdateDrawerShow = false">
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isRelationDataUpdateDrawerShow = false">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-navigation-drawer>
-      <!-- <<<<<<<<<<< 编辑userGroupRole抽屉 -->
+      <!-- <<<<<<<<<<< 编辑relationData抽屉 -->
       <!--添加新用户弹窗 >>>>>>>>>>>>> -->
       <v-dialog v-model="isCreateUserDialogShow" width="800px">
         <v-card>
@@ -305,36 +296,35 @@
             添加新用户
           </v-card-title>
           <v-card-text>
-            <v-form v-model="isCreateDataTypeFormValid" v-if="isCreateUserDialogShow" ref="userForm" lazy-validation>
+            <v-form ref="userForm" lazy-validation>
               <!--新增用户表单 >>>>>>>>>>>>> -->
               <v-row v-if="dataType === 0">
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">用户ID</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="用户ID" v-model="createUserFormData.userId" :rules="requireRules"></v-text-field>
+                  <span class="jh-input-label">用户ID</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="用户ID" v-model="createUserData.userId" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">用户名</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="用户名" v-model="createUserFormData.username" :rules="requireRules"></v-text-field>
+                  <span class="jh-input-label">用户名</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="用户名" v-model="createUserData.username" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">用户状态</span>
-                  <v-select class="cus-v-input" dense filled single-line clearable label="用户状态" v-model="createUserFormData.userStatus" :items="constantCollection.userStatus"></v-select>
+                  <span class="jh-input-label">用户状态</span>
+                  <v-select class="jh-v-input" dense filled single-line clearable label="用户状态" v-model="createUserData.userStatus" :items="constantObj.userStatus"></v-select>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">用户类型</span>
-                  <v-select class="cus-v-input" dense filled single-line clearable label="用户类型" v-model="createUserFormData.userType" :items="constantCollection.userType"></v-select>
+                  <span class="jh-input-label">用户类型</span>
+                  <v-select class="jh-v-input" dense filled single-line clearable label="用户类型" v-model="createUserData.userType" :items="constantObj.userType"></v-select>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">初始密码</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="初始密码" v-model="createUserFormData.clearTextPassword" :rules="requireRules"></v-text-field>
+                  <span class="jh-input-label">初始密码</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="初始密码" v-model="createUserData.clearTextPassword" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
               </v-row>
               <!-- <<<<<<<<<<< 新增用户表单 -->
             </v-form>
           </v-card-text>
           <!--弹窗操作按钮 >>>>>>>>>>>>> -->
-          <v-card-actions class="py-4">
-            <v-spacer></v-spacer>
+          <v-card-actions class="justify-end py-4">
             <v-btn color="success" small @click="doUiAction('createUserItem')"> 保存</v-btn>
             <v-btn class="elevation-0 mr-2 ml-2" small @click="isCreateUserDialogShow = false">取消</v-btn>
           </v-card-actions>
@@ -342,81 +332,79 @@
         </v-card>
       </v-dialog>
       <!--添加新组织弹窗 >>>>>>>>>>>>> -->
-      <v-dialog v-model="isCreateGroupDialogShow" width="800px">
+      <v-dialog v-model="isCreateGroupDialogShown" width="800px">
         <v-card>
           <v-card-title class="text-h5  lighten-2  pt-6">
             添加新组织
           </v-card-title>
 
           <v-card-text>
-            <v-form v-model="isCreateDataTypeFormValid" v-if="isCreateGroupDialogShow" ref="groupForm" lazy-validation>
+            <v-form ref="groupForm" lazy-validation>
               <!--新增组织表单 >>>>>>>>>>>>> -->
               <v-row v-if="dataType === 1">
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">组织ID</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="组织ID" v-model="createGroupFormData.groupId" :rules="requireRules"></v-text-field>
+                  <span class="jh-input-label">组织ID</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="组织ID" v-model="createGroupData.groupId" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">组织名</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="组织名" v-model="createGroupFormData.groupName" :rules="requireRules"></v-text-field>
+                  <span class="jh-input-label">组织名</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="组织名" v-model="createGroupData.groupName" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">组织描述</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="组织描述" v-model="createGroupFormData.groupDesc"></v-text-field>
+                  <span class="jh-input-label">组织描述</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="组织描述" v-model="createGroupData.groupDesc"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">组织Logo</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="组织Logo" v-model="createGroupFormData.groupAvatar"></v-text-field>
+                  <span class="jh-input-label">组织Logo</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="组织Logo" v-model="createGroupData.groupAvatar"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">拓展字段</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="拓展字段" v-model="createGroupFormData.groupExtend"></v-text-field>
+                  <span class="jh-input-label">拓展字段</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="拓展字段" v-model="createGroupData.groupExtend"></v-text-field>
                 </v-col>
               </v-row>
               <!-- <<<<<<<<<<< 新增组织表单 -->
             </v-form>
           </v-card-text>
           <!--弹窗操作按钮 >>>>>>>>>>>>> -->
-          <v-card-actions class="py-4">
-            <v-spacer></v-spacer>
+          <v-card-actions class="justify-end py-4">
             <v-btn color="success" small @click="doUiAction('createGroupItem')"> 保存</v-btn>
-            <v-btn class="elevation-0 mr-2 ml-2" small @click="isCreateGroupDialogShow = false">取消</v-btn>
+            <v-btn class="elevation-0 mr-2 ml-2" small @click="isCreateGroupDialogShown = false">取消</v-btn>
           </v-card-actions>
           <!-- <<<<<<<<<<< 弹窗操作按钮 -->
         </v-card>
       </v-dialog>
       <!--添加新角色弹窗 >>>>>>>>>>>>> -->
-      <v-dialog v-model="isCreateRoleDialogShow" width="800px">
+      <v-dialog v-model="isCreateRoleDialogShown" width="800px">
         <v-card>
           <v-card-title class="text-h5  lighten-2  pt-6">
             添加新组织
           </v-card-title>
 
           <v-card-text>
-            <v-form v-model="isCreateDataTypeFormValid" v-if="isCreateRoleDialogShow" ref="roleForm" lazy-validation>
+            <v-form ref="roleForm" lazy-validation>
               <!--新增角色表单 >>>>>>>>>>>>> -->
               <v-row v-if="dataType === 2">
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">角色ID</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="角色ID" v-model="createRoleFormData.roleId" :rules="requireRules"></v-text-field>
+                  <span class="jh-input-label">角色ID</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="角色ID" v-model="createRoleData.roleId" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">角色名</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="角色名" v-model="createRoleFormData.roleName" :rules="requireRules"></v-text-field>
+                  <span class="jh-input-label">角色名</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="角色名" v-model="createRoleData.roleName" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">角色描述</span>
-                  <v-text-field class="cus-v-input" dense filled single-line label="角色描述" v-model="createRoleFormData.roleDesc"></v-text-field>
+                  <span class="jh-input-label">角色描述</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="角色描述" v-model="createRoleData.roleDesc"></v-text-field>
                 </v-col>
               </v-row>
               <!-- <<<<<<<<<<< 新增角色表单 -->
             </v-form>
           </v-card-text>
           <!--弹窗操作按钮 >>>>>>>>>>>>> -->
-          <v-card-actions class="py-4">
-            <v-spacer></v-spacer>
+          <v-card-actions class="justify-end py-4">
             <v-btn color="success" small @click="doUiAction('createRoleItem')"> 保存</v-btn>
-            <v-btn class="elevation-0 mr-2 ml-2" small @click="isCreateRoleDialogShow = false">取消</v-btn>
+            <v-btn class="elevation-0 mr-2 ml-2" small @click="isCreateRoleDialogShown = false">取消</v-btn>
           </v-card-actions>
           <!-- <<<<<<<<<<< 弹窗操作按钮 -->
         </v-card>
@@ -424,15 +412,18 @@
       <!-- <<<<<<<<<<< 添加新 用户、组织、角色 弹窗 -->
     </div>
     <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-    <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
-      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?pageId=<$ ctx.packagePage.pageId $>`" width="100%" height="100%"></iframe>
+    <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#3.userGroupRoleManagement.md`" width="100%" height="100%"></iframe>
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </v-navigation-drawer>
     <!-- <<<<<<<<<<< 帮助页抽屉 -->
   </v-main>
 </v-app>
-<jhToast/>
-<jhMask/>
-<jhConfirmDialog/>
+<jh-toast />
+<jh-mask />
+<jh-confirm-dialog />
 </div>
 </script>
 
@@ -442,60 +433,60 @@
 
 {% block vueScript %}
 
-{% include 'common/fixedTableHeightV4.html' %}
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 
 <script type="module">
 new Vue({
   el: '#app',
   template: '#app-template',
   vuetify: new Vuetify(),
-  mixins: [window.jianghuUiActionMixins],
   data: {
-    breadcrumbs: window.breadcrumbs,
-    isHelpPageDrawerShow: false,
-    isMobile: window.innerWidth < 600,
-    showTableZebraLine: true,
+    breadcrumbs: [
+      {text: '首页', disabled: true,},
+      {text: '用户管理', disabled: true,}
+    ],
+    isHelpPageDrawerShown: false,
+    isMobile: window.innerWidth < 500,
+    isTableZebraLineShown: true,
     // 表格相关数据
-    isUserGroupRoleFormValid: true,
-    isCreateDataTypeFormValid: true,
-    isCurrentItemFormValid: true,
-    showAllData: false,
+    isFullDataShown: false,
     // 左侧用户、组织、角色弹窗状态
     isCreateUserDialogShow: false,
-    isCreateGroupDialogShow: false,
-    isCreateRoleDialogShow: false,
+    isCreateGroupDialogShown: false,
+    isCreateRoleDialogShown: false,
     dataType: 0, // 数据类型，0：用户，1：组织，2：角色
-    selectedItemIndex: 0,
+    currentItemIndex: 0,
     showLeftMenu: window.innerWidth > 600,
-
-    requireRules: [v => !!v],
-    nullRules: [v => true],
+    validationRules: {
+      requireRules: [v => !!v],
+      nullRules: [v => true],
+    },
     tabsSearchKeyword: null,
-    constantCollection: {
+    constantObj: {
       userStatus: [{value: 'active', text: '活跃'}, {value: 'banned', text: '关闭'}],
       userType: [{value: 'common', text: '管理员'}, {value: 'staff', text: '职工'}, {value: 'teacher', text: '老师'}, {value: 'student', text: '学员'}],
     },
-    isUserGroupRoleCreateDrawerShow: false,
-    isUserGroupRoleUpdateDrawerShow: false,
+    isRelationDataCreateDrawerShow: false,
+    isRelationDataUpdateDrawerShow: false,
     searchInput: null,
     isDataTypeLoading: true,
     isTableLoading: true,
     // 后端数据
-    userGroupRoleListFromBackend: [],
+    relationDataListFromBackend: [],
     userListFromBackend: [],
     groupListFromBackend: [],
     roleListFromBackend: [],
     // 数据表单
-    createUserGroupRoleFormData: {},
-    updateUserGroupRoleFormData: {},
-    createUserFormData: {},
-    createGroupFormData: {},
-    createRoleFormData: {},
+    createRelationDataFormData: {},
+    updateRelationDataFormData: {},
+    createUserData: {},
+    createGroupData: {},
+    createRoleData: {},
     // 左侧抽屉选中数据
     currentDataTypeItem: {},
     isUpdateCurrentDataTypeDialog: false,
 
-    userGroupRoleTableHeader: [
+    relationDataTableHeader: [
       {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
       {text: "用户Id", value: "userId", width: 120},
       {text: "组织ID", value: "groupId", width: 120},
@@ -534,23 +525,23 @@ new Vue({
     async dataType() {
       this.dataTypeName = ['用户', '组织', '角色'][this.dataType];
       // 根据左侧tab类型动态改变右侧表单的字段
-      if(this.dataType === 0) {
+      if (this.dataType === 0) {
         this.dataTypeFieldList = this.userKeys;
       }
-      if(this.dataType === 1) {
+      if (this.dataType === 1) {
         this.dataTypeFieldList = this.groupKeys;
       }
-      if(this.dataType === 2) {
+      if (this.dataType === 2) {
         this.dataTypeFieldList = this.roleKeys;
       }
       this.buildDataTypeData();
-      this.userGroupRoleListFromBackend = [];
-      await this.doUiAction('getUserGroupRoleList');
+      this.relationDataListFromBackend = [];
+      await this.doUiAction('getRelationDataList');
     },
-    selectedItemIndex(v, ov) {
+    currentItemIndex(v, ov) {
       if (v !== ov) {
         this.setCurrentItemInfo();
-        this.doUiAction('getUserGroupRoleList');
+        this.doUiAction('getRelationDataList');
       }
     }
   },
@@ -565,8 +556,8 @@ new Vue({
   methods: {
     async doUiAction(uiActionId, uiActionData) {
       switch (uiActionId) {
-        case 'getUserGroupRoleList':
-          await this.getUserGroupRoleList(uiActionData);
+        case 'getRelationDataList':
+          await this.getRelationDataList(uiActionData);
           break;
         case 'getBasicDataFromBackend':
           await this.getUserList();
@@ -574,35 +565,35 @@ new Vue({
           await this.getRoleList();
           await this.buildDataTypeData();
           await this.setCurrentItemInfo();
-          await this.getUserGroupRoleList(uiActionData);
+          await this.getRelationDataList(uiActionData);
           break;
         // description: ✅中间表格操作
-        case 'startCreateUserGroupRoleItem':
-          await this.prepareCreateUserGroupRoleForm(uiActionData);
-          await this.openCreateUserGroupRoleDrawer(uiActionData);
+        case 'startCreateRelationDataItem':
+          await this.prepareCreateRelationDataForm(uiActionData);
+          await this.openCreateRelationDataDrawer(uiActionData);
           break;
-        case 'createUserGroupRoleItem':
-          await this.prepareCreateUserGroupRoleFormValidate(uiActionData);
+        case 'createRelationDataItem':
+          await this.prepareCreateRelationDataFormValidate(uiActionData);
           await this.confirmCreateItemDialog(uiActionData);
-          await this.doCreateUserGroupRoleItem(uiActionData);
-          await this.getUserGroupRoleList(uiActionData);
+          await this.doCreateRelationDataItem(uiActionData);
+          await this.getRelationDataList(uiActionData);
           await this.closeDrawerShow(uiActionData);
           break;
-        case 'startUpdateUserGroupRoleItem':
-          await this.prepareUpdateUserGroupRoleForm(uiActionData);
-          await this.openUpdateUserGroupRoleDrawer(uiActionData);
+        case 'startUpdateRelationDataItem':
+          await this.prepareUpdateRelationDataForm(uiActionData);
+          await this.openUpdateRelationDataDrawer(uiActionData);
           break;
-        case 'updateUserGroupRoleItem':
-          await this.prepareUpdateUserGroupRoleFormValidate(uiActionData);
+        case 'updateRelationDataItem':
+          await this.prepareUpdateRelationDataFormValidate(uiActionData);
           await this.confirmUpdateItemDialog(uiActionData);
-          await this.doUpdateUserGroupRoleItem(uiActionData);
-          await this.getUserGroupRoleList(uiActionData);
+          await this.doUpdateRelationDataItem(uiActionData);
+          await this.getRelationDataList(uiActionData);
           await this.closeDrawerShow(uiActionData);
           break;
-        case 'deleteUserGroupRoleItem':
+        case 'deleteRelationDataItem':
           await this.confirmDeleteItemDialog(uiActionData);
-          await this.doDeleteUserGroupRoleItem(uiActionData);
-          await this.getUserGroupRoleList(uiActionData);
+          await this.doDeleteRelationDataItem(uiActionData);
+          await this.getRelationDataList(uiActionData);
           break;
         // description: ✅左侧抽屉数据操作（用户、组织、角色）
         case 'startCreateDataTypeItem':
@@ -657,22 +648,22 @@ new Vue({
     // description: ✅用户、组织、角色数据重建
     buildDataTypeData() {
       let tempList, searchKey;
-      if(this.dataType === 0) {
+      if (this.dataType === 0) {
         searchKey = ['userId', 'username'];
         tempList = _.cloneDeep(this.userListFromBackend);
       }
-      if(this.dataType === 1) {
+      if (this.dataType === 1) {
         searchKey = ['groupId', 'groupName'];
         tempList = _.cloneDeep(this.groupListFromBackend);
       }
-      if(this.dataType === 2) {
+      if (this.dataType === 2) {
         searchKey = ['roleId', 'roleName'];
         tempList = _.cloneDeep(this.roleListFromBackend);
       }
       if (this.tabsSearchKeyword) {
-        this.dataTypeData = tempList.filter((item) => {
-          if(item.data[searchKey[0]].includes(this.tabsSearchKeyword)) return true;
-          if(item.data[searchKey[1]].includes(this.tabsSearchKeyword)) return true;
+        this.dataTypeData = tempList.filter((funObj) => {
+          if (funObj.data[searchKey[0]].includes(this.tabsSearchKeyword)) return true;
+          if (funObj.data[searchKey[1]].includes(this.tabsSearchKeyword)) return true;
           return false;
         });
       } else {
@@ -682,17 +673,17 @@ new Vue({
     // description: ✅获取当前左侧选中的选项详情
     setCurrentItemInfo() {
       let tempList;
-      if(this.dataType === 0) {
+      if (this.dataType === 0) {
         tempList = _.cloneDeep(this.userListFromBackend);
       }
-      if(this.dataType === 1) {
+      if (this.dataType === 1) {
         tempList = _.cloneDeep(this.groupListFromBackend);
       }
-      if(this.dataType === 2) {
+      if (this.dataType === 2) {
         tempList = _.cloneDeep(this.roleListFromBackend);
       }
-      if (tempList && tempList[this.selectedItemIndex || 0]) {
-        this.currentDataTypeItem = tempList[this.selectedItemIndex || 0].data;
+      if (tempList && tempList[this.currentItemIndex || 0]) {
+        this.currentDataTypeItem = tempList[this.currentItemIndex || 0].data;
       }
     },
     // description: ✅获取组织数据
@@ -740,19 +731,19 @@ new Vue({
     /**
      * 获取关系表格数据
      */
-    async getUserGroupRoleList() {
+    async getRelationDataList() {
       this.isTableLoading = true;
       let where = {};
-      const currentDataTypeData = this.dataTypeData[this.selectedItemIndex];
-      if (!this.showAllData && currentDataTypeData) {
+      const currentDataTypeData = this.dataTypeData[this.currentItemIndex];
+      if (!this.isFullDataShown && currentDataTypeData) {
         let key;
-        if(this.dataType === 0) {
+        if (this.dataType === 0) {
           key = 'userId';
         }
-        if(this.dataType === 1) {
+        if (this.dataType === 1) {
           key = 'groupId';
         }
-        if(this.dataType === 2) {
+        if (this.dataType === 2) {
           key = 'roleId';
         }
         where = {[key]: currentDataTypeData.value}
@@ -766,20 +757,20 @@ new Vue({
           }
         }
       });
-      this.userGroupRoleListFromBackend = result.data.appData.resultData.rows;
+      this.relationDataListFromBackend = result.data.appData.resultData.rows;
       this.isTableLoading = false;
     },
     // description: ✅准备新增关系表单数据
-    async prepareCreateUserGroupRoleForm() {
-      this.createUserGroupRoleFormData = {};
+    async prepareCreateRelationDataForm() {
+      this.createRelationDataFormData = {};
     },
     // description: ✅准备更新关系表单数据
-    async prepareUpdateUserGroupRoleForm(item) {
-      this.updateUserGroupRoleFormData = _.cloneDeep(item);
+    async prepareUpdateRelationDataForm(funObj) {
+      this.updateRelationDataFormData = _.cloneDeep(funObj);
     },
     // description: ✅准备更新用户、组织、角色表单数据
-    async prepareCurrentDataTypeForm(item) {
-      this.currentDataTypeItem = _.cloneDeep(item);
+    async prepareCurrentDataTypeForm(funObj) {
+      this.currentDataTypeItem = _.cloneDeep(funObj);
     },
     // description: ✅打开更新用户、组织、角色弹窗
     async openCurrentDataTypeDialog() {
@@ -790,20 +781,20 @@ new Vue({
       this.isUpdateCurrentDataTypeDialog = false;
     },
     // description: ✅打开关系新增抽屉
-    async openCreateUserGroupRoleDrawer() {
-      this.isUserGroupRoleCreateDrawerShow = true;
+    async openCreateRelationDataDrawer() {
+      this.isRelationDataCreateDrawerShow = true;
     },
 
     // description: ✅创建关系表单验证
-    async prepareCreateUserGroupRoleFormValidate() {
-      if (await this.$refs.createUserGroupRoleForm.validate() === false) {
-        throw new Error("[prepareUserGroupRoleFormValidate] false");
+    async prepareCreateRelationDataFormValidate() {
+      if (await this.$refs.createRelationDataForm.validate() === false) {
+        throw new Error("[prepareRelationDataFormValidate] false");
       }
     },
     // description: ✅更新关系表单验证
-    async prepareUpdateUserGroupRoleFormValidate() {
-      if (await this.$refs.updateUserGroupRoleForm.validate() === false) {
-        throw new Error("[prepareUserGroupRoleFormValidate] false");
+    async prepareUpdateRelationDataFormValidate() {
+      if (await this.$refs.updateRelationDataForm.validate() === false) {
+        throw new Error("[prepareRelationDataFormValidate] false");
       }
     },
     // description: ✅新增关系弹窗确认
@@ -814,9 +805,9 @@ new Vue({
     },
 
     // description: ✅新增关系数据resource
-    async doCreateUserGroupRoleItem() {
+    async doCreateRelationDataItem() {
       await window.vtoast.loading("保存中");
-      const {userId, groupId, roleId} = this.createUserGroupRoleFormData;
+      const {userId, groupId, roleId} = this.createRelationDataFormData;
       await window.jianghuAxios({
         data: {
           appData: {
@@ -830,18 +821,18 @@ new Vue({
     },
     // description: ✅关闭关系新增、更新抽屉
     async closeDrawerShow() {
-      this.isUserGroupRoleCreateDrawerShow = false;
-      this.isUserGroupRoleUpdateDrawerShow = false;
+      this.isRelationDataCreateDrawerShow = false;
+      this.isRelationDataUpdateDrawerShow = false;
     },
     // description: ✅重构用户、组织、角色的表单数据
     async prepareDataTypeFormData() {
-      this.createUserFormData = {};
-      this.createGroupFormData = {};
-      this.createRoleFormData = {};
+      this.createUserData = {};
+      this.createGroupData = {};
+      this.createRoleData = {};
     },
     // description: ✅打开关系新增抽屉
-    async openUpdateUserGroupRoleDrawer() {
-      this.isUserGroupRoleUpdateDrawerShow = true;
+    async openUpdateRelationDataDrawer() {
+      this.isRelationDataUpdateDrawerShow = true;
     },
 
     // description: ✅更新关系数据弹窗确认
@@ -852,10 +843,10 @@ new Vue({
     },
 
     // description: ✅更新关系数据resource
-    async doUpdateUserGroupRoleItem() {
+    async doUpdateRelationDataItem() {
       await window.vtoast.loading("保存中");
-      const id = this.updateUserGroupRoleFormData.id;
-      const {userId, groupId, roleId} = this.updateUserGroupRoleFormData;
+      const id = this.updateRelationDataFormData.id;
+      const {userId, groupId, roleId} = this.updateRelationDataFormData;
       await window.jianghuAxios({
         data: {
           appData: {
@@ -876,7 +867,7 @@ new Vue({
       }
     },
     // description: ✅删除用户组织角色关系数据resource
-    async doDeleteUserGroupRoleItem({id}) {
+    async doDeleteRelationDataItem({id}) {
       window.vtoast.loading('正在删除')
       await window.jianghuAxios({
         data: {
@@ -893,16 +884,16 @@ new Vue({
     // description: ✅打开添加用户、组织、角色的表单弹窗
     async openDataTypeFormDialog() {
       this.isCreateUserDialogShow = false;
-      this.isCreateGroupDialogShow = false;
-      this.isCreateRoleDialogShow = false;
+      this.isCreateGroupDialogShown = false;
+      this.isCreateRoleDialogShown = false;
       if (this.dataType === 0) {
         this.isCreateUserDialogShow = true;
       }
       if (this.dataType === 1) {
-        this.isCreateGroupDialogShow = true;
+        this.isCreateGroupDialogShown = true;
       }
       if (this.dataType === 2) {
-        this.isCreateRoleDialogShow = true;
+        this.isCreateRoleDialogShown = true;
       }
     },
     // description: ✅左侧表单验证
@@ -932,7 +923,7 @@ new Vue({
           appData: {
             pageId: 'userGroupRoleManagement',
             actionId: 'insertUser',
-            actionData: this.createUserFormData
+            actionData: this.createUserData
           }
         }
       })
@@ -949,7 +940,7 @@ new Vue({
           appData: {
             pageId: 'userGroupRoleManagement',
             actionId: 'insertGroup',
-            actionData: this.createGroupFormData
+            actionData: this.createGroupData
           }
         }
       })
@@ -966,7 +957,7 @@ new Vue({
           appData: {
             pageId: 'userGroupRoleManagement',
             actionId: 'insertRole',
-            actionData: this.createRoleFormData
+            actionData: this.createRoleData
           }
         }
       })
@@ -975,8 +966,8 @@ new Vue({
     // description: ✅关闭添加用户、组织、角色的表单弹窗
     async closeFormDialog() {
       this.isCreateUserDialogShow = false;
-      this.isCreateGroupDialogShow = false;
-      this.isCreateRoleDialogShow = false;
+      this.isCreateGroupDialogShown = false;
+      this.isCreateRoleDialogShown = false;
     },
     // description: ✅刷新用户、组织、角色的数据
     async getDataTypeList() {

@@ -1,263 +1,249 @@
-<!-- 3 table 下  的单表 crud 页面 -->
-
-<!--SQL START
--- 以下为 jianghu init 工具生成的参考 SQL，使用后删除
--- 创建 page
-INSERT INTO `_page` (`pageId`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT 'pagePasscodeDemo','页面','showInMenu','5','jhInsert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_page` WHERE `pageId`='pagePasscodeDemo');
-
--- 创建 resource
-INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'pagePasscodeDemo','selectItemList','✅查询-查询列表','sql','{}','{ \"table\": \"student\", \"operation\": \"select\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='pagePasscodeDemo' AND `actionId`='selectItemList');
-INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'pagePasscodeDemo','insertItem','✅查询-添加成员','sql','{}','{ \"table\": \"student\", \"operation\": \"insert\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='pagePasscodeDemo' AND `actionId`='insertItem');
-INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'pagePasscodeDemo','updateItem','✅查询-更新成员','sql','{}','{ \"table\": \"student\", \"operation\": \"update\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='pagePasscodeDemo' AND `actionId`='updateItem');
-INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'pagePasscodeDemo','deleteItem','✅查询-删除信息','sql','{}','{ \"table\": \"student\", \"operation\": \"delete\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='pagePasscodeDemo' AND `actionId`='deleteItem');
-SQL END!-->
-
 {% extends 'template/jhTemplateV4.html'%}
 
 {% block vueTemplate %}
 <script type="text/html" id="app-template">
-  <div>
-    <v-app id="inspire" mobile-breakpoint="sm">
-      <jhMenu/>
-      <v-main class="d-flex flex-column" style="margin-top: 60px">
-        <!-- 头部内容 >>>>>>>>>>>>> -->
-        <div class="pageSecondBar d-flex px-8"><div>
-            <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
-              <!-- 帮助页按钮 -->
-              <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
-            </div>
-            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
-          </div>
-        </div>
-        <!-- <<<<<<<<<<<<< 头部内容 -->
+<div>
+<v-app mobile-breakpoint="sm">
+  <jh-menu />
+  <v-main class="mt-15">
+    <!-- 头部内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-second-bar px-8">
+     <div class="pt-3 text-h7 font-weight-bold">二次认证
+       <!-- 帮助页按钮 -->
+        <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
+      </div>
+      <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+    </div>
+    <!-- <<<<<<<<<<<<< 头部内容 -->
+    <div class="jh-page-body-container px-8">
+      <!-- 页面主要内容 -->
 
-        <div class="pageBodyContainer px-8" style="flex: 1;">
-          <!-- 页面主要内容 -->
-          <v-container class="fullScreen d-flex flex-column pa-0">
-            <v-card :class="{'px-2': isMobile}" class="rounded-lg">
-              <v-row class="ma-0 align-center flex-none pt-0 pa-4" :class="{'pb-0': !isMobile, 'pa-2': isMobile}">
-                <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0">
-                  <v-btn color="success" dark small class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)">新增</v-btn>
-                </v-col>
-                <v-spacer></v-spacer>
-                <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="px-0 py-xs-0">
-                  <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
-                </v-col>
-              </v-row>
-              <!-- 表格 >>>>>>>>>>>>> -->
-              <v-data-table
-                  :headers="headers"
-                  :items="tableDataFromBackend"
-                  :search="searchInput"
-                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-                  :items-per-page="20"
-                  mobile-breakpoint="0"
-                  :loading="isTableLoading"
-                  :class="{'zebraLine': showTableZebraLine }"
-                  checkbox-color="success"
-                  fixed-header
-                  class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-                <!-- 表格操作按钮 -->
-                <template v-slot:item.action="{ item }">
-                  <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateItem', item)">
-                    <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
-                  </span>
-                  <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-                    <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
-                  </span>
+      <v-card class="rounded-lg">
+        <v-row class="ma-0 pa-4 pb-0">
+          <!--新增按钮-->
+          <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
+          <v-spacer></v-spacer>
+          <!--搜索过滤-->
+          <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+            <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+          </v-col>
+        </v-row>
+        <!-- 数据表格 >>>>>>>>>>>>> -->
+        <v-data-table
+          :headers="headers"
+          :items="tableData"
+          :search="searchInput"
+          :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+          :items-per-page="20"
+          mobile-breakpoint="0"
+          :loading="isTableLoading"
+          :class="{'zebraLine': isTableZebraLineShown }"
+          checkbox-color="success"
+          fixed-header
+          class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+          <!-- 表格操作按钮 -->
+          <template v-slot:item.action="{ item }">
+            <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateItem', item)">
+              <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+            </span>
+            <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+              <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+            </span>
+          </template>
+          <!--性别-->
+          <template v-slot:item.gender="{ item }">
+            {{ getDisplayText({displayObj: constantObj.gender, displayValue: item.gender}) }}
+          </template>
+          <!--年级-->
+          <template v-slot:item.level="{ item }">
+            {{ getDisplayText({displayObj: constantObj.level, displayValue: item.level}) }}
+          </template>
+          <!--没有数据-->
+          <template v-slot:loading>
+            <div class="jh-no-data">数据加载中</div>
+          </template>
+          <template v-slot:no-data>
+            <div class="jh-no-data">暂无数据</div>
+          </template>
+          <template v-slot:no-results>
+            <div class="jh-no-data">暂无数据</div>
+          </template>
+          <!-- 分页 -->
+          <template v-slot:footer.page-text="pagination">
+            <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+            <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+          </template>
+        </v-data-table>
+        <!-- <<<<<<<<<<<<< 数据表格 -->
+      </v-card>
+      <!-- 新增抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+        <v-form ref="createForm" lazy-validation>
+          <!-- 抽屉的头部标题 -->
+          <v-row>
+            <span class="text-h7 pa-6 pl-8">新增学生</span>
+          </v-row>
+          <!-- 抽屉的主体 >>>>>>>>>>>>> -->
+          <v-row class="mt-0 px-6">
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">学生ID</span>
+              <v-text-field class="jh-v-input" dense single-line filled label="学生ID" v-model="createItem.studentId" :rules="validationRules.requireRules"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">班级ID</span>
+              <v-select class="jh-v-input" dense single-line filled clearable label="班级ID" v-model="createItem.classId" :items="constantObj.classId" :rules="validationRules.requireRules"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">学生名字</span>
+              <v-text-field class="jh-v-input" dense single-line filled label="学生名字" v-model="createItem.name" :rules="validationRules.requireRules"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">年级</span>
+              <v-select class="jh-v-input" dense single-line filled clearable label="年级" v-model="createItem.level" :items="constantObj.level" :rules="validationRules.requireRules"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">性别</span>
+              <v-select class="jh-v-input" dense single-line filled clearable label="性别" v-model="createItem.gender" :items="constantObj.gender" :rules="validationRules.requireRules"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">出生日期</span>
+              <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
+                <template v-slot:activator="{on, attrs}">
+                  <v-text-field v-bind="attrs" v-on="on" v-model="createItem.dateOfBirth" class="jh-v-input" dense single-line filled readonly label="出生日期"></v-text-field>
                 </template>
-                <!-- 表格的底部 -->
-                <template v-slot:footer.prepend>
+                <v-date-picker color="success" elevation="20" v-model="createItem.dateOfBirth"></v-date-picker>
+              </v-menu>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">身高</span>
+              <v-text-field class="jh-v-input" dense single-line filled label="身高" v-model="createItem.bodyHeight"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">学生状态</span>
+              <v-select class="jh-v-input" dense single-line filled clearable label="学生状态" v-model="createItem.studentStatus" :items="constantObj.studentStatus" :rules="validationRules.requireRules"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">备注</span>
+              <v-text-field class="jh-v-input" dense single-line filled label="备注" v-model="createItem.remarks"></v-text-field>
+            </v-col>
+          </v-row>
+          <!-- <<<<<<<<<<<抽屉的主体  -->
+          <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
+          <v-row class="justify-end mx-0 mt-8 px-6">
+            <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+            <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+          </v-row>
+          <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
+        </v-form>
+        <!-- 抽屉的关闭按钮 -->
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<< 新增抽屉 -->
 
-                  <v-menu top offset-y :close-on-content-click="false">
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn v-bind="attrs" v-on="on" icon>
-                        <v-icon>mdi-menu</v-icon>
-                      </v-btn>
-                    </template>
-                    <v-list>
-                      <v-list-item>
-                        <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
+      <!-- 编辑抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+        <v-form ref="updateForm" lazy-validation>
+          <!-- 抽屉的头部标题 -->
+          <v-row class="pt-8">
+            <span class="text-h7 pa-6">编辑信息</span>
+          </v-row>
+          <!-- 抽屉的主体 >>>>>>>>>>>>> -->
+          <v-row class="px-10">
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">学生ID</span>
+              <v-text-field class="jh-v-input" disabled dense single-line filled label="学生ID" v-model="updateItem.studentId" :rules="validationRules.requireRules"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">班级ID</span>
+              <v-select class="jh-v-input" dense single-line filled clearable label="班级ID" v-model="updateItem.classId" :items="constantObj.classId" :rules="validationRules.requireRules"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">学生名字</span>
+              <v-text-field class="jh-v-input" dense single-line filled label="学生名字" v-model="updateItem.name" :rules="validationRules.requireRules"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">年级</span>
+              <v-select class="jh-v-input" dense single-line filled clearable label="年级" v-model="updateItem.level" :items="constantObj.level" :rules="validationRules.requireRules"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">性别</span>
+              <v-select class="jh-v-input" dense single-line filled clearable label="性别" v-model="updateItem.gender" :items="constantObj.gender" :rules="validationRules.requireRules"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">出生日期</span>
+              <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
+                <template v-slot:activator="{on, attrs}">
+                  <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.dateOfBirth" class="jh-v-input" dense single-line filled readonly label="出生日期" :rules="validationRules.requireRules"></v-text-field>
                 </template>
-                <!-- 分页 -->
-                <template v-slot:footer.page-text="pagination">
-                  <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
-                  <span class="ml-1">共{{ pagination.itemsLength }}条</span>
-                </template>
-              </v-data-table>
-              <!-- <<<<<<<<<<< 表格 -->
-            </v-card>
-          </v-container>
-          <!-- 抽屉蒙层 -->
-          <v-overlay app :value="isCreateDrawerShow || isUpdateDrawerShow"></v-overlay>
-          <!-- 新增抽屉 >>>>>>>>>>>>> -->
-          <v-navigation-drawer v-model="isCreateDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
-            <v-form v-model="isFormValid" v-if="isCreateDrawerShow" ref="form" lazy-validation>
-              <!-- 抽屉的头部标题 -->
-              <v-row>
-                <span class="title pa-6 pl-8">新增学生</span>
-              </v-row>
-              <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-              <v-row class="mt-0 px-6">
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">学生ID</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['studentId']"></v-text-field>
-                </v-col>
-
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">学生名字</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['name']"></v-text-field>
-                </v-col>
-
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">性别</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['gender']"></v-text-field>
-                </v-col>
-
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">出生日期</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['dateOfBirth']"></v-text-field>
-                </v-col>
-
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">班级ID</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['classId']"></v-text-field>
-                </v-col>
-
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">年级</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['level']"></v-text-field>
-                </v-col>
-
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">身高</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['bodyHeight']"></v-text-field>
-                </v-col>
-
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">学生状态</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['studentStatus']"></v-text-field>
-                </v-col>
-
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">备注</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="createItem['remarks']"></v-text-field>
-                </v-col>
-
-              </v-row>
-              <!-- <<<<<<<<<<<抽屉的主体  -->
-              <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
-              <v-row class="justify-end mx-0 mt-8 px-6">
-                <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
-                <v-btn class="ml-2" @click="isCreateDrawerShow = false" small>取消</v-btn>
-              </v-row>
-              <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
-            </v-form>
-            <!-- 抽屉的关闭按钮 -->
-            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShow = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-navigation-drawer>
-          <!-- <<<<<<<<<<< 新增抽屉 -->
-
-          <!-- 编辑抽屉 >>>>>>>>>>>>> -->
-          <v-navigation-drawer v-model="isUpdateDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
-            <v-form v-model="isFormValid" v-if="isUpdateDrawerShow" ref="form" lazy-validation>
-              <!-- 抽屉的头部标题 -->
-              <v-row class="pt-8">
-                <span class="title pa-6">编辑信息</span>
-              </v-row>
-              <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-              <v-row class="px-10">
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">学生ID</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['studentId']"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">学生名字</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['name']"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">性别</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['gender']"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">出生日期</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['dateOfBirth']"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">班级ID</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['classId']"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">年级</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['level']"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">身高</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['bodyHeight']"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">学生状态</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['studentStatus']"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="12" md="4">
-                  <span class="inputLabel">备注</span>
-                  <v-text-field class="cus-v-input" dense filled single-line v-model="updateItem['remarks']"></v-text-field>
-                </v-col>
-              </v-row>
-              <!-- <<<<<<<<<<< 抽屉的主体 -->
-              <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
-              <v-row class="justify-end mx-0 mt-8 px-6">
-                <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
-                <v-btn class="ml-2" @click="isUpdateDrawerShow = false" small>取消</v-btn>
-              </v-row>
-              <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
-            </v-form>
-            <!-- 抽屉的关闭按钮 -->
-            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShow = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-navigation-drawer>
-          <!-- <<<<<<<<<<< 编辑抽屉 -->
-          <!-- 页面认证弹窗 >>>>>>>>>>>>> -->
-          <v-dialog
-              v-model="isPagePasscodeDialog" persistent="true" :hide-overlay="false"
-              overlay-opacity="1"
-              transition="dialog-top-transition" max-width="600">
-            <v-card>
-              <v-toolbar color="primary title pl-5" dark>页面认证</v-toolbar>
-              <v-card-text>
-                <div style="height: 20px;"></div>
-                <v-row class="px-10">
-                  <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-                    <span class="inputLabel">认证码</span>
-                    <v-text-field class="cus-v-input" dense filled single-line type="password" v-model="passcodeOfUser"></v-text-field>
-                    <p style="text-align: right;">认证成功后, {{ validationDurationHour }}小时内无需重复认证。</p>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-              <v-card-actions class="justify-end">
-                <v-btn depressed class="mr-2 primary" @click="doUiAction('passcodeValidation')">确定</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-          <!-- <<<<<<<<<<< 页面认证弹窗 -->
-        </div>
-        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-        <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
-          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?pageId=<$ ctx.packagePage.pageId $>`" width="100%" height="100%"></iframe>
-        </v-navigation-drawer>
-        <!-- <<<<<<<<<<< 帮助页抽屉 -->
-      </v-main>
-    </v-app>
-    <jhToast/>
-    <jhMask/>
-    <jhConfirmDialog/>
-  </div>
+                <v-date-picker color="success" elevation="20" v-model="updateItem.dateOfBirth"></v-date-picker>
+              </v-menu>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">身高</span>
+              <v-text-field class="jh-v-input" dense single-line filled label="身高" v-model="updateItem.bodyHeight"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">学生状态</span>
+              <v-select class="jh-v-input" dense single-line filled clearable label="学生状态" v-model="updateItem.studentStatus" :items="constantObj.studentStatus" :rules="validationRules.requireRules"></v-select>
+            </v-col>
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">备注</span>
+              <v-text-field class="jh-v-input" dense single-line filled label="备注" v-model="updateItem.remarks"></v-text-field>
+            </v-col>
+          </v-row>
+          <!-- <<<<<<<<<<< 抽屉的主体 -->
+          <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
+          <v-row class="justify-end mx-0 mt-8 px-6">
+            <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+            <v-btn class="ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+          </v-row>
+          <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
+        </v-form>
+        <!-- 抽屉的关闭按钮 -->
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<< 编辑抽屉 -->
+      <!-- 页面认证弹窗 >>>>>>>>>>>>> -->
+      <v-dialog
+        v-model="isPageValidationDialogShown" persistent="true" :hide-overlay="false"
+        overlay-opacity="1"
+        transition="dialog-top-transition" max-width="600">
+        <v-card>
+          <v-toolbar color="primary text-h7 pl-5" dark>页面认证</v-toolbar>
+          <v-card-text>
+            <v-row class="px-10 pt-5">
+              <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                <span class="jh-input-label">认证码</span>
+                <v-text-field class="jh-v-input" dense filled single-line type="password" v-model="passcodeOfUser"></v-text-field>
+                <p style="text-align: right;">认证成功后, {{ validationDurationHour }}小时内无需重复认证。</p>
+              </v-col>
+            </v-row>
+          </v-card-text>
+          <v-card-actions class="justify-end">
+            <v-btn depressed class="mr-2 primary" @click="doUiAction('doPageValidation')">确定</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- <<<<<<<<<<< 页面认证弹窗 -->
+    </div>
+      <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#5.pagePasscodeDemo.md`" width="100%" height="100%"></iframe>
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+      <!-- <<<<<<<<<<< 帮助页抽屉 -->
+  </v-main>
+</v-app>
+<jh-toast />
+<jh-mask />
+<jh-confirm-dialog />
+</div>
 </script>
 
 <div id="app">
@@ -266,345 +252,328 @@ SQL END!-->
 
 {% block vueScript %}
 
-{% include 'common/fixedTableHeightV4.html' %}
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 
 <script type="module">
-  new Vue({
-    el: '#app',
-    template: '#app-template',
-    vuetify: new Vuetify(),
-    data: () => ({
-      breadcrumbs: window.breadcrumbs,
-      isHelpPageDrawerShow: false,
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    isMobile: window.innerWidth < 500,
+    breadcrumbs: [
+      {text: '首页', disabled: true,},
+      {text: '用户管理', disabled: true,}
+    ],
+    isHelpPageDrawerShown: false,
+    // 页面认证数据
+    isPageValidationDialogShown: false,
+    validationDurationHour: 6,
+    passcodeOfServer: '<$ page.passcode $>',
+    passcodeOfUser: null,
+    pageId: null,
 
-      // 页面认证数据
-      isPagePasscodeDialog: false,
-      validationDurationHour: 6,
-      passcodeOfServer: '<$ page.passcode $>',
-      passcodeOfUser: null,
-      pageId: null,
+    // 表格斑马纹
+    isTableZebraLineShown: true,
 
-      // 表格相关数据
-      isMobile: window.innerWidth < 600,
-      showTableZebraLine: true,
-      // 表格相关数据
-      isFormValid: true,
-      requireRules: [v => !!v || 'This is required'],
-
-      serverSearchInput: {
-        studentId: null,
-        classId: null
-      },
-      searchInput: null,
-      isTableLoading: true,
-      tableDataFromBackend: [],
-      headers: [
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed' },
-        { text: "ID", value: "id", width: 120 },
-
-        { text: "学生ID", value: "studentId", width: 120 },
-        { text: "学生名字", value: "name", width: 120 },
-        { text: "性别", value: "gender", width: 120 },
-        { text: "出生日期", value: "dateOfBirth", width: 120 },
-        { text: "班级ID", value: "classId", width: 120 },
-        { text: "年级", value: "level", width: 120 },
-        { text: "身高", value: "bodyHeight", width: 120 },
-        { text: "学生状态", value: "studentStatus", width: 120 },
-        { text: "备注", value: "remarks", width: 120 },
-        { text: "操作者", value: "operationByUser", width: 120 },
-        { text: "操作时间", value: "operationAt", width: 250 },
+    validationRules: {
+      requireRules: [
+        v => !!v || 'This is required',
       ],
-      isUpdateDrawerShow: false,
-      updateItem: {},
-      isCreateDrawerShow: false,
-      createItem: {}
-    }),
-    async created() {
-      await this.doUiAction('getTableData');
-      await this.doUiAction('doPagePasscode');
     },
-    mounted() {
+    constantObj: {
+      gender: [{"value": "male", "text": "男"}, {"value": "female", "text": "女"}],
+      classId: [
+        {"value": "2021-01级-01班", "text": "2021-01级-01班"}, {"value": "2021-01级-02班", "text": "2021-01级-02班"},
+        {"value": "2021-02级-01班", "text": "2021-02级-01班"}, {"value": "2021-02级-02班", "text": "2021-02级-02班"},
+        {"value": "2021-03级-01班", "text": "2021-03级-01班"}, {"value": "2021-03级-02班", "text": "2021-03级-02班"}
+      ],
+      level: [{"value": "01", "text": "一年级"}, {"value": "02", "text": "二年级"}, {"value": "03", "text": "三年级"}],
+      studentStatus: [{"value": "正常", "text": "正常"}, {"value": "退学", "text": "退学"}]
     },
-    methods: {
-      async doUiAction(uiActionId, uiActionData) {
-        switch (uiActionId) {
-          case 'getTableData':
-            await this.getTableData();
-            break;
-          case 'doPagePasscode':
-            await this.getPageId();
-            await this.computeIsDialog();
-            break;
-          case 'startCreateItem':
-            await this.prepareCreateItem();
-            await this.openCreateItemDialog();
-            break;
-          case 'createItem':
-            await this.prepareValidate();
-            await this.confirmCreateItemDialog();
-            await this.doCreateItem();
-            await this.closeDrawerShow();
-            await this.getTableData();
-            break;
-          case 'startUpdateItem':
-            await this.prepareUpdateItem(uiActionData);
-            await this.openUpdateDialog();
-            break;
-          case 'updateItem':
-            await this.prepareValidate();
-            await this.confirmUpdateItemDialog();
-            await this.doUpdateItem();
-            await this.closeDrawerShow();
-            await this.getTableData();
-            break;
-          case 'deleteItem':
-            await this.confirmDeleteItemDialog();
-            await this.doDeleteItem(uiActionData);
-            await this.getTableData();
-            break;
-          case 'passcodeValidation':
-            await this.passcodeValidation();
-            break;
-          default:
-            console.error("[doUiAction] uiActionId not find", { uiActionId });
-            break;
-        }
-      },
-      // =================================uiAction 公共方法 start ======================================
-      /**
-       * description: ✅获取表格数据
-       */
-      async getTableData() {
-        this.isTableLoading = true;
-        const serverSearchInput = _.pickBy(this.serverSearchInput, value => !!value);
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'pagePasscodeDemo',
-              actionId: 'selectItemList',
-              actionData: {},
-              where: {},
-              whereLike: serverSearchInput,
-              orderBy: [{ column: 'operationAt', order: 'desc' }]
-            }
+    searchInput: null,
+    isTableLoading: true,
+    tableData: [],
+    headers: [
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
+      {text: "ID", value: "id", width: 120},
+
+      {text: "学生ID", value: "studentId", width: 120},
+      {text: "学生名字", value: "name", width: 120},
+      {text: "性别", value: "gender", width: 120},
+      {text: "出生日期", value: "dateOfBirth", width: 120},
+      {text: "班级ID", value: "classId", width: 120},
+      {text: "年级", value: "level", width: 120},
+      {text: "身高", value: "bodyHeight", width: 120},
+      {text: "学生状态", value: "studentStatus", width: 120},
+      {text: "备注", value: "remarks", width: 120},
+      {text: "操作者", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 250},
+    ],
+    // 新增数据
+    isCreateDrawerShown: false,
+    createItem: {},
+    createActionData: {},
+    // 编辑数据
+    isUpdateDrawerShown: false,
+    updateItem: {},
+    updateItemId: null,
+    updateActionData: {},
+    // 删除数据
+    deleteItemId: null,
+  }),
+  async created() {
+    await this.doUiAction('getTableData');
+    await this.doUiAction('startPageValidation');
+  },
+  mounted() {
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData();
+          break;
+        case 'startCreateItem':
+          await this.prepareCreateItem();
+          await this.openCreateDrawer();
+          break;
+        case 'createItem':
+          await this.prepareCreateValidate();
+          await this.confirmCreateItemDialog();
+          await this.prepareDoCreateItem();
+          await this.doCreateItem();
+          await this.closeCreateDrawer();
+          await this.getTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareUpdateItem(uiActionData);
+          await this.openUpdateDrawer();
+          break;
+        case 'updateItem':
+          await this.prepareUpdateValidate();
+          await this.confirmUpdateItemDialog();
+          await this.prepareDoUpdateItem();
+          await this.doUpdateItem();
+          await this.closeUpdateDrawer();
+          await this.getTableData();
+          break;
+        case 'deleteItem':
+          await this.prepareDeleteItemData(uiActionData);
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteItem();
+          await this.getTableData();
+          break;
+        case 'startPageValidation':
+          await this.preparePageValidationData();
+          await this.checkAndOpenPageValidationDialog();
+          break;
+        case 'doPageValidation':
+          await this.doPageValidation();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
+    // ---------------uiAction 公共方法 start -------------------
+    async getTableData() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'pagePasscodeDemo',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {},
+            orderBy: [{column: 'operationAt', order: 'desc'}]
           }
-        });
-        const { rows } = result.data.appData.resultData;
+        }
+      });
+      const {rows} = result.data.appData.resultData;
 
-        this.tableDataFromBackend = rows;
-        this.isTableLoading = false;
-      },
-      /**
-       * description: ✅表单校验
-       */
-      async prepareValidate() {
-        if (this.$refs.form.validate() === false) {
-          window.vtoast.fail({ message: "输入有误, 请检查!" });
-          throw new Error("[prepareValidate] false");
-        }
-      },
-      // =================================uiAction 公共方法 end ======================================
-      /**
-       * description: ✅获取页面pageId
-       */
-      async getPageId() {
-        const urlPathList = window.location.pathname.split('/');
-        const pageId = urlPathList && urlPathList[urlPathList.length - 1];
-        this.pageId = pageId;
-      },
-      /**
-       * description: ✅验证页面权限是否需要密码
-       */
-      computeIsDialog() {
-        if (!this.passcodeOfServer) {
-          this.isPagePasscodeDialog = false
-          return;
-        }
-        const pageValidation = this.getPageValidationFromLocalStorage({ pageId: this.pageId });
-        const { date, success } = pageValidation;
-        let duration = 999999;
-        try {
-          duration = dayjs().diff(date, 'hour');
-          // duration = dayjs().diff(date, 'minute');
-          // duration = dayjs().diff(date, 'second');
-        } catch (error) {
-          console.error("[created]", "date 解析异常");
-        }
-        if (success === true && duration < this.validationDurationHour) {
-          this.isPagePasscodeDialog = false;
-          return;
-        }
-        this.isPagePasscodeDialog = true
-      },
-      /**
-       * description: ✅准备新增表单数据
-       */
-      async prepareCreateItem() {
-        this.createItem = {};
-      },
-
-      /**
-       * description: ✅打开新增抽屉
-       */
-      async openCreateItemDialog() {
-        this.isCreateDrawerShow = true;
-      },
-
-      /**
-       * description: ✅新增弹窗确认
-       */
-      async confirmCreateItemDialog() {
-        if (await window.confirmDialog({ title: "新增", content: "确定新增吗？" }) === false) {
-          throw new Error("取消");
-        }
-      },
-
-      /**
-       * description: ✅新增resource
-       */
-      async doCreateItem() {
-        const { id, ...data } = this.createItem;
-        await window.vtoast.loading("新增数据");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'pagePasscodeDemo',
-              actionId: 'insertItem',
-              actionData: data
-            }
+      this.tableData = rows;
+      this.isTableLoading = false;
+    },
+    //   --------------- 新增数据 uiAction >>>>>>>>>>  ---------------
+    async prepareCreateItem() {
+      this.createItem = {};
+    },
+    async openCreateDrawer() {
+      this.isCreateDrawerShown = true;
+    },
+    async prepareCreateValidate() {
+      if (await this.$refs.createForm.validate() === false) {
+        throw new Error("[prepareCreateValidate] false");
+      }
+    },
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("[confirmCreateFormDialog] 否");
+      }
+    },
+    prepareDoCreateItem() {
+      const {id, ...data} = this.createItem;
+      this.createActionData = data;
+    },
+    async doCreateItem() {
+      await window.vtoast.loading("新增数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'pagePasscodeDemo',
+            actionId: 'insertItem',
+            actionData: this.createActionData
           }
-        })
-        await window.vtoast.success("新增数据成功");
-      },
-
-      /**
-       * description: ✅关闭所有抽屉
-       */
-      async closeDrawerShow() {
-        this.isUpdateDrawerShow = false;
-        this.isCreateDrawerShow = false;
-      },
-
-      /**
-       * description: ✅准备修改表单数据
-       */
-      async prepareUpdateItem(item) {
-        this.updateItem = { ...item };
-      },
-
-      /**
-       * description: ✅打开修改抽屉
-       */
-      async openUpdateDialog() {
-        this.isUpdateDrawerShow = true;
-      },
-      /**
-       * description: ✅修改弹窗确认
-       */
-      async confirmUpdateItemDialog() {
-        if (await window.confirmDialog({ title: "修改", content: "确定修改吗？" }) === false) {
-          throw new Error("取消");
         }
-      },
-
-      /**
-       * description: ✅修改resource
-       */
-      async doUpdateItem() {
-        const { id, ...data } = this.updateItem;
-        await window.vtoast.loading("修改数据");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'pagePasscodeDemo',
-              actionId: 'updateItem',
-              actionData: data,
-              where: { id }
-            }
+      })
+      await window.vtoast.success("新增数据成功");
+    },
+    async closeCreateDrawer() {
+      this.isCreateDrawerShown = false;
+      this.createItem = {};
+      this.createActionData = null;
+    },
+    //   --------------- <<<<<<<<<< 新增数据 uiAction  ---------------
+    //   --------------- 编辑数据 uiAction >>>>>>>>>>  ---------------
+    async prepareUpdateItem(funObj) {
+      this.updateItem = _.cloneDeep(funObj);
+    },
+    async openUpdateDrawer() {
+      this.isUpdateDrawerShown = true;
+    },
+    async prepareUpdateValidate() {
+      if (await this.$refs.updateForm.validate() === false) {
+        throw new Error("[prepareUpdateValidate] false");
+      }
+    },
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "编辑", content: "确定编辑吗？"}) === false) {
+        throw new Error("[confirmUpdateItemDialog] 否");
+      }
+    },
+    prepareDoUpdateItem() {
+      const {id, userId, ...data} = this.updateItem;
+      this.updateItemId = id;
+      this.updateActionData = data;
+    },
+    async doUpdateItem() {
+      await window.vtoast.loading("保存中");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'pagePasscodeDemo',
+            actionId: 'updateItem',
+            actionData: this.updateActionData,
+            where: {id: this.updateItemId}
           }
-        })
-        await window.vtoast.success("修改数据成功");
-      },
-
-      /**
-       * description: ✅删除弹窗确认
-       */
-      async confirmDeleteItemDialog() {
-        if (await window.confirmDialog({ title: "删除", content: "确定删除吗？" }) === false) {
-          throw new Error("取消");
         }
-      },
-
-      /**
-       * description: ✅删除数据resource
-       */
-      async doDeleteItem(item) {
-        const { id } = item;
-        await window.vtoast.loading("删除数据");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'pagePasscodeDemo',
-              actionId: 'deleteItem',
-              actionData: {},
-              where: { id: id }
-            }
+      });
+      await window.vtoast.success("修改成功");
+    },
+    async closeUpdateDrawer() {
+      this.isUpdateDrawerShown = false;
+      this.updateItem = {};
+      this.updateActionData = null;
+      this.updateItemId = null;
+    },
+    //   --------------- <<<<<<<<<< 编辑数据 uiAction  ---------------
+    //   --------------- 删除数据 uiAction >>>>>>>>>>  ---------------
+    async prepareDeleteItemData(funObj) {
+      this.deleteItemId = funObj.id;
+    },
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("[confirmDeleteItemDialog] 否");
+      }
+    },
+    async doDeleteItem() {
+      await window.vtoast.loading("删除学生");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'pagePasscodeDemo',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: {id: this.deleteItemId}
           }
-        });
-        await window.vtoast.success("删除数据成功");
-      },
-      // =================================页面认证 start ======================================
-
-      /**
-       * description: ✅获取页面验证本地信息
-       */
-      getPageValidationFromLocalStorage({ pageId }) {
-        let pageValidationObj = {}
-        try {
-          const pageValidationObjStr = localStorage.getItem(`${window.appInfo.appId}_page_validation_obj`);
-          pageValidationObj = JSON.parse(pageValidationObjStr || '{}');
-        } catch (error) {
-          console.error("[getPageValidationFromLocalStorage]", "json 数据异常");
         }
-        return pageValidationObj[pageId] || {};
-      },
+      });
+      await window.vtoast.success("删除学生成功");
+      this.deleteItem = {};
+      this.deleteItemId = null;
+    },
+    //   --------------- <<<<<<<<<< 删除数据 uiAction  ---------------
+    //   --------------- 二次认证 uiAction >>>>>>>>>>  ---------------
+    async preparePageValidationData() {
+      const urlPathList = window.location.pathname.split('/');
+      this.pageId = urlPathList && urlPathList[urlPathList.length - 1];
+    },
 
-      /**
-       * description: ✅保存验证信息
-       */
-      setPageValidationToLocalStorage({ pageId, value }) {
-        let pageValidationObj = {}
-        try {
-          const pageValidationObjStr = localStorage.getItem(`${window.appInfo.appId}_page_validation_obj`);
-          pageValidationObj = JSON.parse(pageValidationObjStr || '{}');
-        } catch (error) {
-          console.error("[setPageValidationToLocalStorage]", "json 数据异常");
-        }
-        pageValidationObj[pageId] = value;
-        localStorage.setItem(`${window.appInfo.appId}_page_validation_obj`, JSON.stringify(pageValidationObj));
-      },
+    checkAndOpenPageValidationDialog() {
+      if (!this.passcodeOfServer) {
+        this.isPageValidationDialogShown = false
+        return;
+      }
+      const pageValidation = this.getPageValidationCache({pageId: this.pageId});
+      const {date, success} = pageValidation;
+      let duration = 999999;
+      try {
+        duration = dayjs().diff(date, 'hour');
+        // duration = dayjs().diff(date, 'minute');
+        // duration = dayjs().diff(date, 'second');
+      } catch (error) {
+        console.error("[created]", "date 解析异常");
+      }
+      if (success === true && duration < this.validationDurationHour) {
+        this.isPageValidationDialogShown = false;
+        return;
+      }
+      this.isPageValidationDialogShown = true
+    },
 
-      /**
-       * description: ✅验证页面结果
-       */
-      passcodeValidation() {
-        if (this.passcodeOfUser !== this.passcodeOfServer) {
-          window.vtoast.fail({ message: '页面认证失败' });
-        }
-        if (this.passcodeOfUser === this.passcodeOfServer) {
-          this.setPageValidationToLocalStorage({
+    getPageValidationCache({pageId}) {
+      let pageValidationObj = {}
+      try {
+        const pageValidationObjStr = localStorage.getItem(`${window.appInfo.appId}_page_validation_obj`);
+        pageValidationObj = JSON.parse(pageValidationObjStr || '{}');
+      } catch (error) {
+        console.error("[getPageValidationCache]", "json 数据异常");
+      }
+      return pageValidationObj[pageId] || {};
+    },
+
+    cachePageValidation({pageId, value}) {
+      let pageValidationObj = {}
+      try {
+        const pageValidationObjStr = localStorage.getItem(`${window.appInfo.appId}_page_validation_obj`);
+        pageValidationObj = JSON.parse(pageValidationObjStr || '{}');
+      } catch (error) {
+        console.error("[cachePageValidation]", "json 数据异常");
+      }
+      pageValidationObj[pageId] = value;
+      localStorage.setItem(`${window.appInfo.appId}_page_validation_obj`, JSON.stringify(pageValidationObj));
+    },
+
+    doPageValidation() {
+      if (this.passcodeOfUser !== this.passcodeOfServer) {
+        window.vtoast.fail({message: '页面认证失败'});
+      }
+      if (this.passcodeOfUser === this.passcodeOfServer) {
+        this.cachePageValidation({
+          pageId: this.pageId,
+          value: {
             pageId: this.pageId,
-            value: {
-              pageId: this.pageId,
-              date: dayjs(),
-              success: true,
-            }
-          });
-          this.isPagePasscodeDialog = false;
-        }
-      },
-    }
-  })
+            date: dayjs(),
+            success: true,
+          }
+        });
+        this.isPageValidationDialogShown = false;
+      }
+    },
+    //   --------------- <<<<<<<<<< 二次认证 uiAction  ---------------
+  }
+})
 </script>
 
 <style scoped>

@@ -1,92 +1,126 @@
-{% extends 'template/jhTemplateV3.html'%}
+{% extends 'template/jhTemplateV4.html'%}
 {% set appId = ctx.app.config.appId %}
 {% set static = "/" + appId + "/public" %}
 {% set language = ctx.app.config.language %}
-{% block css %}
 
+{% block vueTemplate %}
+
+<script type="text/html" id="app-template">
+    <div>
+        <v-app id="inspire" mobile-breakpoint="sm">
+            <jhMenu />
+            <v-main class="d-flex flex-column" style="margin-top: 60px">
+                <!-- 头部内容 >>>>>>>>>>>>> -->
+                <div class="pageSecondBar d-flex px-8 align-center">
+                    <div>
+                        <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
+                            <!-- 帮助页按钮 -->
+                            <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
+                        </div>
+                        <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+                    </div>
+                    <v-spacer></v-spacer>
+                    <!-- 操作按钮 -->
+                    <div class="d-flex mb-sm-0">
+                        <v-spacer></v-spacer>
+                        <v-btn @click="doUiAction(dialogSaveInfoAction)" color="success" depressed small>
+                            <v-icon class="mr-1" small>>mdi-content-save-all</v-icon>
+                            保存
+                        </v-btn>
+                    </div>
+                </div>
+                <!-- <<<<<<<<<<<<< 头部内容 -->
+
+                <!-- 页面内容 >>>>>>>>>>>>> -->
+                <div class="pageBodyContainer px-8" style="flex: 1;">
+                    <!-- 页面主要内容 -->
+                    <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+                        <v-card>
+                            <v-form v-model="isFormValid" ref="form" lazy-validation>
+                                <!--标题-->
+                                <v-row>
+                                    <span class="title pa-6 pt-8" :class="{'pl-8': !isMobile, 'pl-6': isMobile}">{{ currentClickButton.title }}信息</span>
+                                </v-row>
+                                <!--表单-->
+                                <v-row class="mt-0 pb-8" :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+                                    <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                                        <span class="inputLabel">constantKey</span>
+                                        <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['constantKey']">
+                                        </v-text-field>
+                                    </v-col>
+                                    <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                                        <span class="inputLabel">常量类型</span>
+                                        <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['constantType']">
+                                        </v-text-field>
+                                    </v-col>
+                                    <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                                        <span class="inputLabel">页面id</span>
+                                        <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['pageId']">
+                                        </v-text-field>
+                                    </v-col>
+                                    <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                                        <span class="inputLabel">描述</span>
+                                        <v-text-field class="cus-v-input" dense filled single-line
+                                            v-model="editItem['desc']"></v-text-field>
+                                    </v-col>
+                                    <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                                        <span class="inputLabel">内容</span>
+                                        <vue-json-editor v-if="jsonConstantTypeList.includes(editItem.constantType)" v-model="editItem[language]"
+                                            :show-btns="true" :mode="'code'" lang="zh" @json-change="onJsonChange" @json-save="onJsonSave"
+                                            @has-error="onError"></vue-json-editor>
+                                        <v-textarea v-else-if="editItem.constantType === 'html'" filled single-line v-model="editItem[language]"
+                                            name="input-7-4" label="常量内容" filled single-line :rows="12"
+                                            value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."></v-textarea>
+                                        <v-text-field v-else class="cus-v-input" dense filled single-line label="常量内容"
+                                            v-model="editItem[language]"></v-text-field>
+                                    </v-col>
+                                </v-row>
+                            </v-form>
+
+                            <!-- 遮罩层 -->
+                            <v-overlay :value="loading" absolute opacity="0.1">
+                                <v-progress-circular indeterminate size="64"></v-progress-circular>
+                            </v-overlay>
+                        </v-card>
+                    </v-container>
+                </div>
+                <!-- <<<<<<<<<<<<< 页面内容 -->
+
+                <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+                <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" class="elevation-24">
+                    <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?markdownPath#2.constantUiEditor.md`" width="100%"
+                        height="100%"></iframe>
+                    <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+                        @click="isHelpPageDrawerShow = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </v-navigation-drawer>
+                <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+            </v-main>
+        </v-app>
+
+        <jhToast />
+        <jhMask />
+        <jhConfirmDialog />
+    </div>
+</script>
+
+<div id="app">
+</div>
+
+
+{% endblock %}
+
+{% block vueScript %}
+
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'component/vueJsonEditor.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
+
+<!-- 加载页面静态资源 >>>>>>>>>>>>> -->
 <link href="<$ static $>/jsoneditor/jsoneditor.css" rel="stylesheet">
 <script src="<$ static $>/jsoneditor/jsoneditor.js"></script>
-{% endblock %}
-{% block vue_template %}
-
-<jh-layout-v3>
-
-  <template slot="serverSearch">
-    <div class="mt-4" style="text-align: right;">
-      <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)" style="height: 40px">
-        保存
-      </v-btn>
-    </div>
-  </template>
-
-  <!-- 页面主要内容 -->
-  <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
-    <v-card>
-      <v-form v-model="isFormValid" ref="form" lazy-validation>
-        <v-row class="pt-8">
-          <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">{{ currentClickButton.title }}信息</span>
-          <v-spacer></v-spacer>
-          <!-- <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
-            <v-icon dark>mdi-close</v-icon>
-          </v-btn> -->
-        </v-row>
-        <v-row class="pb-7" :class="{'px-10': !isMobile, 'px-3': isMobile}">
-
-          <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-            <span class="inputLabel">constantKey</span>
-            <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['constantKey']">
-            </v-text-field>
-          </v-col>
-
-          <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-            <span class="inputLabel">常量类型</span>
-            <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['constantType']">
-            </v-text-field>
-          </v-col>
-
-          <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-            <span class="inputLabel">页面id</span>
-            <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['pageId']">
-            </v-text-field>
-          </v-col>
-
-          <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-            <span class="inputLabel">描述</span>
-            <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['desc']"></v-text-field>
-          </v-col>
-
-          <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-            <span class="inputLabel">内容</span>
-            <vue-json-editor v-if="jsonConstantTypeList.includes(editItem.constantType)" v-model="editItem[language]" :show-btns="true" :mode="'code'" lang="zh" @json-change="onJsonChange" @json-save="onJsonSave" @has-error="onError"></vue-json-editor>
-            <v-textarea
-              v-else-if="editItem.constantType === 'html'"
-              filled single-line
-              v-model="editItem[language]"
-              name="input-7-4"
-              label="filled single-line textarea"
-              :rows="12"
-              value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
-            ></v-textarea>
-            <v-text-field v-else class="cus-v-input mr-2" dense filled single-line label="常量内容" v-model="editItem[language]"></v-text-field>
-          </v-col>
-        </v-row>
-      </v-form>
-      <v-overlay :value="loading" absolute>
-        <v-progress-circular
-          indeterminate
-          size="64"
-        ></v-progress-circular>
-      </v-overlay>
-    </v-card>
-  </v-container>
-
-</jh-layout-v3>
-
-{% endblock %}
-
-{% block vue_body %}
-
-{% include 'component/vueJsonEditor.html' %}
+<!-- <<<<<<<<<<<<< 加载页面静态资源 -->
 
 <script type="module">
   new Vue({
@@ -94,6 +128,8 @@
     template: '#app-template',
     vuetify: new Vuetify(),
     data: () => ({
+      breadcrumbs: window.breadcrumbs,
+      isHelpPageDrawerShow: false,
       isMobile: window.innerWidth < 600,
       // 表格相关数据
       language: '<$ language $>',

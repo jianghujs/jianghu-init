@@ -5,11 +5,10 @@ const Service = require('egg').Service;
 const { BizError, errorInfoEnum } = require('../constant/error');
 const validateUtil = require('@jianghujs/jianghu/app/common/validateUtil');
 const idGenerateUtil = require('@jianghujs/jianghu/app/common/idGenerateUtil');
-const { tableEnum } = require('../constant/constant');
 // ========================================常用 require end=============================================
 const _ = require('lodash');
 const md5 = require('md5-node');
-const actionDataScheme = Object.freeze({
+const appDataSchema = Object.freeze({
   addUser: {
     type: 'object',
     additionalProperties: true,
@@ -60,35 +59,35 @@ class UserManagementService extends Service {
   async addUser() {
     const { jianghuKnex } = this.app;
     const actionData = this.ctx.request.body.appData.actionData;
-    validateUtil.validate(actionDataScheme.addUser, actionData);
+    validateUtil.validate(appDataSchema.addUser, actionData);
     const { clearTextPassword } = actionData;
     const md5Salt = idGenerateUtil.randomString(12);
     const password = md5(`${clearTextPassword}_${md5Salt}`);
     const idSequence = await this.getNextIdByTableAndField({ table: '_user', field: 'idSequence' });
     const userId = generateIdByIdSequence({ prefix: 'U', idSequence });
-    const userExistCountResult = await jianghuKnex(tableEnum._user, this.ctx).where({ userId }).count('*', {as: 'count'});
+    const userExistCountResult = await jianghuKnex('_user', this.ctx).where({ userId }).count('*', {as: 'count'});
     const userExistCount = userExistCountResult[0].count;
     if (userExistCount > 0) {
       throw new BizError(errorInfoEnum.user_id_exist);
     }
     const insertParams = _.pick(actionData, [ 'username', 'userType', 'userStatus', 'userAvatar' ]);
-    await jianghuKnex(tableEnum._user, this.ctx).insert({ ...insertParams, idSequence, userId, password, clearTextPassword, md5Salt });
+    await jianghuKnex('_user', this.ctx).insert({ ...insertParams, idSequence, userId, password, clearTextPassword, md5Salt });
     return {};
   }
 
   async resetUserPassword() {
     const { jianghuKnex } = this.app;
     const actionData = this.ctx.request.body.appData.actionData;
-    validateUtil.validate(actionDataScheme.initUserPassword, actionData);
+    validateUtil.validate(appDataSchema.initUserPassword, actionData);
     const { userId, clearTextPassword } = actionData;
-    const userExistCountResult = await jianghuKnex(tableEnum._user, this.ctx).where({ userId }).count('*', {as: 'count'});
+    const userExistCountResult = await jianghuKnex('_user', this.ctx).where({ userId }).count('*', {as: 'count'});
     const userExistCount = userExistCountResult[0].count;
     if (userExistCount === 0) {
       throw new BizError(errorInfoEnum.user_not_exist);
     }
     const md5Salt = idGenerateUtil.randomString(12);
     const password = md5(`${clearTextPassword}_${md5Salt}`);
-    await jianghuKnex(tableEnum._user, this.ctx).where({userId}).update({ password, clearTextPassword, md5Salt });
+    await jianghuKnex('_user', this.ctx).where({userId}).update({ password, clearTextPassword, md5Salt });
     return {};
   }
 

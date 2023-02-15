@@ -1,0 +1,349 @@
+<!--studentListOfOneClass.html start-->
+<script type="text/x-template" id="studentListOfOneClass">
+  <v-container class="pa-0">
+    <v-row class="ma-0 px-4">
+        <!--新增按钮-->
+        <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startAllotItem')"
+            small>分配学生</v-btn>
+        <v-spacer></v-spacer>
+        <!--搜索过滤-->
+        <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+            <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense
+                filled single-line></v-text-field>
+        </v-col>
+    </v-row>
+
+    <!--表格-->
+    <v-data-table :headers="headers" :items="tableData" :search="searchInput"
+        :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+        :items-per-page="-1" mobile-breakpoint="0" :loading="isTableLoading"
+        checkbox-color="success" fixed-header :class="{'zebraLine': isTableZebraLineShown }"
+        class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+        <template v-slot:header.action="{ header }">
+          <span class="ml-2">操作</span>
+        </template>
+        <template v-slot:item.operationAt="{ item }">
+          {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
+        </template>
+        <!--表格行操作按钮-->
+        <template v-slot:item.action="{ item }">
+          <span role="button" class="success--text font-weight-medium font-size-2 ml-2"
+              @click="doUiAction('deleteItem', item)">
+              <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
+          </span>
+        </template>
+        <!--没有数据-->
+        <template v-slot:loading>
+          <div class="jh-no-data">数据加载中</div>
+        </template>
+        <template v-slot:no-data>
+          <div class="jh-no-data">暂无数据</div>
+        </template>
+        <template v-slot:no-results>
+          <div class="jh-no-data">暂无数据</div>
+        </template>
+        <!--表格分页-->
+        <template v-slot:footer.page-text="pagination">
+          <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+          <span class="ml-1">共{{pagination.itemsLength}}条</span>
+        </template>
+    </v-data-table>
+    
+    <!-- 分配学生弹窗 -->
+    <v-dialog v-model="isAllotDialogShown" scrollable persistent width="80%" overlay-opacity="0.1"
+      content-class="jh-fixed-dialog-height jh-dialog-mobile-fullscreen">
+      <v-card flat>
+        <v-card-title class="pa-4">
+          <v-row class="justify-space-between pt-3 px-3 pb-1">
+            <v-btn dark color="success" elevation="0" @click="doUiAction('allotItem')" small>批量新增</v-btn>
+            <v-spacer></v-spacer>
+            <v-btn class="elevation-0" fab x-small @click="isAllotDialogShown = false">
+              <v-icon dark>mdi-close</v-icon>
+            </v-btn>
+          </v-row>
+        </v-card-title>
+        <v-card-text class="px-0 pb-0">
+          <v-data-table fixed-header show-select checkbox-color="success" :headers="allotHeaders"
+              :loading="isAllotTableLoading" :items="allotTableData" item-key="studentId"
+              :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+              :items-per-page="-1" mobile-breakpoint="0" @item-selected="tableItemSelected"
+              @toggle-select-all="tableToggleSelectAll" :class="{'zebraLine': isTableZebraLineShown }"
+              class="jh-fixed-table-height fixed-first-column table-height-full fixed-table-wrapper-height elevation-0 mt-0 mb-xs-4">
+              <template v-slot:header.action="{ header }">
+                <span class="ml-2">操作</span>
+              </template>
+              <template v-slot:item.action="{ item }">
+                <span role="button" class="success--text font-weight-medium font-size-2 ml-2"
+                    @click="doUiAction('buildRelation', item)">
+                  <v-icon size="16" class="success--text">mdi-plus-box-outline</v-icon>新增
+                </span>
+              </template>
+              <!--没有数据-->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <!--表格分页-->
+              <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
+              </template>
+          </v-data-table>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    
+  </v-container>
+</script>
+
+<script>
+  Vue.component('studentListOfOneClass', {
+    template: "#studentListOfOneClass",
+    vueComponent: 'studentListOfOneClass',
+    vuetify: new Vuetify(),
+    props: {
+      classId: {
+        type: String,
+        default: null
+      }
+    },
+    data: () => ({
+      // 表格相关数据
+      isTableZebraLineShown: true,
+      validationRules: {
+          requireRules: [
+              v => !!v || 'This is required',
+          ],
+      },
+      searchInput: null,
+      isTableLoading: true,
+      tableData: [],
+      headers: [
+        { text: '操作', value: 'action', align: 'left', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'},
+        { text: '学生ID', value: 'studentId', width: 120 }, 
+        { text: '班级ID', value: 'classId', width: 120 }, 
+        { text: '备注', value: 'remark', width: 250 }, 
+        { text: "操作者", value: "operationByUser", width: 120 },
+        { text: "操作时间", value: "operationAt" },
+      ],
+
+      // 分配学生表格相关数据
+      isAllotTableLoading: true,
+      allotHeaders: [
+        { text: '操作', value: 'action', align: 'left', sortable: false, width: 80},
+        { text: '学生ID', value: 'studentId', width: 120 }, 
+        { text: '学生名字', value: 'name', width: 120 }, 
+        { text: '性别', value: 'gender', width: 120 }, 
+        { text: '出生日期', value: 'dateOfBirth', width: 120 }, 
+        { text: '班级ID', value: 'classId', width: 120 }, 
+        { text: '身高', value: 'bodyHeight', width: 120 }, 
+        { text: '学生状态', value: 'studentStatus', width: 120 }, 
+        { text: '备注', value: 'remark', width: 120 }, 
+        { text: "操作者", value: "operationByUser", width: 120 },
+        { text: "操作时间", value: "operationAt", width: 250 },
+      ],
+      allotTableData: [],
+      allotTableDataFromBackend: [],
+      allotTableSelected: [],
+
+      // 操作相关
+      isAllotDialogShown: false,
+      allotItemId: {},
+      deleteItem: {},
+      deleteItemId: null
+    }),
+    watch: {},
+    async created() {
+        await this.doUiAction('getTableData');
+        await this.doUiAction('getAllotTableData');
+    },
+    mounted() {},
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.getTableData();
+            break;
+          case 'getAllotTableData':
+            await this.getAllotTableData();
+            await this.buildAllotTableData();
+            break;
+          case 'startAllotItem':
+            await this.openAllotDialog();
+            break;
+          case 'allotItem':
+            await this.confirmAllotItemDialog();
+            await this.doAllotItem();
+            await this.clearAllotItemData();
+            await this.getTableData();
+            await this.buildAllotTableData();
+            break;
+          case 'buildRelation':
+            await this.confirmAllotItemDialog();
+            await this.prepareDoBuildRelation(uiActionData);
+            await this.doBuildRelation();
+            await this.clearAllotItemData();
+            await this.getTableData();
+            await this.buildAllotTableData();
+            break;
+          case 'deleteItem':
+            await this.prepareDeleteFormData(uiActionData);
+            await this.confirmDeleteItemDialog();
+            await this.prepareDoDeleteItem();
+            await this.doDeleteItem();
+            await this.clearDeleteItem();
+            await this.getTableData();
+            await this.buildAllotTableData();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+
+      // ---------- 获取数据 uiAction >>>>>>>>>> --------
+      async getTableData() {
+        this.isTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'studentListOfOneClass',
+              actionId: 'selectCurrentList',
+              where: { classId: this.classId },
+              orderBy: [{ column: 'operationAt', order: 'desc' }]
+            }
+          }
+        });
+        this.tableData = result.data.appData.resultData.rows;
+        this.isTableLoading = false;
+      },
+      // ---------- <<<<<<<<<<< 获取数据 uiAction  --------
+
+      // ---------- 抽屉表格数据 uiAction >>>>>>>>>> --------
+      async getAllotTableData() {
+        this.isAllotTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'studentListOfOneClass',
+              actionId: 'selectAllList',
+              orderBy: [{ column: 'operationAt', order: 'desc' }]
+            }
+          }
+        });
+        this.allotTableDataFromBackend = result.data.appData.resultData.rows;
+        this.isAllotTableLoading = false;
+      },
+
+      buildAllotTableData() {
+        if (_.isEmpty(this.allotTableDataFromBackend)) {
+          this.allotTableData = [];
+        } else {
+          this.allotTableData = _.differenceBy(this.allotTableDataFromBackend, this.tableData, 'studentId');
+        }
+      },
+      // ---------- <<<<<<<<<<< 抽屉表格数据 uiAction  --------
+
+      // ---------- 分配班级 uiAction >>>>>>>>>> --------
+      async openAllotDialog() {
+        this.isAllotDialogShown = true;
+      },
+      async confirmAllotItemDialog() {
+        if (await window.confirmDialog({title: "确定将学生分配给此班级吗", content: "确定分配吗？"}) === false) {
+          throw new Error("[confirmAllotItemDialog] 否");
+        }
+      },
+      async prepareDoBuildRelation(funObj) {
+        this.allotItemId = funObj.studentId;
+      },
+      async doAllotItem() {
+        await window.jhMask.show();
+        for (let i = 0; i < this.allotTableSelected.length; i++) {
+          window.vtoast.loading(`正在新增 第${i + 1}个`);
+          await this.prepareDoBuildRelation(this.allotTableSelected[i]);
+          await this.buildRelationImpl();
+        }
+        await window.jhMask.hide();
+        await window.vtoast.success("批量新增成功");
+      },
+      async doBuildRelation() {
+        await window.jhMask.show();
+        await window.vtoast.loading("正在新增");
+        await this.buildRelationImpl();
+        await window.jhMask.hide();
+        await window.vtoast.success("新增成功");
+      },
+      async buildRelationImpl() {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'studentListOfOneClass',
+              actionId: 'insertItem',
+              actionData: { classId: this.classId, studentId: this.allotItemId }
+            }
+          }
+        });
+      },
+      async clearAllotItemData() {
+        this.allotTableSelected = [];
+        this.allotItemId = null;
+      },
+      // ---------- <<<<<<<<<<< 分配班级 uiAction  --------
+      
+      // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+      async prepareDeleteFormData(funObj) {
+        this.deleteItem = _.cloneDeep(funObj);
+      },
+      async confirmDeleteItemDialog() {
+        if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+          throw new Error("[confirmDeleteItemDialog] 否");
+        }
+      },
+      async prepareDoDeleteItem() {
+        const { id } = this.deleteItem;
+        this.deleteItemId = id;
+      },
+      async doDeleteItem() {
+        await window.vtoast.loading("删除班级");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'studentListOfOneClass',
+              actionId: 'deleteItem',
+              actionData: {},
+              where: { id: this.deleteItemId }
+            }
+          }
+        });
+        await window.vtoast.success("删除班级成功");
+      },
+      async clearDeleteItem() {
+        this.deleteItem = {};
+        this.deleteItemId = null;
+      },
+      // ---------- <<<<<<<<<<< 删除数据 uiAction  --------
+
+      // ---------- table selected >>>>>>>>>>>> --------
+      tableItemSelected({ item, value }) {
+          if (value) {
+              this.allotTableSelected.push(item);
+          } else {
+              this.allotTableSelected = _.reject(this.allotTableSelected, ['studentId', item.studentId]);
+          }
+      },
+      tableToggleSelectAll({ items, value }) {
+          if (value) {
+              this.allotTableSelected = items;
+          } else {
+              this.allotTableSelected = [];
+          }
+      },
+      // ---------- <<<<<<<<<<< table selected  --------
+    }
+  })
+</script>

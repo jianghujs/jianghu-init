@@ -1,6 +1,15 @@
-# {{name}}
+# jianghujs-2table-crud
 
-## 配置
+## 数据库配置
+
+```sql
+# 数据库初始化
+create database `jianghujs-2table-crud` default character set utf8mb4 collate utf8mb4_bin;
+use jianghujs-2table-crud;
+# 运行 sql/init.sql 文件
+```
+
+## 代码配置
 
 1. npm install
 2. 复制 `config.local.example.js` 为 `config.local.js`
@@ -10,32 +19,10 @@
    port: 3306,
    user: 'root',
    password: '123456',
-   database: '{{name}}'
+   database: 'jianghujs-2table-crud'
    ```
 4. 启动 npm run dev
-   
-## 数据库
-
-```sql
-# 数据库初始化
-create database `{{name}}` default character set utf8mb4 collate utf8mb4_bin;
-use {{name}};
-# 运行 sql/{{name}}.sql 文件
-```
 
 ## 测试账号 & 测试环境
 
 - admin/123456
-
-## 页面
-
-1. 班级管理: classManagement.html
-1. 学生管理: studentManagement.html
-
-## FAQ
-
-- egg-jianghu mysql view
-```sql
-DROP VIEW IF EXISTS `_view01_user`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `_view01_user` AS select * from `_user`;
-```

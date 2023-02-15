@@ -77,9 +77,13 @@
       mobile-breakpoint="0"
       :loading="isTableLoading" 
       checkbox-color="success" 
-      class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+      class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column"
+      :class="{'zebraLine': showTableZebraLine }">
     <template v-slot:item.employeeName="{ item }">
-      <div class="success--text" style="cursor: pointer;" @click.stop="doUiAction('handleTableButton', { title: '详情', action: 'detail', item })">{{item.employeeName}}</div>
+      <div class="success--text font-weight-medium d-flex align-center" style="cursor: pointer;" @click.stop="doUiAction('handleTableButton', { title: '详情', action: 'detail', item })">
+        <v-icon right small>mdi-text-box-search-outline</v-icon> 
+        <span class="ml-2">{{item.employeeName}}</span>
+      </div>
     </template>
     <template v-slot:item.dateOfBirth="{ item }">
       {{item.dateOfBirth ? dayjs(item.dateOfBirth).format('YYYY-MM-DD') : ''}}
@@ -152,6 +156,9 @@
         </v-list>
       </v-menu>
     </template>
+    <template v-slot:footer.prepend>
+      <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
+    </template>
   </v-data-table>
 </v-card>
 
@@ -207,7 +214,7 @@ width="70%"
       <template v-for="(content, index) in tabContent[actionTab]" :key="index">
         <div class="d-flex justify-space-between align-center px-6" :class="{'mb-1': content.type === 'form'}">
           <h4>{{content.title}}</h4>
-          <v-btn v-if="content.showEditBtn" @click="addInformation(content)" x-small>编辑</v-btn>
+          <v-btn v-if="content.showEditBtn" @click="addInformation(content)" small color="success">编辑</v-btn>
         </div>
         <template v-if="content.type === 'form'">
           <edit-form 
@@ -354,6 +361,7 @@ new Vue({
     headers: [],
     editItem: {},
     isEditDrawerShow: false,
+    showTableZebraLine: true,
     currentClickButton: {},
     employeeField: [],
     adminUser: [],
@@ -779,7 +787,7 @@ new Vue({
     //设置table header
     setTableHeader(){
       const width = {
-        120: ['dateOfBirth', 'entryTime', 'becomeTime', 'companyAgeStartTime', 'post'],
+        120: ['dateOfBirth', 'entryTime', 'becomeTime', 'companyAgeStartTime', 'post', 'employeeName'],
         200: ['nativePlace']
       }
       let headers = this.employeeField.map(o => {

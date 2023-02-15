@@ -1,7 +1,6 @@
 'use strict';
 
 const Service = require('egg').Service;
-const { tableEnum } = require('../constant/constant');
 
 class DirectoryService extends Service {
 
@@ -10,7 +9,7 @@ class DirectoryService extends Service {
     const { userInfo } = this.ctx;
     const { userAppList } = userInfo;
     const appIdList = userAppList.map(userApp => userApp.appId);
-    const rows = await jianghuKnex(tableEnum.directory)
+    const rows = await jianghuKnex('directory')
       .orWhere(function() {
         this.whereIn('appId', appIdList);
       })

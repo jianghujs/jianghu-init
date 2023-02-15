@@ -1,10 +1,7 @@
 'use strict';
 
-const assert = require('assert');
-
 module.exports = appInfo => {
 
-  assert(appInfo);
   return {
     dataSyncStatus: '禁用',
     knex: {

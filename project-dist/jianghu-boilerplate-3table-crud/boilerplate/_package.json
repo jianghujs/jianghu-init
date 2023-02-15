@@ -1,6 +1,6 @@
 {
   "name": "{{database}}",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "private": true,
   "egg": {
@@ -9,12 +9,10 @@
   },
   "dependencies": {
     "egg": "^2.15.1",
-    "@jianghujs/jianghu": "4.0.3",
+    "@jianghujs/jianghu": "4.0.15",
     "egg-scripts": "^2.11.0"
   },
   "devDependencies": {
-    "autod": "^3.0.1",
-    "autod-egg": "^1.1.0",
     "egg-bin": "^4.11.0",
     "egg-mock": "^3.21.0",
     "eslint": "^7.32.0",
@@ -25,21 +23,20 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --port=7002 --title={{name}}",
-    "stop": "egg-scripts stop --title={{name}}",
+    "start": "egg-scripts start --daemon --port=7002 --title={{database}}",
+    "stop": "egg-scripts stop --title={{database}}",
     "dev": "egg-bin dev --port=7002",
     "debug": "egg-bin debug",
     "test": "npm run lint -- --fix && npm run test-local",
     "test-local": "egg-bin test",
     "cov": "egg-bin cov",
     "lint": "eslint .",
-    "ci": "npm run lint && npm run cov",
-    "autod": "autod"
+    "ci": "npm run lint && npm run cov"
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/jianghujs/{{database}}.git"
   },
-  "author": "",
+  "author": "jianghujs.org",
   "license": "Apache-2.0"
 }

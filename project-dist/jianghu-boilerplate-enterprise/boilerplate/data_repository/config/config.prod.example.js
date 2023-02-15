@@ -1,20 +1,12 @@
 'use strict';
 
-const assert = require('assert');
 const path = require('path');
 
 module.exports = appInfo => {
 
-  assert(appInfo);
   return {
     dataSyncStatus: '启用', // 是否启用同步，启用/禁用
     appDirectoryLink: 'https://panshi.openjianghu.org',
-    static: {
-      maxAge: 0,
-      buffer: false,
-      preload: false,
-      maxFiles: 0,
-    },
     jiangHuConfig: {
       packageIdCheck: true,
       updateRequestDemoAndResponseDemo: false,

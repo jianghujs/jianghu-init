@@ -3,172 +3,148 @@
 {% block vueTemplate %}
 
 <script type="text/html" id="app-template">
-  <div>
-    <v-app id="inspire" mobile-breakpoint="sm">
-      <jhMenu />
-      <v-main class="d-flex flex-column" style="margin-top: 60px">
-        <!-- 头部内容 >>>>>>>>>>>>> -->
-        <div class="d-flex" :style="{'flex-wrap': isMobile ? 'wrap' : 'nowrap'}" :class="{'px-8': !isMobile, 'px-4': isMobile}"><div>
-            <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
-              <!-- 帮助页按钮 -->
-              <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
-            </div>
-            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
-          </div>
+<div>
+  <v-app mobile-breakpoint="sm">
+    <jh-menu />
+    <v-main class="mt-15">
+      <!-- 头部内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-second-bar px-8">
+        <div class="pt-3 text-h7 font-weight-bold">App【{{ title }}】的用户权限管理
+          <!-- 帮助页按钮 -->
+          <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
         </div>
-        <!-- <<<<<<<<<<<<< 头部内容 -->
-
-        <div class="pageBodyContainer px-8" style="flex: 1;">
-          <!-- 页面内容 >>>>>>>>>>>>> -->
-          <template slot="breadcrumbsTitle">
-            <div>
-              APP【{{ title }}】的用户管理
-              <span style="font-size: 18px;">(ID: {{ appId }})</span>
-            </div>
-          </template>
-          <v-card :class="{'px-2': isMobile}">
-            <v-row class="ma-0  align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
-              <v-col cols="12" xs="12" sm="4" md="4" xl="4" class="pl-0 ">
-                <v-btn small dark color="success" @click="isEditDrawerShow = true" class="elevation-0 mr-2">分配新的用户</v-btn>
-              </v-col>
-              <v-spacer></v-spacer>
-              <v-col cols="12" xs="12" sm="4" md="3" xl="3" class="px-0">
-                <v-text-field dense filled single-line v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input"></v-text-field>
-              </v-col>
-            </v-row>
-            <v-data-table 
-                  fixed-header
-                  :headers="headers"
-                  :items="tableDataFromBackend"
-                  :search="searchInput"
-                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-                  :items-per-page="20"
-                  mobile-breakpoint="0"
-                  :loading="isTableLoading"
-                  checkbox-color="success" 
-                  :class="{'zebraLine': showTableZebraLine }"
-                  class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-                <template v-slot:footer.prepend>
-                  <span class="ml-2 table-search-hint-text">共{{ tableDataFromBackend.length }}条记录</span>
-                  <v-menu top offset-y :close-on-content-click="false">
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn v-bind="attrs" v-on="on" icon>
-                        <v-icon>mdi-menu</v-icon>
-                      </v-btn>
-                    </template>
-                    <v-list>
-                      <v-list-item>
-                        <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                </template>
-                <template v-slot:footer.page-text="pagination">
-                  <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-                  <span class="ml-1">共{{pagination.itemsLength}}条</span>
-                </template>
-                <template v-slot:item.userType="{ item }">
-                  {{ (constantCollection.userType.find(({value}) => value === item.userType) || {}).text }}
-                </template>
-                <template v-slot:item.userStatus="{ item }">
-                  {{ (constantCollection.userStatus.find(({value}) => value === item.userStatus) || {}).text }}
-                </template>
-                <template v-slot:item.operationAt="{ item }">
-                  {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
-                </template>
-                <template v-slot:item.option="{ item }">
-                  <v-btn v-for="tableButton of tableButtonList" :color="tableButton.color" outlined x-small class="elevation-0 mr-2" @click="doAction(tableButton.action, {item, button: tableButton})">{{ tableButton.text }}</v-btn>
-                </template>
-              </v-data-table>
-          </v-card>
-          <v-navigation-drawer
-              v-model="isEditDrawerShow"
-              fixed
-              temporary
-              right
-              touchless
-              width="80%"
-              class="elevation-24"
-          >
-            <v-container class="navDrawerContainer">
-              <v-row class="my-2" :class="{'px-4': isMobile, 'px-6': !isMobile}">
-                <v-btn class="mt-0" dark color="success" elevation="0" @click="doAction('allotUser')" small>保存选中</v-btn>
-              </v-row>
-              <v-row :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
-                <v-data-table
-                fixed-header
-                show-select
-                checkbox-color="success"
-                :headers="drawerHeaders"
-                :loading="isDrawerTableLoading"
-                :items="drawerTableData"
-                :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}" 
-                :items-per-page="20"
-                mobile-breakpoint="0"
-                @item-selected="drawerItemSelected"
-                @toggle-select-all="drawerToggleSelectAll"
-                :class="{'zebraLine': showDrawerTableZebraLine }"
-                class="fixed-table-height fixed-first-column not-fixed-wrapper-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column"
-                >
-                  <template v-slot:footer.prepend>
-                    <span class="ml-2 table-search-hint-text">共{{ drawerTableData.length }}条记录</span>
-                    <v-menu top offset-y :close-on-content-click="false">
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-btn v-bind="attrs" v-on="on" icon>
-                          <v-icon>mdi-menu</v-icon>
-                        </v-btn>
-                      </template>
-                      <v-list>
-                        <v-list-item>
-                          <v-switch v-model="showDrawerTableZebraLine" label="显示斑马纹" dense flat></v-switch>
-                        </v-list-item>
-                      </v-list>
-                    </v-menu>
-                  </template>
-                  <template v-slot:footer.page-text="pagination">
-                    <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-                    <span class="ml-1">共{{pagination.itemsLength}}条</span>
-                  </template>
-                  
-                  <template v-slot:item.userType="{ item }">
-                    {{ (constantCollection.userType.find(({value}) => value === item.userType) || {}).text }}
-                  </template>
-                  <template v-slot:item.userStatus="{ item }">
-                    {{ (constantCollection.userStatus.find(({value}) => value === item.userStatus) || {}).text }}
-                  </template>
-                  <template v-slot:item.operationAt="{ item }">
-                    {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
-                  </template>
-                  <template v-slot:item.option="{ item }">
-                    <v-btn color="success" outlined x-small class="elevation-0 mr-2" @click="doAction('buildRelation', {item})">新增</v-btn>
-                  </template>
-                </v-data-table>
-              </v-row>
-              <!--抽屉关闭按钮-->
-              <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isEditDrawerShow = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-container>
-          </v-navigation-drawer>
-          <!-- <<<<<<<<<<<<< 页面内容 -->
-        </div>
-
-        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-        <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" class="elevation-24">
-          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?markdownPath#4.userManagementOfOneApp.md`" width="100%" height="100%"></iframe>
-          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShow = false">
+        <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+      </div>
+      <!-- <<<<<<<<<<<<< 头部内容 -->
+      <div class="jh-page-body-container px-8">
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <v-card class="rounded-lg">
+          <v-row class="ma-0 pa-4">
+            <!--新增按钮-->
+            <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startBuildRelation')" small>分配新用户</v-btn>
+            <v-spacer></v-spacer>
+            <!--搜索过滤-->
+            <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+              <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+          <!--表格-->
+          <v-data-table
+            :headers="headers"
+            :items="tableData"
+            :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+            :items-per-page="-1"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            :class="{'zebraLine': isTableZebraLineShown }"
+            checkbox-color="success"
+            fixed-header
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <template v-slot:item.action="{ item }">
+              <span
+                role="button" class="success--text font-weight-medium font-size-2"
+                @click="doUiAction('deleteRelation', item)">
+                <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+              </span>
+            </template>
+            <!--没有数据-->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <!--表格分页-->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+              <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            </template>
+            <template v-slot:item.userType="{ item }">
+              {{ getDisplayText({displayObj: constantObj.userType, displayValue: item.userType}) }}
+            </template>
+            <template v-slot:item.userStatus="{ item }">
+              {{ getDisplayText({displayObj: constantObj.userStatus, displayValue: item.userStatus}) }}
+            </template>
+            <template v-slot:item.operationAt="{ item }">
+              {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
+            </template>
+          </v-data-table>
+        </v-card>
+        <v-navigation-drawer v-model="isUserListDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <!--抽屉标题-->
+          <v-row class="ma-4 pa-0">
+            <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('buildMultipleRelation')" small>保存选中</v-btn>
+          </v-row>
+          <!--抽屉表单主体-->
+          <v-row class="mt-0 px-6">
+            <v-data-table
+              :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+              :items-per-page="-1"
+              :class="{'zebraLine': isTableZebraLineShown }"
+              checkbox-color="success"
+              fixed-header
+              show-select
+              :headers="drawerHeaders"
+              :loading="isDrawerTableLoading"
+              :items="drawerTableData"
+              mobile-breakpoint="0"
+              @item-selected="doUiAction('selectDrawerListItem', $event)"
+              @toggle-select-all="doUiAction('selectDrawerListAllItem', $event)"
+              style="min-width: 100%"
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+            >
+              <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
+              </template>
+              <template v-slot:item.userType="{ item }">
+                {{ getDisplayText({displayObj: constantObj.userType, displayValue: item.userType}) }}
+              </template>
+              <template v-slot:item.userStatus="{ item }">
+                {{ getDisplayText({displayObj: constantObj.userStatus, displayValue: item.userStatus}) }}
+              </template>
+              <template v-slot:item.operationAt="{ item }">
+                {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
+              </template>
+              <template v-slot:item.action="{ item }">
+                <span
+                  role="button" class="success--text font-weight-medium font-size-2"
+                  @click="doUiAction('buildRelation', item)">
+                  <v-icon size="14" class="success--text">mdi-plus-box</v-icon>新增
+                </span>
+              </template>
+            </v-data-table>
+          </v-row>
+          <!--抽屉关闭按钮-->
+          <v-btn
+            elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUserListDrawerShown = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-navigation-drawer>
-        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+        <!-- <<<<<<<<<<<<< 页面内容 -->
+      </div>
 
-      </v-main>
-    </v-app>
+      <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+        <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#4.userManagementOfOneApp.md`" width="100%" height="100%"></iframe>
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
 
-    <jhToast />
-    <jhMask />
-    <jhConfirmDialog />
-  </div>
+    </v-main>
+  </v-app>
+
+  <jh-toast />
+  <jh-mask />
+  <jh-confirm-dialog />
+
+</div>
 </script>
 
 <div id="app">
@@ -179,6 +155,10 @@
 
 {% block vueScript %}
 
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
+
 <script type="module">
 
 new Vue({
@@ -186,104 +166,110 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: {
-    showTableZebraLine: true,
-    showDrawerTableZebraLine: true,
-    isMobile: window.innerWidth < 600,
+    breadcrumbs: [
+      {text: '首页', disabled: true,},
+      {text: 'App的用户权限管理', disabled: true,}
+    ],
+    isHelpPageDrawerShown: false,
+    isTableZebraLineShown: true,
+    isMobile: window.innerWidth < 500,
+
     appId: null,
     title: null,
-
     searchInput: null,
     isTableLoading: true,
-    isDrawerTableLoading: true,
-    isEditDrawerPermanent: false,
-    isEditDrawerShow: false,
-    constantCollection: {
+    constantObj: {
       userStatus: [{"value": "active", "text": "正常"}, {"value": "banned", "text": "禁用"}],
       userType: [{"value": "common", "text": "普通用户"}],
     },
     headers: [
-      {text: '操作', value: 'option', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
-      {text: "用户ID[登陆]", value: "userId", align: "start", sortable: true, width: 120,},
-      {text: "用户名", value: "username", align: "start", sortable: true, width: 140},
-      {text: "用户类型", value: "userType", align: "start", sortable: true, width: 120},
-      {text: "用户状态", value: "userStatus", align: "start", sortable: true, width: 120},
-      {text: "操作人", value: "operationByUser", align: "start", sortable: true, width: 120},
-      {text: "操作时间", value: "operationAt", align: "start", sortable: true, width: 250},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 60, class: 'fixed', cellClass: 'fixed'},
+      {text: "用户ID[登陆]", value: "userId", width: 120},
+      {text: "用户名", value: "username", align: "start", width: 120},
+      {text: "用户类型", value: "userType", width: 120},
+      {text: "用户状态", value: "userStatus"},
+      {text: "操作人", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 160},
     ],
     drawerHeaders: [
-      {text: "用户ID[登陆]", value: "userId", align: "start", sortable: true, width: 120,},
-      {text: "用户名", value: "username", align: "start", sortable: true, width: 140},
-      {text: "用户类型", value: "userType", align: "start", sortable: true, width: 120},
-      {text: "用户状态", value: "userStatus", align: "start", sortable: true, width: 120},
-      {text: "操作人", value: "operationByUser", align: "start", sortable: true, width: 120},
-      {text: "操作时间", value: "operationAt", align: "start", sortable: true, width: 250},
-      {text: '操作', value: 'option', align: 'center', sortable: false, width: 100, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 60, class: 'fixed', cellClass: 'fixed'},
+      {text: "用户ID[登陆]", value: "userId", width: 120},
+      {text: "用户名", value: "username", align: "start", sortable: true, width: 120},
+      {text: "用户类型", value: "userType", width: 120},
+      {text: "用户状态", value: "userStatus", width: 120},
+      {text: "操作人", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 160},
     ],
+
+    isDrawerTableLoading: true,
+    isUserListDrawerShown: false,
     drawerTableData: [],
-    drawerTableDataFromBackend: [],
-    tableDataFromBackend: [],
-    tableButtonList: [
-      {text: '删除', buttonType: 'delete', color: 'error', action: 'deleteRelation'},
-    ],
-    drawerItemSelectedClass: [],
-    currentClickButton: {title: '新增', action: 'add'},
-    breadcrumbs: window.breadcrumbs,
-    isHelpPageDrawerShow: false,
+    tableData: [],
+    drawerSelectedItem: [],
   },
-  watch: {},
   async created() {
-    const urlParams = new URLSearchParams(location.search);
-    const id = urlParams.get('id');
-    const title = urlParams.get('title');
-    if (id && title) {
-      this.appId = id;
-      this.title = title;
-    } else {
-      setTimeout(() => {
-        window.vtoast.fail('请从"班级列表"点击"学生"进入');
-      }, 1000);
-      return;
-    }
-  },
-  async mounted() {
-    await this.doAction('refreshTableData');
-    await this.doAction('getDrawerTableData');
+    await this.doUiAction('getUrlObj');
+    await this.doUiAction('getTableData');
   },
   methods: {
-    async doAction(uiActionId, uiActionData) {
-				switch (uiActionId) {
-				case 'refreshTableData':
-					await this.refreshTableData(uiActionData);
-					await this.buildDrawerTableData(uiActionData);
-					break;
-				case 'getDrawerTableData':
-					await this.getDrawerTableData(uiActionData);
-          await this.buildDrawerTableData(uiActionData);
-					break;
-				case 'allotUser':
-					await this.confirmAllotUserDialog(uiActionData);
-					await this.doAllotUser(uiActionData);
-					await this.refreshTableData(uiActionData);
-					await this.buildDrawerTableData(uiActionData);
-					break;
-				case 'buildRelation':
-					await this.confirmAllotUserDialog(uiActionData);
-					await this.doBuildRelation(uiActionData);
-					await this.refreshTableData(uiActionData);
-					await this.buildDrawerTableData(uiActionData);
-					break;
-				case 'deleteRelation':
-					await this.confirmDeleteUserDialog(uiActionData);
-					await this.doDeleteRelation(uiActionData);
-					await this.refreshTableData(uiActionData);
-					await this.buildDrawerTableData(uiActionData);
-					break;
-				default:
-					console.error("[doAction] uiActionId not find", { uiActionId });
-					break;
-				}
-		},
-    async refreshTableData() {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getUrlObj':
+          await this.getUrlObj();
+          break;
+        case 'getTableData':
+          await this.getTableData();
+          await this.getDrawerTableData();
+          await this.buildDrawerTableData();
+          break;
+        case 'buildMultipleRelation':
+          await this.confirmBuildMultipleRelationDialog();
+          await this.doBuildMultipleRelation();
+          await this.doUiAction('getTableData');
+          break;
+        case 'startBuildRelation':
+          await this.openUserListDrawer();
+          break;
+        case 'buildRelation':
+          await this.prepareBuildRelation(uiActionData);
+          await this.confirmBuildMultipleRelationDialog();
+          await this.doBuildRelation();
+          await this.doUiAction('getTableData');
+          break;
+        case 'deleteRelation':
+          await this.prepareDeleteRelation(uiActionData);
+          await this.confirmDeleteUserDialog();
+          await this.doDeleteRelation();
+          await this.doUiAction('getTableData');
+          break;
+        case 'selectDrawerListItem':
+          await this.selectDrawerListItem(uiActionData);
+          break;
+        case 'selectDrawerListAllItem':
+          await this.selectDrawerListAllItem(uiActionData);
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
+    // ---------- 读取当前url参数 uiAction >>>>>>>>>> --------
+    async getUrlObj() {
+      const urlObj = new URLSearchParams(location.search);
+      const id = urlObj.get('id');
+      const title = urlObj.get('title');
+      if (id && title) {
+        this.appId = id;
+        this.title = title;
+      } else {
+        setTimeout(() => {
+          window.vtoast.fail('请从"App管理"点击"用户管理"进入');
+        }, 1000);
+      }
+    },
+    // ---------- <<<<<<<<<<< 读取当前url参数 uiAction --------
+    // ---------- 获取数据 uiAction >>>>>>>>>> --------
+    async getTableData() {
       this.isTableLoading = true;
       const result = await window.jianghuAxios({
         data: {
@@ -298,75 +284,89 @@ new Vue({
           }
         }
       });
-      this.tableDataFromBackend = result.data.appData.resultData.rows;
+      this.tableData = result.data.appData.resultData.rows;
       this.isTableLoading = false;
     },
-    buildDrawerTableData() {
-      if (_.isEmpty(this.drawerTableDataFromBackend)) {
-        this.drawerTableData = [];
-      } else {
-        this.drawerTableData = _.differenceBy(this.drawerTableDataFromBackend, this.tableDataFromBackend, 'userId');
-      }
-    },
-    // 未包含数据列表
     async getDrawerTableData() {
       this.isDrawerTableLoading = true;
       const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'userManagementOfOneApp',
-            actionId: 'selectAppItemList',
+            actionId: 'selectUserItemList',
             orderBy: [{column: 'operationAt', order: 'desc'}]
           }
         }
       });
-      this.drawerTableDataFromBackend = result.data.appData.resultData.rows;
+      this.drawerTableData = result.data.appData.resultData.rows;
       this.isDrawerTableLoading = false;
     },
-
-    // allotStudent
-    async confirmAllotUserDialog() {
-      if (await window.confirmDialog({title: "确定将用户分配给此APP", content: "确定分配吗？"}) === false) {
-          throw new Error("[confirmAllotUserDialog] 否");
+    buildDrawerTableData() {
+      if (_.isEmpty(this.drawerTableData)) {
+        this.drawerTableData = [];
+      } else {
+        this.drawerTableData = _.differenceBy(this.drawerTableData, this.tableData, 'userId');
       }
     },
-
-    async doAllotUser() {
-      for (const [i, userId] of this.drawerItemSelectedClass.entries()) {
+    // ---------- <<<<<<<<<<< 获取数据 uiAction --------
+    // ---------- 建立关系 uiAction >>>>>>>>>> --------
+    async openUserListDrawer() {
+      this.isUserListDrawerShown = true;
+    },
+    async confirmBuildMultipleRelationDialog() {
+      if (await window.confirmDialog({title: "确定将用户分配给此APP", content: "确定分配吗？"}) === false) {
+        throw new Error("[confirmBuildMultipleRelationDialog] 否");
+      }
+    },
+    async doBuildMultipleRelation() {
+      for (let i = 0; i < this.drawerSelectedItem.length; i++) {
+        const userId = this.drawerSelectedItem[i];
         window.vtoast.loading(`正在新增 第${i + 1}个`);
-        await this.buildRelationImpl(userId);
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagementOfOneApp',
+              actionId: 'insertItem',
+              actionData: {
+                userId, appId: this.appId
+              }
+            }
+          }
+        });
       }
       window.vtoast.success("批量新增成功");
-      this.drawerItemSelectedClass = [];
+      this.drawerSelectedItem = [];
     },
-
-    async doBuildRelation({item}) {
-      window.vtoast.loading("正在新增");
-      await this.buildRelationImpl(item.userId);
-      window.vtoast.success("新增成功");
+    async prepareBuildRelation(funObj) {
+      this.selectUserId = funObj.userId;
     },
-    async buildRelationImpl(userId) {
+    async doBuildRelation() {
+      window.vtoast.loading("正在分配新用户");
       await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'userManagementOfOneApp',
             actionId: 'insertItem',
             actionData: {
-              userId, appId: this.appId
+              userId: this.selectUserId, appId: this.appId
             }
           }
         }
       });
+      this.selectUserId = null;
+      window.vtoast.success("新用户分配成功");
     },
-
-    // allotStudent
+    // ---------- <<<<<<<<<<< 建立关系 uiAction --------
+    // ---------- 删除关系 uiAction >>>>>>>>>> --------
+    async prepareDeleteRelation(funObj) {
+      this.deleteItemId = funObj.userId;
+    },
     async confirmDeleteUserDialog() {
       if (await window.confirmDialog({title: "确认将用户从APP删除", content: "确定删除吗？"}) === false) {
-          throw new Error("[confirmDeleteUserDialog] 否");
+        throw new Error("[confirmDeleteUserDialog] 否");
       }
     },
-
-    async doDeleteRelation({item}) {
+    async doDeleteRelation() {
       window.vtoast.loading("删除中");
       await window.jianghuAxios({
         data: {
@@ -374,31 +374,35 @@ new Vue({
             pageId: 'userManagementOfOneApp',
             actionId: 'deleteItem',
             actionData: {},
-            where: { userId: item.userId }
+            where: {userId: this.deleteItemId}
           }
         }
       });
       window.vtoast.success("删除成功");
     },
-    drawerItemSelected({item, value}) {
-      const { userId } = item;
+    // ---------- <<<<<<<<<<< 删除关系 uiAction --------
+    // ---------- 抽屉项目选中 uiAction >>>>>>>>>> --------
+    selectDrawerListItem(funObj) {
+      const { item: { userId }, value } = funObj;
       if (value) {
-        this.drawerItemSelectedClass.push(userId);
+        this.drawerSelectedItem.push(userId);
       } else {
-        this.drawerItemSelectedClass = this.drawerItemSelectedClass.filter(e => e !== userId);
+        this.drawerSelectedItem = this.drawerSelectedItem.filter(e => e !== userId);
       }
     },
-    drawerToggleSelectAll({items, value}) {
+    selectDrawerListAllItem(funObj) {
+      const { items, value } = funObj;
       if (value) {
         const itemIds = [];
         for (const item of items) {
           itemIds.push(item.userId)
         }
-        this.drawerItemSelectedClass = itemIds;
+        this.drawerSelectedItem = itemIds;
       } else {
-        this.drawerItemSelectedClass = [];
+        this.drawerSelectedItem = [];
       }
     },
+    // ---------- <<<<<<<<<<< 抽屉项目选中 uiAction --------
     dayjs: dayjs,
   }
 })

@@ -24,6 +24,40 @@
           <v-btn v-for="(btn, index) in constantCollection.status" :key="index" small>
             {{btn.text}}
           </v-btn>
+          <v-menu offset-y>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                v-bind="attrs"
+                v-on="on"
+                small
+                style="min-width: auto;"
+              >
+                <span></span>
+                <v-icon right small class="ml-0">mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list dense class="pb-0">
+              <v-list-item
+                v-for="(btn, index) in constantCollection.status"
+                :key="index"
+              >
+                <v-list-item-title>{{ btn.text }}</v-list-item-title>
+              </v-list-item>
+              <v-divider v-if="constantCollection.status.length > 0"></v-divider>
+              <v-list-item @click="isAddSceneShow = true">
+                <v-list-item-title class="success--text">
+                  <v-icon small  class="success--text">mdi-plus</v-icon>
+                  <span  class="success--text">新建场景</span>
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="isSceneSetShow = true">
+                <v-list-item-title class="success--text">
+                  <v-icon small  class="success--text">mdi-cog-outline</v-icon>
+                  <span  class="success--text">场景设置</span>
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </v-btn-toggle>
         <v-btn-toggle
         v-if="actionTab === 2"
@@ -59,6 +93,163 @@
       class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
   </v-data-table>
 </v-card>
+
+<!-- 场景设置 -->
+<v-dialog
+v-model="isSceneSetShow"
+persistent
+width="70%"
+>
+<v-card>
+  <v-card-title>
+    <div class="d-flex justify-space-between align-center" style="width: 100%;">
+      <div style="font-size: 16px;">场景管理</div>
+      <div>
+        <v-btn class="elevation-0" fab x-small @click="isSceneSetShow = false">
+          <v-icon dark>mdi-close</v-icon>
+        </v-btn>
+      </div>
+    </div>
+  </v-card-title>
+  <v-card-text>
+    <v-container class="px-0">
+      <div class="mb-2">您可通过拖拽管理场景</div>
+      <v-row>
+        <v-col cols="6">
+          <v-card outlined>
+            <v-card-title class="pa-2">
+              <v-checkbox v-model="selectedAllShowScene" :value="true" dense hide-details class="mt-0">
+                <template v-slot:label>
+                  <h6>显示的场景</h6>
+                </template>
+              </v-checkbox>
+            </v-card-title>
+            <v-divider></v-divider>
+            <v-list dense>
+              <v-list-item v-for="item in constantCollection.status" :key="item.value" class="px-2" style="min-height: auto;">
+                  <v-checkbox v-model="selectedShowScene" :label="item.text" :value="item.value" dense hide-details class="mt-0" style="font-size: 13px;"></v-checkbox>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-col>
+        <v-col cols="6">
+          <v-card outlined>
+            <v-card-title class="pa-2">
+              <v-checkbox v-model="selectedAllHideScene" :value="true" dense hide-details class="mt-0">
+                <template v-slot:label>
+                  <h6>隐藏的场景</h6>
+                </template>
+              </v-checkbox>
+            </v-card-title>
+            <v-divider></v-divider>
+            <v-list dense>
+              <v-list-item v-for="item in constantCollection.status" :key="item.value" class="px-2" style="min-height: auto;">
+                  <v-checkbox v-model="selectedHideScene" :label="item.text" :value="item.value" dense hide-details class="mt-0" style="font-size: 13px;"></v-checkbox>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-col>
+      </v-row>
+      <div class="mt-2" role="button" @click="isAddSceneShow = true">
+          <v-icon right small class="ml-0">mdi-plus</v-icon>
+          添加筛选条件
+      </div>
+      <v-row class="justify-end mx-0 mt-8">
+        <v-btn color="success" @click="doUiAction('sceneSet')" small>保存</v-btn>
+        <v-btn class="ml-2" @click="isSceneSetShow = false" small>取消</v-btn>
+      </v-row>
+    </v-container>
+  </v-card-text>
+</v-card>
+</v-dialog>
+
+<!-- 新建场景 -->
+<v-dialog
+v-model="isAddSceneShow"
+persistent
+width="70%"
+>
+<v-card>
+  <v-card-title>
+    <div class="d-flex justify-space-between align-center" style="width: 100%;">
+      <div style="font-size: 16px;">新建场景</div>
+      <div>
+        <v-btn class="elevation-0" fab x-small @click="isAddSceneShow = false">
+          <v-icon dark>mdi-close</v-icon>
+        </v-btn>
+      </div>
+    </div>
+  </v-card-title>
+  <v-card-text>
+    <v-container class="px-0">
+      <div class="mb-4">
+        <div class="mb-1">场景名称</div>
+        <v-row>
+          <v-col sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+            <v-text-field class="cus-v-input" :rules="requireRules" dense filled single-line hide-details v-model="newScene.name" placeholder="场景名称，最多10个字符"></v-text-field>
+          </v-col>
+        </v-row>
+      </div>
+      <div class="mb-4">
+        <div>筛选条件</div>
+        <v-data-table 
+            hide-default-footer
+            :headers="filterHeader" 
+            :items="filterData" 
+            mobile-breakpoint="0"
+            :loading="isTableLoading " 
+            checkbox-color="success" 
+            class="elevation-0"
+            :options="{
+            itemsPerPage: 15
+          }">
+          <template v-slot:item.fieldName="{ item, index }">
+            <v-select class="cus-v-input" dense filled single-line clearable hide-details
+              v-model="item.fieldName" :items="constantCollection.sceneFiledList"
+              @change="doUiAction('fieldNameChange', {item, index})"
+              :rules="requireRules"></v-select>
+          </template>
+          <template v-slot:item.operator="{ item }">
+            <v-select :rules="requireRules" :items="constantCollection.operatorList" class="cus-v-input" dense filled single-line clearable hide-details v-model="item.operator"> </v-select>
+          </template>
+          <template v-slot:item.condition="{ item }">
+            <v-select v-if="item.type === 'select'" class="cus-v-input" dense filled single-line clearable hide-details
+              v-model="item.condition" :items="constantCollection[item.fieldName]"
+            :rules="requireRules"></v-select>
+            <v-menu v-else-if="item.type === 'date'" class="cus-v-input" offset-y max-width="290">
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field class="cus-v-input" :rules="requireRules" dense filled single-line hide-details v-on="on"
+                v-model="item.condition"></v-text-field>
+              </template>
+              <v-date-picker color="success" elevation="20" v-model="item.condition"></v-date-picker>
+            </v-menu>
+            <v-text-field v-else class="cus-v-input" dense filled single-line hide-details
+            v-model="item.condition" :rules="requireRules" placeholder="多个条件请用；隔开"></v-text-field>
+          </template>
+          <template v-slot:item.action="{ item, index }">
+            <v-btn text icon x-small @click="doUiAction('deleteFilterItem', {item, index})">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </template>
+        </v-data-table>
+      </div>
+      <div class="mb-4 red--text" v-if="showErrorTip">
+        <v-icon small class="ml-0 red--text">mdi-alert-circle-outline</v-icon>
+        筛选条件中有重复项！
+      </div>
+      <div role="button" class="mb-4" @click="doUiAction('addFilterItem')">
+        <v-icon small class="ml-0">mdi-plus</v-icon>
+        添加筛选条件
+      </div>
+      <v-checkbox v-model="newScene.default" :value="true" dense hide-details class="mt-0" label="设置为默认"></v-checkbox>
+      <v-row class="justify-end mx-0 mt-8">
+        <v-btn color="success" @click="doUiAction('addScene')" small>保存</v-btn>
+        <v-btn class="ml-2" @click="isAddSceneShow = false" small>取消</v-btn>
+      </v-row>
+    </v-container>
+  </v-card-text>
+</v-card>
+</v-dialog>
 </jh-layout-v4>
 
 {% endblock %}
@@ -83,13 +274,33 @@ new Vue({
     ],
     constantCollection: {
       status: [
-          {text: "待填写", value: 1},
+          {text: "待填写", value: 1}, 
           {text: "已填写", value: 2},
       ],
       status2: [
           {text: "待评定", value: 1},
           {text: "已评定", value: 2},
       ],
+      sceneFiledList: [
+          {text: "邮箱", value: 'email', type: 'string'},
+          {text: "行业", value: 'industry', type: 'select'},
+          {text: "创建时间", value: 'createTime', type: 'date'},
+          {text: "手机", value: 'phone', type: 'string'}
+      ],
+      industry: [
+          {text: "IT", value: 1},
+          {text: "金融", value: 2},
+      ],
+      operatorList: [
+          {text: "等于", value: 'eq'},
+          {text: "不等于", value: 'ne'},
+          {text: "包含", value: 'like'},
+          {text: "不包含", value: 'not_like'},
+          {text: "开始于", value: 'start_date'},
+          {text: "结束于", value: 'end_date'},
+          {text: "为空", value: 'is_empty'},
+          {text: "不为空", value: 'is_not_empty'}
+      ]
     },
     serverSearchForm: {
       postName: null,
@@ -104,6 +315,40 @@ new Vue({
     currentClickButton: {},
     actionTab: 0,
     isDetailDrawerShow: false,
+    isSceneSetShow: false,
+    selectedAllShowScene: false,
+    selectedAllHideScene: false,
+    selectedShowScene: [],
+    selectedHideScene: [],
+    isAddSceneShow: false,
+    showErrorTip: false,
+    newScene: {},
+    filterData: [
+      {
+        fieldName: 'email',
+        operator: 'eq',
+        condition: '123',
+        type: 'string'
+      },
+      {
+        fieldName: 'industry',
+        operator: 'ne',
+        condition: 1,
+        type: 'select'
+      },
+      {
+        fieldName: 'createTime',
+        operator: 'like',
+        condition: '2022-01-01',
+        type: 'date'
+      }
+    ],
+    filterHeader: [
+      { text: "字段名", value: "fieldName" },
+      { text: "运算符", value: "operator" },
+      { text: "条件", value: "condition" },
+      { text: '操作', value: 'action' },
+    ],
     tabs: [
       { title: '我的绩效', action: 'myAppraisal' },
       { title: '目标待确认', action: 'basic' },
@@ -182,7 +427,82 @@ new Vue({
         case 'saveInfo':
           await this.saveInfo();
           break;
+        case 'fieldNameChange':
+          await this.judgeFilterItemRepeat(uiActionData);
+          await this.setFilterItemType(uiActionData);
+          break;
+        case 'addFilterItem':
+          await this.doAddFilterItem();
+          break;
+        case 'deleteFilterItem':
+          await this.globalHandler.confirmEditItemDialog('删除');
+          await this.doDeleteFilterItem(uiActionData);
+          await this.judgeFilterItemRepeat(uiActionData);
+          break;
+        case 'addScene':
+          await this.validateAddSceneItem();
+          await this.addSceneSave();
+          await this.globalHandler.editItemSuccess('新建场景', this);
+          await this.closeAddSceneDialog();
+          break;
       }
+    },
+    // 判断筛选条件是否重复
+    async judgeFilterItemRepeat({index, item}){
+      const field = this.filterData.filter(o => o.fieldName === item.fieldName);
+      this.showErrorTip = field.length > 1
+    },
+    // 修改筛选条件type
+    async setFilterItemType({index, item}){
+      const field = this.constantCollection.sceneFiledList.find(o => o.value === item.fieldName);
+      if(field){
+        this.filterData[index]['type'] = field.type || 'string';
+      }
+    },
+    // 添加筛选条件
+    async doAddFilterItem(){
+      this.filterData.push({
+        fieldName: null,
+        operator: null,
+        condition: null
+      })
+    },
+    // 删除筛选条件
+    async doDeleteFilterItem({index, item}){
+      let list = _.cloneDeep(this.filterData);
+      list.splice(index, 1);
+      this.filterData = list;
+    },
+    // 筛选条件校验
+    async validateAddSceneItem(){
+      if(this.showErrorTip){
+        throw new Error('[validateAddSceneItem] 数据不合法');
+      }
+      if(_.isEmpty(this.newScene.name)){
+        window.vtoast.fail('场景名称不能为空！');
+        throw new Error('[validateAddSceneItem] 数据不合法');
+      }
+      if(_.trim(this.newScene.name).length > 10){
+        window.vtoast.fail('场景名称最多10个字符！');
+        throw new Error('[validateAddSceneItem] 数据不合法');
+      }
+      const isListEmpty = this.filterData.some(filter => Object.values(filter).some(o => _.isUndefined(o) || _.isNull(o) || o.length === 0 ))
+      if(isListEmpty){
+        window.vtoast.fail('筛选条件补充完整！');
+        throw new Error('[validateAddSceneItem] 数据不合法');
+      }
+    },
+    // 保存筛选条件
+    async addSceneSave(){
+      this.constantCollection.status.push({ 
+        text: this.newScene.name, 
+        value: JSON.stringify(this.filterData), 
+        default: this.newScene.default 
+      })
+    },
+    //关闭筛选条件弹窗
+    closeAddSceneDialog(){
+      this.isAddSceneShow = false;
     },
     /**
      * 获取表格数据

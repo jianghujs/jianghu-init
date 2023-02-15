@@ -1,11 +1,9 @@
 'use strict';
 
-const assert = require('assert');
 const path = require('path');
 
 module.exports = appInfo => {
 
-  assert(appInfo);
   return {
     appDirectoryLink: 'http://127.0.0.1:7003',
     debug: true,

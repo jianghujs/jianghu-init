@@ -5,7 +5,7 @@ const Service = require('egg').Service;
 const path = require('path');
 const fs = require('fs');
 
-const actionDataScheme = Object.freeze({
+const appDataSchema = Object.freeze({
   selectItemListFromLogFile: {
     type: 'object',
     additionalProperties: true,
@@ -34,7 +34,7 @@ class PageLogService extends Service {
 
   async selectItemListFromLogFile() {
     const actionData = this.ctx.request.body.appData.actionData;
-    validateUtil.validate(actionDataScheme.selectItemListFromLogFile, actionData);
+    validateUtil.validate(appDataSchema.selectItemListFromLogFile, actionData);
     const { config } = this.ctx.app;
     const { baseDir, appId } = config;
     const { logFile } = actionData;

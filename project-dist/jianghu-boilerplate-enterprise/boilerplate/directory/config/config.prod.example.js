@@ -1,19 +1,11 @@
 'use strict';
 
-const assert = require('assert');
 const path = require('path');
 
 module.exports = appInfo => {
 
-  assert(appInfo);
   return {
     appDirectoryLink: 'https://panshi.openjianghu.org',
-    static: {
-      maxAge: 0,
-      buffer: false,
-      preload: false,
-      maxFiles: 0,
-    },
     jiangHuConfig: {
       packageIdCheck: true,
       updateRequestDemoAndResponseDemo: false,

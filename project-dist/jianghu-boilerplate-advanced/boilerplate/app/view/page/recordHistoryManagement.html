@@ -2,158 +2,154 @@
 
 {% block vueTemplate %}
 <script type="text/html" id="app-template">
-  <div>
-    <v-app id="inspire" mobile-breakpoint="sm">
-      <jhMenu/>
-      <v-main class="d-flex flex-column" style="margin-top: 60px">
-        <!-- 头部内容 >>>>>>>>>>>>> -->
-        <div class="pageSecondBar d-flex px-8"><div>
-            <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
-              <!-- 帮助页按钮 -->
-              <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
-            </div>
-            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+<div>
+<v-app mobile-breakpoint="sm">
+  <jh-menu />
+  <v-main class="mt-15">
+    <!-- 头部内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-second-bar px-8">
+      <v-row>
+        <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+          <div class="pt-3 text-h7 font-weight-bold">数据历史
+            <!-- 帮助页按钮 -->
+            <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
           </div>
-        </div>
-        <!-- <<<<<<<<<<<<< 头部内容 -->
-        <div class="pageBodyContainer px-8" style="flex: 1;">
-          <!-- 页面主要内容 -->
-          <v-container class="fullScreen d-flex flex-column pa-0">
-            <v-card :class="{'px-2': isMobile}">
-              <v-row class="ma-0 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
-                <v-spacer></v-spacer>
-                <v-col cols="12" xs="12" sm="3" md="2" xl="2" class="px-0" :class="{'pr-2': !isMobile}">
-                  <v-select class="cus-v-input" v-model="currentTable" :items="tableList"
-                            prefix="数据表:" dense dense filled single-line></v-select>
-                </v-col>
-                <v-col cols="12" xs="6" sm="3" md="2" xl="2" class="pl-0 py-xs-0">
-                  <v-select class="cus-v-input" v-model="currentHistoryDataType" :items="historyDataTypeList"
-                            prefix="数据类型:" dense dense filled single-line></v-select>
-                </v-col>
-                <v-col cols="12" xs="6" sm="4" md="3" xl="3" class="px-0 py-xs-0">
-                  <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
-                </v-col>
-              </v-row>
-              <v-data-table :headers="headers"
-                            :items="tableDataFromBackend"
-                            :search="searchInput"
-                            :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-                            :items-per-page="20"
-                            mobile-breakpoint="0"
-                            :loading="isTableLoading"
-                            :class="{'zebraLine': showTableZebraLine }"
-                            checkbox-color="success"
-                            fixed-header
-                            class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-                <!-- 表格操作按钮 -->
-                <template v-slot:item.action="{ item }">
-                  <span role="button" class="success--text font-weight-medium font-size-2" style="white-space: nowrap" @click="doUiAction('viewRecordHistory', item)">
-                    <v-icon size="14" class="success--text">mdi-eye-outline</v-icon>查看数据版本<span v-if="item.count > 0" style="color: red">({{item.count}})</span>
-                  </span>
-                </template>
-                <!-- 操作时间 -->
-                <template v-slot:item.operationAt="{ item }">
-                  {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
-                </template>
-                <!-- 表格底部 -->
-                <template v-slot:footer.prepend>
-
-                  <v-menu top offset-y :close-on-content-click="false">
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn v-bind="attrs" v-on="on" icon>
-                        <v-icon>mdi-menu</v-icon>
-                      </v-btn>
-                    </template>
-                    <v-list>
-                      <v-list-item>
-                        <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                </template>
-                <!-- 表格分页 -->
-                <template v-slot:footer.page-text="pagination">
-                  <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
-                  <span class="ml-1">共{{ pagination.itemsLength }}条</span>
-                </template>
-              </v-data-table>
-            </v-card>
-          </v-container>
-          <!-- 数据版本抽屉 -->
-          <v-overlay app :value="isHistoryDetailDrawerShow"></v-overlay>
-          <v-navigation-drawer v-model="isHistoryDetailDrawerShow" fixed temporary right hide-overlay width="80%" class="elevation-24">
-            <v-container class="navDrawerContainer">
-              <!-- 抽屉的头部标题 -->
-              <v-row>
-                <span class="title pa-6">数据版本</span>
-              </v-row>
-              <!-- 抽屉的表格主体 >>>>>>>>>>>>> -->
-              <v-row :class="{'px-5': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
-                <v-data-table
-                    fixed-header
-                    checkbox-color="success"
-                    :headers="headers"
-                    :loading="isDrawerTableLoading"
-                    :items="recordHistoryDetailList"
-                    item-key="classId"
-                    :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-                    :class="{'zebraLine': showTableZebraLine }"
-                    :items-per-page="-1"
-                    mobile-breakpoint="0"
-                    class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column"
-                >
-                  <!-- 表格操作按钮 -->
-                  <template v-slot:item.action="{ item }">
-                    <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('restoreRecordByRecordHistory', item)">
-                    <v-icon size="14" class="success--text">mdi-history</v-icon>还原数据
-                  </span>
-                  </template>
-                  <!-- 操作时间 -->
-                  <template v-slot:item.operationAt="{ item }">
-                    {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
-                  </template>
-                  <!-- 表格底部 -->
-                  <template v-slot:footer.prepend>
-
-                    <v-menu top offset-y :close-on-content-click="false">
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-btn v-bind="attrs" v-on="on" icon>
-                          <v-icon>mdi-menu</v-icon>
-                        </v-btn>
-                      </template>
-                      <v-list>
-                        <v-list-item>
-                          <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
-                        </v-list-item>
-                      </v-list>
-                    </v-menu>
-                  </template>
-                  <!-- 表格分页 -->
-                  <template v-slot:footer.page-text="pagination">
-                    <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
-                    <span class="ml-1">共{{ pagination.itemsLength }}条</span>
-                  </template>
-                </v-data-table>
-              </v-row>
-              <!-- <<<<<<<<<<< 抽屉的表格主体 -->
-            </v-container>
-            <!-- 抽屉的关闭按钮 -->
-            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHistoryDetailDrawerShow = false">
-              <v-icon>mdi-close</v-icon>
+          <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+        </v-col>
+        <!--pc端的搜索条件表单 >>>>>>>> -->
+        <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+          <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
+            <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pr-1 pr-xs-1">
+              <v-select v-model="serverSearchInput.table" color="success" prefix="数据表：" class="jh-v-input bg-white" :items="constantObj.table" dense filled single-line></v-select>
+            </v-col>
+            <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+              <v-select v-model="serverSearchInput.dataType" color="success" prefix="数据类型：" class="jh-v-input bg-white" :items="constantObj.dataType" dense filled single-line></v-select>
+            </v-col>
+            <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">
+              查询
             </v-btn>
-          </v-navigation-drawer>
-        </div>
-        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-        <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
-          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?pageId=<$ ctx.packagePage.pageId $>`" width="100%" height="100%"></iframe>
-        </v-navigation-drawer>
-        <!-- <<<<<<<<<<< 帮助页抽屉 -->
-      </v-main>
-    </v-app>
-    <jhToast/>
-    <jhMask/>
-    <jhConfirmDialog/>
-  </div>
+          </v-row>
+        </v-col>
+        <!-- <<<<<<<< pc端的搜索条件表单 -->
+      </v-row>
+    </div>
+    <!-- <<<<<<<<<<<<< 头部内容 -->
+    <div class="jh-page-body-container px-8">
+      <!-- 页面主要内容 -->
+      <v-card :class="{'px-2': isMobile}">
+        <v-row class="justify-end ma-0 pa-4" pb-0>
+          <!--搜索过滤-->
+          <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+            <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+          </v-col>
+        </v-row>
+        <!-- 数据表格 >>>>>>>>>>>>> -->
+        <v-data-table
+          :headers="headers"
+          :items="tableData"
+          :search="searchInput"
+          :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+          :items-per-page="20"
+          mobile-breakpoint="0"
+          :loading="isTableLoading"
+          :class="{'zebraLine': isTableZebraLineShown }"
+          checkbox-color="success"
+          fixed-header
+          class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+          <!-- 表格操作按钮 -->
+          <template v-slot:item.action="{ item }">
+            <span role="button" class="success--text font-weight-medium font-size-2 text-no-wrap" @click="doUiAction('viewRecordHistory', item)">
+              <v-icon size="14" class="success--text">mdi-eye-outline</v-icon>查看数据版本<span v-if="item.count > 0" style="color: red">({{item.count}})</span>
+            </span>
+          </template>
+          <!-- 操作时间 -->
+          <template v-slot:item.operationAt="{ item }">
+            {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
+          </template>
+          <!--没有数据-->
+          <template v-slot:loading>
+            <div class="jh-no-data">数据加载中</div>
+          </template>
+          <template v-slot:no-data>
+            <div class="jh-no-data">暂无数据</div>
+          </template>
+          <template v-slot:no-results>
+            <div class="jh-no-data">暂无数据</div>
+          </template>
+          <!-- 表格分页 -->
+          <template v-slot:footer.page-text="pagination">
+            <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+            <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+          </template>
+        </v-data-table>
+        <!-- <<<<<<<<<<<<< 数据表格 -->
+      </v-card>
+
+      <v-navigation-drawer v-model="isHistoryDetailDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+        <!-- 抽屉的头部标题 -->
+        <div class="text-h7 pa-6">数据版本</div>
+        <!-- 抽屉的表格主体 >>>>>>>>>>>>> -->
+        <v-data-table
+          fixed-header
+          checkbox-color="success"
+          :headers="headers"
+          :loading="isDrawerTableLoading"
+          :items="recordHistoryDetailList"
+          item-key="classId"
+          :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+          :class="{'zebraLine': isTableZebraLineShown }"
+          :items-per-page="-1"
+          :data-bottom="-100"
+          mobile-breakpoint="0"
+          class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+        >
+          <!-- 表格操作按钮 -->
+          <template v-slot:item.action="{ item }">
+            <span role="button" class="success--text font-weight-medium font-size-2 text-no-wrap" @click="doUiAction('restoreRecordByRecordHistory', item)">
+              <v-icon size="14" class="success--text">mdi-history</v-icon>还原数据
+            </span>
+          </template>
+          <!-- 操作时间 -->
+          <template v-slot:item.operationAt="{ item }">
+            {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
+          </template>
+          <!--没有数据-->
+          <template v-slot:loading>
+            <div class="jh-no-data">数据加载中</div>
+          </template>
+          <template v-slot:no-data>
+            <div class="jh-no-data">暂无数据</div>
+          </template>
+          <template v-slot:no-results>
+            <div class="jh-no-data">暂无数据</div>
+          </template>
+          <!-- 表格分页 -->
+          <template v-slot:footer.page-text="pagination">
+            <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+            <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+          </template>
+        </v-data-table>
+        <!-- <<<<<<<<<<< 抽屉的表格主体 -->
+        <!-- 抽屉的关闭按钮 -->
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHistoryDetailDrawerShow = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+    </div>
+    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#1.recordHistoryManagement.md`" width="100%" height="100%"></iframe>
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<< 帮助页抽屉 -->
+  </v-main>
+</v-app>
+<jh-toast />
+<jh-mask />
+<jh-confirm-dialog />
+</div>
 </script>
 
 <div id="app">
@@ -162,7 +158,7 @@
 
 {% block vueScript %}
 
-{% include 'common/fixedTableHeightV4.html' %}
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 
 <script type="module">
 new Vue({
@@ -170,28 +166,39 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: {
-    breadcrumbs: window.breadcrumbs,
-    isHelpPageDrawerShow: false,
+
+    breadcrumbs: [
+      {text: '首页', disabled: true,},
+      {text: '用户管理', disabled: true,}
+    ],
+    isHelpPageDrawerShown: false,
     // 页面变量
-    isMobile: window.innerWidth < 600,
-    showTableZebraLine: true,
-    tab: null,
+    isMobile: window.innerWidth < 500,
+    isTableZebraLineShown: true,
     // 表格相关数据
-    isFormValid: true,
-    requireRules: [v => !!v || 'This is required'],
+    validationRules: {
+      requireRules: [
+        v => !!v || 'This is required',
+      ],
+    },
     // 可操作数据表
-    tableList: [
-      {"value": "_user", "text": "_user"},
-    ],
-    currentTable: '_user',
-    historyDataTypeList: [
-      {"value": "onUse", "text": "使用中的数据"},
-      {"value": "deleted", "text": "已删除的数据"},
-    ],
-    currentHistoryDataType: 'onUse',
+    constantObj: {
+      table: ["_user"],
+      dataType: [
+        {"value": "onUse", "text": "使用中的数据"},
+        {"value": "deleted", "text": "已删除的数据"},
+      ],
+    },
+    serverSearchInput: {
+      table: '_user',
+      dataType: 'onUse'
+    },
+    recordHistoryActionId: null,
+    currentTable: null,
+
     searchInput: null,
     isTableLoading: false,
-    tableDataFromBackend: [],
+    tableData: [],
     defaultHeaders: [
       {text: "数据ID", value: "id", width: 120},
       {text: "操作类型", value: "operation", width: 120},
@@ -200,20 +207,14 @@ new Vue({
     ],
     headers: [],
     // 历史数据详情相关变量
+    currentRecordId: null,
     isDrawerTableLoading: true,
     isHistoryDetailDrawerShow: false,
+    recordHistoryDetailListBackend: [],
     recordHistoryDetailList: [],
+    restoreId: null
   },
-  watch: {
-    // 数据表切换响应
-    currentTable() {
-      this.doUiAction('getTableData')
-    },
-    // 数据类型切换响应
-    currentHistoryDataType() {
-      this.doUiAction('getTableData')
-    }
-  },
+  watch: {},
   async created() {
     this.doUiAction('getTableData')
   },
@@ -221,71 +222,64 @@ new Vue({
     async doUiAction(uiActionId, uiActionData) {
       switch (uiActionId) {
         case 'getTableData':
-          await this.openTableLoading(uiActionData);
-          await this.getTableData(uiActionData);
-          await this.computeHeader(uiActionData);
-          await this.closeTableLoading(uiActionData);
+          await this.prepareGetTableData();
+          await this.getTableData();
+          await this.computeHeader();
           break;
         case 'viewRecordHistory':
-          await this.openDrawer(uiActionData);
-          await this.getRecordHistoryDetail(uiActionData);
+          await this.prepareRecordHistoryItem(uiActionData);
+          await this.openRecordHistoryDetailDrawer();
+          await this.doGetRecordHistoryDetail();
+          await this.decodeRecordHistoryDetail();
           break;
         case 'restoreRecordByRecordHistory':
-          await this.doRestoreRecordByRecordHistory(uiActionData);
-          await this.getRecordHistoryDetail(uiActionData);
-          await this.getTableData(uiActionData);
+          await this.prepareRestoreItem(uiActionData);
+          await this.doRestoreRecordByRecordHistory();
+          await this.doGetRecordHistoryDetail();
+          await this.decodeRecordHistoryDetail();
+
+          await this.prepareGetTableData();
+          await this.getTableData();
+          await this.computeHeader();
           break;
         default:
           console.error("[doUiAction] uiActionId not find", {uiActionId});
           break;
       }
     },
-    /**
-     * description: ✅表格数据加载中
-     */
+    //   --------------- 获取数据 uiAction >>>>>>>>>>  ---------------
     async openTableLoading() {
-      this.isTableLoading = true;
     },
-
-    /**
-     * description: ✅获取表格数据
-     */
+    async prepareGetTableData() {
+      const backendSearchData = _.pickBy(this.serverSearchInput, value => !!value && value !== '全部');
+      if (backendSearchData.dataType === 'onUse') {
+        this.recordHistoryActionId = 'selectOnUseItemListByTable';
+      }
+      if (backendSearchData.dataType === 'deleted') {
+        this.recordHistoryActionId = 'selectDeletedItemListByTable';
+      }
+      this.currentTable = backendSearchData.table;
+    },
     async getTableData() {
-      let actionId;
-      if (this.currentHistoryDataType === 'onUse') {
-        actionId = 'selectOnUseItemListByTable';
-      }
-      if (this.currentHistoryDataType === 'deleted') {
-        actionId = 'selectDeletedItemListByTable';
-      }
+      this.isTableLoading = true;
       const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'recordHistoryManagement',
-            actionId: actionId,
+            actionId: this.recordHistoryActionId,
             actionData: {
               table: this.currentTable
             }
           }
         }
       });
-      this.tableDataFromBackend = result.data.appData.resultData.rows;
-    },
-
-    /**
-     * description: ✅关闭table的loading
-     */
-    async closeTableLoading() {
+      this.tableData = result.data.appData.resultData.rows;
       this.isTableLoading = false;
     },
-
-    /**
-     * description: ✅根据数据字段自动组装表格字段
-     */
     computeHeader() {
-      if (this.tableDataFromBackend.length > 0) {
+      if (this.tableData.length > 0) {
         const headers = this.defaultHeaders.slice();
-        const recordData = this.tableDataFromBackend[0];
+        const recordData = this.tableData[0];
         for (const key in recordData) {
           if (['id', 'count', 'recordHistoryId', 'operation', 'operationByUserId', 'operationByUser', 'operationAt'].indexOf(key) > -1) {
             continue;
@@ -296,36 +290,36 @@ new Vue({
         this.headers = headers;
       }
     },
-
-    /**
-     * description: ✅打开数据历史详情抽屉
-     */
-    async openDrawer() {
+    //   --------------- <<<<<<<<<< 获取数据 uiAction  ---------------
+    //   --------------- 查看详情 uiAction >>>>>>>>>>  ---------------
+    async prepareRecordHistoryItem(funObj) {
+      this.recordHistoryDetailListBackend = [];
+      this.recordHistoryDetailList = [];
+      this.currentRecordId = funObj.id;
+    },
+    async openRecordHistoryDetailDrawer() {
       this.isHistoryDetailDrawerShow = true;
     },
 
-    /**
-     * description: ✅获取历史数据详情
-     */
-    async getRecordHistoryDetail(item) {
-      const {id} = item;
-      this.recordHistoryDetailList = [];
+    async doGetRecordHistoryDetail() {
       this.isDrawerTableLoading = true;
-      const result = await window.jianghuAxios({
+      this.recordHistoryDetailListBackend = (await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'recordHistoryManagement',
             actionId: 'selectItemList',
             where: {
-              recordId: id,
+              recordId: this.currentRecordId,
               table: this.currentTable
             },
             orderBy: [{column: 'id', order: 'desc'}]
           }
         }
-      });
+      })).data.appData.resultData.rows;
+    },
+    async decodeRecordHistoryDetail() {
       // 数据的格式转换
-      const rows = result.data.appData.resultData.rows.map(row => {
+      const rows = this.recordHistoryDetailListBackend.map(row => {
         const {recordContent, id: recordHistoryId} = row;
         let record = {};
         try {
@@ -339,30 +333,39 @@ new Vue({
       this.recordHistoryDetailList = rows;
       this.isDrawerTableLoading = false;
     },
-
-
-    /**
-     * description: ✅还原历史数据
-     */
-    async doRestoreRecordByRecordHistory(item) {
-      const {recordHistoryId, id} = item;
-      window.vtoast.loading(`${this.currentTable}【${id}】数据还原`);
+    //   --------------- <<<<<<<<<< 查看详情 uiAction  ---------------
+    //   --------------- 还原数据 uiAction >>>>>>>>>>  ---------------
+    async prepareRestoreItem(funObj) {
+      this.restoreId = funObj.recordHistoryId;
+    },
+    async doRestoreRecordByRecordHistory() {
+      window.vtoast.loading(`${this.currentTable}【${this.restoreId}】数据还原`);
       await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'recordHistoryManagement',
             actionId: 'restoreRecordByRecordHistory',
             actionData: {
-              recordHistoryId
+              recordHistoryId: this.restoreId
             }
           }
         }
       });
-      window.vtoast.success(`${this.currentTable}【${id}】数据还原成功`);
+      window.vtoast.success(`${this.currentTable}【${this.restoreId}】数据还原成功`);
+      this.restoreId = null;
     },
+    //   --------------- <<<<<<<<<< 还原数据 uiAction  ---------------
     dayjs: dayjs,
   }
 })
 </script>
+<style>
+.v-application .pr-xs-0 {
+  padding-right: 0 !important;
+}
 
+.v-application .pt-xs-2 {
+  padding-top: 8px !important;
+}
+</style>
 {% endblock %}

@@ -1,183 +1,179 @@
-
 <template id="contacts-of-student">
+  <!-- 页面主要内容 -->
+    <div style="min-width: 100%;">
+      <v-card class="mt-5">
+      <v-row class="ma-0 pa-3 pb-0">
+        <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增联系人</v-btn>
+        <v-spacer></v-spacer>
+        <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+          <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+        </v-col>
+      </v-row>
+        <!-- 数据表格 >>>>>>>>>>>>> -->
+      <v-data-table
+        :headers="headers"
+        :search="searchInput"
+        :items="tableData"
+        :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+        :items-per-page="20"
+        mobile-breakpoint="0"
+        :loading="isTableLoading"
+        checkbox-color="success"
+        fixed-header
+        data-bottom="90"
 
-<!-- 页面主要内容 -->
-<v-container class="d-flex flex-column pa-xs-0 pa-0">
-  <v-card>
-  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+        class="jh-fixed-table-height zebraLine elevation-0 mt-0 mb-xs-4">
+        <template v-slot:item.action="{ item }">
+          <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateItem', item)">
+            <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+          </span>
+          <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+            <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+          </span>
+        </template>
+        <!--没有数据-->
+        <template v-slot:loading>
+          <div class="jh-no-data">数据加载中</div>
+        </template>
+        <template v-slot:no-data>
+          <div class="jh-no-data">暂无数据</div>
+        </template>
+        <template v-slot:no-results>
+          <div class="jh-no-data">暂无数据</div>
+        </template>
+        <!-- 表格分页 -->
+        <template v-slot:footer.page-text="pagination">
+          <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+          <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+        </template>
+      </v-data-table>
+        <!-- <<<<<<<<<<<<< 数据表格 -->
+    </v-card>
+      <!-- 新增 -->
+    <v-dialog v-model="isCreateDrawerShown" width="360">
+      <v-card>
+        <v-card-title>
+          <v-row class="ma-0">
+            <div>新增信息</div>
+            <v-spacer></v-spacer>
+            <v-btn class="elevation-0" fab x-small @click="isCreateDrawerShown = false">
+              <v-icon dark>mdi-close</v-icon>
+            </v-btn>
+          </v-row>
+        </v-card-title>
+        <v-card-text>
+          <v-form ref="createForm" lazy-validation>
+          <span class="jh-input-label">联系人名字</span>
+          <v-text-field class="jh-v-input mb-2" dense filled single-line v-model="createItem['contactName']" :rules="validationRules.requireRules"></v-text-field>
+          <span class="jh-input-label">联系人角色</span>
+          <v-text-field class="jh-v-input mb-2" dense filled single-line v-model="createItem['contactRole']"></v-text-field>
+          <span class="jh-input-label">联系人电话</span>
+          <v-text-field class="jh-v-input mb-2" dense filled single-line v-model="createItem['contactNumber']" :rules="validationRules.requireRules"></v-text-field>
+          <span class="jh-input-label">备注</span>
+          <v-text-field class="jh-v-input" dense filled single-line v-model="createItem['remarks']"></v-text-field>
+        </v-form>
+        </v-card-text>
+        <v-card-action>
+          <v-row class="justify-end ma-0 pb-6 px-6">
+            <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+            <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+          </v-row>
+        </v-card-action>
+      </v-card>
+    </v-dialog>
 
-      <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
-        <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem')">新增联系人</v-btn>
-        <span class="body-2">共{{ tableData.length }}条记录</span>
-      </v-col>
-
-      <v-spacer></v-spacer>
-
-      <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-        <v-text-field v-model="searchInput" class="cus-v-input" dense filled single-line></v-text-field>
-      </v-col>
-    </v-row>
-    <v-data-table fixed-header
-                  :headers="headers"
-                  :items="tableData"
-                  :search="searchInput"
-                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
-                  :items-per-page="20"
-                  mobile-breakpoint="0"
-                  :loading="isTableLoading"
-                  checkbox-color="success"
-                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-      <template v-slot:item.action="{ item }">
-        <v-btn small class=" success" @click="doUiAction('startUpdateItem', item)">修改</v-btn>
-        <v-btn small class=" error" @click="doUiAction('deleteItem', item)">删除</v-btn>
-      </template>
-    </v-data-table>
-  </v-card>
-
-
-<!-- 新增 -->
-<v-navigation-drawer v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%" class="elevation-24">
-  <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
-    <v-row class="pt-8">
-      <span class="title pa-6">新增信息</span>
-      <v-spacer></v-spacer>
-      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isAddDrawerShow = false">
-        <v-icon dark>mdi-close</v-icon>
-      </v-btn>
-    </v-row>
-    <v-row class="px-10">
-
-      <!-- <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">学生ID</span>
-        <v-text-field class="cus-v-input" dense filled single-line v-model="addItem['studentId']"></v-text-field>
-      </v-col> -->
-
-      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">联系人名字</span>
-        <v-text-field class="cus-v-input" dense filled single-line v-model="addItem['contactName']"></v-text-field>
-      </v-col>
-
-      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">联系人角色</span>
-        <v-text-field class="cus-v-input" dense filled single-line v-model="addItem['contactRole']"></v-text-field>
-      </v-col>
-
-      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">联系人电话</span>
-        <v-text-field class="cus-v-input" dense filled single-line v-model="addItem['contactNumber']"></v-text-field>
-      </v-col>
-
-      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">备注</span>
-        <v-text-field class="cus-v-input" dense filled single-line v-model="addItem['remarks']"></v-text-field>
-      </v-col>
-
-    </v-row>
-    <v-row class="justify-end pr-6">
-      <v-btn color="success" @click="doUiAction('createItem')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">新增</v-btn>
-      <v-btn class="ml-2" @click="isAddDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
-    </v-row>
-  </v-form>
-</v-navigation-drawer>
-
-
-<!-- 编辑抽屉 -->
-<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" class="elevation-24">
-  <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
-    <v-row class="pt-8">
-      <span class="title pa-6">编辑信息</span>
-      <v-spacer></v-spacer>
-      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
-        <v-icon dark>mdi-close</v-icon>
-      </v-btn>
-    </v-row>
-    <v-row class="px-10">
-
-      <!-- <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">学生ID</span>
-        <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['studentId']"></v-text-field>
-      </v-col> -->
-
-      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">联系人名字</span>
-        <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['contactName']"></v-text-field>
-      </v-col>
-
-      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">联系人角色</span>
-        <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['contactRole']"></v-text-field>
-      </v-col>
-
-      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">联系人电话</span>
-        <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['contactNumber']"></v-text-field>
-      </v-col>
-
-      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">备注</span>
-        <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['remarks']"></v-text-field>
-      </v-col>
-    </v-row>
-    <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
-      <v-btn color="success" @click="doUiAction('updateItem')">保存</v-btn>
-      <v-btn class="ml-2" @click="isEditDrawerShow = false">取消</v-btn>
-    </v-row>
-  </v-form>
-</v-navigation-drawer>
-
-</v-container>
+    <v-dialog v-model="isUpdateDrawerShown" width="360">
+      <v-card>
+        <v-card-title>
+          <v-row class="ma-0">
+            <div>编辑信息</div>
+            <v-spacer></v-spacer>
+            <v-btn class="elevation-0" fab x-small @click="isUpdateDrawerShown = false">
+              <v-icon dark>mdi-close</v-icon>
+            </v-btn>
+          </v-row>
+        </v-card-title>
+        <v-card-text>
+          <v-form ref="updateForm" lazy-validation>
+            <span class="jh-input-label">联系人名字</span>
+            <v-text-field class="jh-v-input mb-2" dense filled single-line v-model="updateItem['contactName']" :rules="validationRules.requireRules"></v-text-field>
+            <span class="jh-input-label">联系人角色</span>
+            <v-text-field class="jh-v-input mb-2" dense filled single-line v-model="updateItem['contactRole']"></v-text-field>
+            <span class="jh-input-label">联系人电话</span>
+            <v-text-field class="jh-v-input mb-2" dense filled single-line v-model="updateItem['contactNumber']" :rules="validationRules.requireRules"></v-text-field>
+            <span class="jh-input-label">备注</span>
+            <v-text-field class="jh-v-input" dense filled single-line v-model="updateItem['remarks']"></v-text-field>
+          </v-form>
+        </v-card-text>
+        <v-card-action>
+          <v-row class="justify-end ma-0 pb-6 px-6">
+            <v-spacer></v-spacer>
+            <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+            <v-btn class="ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+          </v-row>
+        </v-card-action>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script type="module">
-Vue.component("contacts-of-student",{
+Vue.component("contacts-of-student", {
   template: '#contacts-of-student',
   props: ['studentId'],
   data: () => ({
     // 表格相关数据
-    isFormValid: true,
-    requireRules: [
-      v => !!v || 'This is required',
-    ],
-    constantCollection: {
-    },
-
-    serverSearchInput: {
-      studentId: null,
-      classId: null
+    validationRules: {
+      requireRules: [
+        v => !!v || 'This is required',
+      ]
     },
     searchInput: null,
     isTableLoading: true,
-    tableDataFromBackend: [],
+    tableData: [],
     headers: [
-      {text: "ID", value: "id", width: 120, class: 'fixed', cellClass: 'fixed'},
-
-      {text: "学生ID", value: "studentId", width: 120},
-      {text: "联系人名字", value: "contactName", width: 120},
-      {text: "联系人角色", value: "contactRole", width: 120},
-      {text: "联系人电话", value: "contactNumber", width: 120},
-      {text: "备注", value: "remarks", width: 120},
-      {text: "操作者", value: "operationByUser", width: 120},
-      {text: "操作时间", value: "operationAt", width: 250},
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
+      {text: "ID", value: "id", width: 80, class: 'fixed', cellClass: 'fixed'},
+      {text: "学生ID", value: "studentId"},
+      {text: "联系人名字", value: "contactName"},
+      {text: "联系人角色", value: "contactRole"},
+      {text: "联系人电话", value: "contactNumber"},
+      {text: "备注", value: "remarks"},
+      {text: "操作者", value: "operationByUser"},
+      {text: "操作时间", value: "operationAt"},
     ],
-    isEditDrawerShow: false,
-    editItem: {},
-    isAddDrawerShow: false,
-    addItem: {}
+    // 新增数据
+    isCreateDrawerShown: false,
+    createItem: {},
+    createActionData: {},
+    // 编辑数据
+    isUpdateDrawerShown: false,
+    updateItem: {},
+    updateItemId: null,
+    updateActionData: {},
+    // 删除数据
+    deleteItemId: null,
   }),
   computed: {
     isMobile() {
       return window.innerWidth < 600;
     },
     tableData() {
-      return this.tableDataFromBackend;
+      return this.tableData;
     }
   },
-  watch: {},
-  async created() {
-    await this.doUiAction('getTableData');
+  watch: {
+    studentId(value, oValue) {
+      this.tableData = [];
+      if(value && value !== oValue) {
+        this.doUiAction('getTableData');
+      }
+    }
   },
-  mounted() {},
+  async created() {
+  },
+  mounted() {
+  },
   methods: {
     async doUiAction(uiActionId, uiActionData) {
       switch (uiActionId) {
@@ -185,44 +181,42 @@ Vue.component("contacts-of-student",{
           await this.getTableData();
           break;
         case 'startCreateItem':
-          await this.clearItemData();
+          await this.prepareCreateItem();
           await this.openCreateItemDialog();
           break;
         case 'createItem':
+          await this.prepareCreateValidate();
           await this.confirmCreateItemDialog();
+          await this.prepareDoCreateItem();
           await this.doCreateItem();
-          await this.closeDrawerShow();
+          await this.closeCreateDrawer();
           await this.getTableData();
           break;
         case 'startUpdateItem':
-          await this.prepareFormData(uiActionData);
-          await this.openUpdateDialog();
+          await this.prepareUpdateData(uiActionData);
+          await this.openUpdateItemDialog();
           break;
         case 'updateItem':
+          await this.prepareUpdateValidate();
           await this.confirmUpdateItemDialog();
+          await this.prepareDoUpdateItem();
           await this.doUpdateItem();
-          await this.closeDrawerShow();
+          await this.closeUpdateDrawer();
           await this.getTableData();
           break;
         case 'deleteItem':
+          await this.prepareDeleteItem(uiActionData);
           await this.confirmDeleteItemDialog();
-          await this.doDeleteItem(uiActionData);
+          await this.doDeleteItem();
           await this.getTableData();
           break;
         default:
-          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
           break;
       }
     },
-    // =================================uiAction 公共方法 start ======================================
-
-    /**
-     * uiActionId:  getTableData
-     * description: ✅获取表格数据
-    */
     async getTableData() {
       this.isTableLoading = true;
-      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
       const result = await window.jianghuAxios({
         data: {
           appData: {
@@ -230,105 +224,112 @@ Vue.component("contacts-of-student",{
             actionId: 'selectItemList',
             actionData: {},
             where: {studentId: this.studentId},
-            whereLike: serverSearchInput,
             orderBy: [{column: 'operationAt', order: 'desc'}]
           }
         }
       });
 
-      this.tableDataFromBackend = result.data.appData.resultData.rows;
+      this.tableData = result.data.appData.resultData.rows;
       this.isTableLoading = false;
     },
-    // =================================uiAction 公共方法 end ======================================
-
-
-    /**
-     * uiActionId:  startCreateItem
-     * description: ✅获取表格数据
-    */
-    async clearItemData() {
-      this.addItem = {
-        studentId:this.studentId
+    // ---------------新增数据 uiAction >>>>>>>>>>>>>>>> ---------------
+    async prepareCreateItem() {
+      this.createItem = {
+        studentId: this.studentId
       };
     },
     async openCreateItemDialog() {
-      this.isAddDrawerShow = true;
+      this.isCreateDrawerShown = true;
     },
-
-    /**
-     * uiActionId:  createItem
-     * description: ✅获取表格数据
-    */
+    async prepareCreateValidate() {
+      if (await this.$refs.createForm.validate() === false) {
+        throw new Error("[prepareCreateValidate] false");
+      }
+    },
     async confirmCreateItemDialog() {
       if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
         throw new Error("取消");
       }
     },
+    async prepareDoCreateItem() {
+      const {id, ...data} = this.createItem;
+      this.createActionData = data;
+      console.log(this.createActionData)
+    },
+
     async doCreateItem() {
-      const { id, ...data } = this.addItem;
       await window.vtoast.loading("新增数据");
       await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'studentcontactManagement',
             actionId: 'insertItem',
-            actionData: data
+            actionData: this.createActionData
           }
         }
       })
       await window.vtoast.success("新增数据成功");
     },
-    async closeDrawerShow() {
-      this.isEditDrawerShow = false;
-      this.isAddDrawerShow = false;
+    async closeCreateDrawer() {
+      this.createItem = {};
+      this.createActionData = null;
+      this.isCreateDrawerShown = false;
     },
-
-    /**
-     * uiActionId:  startUpdateItem
-     * description: ✅获取表格数据
-    */
-    async prepareFormData(item) {
-      this.editItem = {...item};
+    // --------------- <<<<<<<<<<<<<<新增数据 uiAction -------------------
+    // ---------------修改数据 uiAction >>>>>>>>>>>>>>>> ---------------
+    async prepareUpdateData(funObj) {
+      this.updateItem = _.cloneDeep(funObj);
     },
-    async openUpdateDialog() {
-      this.isEditDrawerShow = true;
+    async openUpdateItemDialog() {
+      this.isUpdateDrawerShown = true;
     },
-    /**
-     * uiActionId:  updateItem
-     * description: ✅获取表格数据
-    */
+    async prepareUpdateValidate() {
+      if (await this.$refs.updateForm.validate() === false) {
+        throw new Error("[prepareUpdateValidate] false");
+      }
+    },
     async confirmUpdateItemDialog() {
       if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
         throw new Error("取消");
       }
     },
+    async prepareDoUpdateItem() {
+      const {id, ...data} = this.updateItem;
+      this.updateItemId = id;
+      this.updateActionData = {studentId: this.studentId, ...data};
+    },
     async doUpdateItem() {
-      const { id, ...data } = this.editItem;
+      console.log(this.studentId)
       await window.vtoast.loading("修改数据");
       await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'studentcontactManagement',
             actionId: 'updateItem',
-            actionData: data,
-            where: {id}
+            actionData: this.updateActionData,
+            where: {id: this.updateItemId}
           }
         }
       })
       await window.vtoast.success("修改数据成功");
     },
-
-    /**
-     * uiActionId:  deleteItem
-     * description: ✅获取表格数据
-    */
+    async closeUpdateDrawer() {
+      this.updateItem = {};
+      this.updateItemId = null;
+      this.updateActionData = null;
+      this.isUpdateDrawerShown = false;
+    },
+    // --------------- <<<<<<<<<<<<<< 修改数据 uiAction -------------------
+    // --------------- 删除数据 uiAction >>>>>>>>>>>>>>>> ---------------
+    async prepareDeleteItem(funObj) {
+      this.deleteItemId = funObj.id;
+    },
     async confirmDeleteItemDialog() {
       if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
         throw new Error("取消");
       }
     },
-    async doDeleteItem(item) {
-      const { id } = item;
+    async doDeleteItem() {
       await window.vtoast.loading("删除数据");
       await window.jianghuAxios({
         data: {
@@ -336,12 +337,14 @@ Vue.component("contacts-of-student",{
             pageId: 'studentcontactManagement',
             actionId: 'deleteItem',
             actionData: {},
-            where: { id: id }
+            where: {id: this.deleteItemId}
           }
         }
       });
       await window.vtoast.success("删除数据成功");
+      this.deleteItemId = null;
     },
+    // --------------- <<<<<<<<<<<<<< 删除数据 uiAction -------------------
   }
 })
 </script>

@@ -3,135 +3,181 @@
 {% block vueTemplate %}
 
 <script type="text/html" id="app-template">
-  <div>
-    <v-app id="inspire" mobile-breakpoint="sm">
-      <jhMenu />
-      <v-main class="d-flex flex-column" style="margin-top: 60px">
-        <!-- 头部内容 >>>>>>>>>>>>> -->
-        <div class="d-flex" :style="{'flex-wrap': isMobile ? 'wrap' : 'nowrap'}" :class="{'px-8': !isMobile, 'px-4': isMobile}"><div>
-            <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
-              <!-- 帮助页按钮 -->
-              <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
-            </div>
-            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
-          </div>
+<div>
+  <v-app mobile-breakpoint="sm">
+    <jh-menu />
+    <v-main class="mt-15">
+      <!-- 头部内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-second-bar px-8">
+        <div class="pt-3 text-h7 font-weight-bold">数据同步表管理
+          <!-- 帮助页按钮 -->
+          <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
         </div>
-        <!-- <<<<<<<<<<<<< 头部内容 -->
+        <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+      </div>
+      <!-- <<<<<<<<<<<<< 头部内容 -->
 
-        <div class="pageBodyContainer px-8" style="flex: 1;">
-          <!-- 页面内容 >>>>>>>>>>>>> -->
-          <v-card :class="{'px-2': isMobile}">
-            <v-row class="ma-0  align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
-              <v-col cols="12" xs="12" sm="6" md="6" xl="6" class="pl-0">
-                <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)" small>新增同步表</v-btn>
-                <v-btn color="primary" dark class="elevation-0 mr-2" @click="doUiAction('manualSyncAll', null)" small>全部-手动同步</v-btn>
-                <template v-if="isMobile"><br></template>
-                <span class="body-2"><v-chip class="ma-2" color="default">定时同步: {{ dataSyncStatus }}</v-chip></span>
-              </v-col>
+      <div class="jh-page-body-container px-8">
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <v-card class="rounded-lg">
+          <v-row class="ma-0 pa-4 align-center">
+            <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)" small>新增同步表</v-btn>
+            <v-btn color="primary" dark class="elevation-0 mr-2" @click="doUiAction('manualSyncAll', null)" small>全部-手动同步</v-btn>
+            <v-chip small color="default">定时同步: {{ dataSyncStatus }}</v-chip>
+            <v-spacer></v-spacer>
+            <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0 pt-xs-2">
+              <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+          <v-data-table
+            :headers="headers"
+            :items="tableData"
+            :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+            :items-per-page="-1"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            :class="{'zebraLine': isTableZebraLineShown }"
+            checkbox-color="success"
+            fixed-header
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <template v-slot:item.action="{ item }">
+              <span
+                role="button" class="success--text font-weight-medium font-size-2"
+                @click="doUiAction('startUpdateItem', item)">
+                <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+              </span>
+              <span
+                role="button" class="success--text font-weight-medium font-size-2"
+                @click="doUiAction('deleteItem', item)">
+                <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+              </span>
+              <span
+                role="button" class="success--text font-weight-medium font-size-2"
+                @click="doUiAction('manualSyncOneTable', item)">
+                <v-icon size="14" class="success--text">mdi-sync</v-icon>同步
+              </span>
+            </template>
+            <!--没有数据-->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <!--表格分页-->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+              <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            </template>
+            <template v-slot:item.operationAt="{ item }">
+              {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
+            </template>
+            <template v-slot:item.lastSyncTime="{ item }">
+              {{ item.lastSyncTime && dayjs(item.lastSyncTime).format('YYYY-MM-DD HH:mm:ss') }}
+            </template>
 
-              <v-spacer></v-spacer>
+          </v-data-table>
+        </v-card>
 
-              <v-col cols="12" xs="12" sm="6" md="3" xl="3" class="px-0">
-                <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
-              </v-col>
-
+        <!-- 新增抽屉 -->
+        <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="createForm" lazy-validation>
+            <!--抽屉标题-->
+            <v-row>
+              <span class="title pa-6 pl-8">添加信息</span>
             </v-row>
-            <v-data-table 
-                  fixed-header
-                  :headers="headers"
-                  :items="tableData"
-                  :search="searchInput"
-                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-                  :items-per-page="20"
-                  mobile-breakpoint="0"
-                  :loading="isTableLoading"
-                  checkbox-color="success" 
-                  :class="{'zebraLine': showTableZebraLine }"
-                  class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-                <template v-slot:footer.prepend>
-                  <span class="ml-2 table-search-hint-text">共{{ tableData.length }}条记录</span>
-                  <v-menu top offset-y :close-on-content-click="false">
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn v-bind="attrs" v-on="on" icon>
-                        <v-icon>mdi-menu</v-icon>
-                      </v-btn>
-                    </template>
-                    <v-list>
-                      <v-list-item>
-                        <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                </template>
-                <template v-slot:footer.page-text="pagination">
-                  <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-                  <span class="ml-1">共{{pagination.itemsLength}}条</span>
-                </template>
-                <template v-slot:item.operationAt="{ item }">
-                  {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
-                </template>
-                <template v-slot:item.lastSyncTime="{ item }">
-                  {{ item.lastSyncTime && dayjs(item.lastSyncTime).format('YYYY-MM-DD HH:mm:ss') }}
-                </template>
-                <template v-slot:item.action="{ item }">
-                  <v-btn v-for="tableButton of tableButtonList" :color="tableButton.color" outlined x-small class="elevation-0 mr-2" @click="doUiAction(tableButton.action, {item, button: tableButton})">{{ tableButton.text }}</v-btn>
-                </template>
-              </v-data-table>
-          </v-card>
-
-          <!-- 编辑抽屉 -->
-          <v-navigation-drawer v-model="isEditDrawerShow" fixed temporary right width="80%"
-                              class="elevation-24">
-            <v-form v-model="isFormValid" ref="form" lazy-validation  v-if="isEditDrawerShow">
-              <!--抽屉标题-->
-              <v-row>
-                <span class="title pa-6" :class="{'pl-8': !isMobile, 'pl-6': isMobile}">编辑信息</span>
-              </v-row>
-              <!--抽屉表单-->
-              <v-row class="mt-0" :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
-                <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-                <span class="inputLabel">数据库</span>
-                  <v-select class="cus-v-input mr-2" dense filled single-line clearable label="数据库" :rules="requireRules" v-model="editItem.sourceDatabase" :items="constantCollection.sourceDatabase"></v-select>
-                </v-col>
-                <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-                <span class="inputLabel">表格</span>
-                  <v-select class="cus-v-input mr-2" dense filled single-line clearable label="表格" :rules="requireRules" v-model="editItem.sourceTable" :items="constantCollection.sourceTable"></v-select>
-                </v-col>
-                <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-                <span class="inputLabel">同步间隔（分）</span>
-                  <v-text-field class="cus-v-input mr-2" dense filled single-line label="同步间隔（分）" type="number" :rules="numberRules" v-model="editItem.syncTimeSlot"></v-text-field>
-                </v-col>
-              </v-row>
-              <!--抽屉操作按钮-->
-              <v-row class="mx-0 justify-end mt-4" :class="{'px-4': isMobile, 'px-6': !isMobile, 'mb-8': isMobile}">
-                <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)" small>保存</v-btn>
-                <v-btn class="elevation-0 mr-2 ml-2" @click="isEditDrawerShow = false" small>取消</v-btn>
-              </v-row>
-            </v-form>
-            <!--抽屉关闭按钮-->
-            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isEditDrawerShow = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-navigation-drawer>
-          <!-- <<<<<<<<<<<<< 页面内容 -->
-        </div>
-
-        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-        <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" class="elevation-24">
-          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?markdownPath#1.tableSyncConfig.md`" width="100%" height="100%"></iframe>
-          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShow = false">
+            <!--抽屉表单主体-->
+            <v-row class="mt-0 px-6">
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">数据库</span>
+                <v-select
+                  class="jh-v-input" dense filled single-line clearable label="数据库" :rules="validationRules.requireRules" v-model="createItem.sourceDatabase"
+                  :items="constantObj.sourceDatabase"></v-select>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">表格</span>
+                <v-select
+                  class="jh-v-input" dense filled single-line clearable label="表格" :rules="validationRules.requireRules" v-model="createItem.sourceTable"
+                  :items="constantObj.sourceTable"></v-select>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">同步间隔（分）</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="同步间隔（分）" type="number" :rules="validationRules.numberRules" v-model="createItem.syncTimeSlot"></v-text-field>
+              </v-col>
+            </v-row>
+            <!--抽屉操作按钮-->
+            <v-row class="justify-end mx-0 mt-8 px-6">
+              <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+              <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+          </v-form>
+          <!--抽屉关闭按钮-->
+          <v-btn
+            elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-navigation-drawer>
-        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+        <!-- 编辑抽屉 -->
+        <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="updateForm" lazy-validation>
+            <!--抽屉标题-->
+            <v-row>
+              <span class="title pa-6 pl-8">编辑信息</span>
+            </v-row>
+            <!--抽屉表单主体-->
+            <v-row class="mt-0 px-6">
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">数据库</span>
+                <v-select
+                  class="jh-v-input" dense filled single-line clearable label="数据库" :rules="validationRules.requireRules" v-model="updateItem.sourceDatabase"
+                  :items="constantObj.sourceDatabase"></v-select>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">表格</span>
+                <v-select
+                  class="jh-v-input" dense filled single-line clearable label="表格" :rules="validationRules.requireRules" v-model="updateItem.sourceTable"
+                  :items="constantObj.sourceTable"></v-select>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">同步间隔（分）</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="同步间隔（分）" type="number" :rules="validationRules.numberRules" v-model="updateItem.syncTimeSlot"></v-text-field>
+              </v-col>
+            </v-row>
+            <!--抽屉操作按钮-->
+            <v-row class="justify-end mx-0 mt-8 px-6">
+              <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+              <v-btn class="ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+          </v-form>
+          <!--抽屉关闭按钮-->
+          <v-btn
+            elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 页面内容 -->
+      </div>
 
-      </v-main>
-    </v-app>
+      <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+        <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?markdownPath#1.tableSyncConfig.md`" width="100%" height="100%"></iframe>
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
 
-    <jhToast />
-    <jhMask />
-    <jhConfirmDialog />
-  </div>
+    </v-main>
+  </v-app>
+
+  <jh-toast />
+  <jh-mask />
+  <jh-confirm-dialog />
+</div>
 </script>
 
 <div id="app">
@@ -142,324 +188,372 @@
 
 {% block vueScript %}
 
-<script type="module">
-  new Vue({
-    el: '#app',
-    template: '#app-template',
-    vuetify: new Vuetify(),
-    data: {
-      showTableZebraLine: true,
-      isMobile: window.innerWidth < 600,
-      // 表格相关数据
-      isFormValid: true,
-      dataSyncStatus: "<$ ctx.app.config.dataSyncStatus $>",
-      requireRules: [ v => !!v || 'This is required' ],
-      numberRules: [ v => !_.isEmpty(_.trim(v)) && !isNaN(v) || 'This is number'],
-      constantCollection: {
-        sourceDatabase: [],
-        sourceTable: []
-      },
-      isEditDrawerShow: false,
-      searchInput: null,
-      isTableLoading: true,
-      tableData: [],
-      headers: [
-        {text: '操作', value: 'action', align: 'center', sortable: false, width: 250, class: 'fixed', cellClass: 'fixed'},
-        {text: "数据库", value: "sourceDatabase", width: 140},
-        {text: "表格", value: "sourceTable", width: 140},
-        {text: "同步间隔/同步检查间隔（分）", value: "syncTimeSlot", width: 140},
-        {text: "同步状态", value: "syncDesc", width: 200},
-        {text: "最后一次触发同步的时间", value: "lastSyncTime", width: 140},
-        {text: '操作时间', value: 'operationAt', width: 200},
-        {text: "操作人", value: "operationByUser", width: 140},
-      ],
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
 
-      currentClickButton: {title: '新增', action: 'add'},
-      editItem: {},
-      tableButtonList: [
-        {text: '修改', buttonType: 'edit', color: 'success', action: 'startUpdateItem'},
-        {text: '删除', buttonType: 'delete', color: 'error', action: 'deleteItem'},
-        {text: '同步', buttonType: 'sync', color: 'info', action: 'manualSyncOneTable'},
-      ],
-      dialogSaveInfoAction: '',
-      breadcrumbs: window.breadcrumbs,
-      isHelpPageDrawerShow: false,
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: {
+    breadcrumbs: [
+      {text: '首页', disabled: true,},
+      {text: '数据同步表管理', disabled: true,}
+    ],
+    isHelpPageDrawerShown: false,
+    isTableZebraLineShown: true,
+    isMobile: window.innerWidth < 500,
+    // 表格相关数据
+    dataSyncStatus: "<$ ctx.app.config.dataSyncStatus $>",
+    validationRules: {
+      requireRules: [v => !!v || 'This is required',],
+      numberRules: [v => !_.isEmpty(_.trim(v)) && !isNaN(v) || 'This is number'],
     },
-    watch: {
-      editItem: {
-        handler(value, oldValue) {
-          if(!_.isEmpty(value.sourceDatabase)) {
-            this.doUiAction('resetSourceTable', {sourceDatabase: value.sourceDatabase});
-          }
-        },
-        deep: true
+
+    constantObj: {
+      sourceDatabase: [],
+      sourceTable: []
+    },
+    isEditDrawerShow: false,
+    searchInput: null,
+    isTableLoading: true,
+    tableData: [],
+    headers: [
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 150, class: 'fixed', cellClass: 'fixed'},
+      {text: "数据库", value: "sourceDatabase", width: 140},
+      {text: "表格", value: "sourceTable", width: 140},
+      {text: "同步间隔/同步检查间隔（分）", value: "syncTimeSlot", width: 140},
+      {text: "同步状态", value: "syncDesc", width: 200},
+      {text: "最后一次触发同步的时间", value: "lastSyncTime", width: 140},
+      {text: '操作时间', value: 'operationAt', width: 200},
+      {text: "操作人", value: "operationByUser", width: 140},
+    ],
+    // 新增数据
+    isCreateDrawerShown: false,
+    createItem: {},
+    createActionData: {},
+    // 编辑数据
+    isUpdateDrawerShown: false,
+    updateItem: {},
+    updateItemId: null,
+    updateActionData: {},
+    // 删除数据
+    deleteItemId: null,
+    // 同步配置
+    syncItem: null,
+  },
+  watch: {
+    createItem: {
+      handler(value, oldValue) {
+        if (!_.isEmpty(value.sourceDatabase)) {
+          this.doUiAction('getSourceTable', {sourceDatabase: value.sourceDatabase});
+        }
+      },
+      deep: true
+    },
+    updateItem: {
+      handler(value, oldValue) {
+        if (!_.isEmpty(value.sourceDatabase)) {
+          this.doUiAction('getSourceTable', {sourceDatabase: value.sourceDatabase});
+        }
+      },
+      deep: true
+    }
+  },
+  async created() {
+    this.doUiAction('getTableData');
+    this.doUiAction('getAppList');
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData(uiActionData);
+          break;
+        case 'getSourceTable':
+          await this.getSourceTable(uiActionData);
+          break;
+        case 'getAppList':
+          await this.getAppList(uiActionData);
+          break;
+        case 'startCreateItem':
+          await this.prepareCreateFormData();
+          await this.openCreateDrawer();
+          break;
+        case 'createItem':
+          await this.prepareCreateValidate();
+          await this.confirmCreateItemDialog();
+          await this.prepareDoCreateItem();
+          await this.doCreateItem();
+          await this.closeCreateDrawer();
+          await this.getTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareUpdateFormData(uiActionData);
+          await this.openUpdateDrawer();
+          break;
+        case 'updateItem':
+          await this.prepareUpdateValidate();
+          await this.confirmUpdateItemDialog();
+          await this.prepareDoUpdateItem();
+          await this.doUpdateItem();
+          await this.closeUpdateDrawer();
+          await this.getTableData();
+          break;
+        case 'deleteItem':
+          await this.prepareDeleteFormData(uiActionData);
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteItem();
+          await this.getTableData();
+          break;
+        case 'manualSyncOneTable':
+          await this.prepareSyncOnTable(uiActionData);
+          await this.confirmSyncOneTableDialog();
+          await this.doManualSyncOneTable();
+          await this.getTableData();
+          break;
+        case 'manualSyncAll':
+          await this.confirmManualSyncAllDialog();
+          await this.doManualSyncAll();
+          await this.getTableData();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
       }
     },
-    async created() {
+    async getTableData() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableSyncConfig',
+            actionId: 'selectItemList',
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
 
+      this.tableData = result.data.appData.resultData.rows;
+      this.isTableLoading = false;
     },
-    mounted() {
-      this.doUiAction('refreshTableData');
-      this.doUiAction('getAllApp');
+    // ---------- 获取数据库列表 uiAction >>>>>>>>>> --------
+    async getAppList() {
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableSyncConfig',
+            actionId: 'selectSourceDatabase',
+          }
+        }
+      });
+      this.constantObj.sourceDatabase = result.data.appData.resultData.rows.map((row) => {
+        return {"value": row.sourceDatabase, "text": row.sourceDatabase}
+      })
     },
-    methods: {
-      async doUiAction(uiActionId, uiActionData) {
-        switch (uiActionId) {
-          case 'refreshTableData':
-            await this.refreshTableData(uiActionData);
-            break;
-          case 'startCreateItem':
-            await this.clearItemData(uiActionData);
-            await this.openCreateItemDialog(uiActionData);
-            break;
-          case 'createItem':
-            await this.prepareValidate(uiActionData);
-            await this.confirmCreateItemDialog(uiActionData);
-            await this.doCreateItem(uiActionData);
-            await this.refreshTableData(uiActionData);
-            await this.closeDrawerShow(uiActionData);
-            break;
-          case 'startUpdateItem':
-            await this.prepareItemData(uiActionData);
-            await this.openUpdateDialog(uiActionData);
-            break;
-          case 'updateItem':
-            await this.prepareValidate(uiActionData);
-            await this.confirmUpdateItemDialog(uiActionData);
-            await this.doUpdateItem(uiActionData);
-            await this.refreshTableData(uiActionData);
-            await this.closeDrawerShow(uiActionData);
-            break;
-          case 'deleteItem':
-            await this.confirmDeleteItemDialog(uiActionData);
-            await this.prepareItemData(uiActionData);
-            await this.doDeleteItem(uiActionData);
-            await this.refreshTableData(uiActionData);
-            break;
-          case 'manualSyncOneTable':
-            await this.confirmSyncOneTableDialog(uiActionData);
-            await this.doManualSyncOneTable(uiActionData);
-            await this.refreshTableData(uiActionData);
-            break;
-          case 'manualSyncAll':
-            await this.confirmManualSyncAllDialog(uiActionData);
-            await this.doManualSyncAll(uiActionData);
-            await this.refreshTableData(uiActionData);
-            break;
-          case 'resetSourceTable':
-            await this.doResetSourceTable(uiActionData);
-            break;
-          case 'getAllApp':
-            await this.doGetAllApp(uiActionData);
-            break;
-          default:
-            console.error("[doUiAction] uiActionId not find", { uiActionId });
-            break;
+    // ---------- <<<<<<<<<<<< 获取数据库列表 uiAction --------
+    // ---------- 获取数据库的table表 uiAction >>>>>>>>>> --------
+    async getSourceTable(funObj) {
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableSyncConfig',
+            actionId: 'selectSourceTable',
+            actionData: {sourceDatabase: funObj.sourceDatabase},
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
         }
-      },
-      /**
-       * 获取表格数据
-       */
-      async doGetAllApp() {
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'tableSyncConfig',
-              actionId: 'selectSourceDatabase',
-            }
+      });
+      this.constantObj.sourceTable = result.data.appData.resultData.rows.map((table) => {
+        return {"value": table.sourceTable, "text": table.sourceTable}
+      });
+    },
+    // ---------- <<<<<<<<<<<< 获取数据库的table表 uiAction --------
+    // ---------- 新增数据 uiAction >>>>>>>>>> --------
+    async prepareCreateFormData() {
+      this.createItem = {};
+    },
+
+    async openCreateDrawer() {
+      this.isCreateDrawerShown = true;
+    },
+    async prepareCreateValidate() {
+      if (await this.$refs.createForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息", await this.$refs.createForm.validate())
+    },
+
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("[confirmCreateFormDialog] 否");
+      }
+    },
+
+    prepareDoCreateItem() {
+      const {id, ...data} = this.createItem;
+      this.createActionData = data;
+    },
+
+    async doCreateItem() {
+      await window.jhMask.show();
+      await window.vtoast.loading("新增同步配置");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableSyncConfig',
+            actionId: 'insertTable',
+            actionData: this.createActionData
           }
-        });
-        this.constantCollection.sourceDatabase = result.data.appData.resultData.rows.map((row) => { return {"value": row.sourceDatabase, "text": row.sourceDatabase } })
-      },
-      /**
-       * 获取表格数据
-       */
-      async doResetSourceTable({sourceDatabase}) {
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'tableSyncConfig',
-              actionId: 'selectSourceTable',
-              actionData: { sourceDatabase },
-              orderBy: [{column: 'operationAt', order: 'desc'}]
-            }
-          }
-        });
-        this.constantCollection.sourceTable = result.data.appData.resultData.rows.map((table) => { return {"value": table.sourceTable, "text": table.sourceTable} });
-      },
-      /**
-       * 获取表格数据
-       */
-      async refreshTableData() {
-        this.isTableLoading = true;
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'tableSyncConfig',
-              actionId: 'selectItemList',
-              orderBy: [{column: 'operationAt', order: 'desc'}]
-            }
-          }
-        });
-
-        this.tableData = result.data.appData.resultData.rows;
-        this.isTableLoading = false;
-      },
-
-
-      // startCreateItem
-      async clearItemData() {
-        this.editItem = { syncTimeSlot: 5 };
-      },
-
-      async openCreateItemDialog() {
-        this.currentClickButton = {action: 'add', title: '新增'};
-        this.isEditDrawerShow = true;
-        this.dialogSaveInfoAction = 'createItem';
-      },
-
-      // createItem
-      async confirmCreateItemDialog() {
-        if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
-          throw new Error("[confirmCreateFormDialog] 否");
         }
-      },
+      })
+      await window.jhMask.hide();
+      await window.vtoast.success("新增同步配置成功");
+    },
+    async closeCreateDrawer() {
+      this.isCreateDrawerShown = false;
+      this.createItem = {};
+      this.createActionData = null;
+    },
+    // ---------- <<<<<<<<<<< 新增数据 uiAction  --------
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    async prepareUpdateFormData(funObj) {
+      this.updateItem = _.cloneDeep(funObj);
+    },
 
-      /**
-       * 新增表同步配置
-       */
-      async doCreateItem() {
-        delete this.editItem.id;
-        window.vtoast.loading("保存中");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'tableSyncConfig',
-              actionId: 'insertTable',
-              actionData: this.editItem
+    async openUpdateDrawer() {
+      this.isUpdateDrawerShown = true;
+    },
+
+    async prepareUpdateValidate() {
+      if (await this.$refs.updateForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息")
+    },
+
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("[confirmUpdateItemDialog] 否");
+      }
+    },
+
+    async prepareDoUpdateItem() {
+      const {id, ...data} = this.updateItem;
+      this.updateItemId = id;
+      this.updateActionData = data;
+    },
+
+    async doUpdateItem() {
+      await window.jhMask.show();
+      await window.vtoast.loading("修改同步配置");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableSyncConfig',
+            actionId: 'updateTable',
+            actionData: this.updateActionData,
+            where: {id: this.updateItemId}
+          }
+        }
+      })
+
+      await window.jhMask.hide();
+      await window.vtoast.success("修改同步配置成功");
+    },
+
+    async closeUpdateDrawer() {
+      this.isUpdateDrawerShown = false;
+      this.updateItem = {};
+      this.updateActionData = null;
+      this.updateItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 修改数据 uiAction  --------
+    // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+    async prepareDeleteFormData(funObj) {
+      this.deleteItemId = funObj.id;
+    },
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("[confirmDeleteItemDialog] 否");
+      }
+    },
+    async doDeleteItem() {
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableSyncConfig',
+            actionId: 'deleteTable',
+            actionData: {},
+            where: {id: this.deleteItemId}
+          }
+        }
+      });
+      await window.vtoast.success("删除数据成功");
+      this.deleteItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 删除数据 uiAction  --------
+    // ---------- 数据同步 uiAction >>>>>>>>>>>> --------
+    async prepareSyncOnTable(funObj) {
+      this.syncItem = _.cloneDeep(funObj);
+    },
+    // 单表数据同步
+    async confirmSyncOneTableDialog() {
+      if (await window.confirmDialog({title: "确定要同步这张表吗", content: "确定同步吗？"}) === false) {
+        throw new Error("[confirmSyncOneTableDialog] 否");
+      }
+    },
+    async doManualSyncOneTable() {
+      window.vtoast.loading("同步中");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableSyncConfig',
+            actionId: 'syncTable',
+            actionData: {
+              sourceDatabase: this.syncItem.sourceDatabase,
+              sourceTable: this.syncItem.sourceTable
             }
           }
-        })
-        window.vtoast.success("保存成功");
-      },
-
-      async closeDrawerShow() {
-        this.isEditDrawerShow = false;
-      },
-
-      // startUpdateItem
-      async prepareItemData({item}) {
-        this.editItem = {...item};
-      },
-
-      async openUpdateDialog() {
-        this.currentClickButton = {action: 'edit', title: '修改'};
-        this.isEditDrawerShow = true;
-        this.dialogSaveInfoAction = 'updateItem';
-      },
-
-      // updateItem
-      async confirmUpdateItemDialog() {
-        if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
-          throw new Error("[confirmUpdateItemDialog] 否");
         }
-      },
-      /**
-       * 保存
-       */
-      async doUpdateItem() {
-        window.vtoast.loading("保存中");
-        const id = this.editItem.id;
-        delete this.editItem.id;
-        delete this.editItem.count;
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'tableSyncConfig',
-              actionId: 'updateTable',
-              actionData: this.editItem,
-              where: {id: id}
-            }
+      });
+      window.vtoast.success("同步成功");
+      this.syncItem = {};
+    },
+    // 全部数据表同步
+    async confirmManualSyncAllDialog() {
+      if (await window.confirmDialog({title: "确定要全部同步吗", content: "确定同步吗？"}) === false) {
+        throw new Error("[confirmSyncOneTableDialog] 否");
+      }
+    },
+    async doManualSyncAll() {
+      window.vtoast.loading("同步中");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableSyncConfig',
+            actionId: 'syncTable',
+            actionData: {}
           }
-        })
-        window.vtoast.success("修改成功");
-      },
+        }
+      });
+      window.vtoast.success("手动同步成功")
+    },
+    // ---------- <<<<<<<<<<<< 数据同步 uiAction --------
 
-      // updateItem
-      async confirmDeleteItemDialog() {
-        if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
-          throw new Error("[confirmDeleteItemDialog] 否");
-        }
-      },
-      /**
-       * 删除表同步配置
-       */
-      async doDeleteItem() {
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'tableSyncConfig',
-              actionId: 'deleteTable',
-              actionData: { id: this.editItem.id }
-            }
-          }
-        });
-        window.vtoast.success("删除成功")
-      },
-
-      // updateItem
-      async confirmSyncOneTableDialog() {
-        if (await window.confirmDialog({title: "确定要同步这张表吗", content: "确定同步吗？"}) === false) {
-          throw new Error("[confirmSyncOneTableDialog] 否");
-        }
-      },
-      async doManualSyncOneTable() {
-        window.vtoast.loading("同步中");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'tableSyncConfig',
-              actionId: 'syncTable',
-              actionData: {
-                sourceDatabase: this.editItem.sourceDatabase,
-                sourceTable: this.editItem.sourceTable
-              }
-            }
-          }
-        });
-        window.vtoast.success("同步成功")
-      },
-      // updateItem
-      async confirmManualSyncAllDialog() {
-        if (await window.confirmDialog({title: "确定要全部同步吗", content: "确定同步吗？"}) === false) {
-          throw new Error("[confirmSyncOneTableDialog] 否");
-        }
-      },
-      async doManualSyncAll() {
-        window.vtoast.loading("同步中");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'tableSyncConfig',
-              actionId: 'syncTable',
-              actionData: {}
-            }
-          }
-        });
-        window.vtoast.success("手动同步成功")
-      },
-
-      // validate
-      async prepareValidate() {
-        if (await this.$refs.form.validate() === false) {
-          throw new Error("[prepareValidate] false");
-        }
-      },
-      dayjs: dayjs,
-    }
-  })
+    dayjs: dayjs,
+  }
+})
 </script>
 
 <style scoped>
+@media (max-width: 500px) {
+  .v-application .pt-xs-2 {
+    padding-top: 8px!important;
+  }
+}
 </style>
 {% endblock %}

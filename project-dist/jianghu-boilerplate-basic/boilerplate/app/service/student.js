@@ -1,37 +1,44 @@
-'use strict';
+"use strict";
 
 
 // ========================================常用 require start===========================================
-const Service = require('egg').Service;
+const Service = require("egg").Service;
 const validateUtil = require("@jianghujs/jianghu/app/common/validateUtil");
-const idGenerateUtil = require("@jianghujs/jianghu/app/common/idGenerateUtil");
-const dayjs = require("dayjs");
-const actionDataScheme = Object.freeze({
-  beforHookForGenerateStudentId: {
+
+const appDataSchema = {
+  selectStudentList: {
     type: "object",
-    additionalProperties: true,
-    required: ["dateOfBirth"],
+    required: ["pageId", "actionId"],
     properties: {
-      dateOfBirth: { type: "string", format: "date" },
+      pageId: { type: "string" },
+      actionId: { type: "string" },
+      authToken: { anyOf: [{ type: "string" }, { type: "null" }] },
+      actionData: { type: "object" },
+      where: { type: "object" },
     },
   },
-});
+};
 
 class StudentService extends Service {
-  async beforHookForGenerateStudentId() {
-    const { actionData } = this.ctx.request.body.appData;
-    validateUtil.validate(
-      actionDataScheme.beforHookForGenerateStudentId,
-      actionData
-    );
-    const { dateOfBirth } = actionData;
-    const dateOfBirthObj = dayjs(dateOfBirth);
-    const studentId = `S_${idGenerateUtil.uuid(
-      8
-    )}_${dateOfBirthObj.month()}_${dateOfBirthObj.day()}`;
-    this.ctx.request.body.appData.actionData.studentId = studentId;
+  // beforeHook: 生成学生 studentId
+  async generateStudentId() {
+    const maxStudentIdResult = await this.app
+      .jianghuKnex("student")
+      .max("studentId", { as: "maxStudentId" })
+      .first();
+
+    let newStudentId;
+    if (!maxStudentIdResult.maxStudentId) {
+      newStudentId = "S10001";
+    } else {
+      const maxStudentId = parseInt(maxStudentIdResult.maxStudentId.replace("S", ""))
+      newStudentId = `S${maxStudentId + 1}`;
+    }
+    this.ctx.request.body.appData.actionData.studentId = newStudentId;
   }
 
+  // 数据权限方式一，beforeHook 配合 sql 动态数据进行查询
+  // beforeHook：将学生信息加到 ctx.userInfo 中
   async appendStudentInfoToUserInfo() {
     const studentInfo = await this.app
       .jianghuKnex("student")
@@ -40,7 +47,15 @@ class StudentService extends Service {
     this.ctx.userInfo.studentInfo = studentInfo || { classId: null };
   }
 
+  // 数据权限方式二，直接使用 service 实现
+  // 获取同班学生列表
   async selectStudentList() {
+    const appData = this.ctx.request.body.appData;
+    validateUtil.validate(
+      appDataSchema.selectStudentList,
+      appData
+    );
+
     const studentInfo = await this.app
       .jianghuKnex("student")
       .where({ studentId: this.ctx.userInfo.user.userId })
@@ -51,7 +66,7 @@ class StudentService extends Service {
       .select();
 
     return {
-      rows: studentList,
+      rows: studentList
     };
   }
 }

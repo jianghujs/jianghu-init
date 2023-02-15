@@ -1,11 +1,9 @@
 'use strict';
 
-const assert = require('assert');
 const path = require('path');
 
 module.exports = appInfo => {
 
-  assert(appInfo);
   return {
     dataSyncStatus: '禁用', // 是否启用同步，启用/禁用
     appDirectoryLink: 'http://127.0.0.1:7007/directory',
