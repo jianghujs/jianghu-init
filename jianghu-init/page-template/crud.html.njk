@@ -87,7 +87,7 @@ SQL END!-->
           </v-container>
           <!-- 新增 -->
           <v-navigation-drawer v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%" class="elevation-24">
-            <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
+            <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="createForm" lazy-validation>
               <!--抽屉标题-->
               <v-row>
                 <span class="title pa-6" :class="{'pl-8': !isMobile, 'pl-6': isMobile}">新增信息</span>
@@ -116,7 +116,7 @@ SQL END!-->
           
           <!-- 编辑抽屉 -->
           <v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" class="elevation-24">
-            <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
+            <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="editForm" lazy-validation>
               <!--抽屉标题-->
               <v-row>
                 <span class="title pa-6" :class="{'pl-8': !isMobile, 'pl-6': isMobile}">编辑信息</span>
@@ -244,7 +244,7 @@ new Vue({
           await this.openCreateItemDialog();
           break;
         case 'createItem':
-          await this.prepareValidate();
+          await this.prepareCreateFormValidate();
           await this.confirmCreateItemDialog();
           await this.doCreateItem();
           await this.closeDrawerShow();
@@ -255,7 +255,7 @@ new Vue({
           await this.openUpdateDialog();
           break;
         case 'updateItem':
-          await this.prepareValidate();
+          await this.prepareEditValidate();
           await this.confirmUpdateItemDialog();
           await this.doUpdateItem();
           await this.closeDrawerShow();
@@ -273,13 +273,23 @@ new Vue({
     },
     // =================================uiAction 公共方法 start ======================================
     /**
-     * uiActionId:  prepareValidate
+     * uiActionId:  prepareCreateFormValidate
      * description: ✅表单校验
     */
-    async prepareValidate() {
-      if (this.$refs.form.validate() === false) {
+    async prepareCreateFormValidate() {
+      if (this.$refs.createForm.validate() === false) {
         window.vtoast.fail({ message: "输入有误, 请检查!" });
-        throw new Error("[prepareValidate] false");
+        throw new Error("[prepareCreateFormValidate] false");
+      }
+    },
+    /**
+     * uiActionId:  prepareEditValidate
+     * description: ✅表单校验
+    */
+    async prepareEditValidate() {
+      if (this.$refs.editForm.validate() === false) {
+        window.vtoast.fail({ message: "输入有误, 请检查!" });
+        throw new Error("[prepareEditValidate] false");
       }
     },
 
