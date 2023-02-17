@@ -2,7 +2,6 @@
 
 const validateUtil = require('@jianghujs/jianghu/app/common/validateUtil');
 const Service = require('egg').Service;
-const { tableEnum } = require('../constant/constant');
 const { BizError, errorInfoEnum } = require('../constant/error');
 const _ = require('lodash');
 const dayjs = require('dayjs');
@@ -54,7 +53,7 @@ class {{pageId}}Service extends Service {
     const recordIdCountList = await knex
       .count('recordId as count').column('recordId', 'table')
       .select()
-      .from(tableEnum._record_history)
+      .from('_record_history')
       .where({ table })
       .whereIn('recordId', recordIdList)
       .groupBy('recordId');
@@ -88,7 +87,7 @@ class {{pageId}}Service extends Service {
     const maxIdList = maxIdItemList.map(item => item.id);
 
 
-    const recordHistoryList = await jianghuKnex(tableEnum._record_history)
+    const recordHistoryList = await jianghuKnex('_record_history')
       .where({ operation: 'jhDelete' })
       .whereIn('id', maxIdList)
       .orderBy([{ column: 'id', order: 'desc' }])
@@ -119,7 +118,7 @@ class {{pageId}}Service extends Service {
     const { userId, username } = this.ctx.userInfo;
     const { jianghuKnex, knex } = this.ctx.app;
     const { recordHistoryId } = actionData;
-    const recordHistory = await jianghuKnex(tableEnum._record_history).where({ id: recordHistoryId }).first();
+    const recordHistory = await jianghuKnex('_record_history').where({ id: recordHistoryId }).first();
     if (!recordHistory) {
       throw new BizError(errorInfoEnum.data_not_found);
     }
@@ -137,7 +136,7 @@ class {{pageId}}Service extends Service {
       const newData = { ...record, operation, operationAt, operationByUserId, operationByUser };
 
       // restore 操作 也要衍生出一条 recordHistory
-      await trx(tableEnum._record_history).insert({
+      await trx('_record_history').insert({
         table, recordId: newData.id, recordContent: JSON.stringify(newData),
         packageContent: '{}',
         operation, operationAt, operationByUserId, operationByUser,
