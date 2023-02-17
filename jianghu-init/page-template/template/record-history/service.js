@@ -2,7 +2,7 @@
 
 const validateUtil = require('@jianghujs/jianghu/app/common/validateUtil');
 const Service = require('egg').Service;
-const { BizError, errorInfoEnum } = require('../constant/error');
+const { BizError, errorInfoEnum } = require('@jianghujs/jianghu/app/constant/error');
 const _ = require('lodash');
 const dayjs = require('dayjs');
 // ========================================常用 require end=============================================
