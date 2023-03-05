@@ -16,19 +16,19 @@
       <v-spacer></v-spacer>
 
       <v-col cols="12" xs="8" sm="3" md="2" xl="2" class="   pl-0">
-        <v-select class="cus-v-input mr-2" v-model="currentUserStatusType"
+        <v-select class="jh-v-input mr-2" v-model="currentUserStatusType"
           :items="[{value: 'all', text: '全部'}, ...constantCollection.userStatus]" prefix="用户状态：" dense item-text="text"
           item-value="value" dense filled single-line></v-select>
       </v-col>
 
       <!-- <v-col cols="12" xs="8" sm="3" md="2" xl="2" :class="{'pl-0': !isMobile, 'px-0': isMobile}">
-      <v-select class="cus-v-input" v-model="currentUserStatusType" :items="tableUserStatusList" :label="tableUserStatusList.label"
+      <v-select class="jh-v-input" v-model="currentUserStatusType" :items="tableUserStatusList" :label="tableUserStatusList.label"
                 prefix="用户状态：" dense
                 item-text="label" item-value="value" dense filled single-line></v-select>
     </v-col> -->
 
       <v-col cols="12" xs="12" sm="4" md="3" xl="3" class="px-0">
-        <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line>
+        <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="jh-v-input" dense filled single-line>
         </v-text-field>
       </v-col>
 
@@ -77,35 +77,35 @@
         :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel">初始密码</span>
-          <v-text-field class="cus-v-input mr-2" dense filled single-line label="初始密码"
+          <v-text-field class="jh-v-input mr-2" dense filled single-line label="初始密码"
             v-model="editItem.clearTextPassword" :rules="requireRules"></v-text-field>
         </v-col>
       </v-row>
       <v-row v-else :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel">用户ID[登陆]</span>
-          <v-text-field class="cus-v-input mr-2" disabled dense filled single-line label="用户ID[登陆]"
+          <v-text-field class="jh-v-input mr-2" disabled dense filled single-line label="用户ID[登陆]"
             v-model="editItem.userId"></v-text-field>
         </v-col>
         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel">用户名</span>
-          <v-text-field class="cus-v-input mr-2" dense filled single-line label="用户名" v-model="editItem.username"
+          <v-text-field class="jh-v-input mr-2" dense filled single-line label="用户名" v-model="editItem.username"
             :rules="requireRules"></v-text-field>
         </v-col>
         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel">用户类型</span>
-          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="用户类型" v-model="editItem.userType"
+          <v-select class="jh-v-input mr-2" dense filled single-line clearable label="用户类型" v-model="editItem.userType"
             :items="constantCollection.userType"></v-select>
         </v-col>
         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel">用户状态</span>
-          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="用户状态"
+          <v-select class="jh-v-input mr-2" dense filled single-line clearable label="用户状态"
             v-model="editItem.userStatus" :items="constantCollection.userStatus"></v-select>
         </v-col>
         <v-col v-if="currentClickButton.action === 'add'" cols="12" sm="12" md="4"
           :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel">初始密码</span>
-          <v-text-field class="cus-v-input mr-2" dense filled single-line label="初始密码"
+          <v-text-field class="jh-v-input mr-2" dense filled single-line label="初始密码"
             v-model="editItem.clearTextPassword" :rules="requireRules"></v-text-field>
         </v-col>
       </v-row>

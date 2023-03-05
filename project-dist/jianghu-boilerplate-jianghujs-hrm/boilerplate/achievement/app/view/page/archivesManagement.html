@@ -6,7 +6,7 @@
   <template slot="serverSearch">
     <v-row class="ma-0 align-center" :class="{'pa-0': isMobile, 'pa-2': !isMobile}" style="justify-content: end">
       <v-col cols="12" sm="12" xs="5" md="2" xl="2" class="pb-3" :class="{'px-0': isMobile, 'pt-0': isMobile}">
-        <v-text-field v-model="serverSearchForm.employeeId" prefix="员工姓名：" color="success" class="cus-v-input"
+        <v-text-field v-model="serverSearchForm.employeeId" prefix="员工姓名：" color="success" class="jh-v-input"
                       :class="{'mr-2': !isMobile}" dense filled single-line></v-text-field>
       </v-col>      
       <v-col class="pl-0" :class="{'pr-0': isMobile, 'pt-0': isMobile}" style="max-width: 77px">
@@ -28,7 +28,7 @@
     <span style="margin-right: 10px;">{{ serverSearchForm.searchSummary }}</span>
     <v-spacer></v-spacer>
     <v-col cols="12" xs="6" sm="4" md="3" xl="3" class="pr-0">
-      <v-text-field v-model="tableFilterKeyword" color="success" prefix="表格过滤：" class="cus-v-input" dense filled
+      <v-text-field v-model="tableFilterKeyword" color="success" prefix="表格过滤：" class="jh-v-input" dense filled
                     single-line></v-text-field>
     </v-col>
   </v-row>

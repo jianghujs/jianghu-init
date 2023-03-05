@@ -14,7 +14,7 @@
     </v-col> 
 
     <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex pl-0">
-      <v-select class="cus-v-input mr-2" v-model="serverSearchInput.articlePublishStatus" prefix="发布状态:"
+      <v-select class="jh-v-input mr-2" v-model="serverSearchInput.articlePublishStatus" prefix="发布状态:"
         :items="constantCollection.allArticlePublishStatus" dense filled single-line multiple persistent-hint></v-select>
     </v-col>
 
@@ -46,7 +46,7 @@
 
 
       <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-        <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+        <v-text-field v-model="searchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
       </v-col>
 
     </v-row>
@@ -87,19 +87,19 @@
 
         <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
           <span class="inputLabel">文章ID</span>
-          <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['articleId']" disabled>
+          <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['articleId']" disabled>
           </v-text-field>
         </v-col>
 
         <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
           <span class="inputLabel">标题</span>
-          <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['articleTitle']" disabled>
+          <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['articleTitle']" disabled>
           </v-text-field>
         </v-col>
 
         <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
           <span class="inputLabel">文章发布状态</span>
-          <v-select class="cus-v-input mr-2" dense filled single-line clearable
+          <v-select class="jh-v-input mr-2" dense filled single-line clearable
             v-model="editItem['articlePublishStatus']" :items="constantCollection.articlePublishStatus"
             :rules="requireRules"></v-select>
         </v-col>

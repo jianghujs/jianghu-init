@@ -8,7 +8,7 @@
     <v-row class="ma-0 align-center" :class="{'pa-0': isMobile, 'pa-2': !isMobile}" style="justify-content: end">
       <v-col cols="4" sm="4" xs="3" md="3" xl="2" class="pb-3" :class="{'pt-0': isMobile}">
         <v-select 
-          class="cus-v-input " 
+          class="jh-v-input " 
           dense filled 
           single-line 
           prefix="年度：" 
@@ -47,7 +47,7 @@
       <v-spacer></v-spacer>
 
       <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-        <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+        <v-text-field v-model="searchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
       </v-col>
     </v-row>
     <v-data-table fixed-header
@@ -82,62 +82,62 @@
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">i_emp_record_id</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['i_emp_record_id']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['i_emp_record_id']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">每月生成社保id</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['iRecordId']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['iRecordId']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">员工id</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['employee_id']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['employee_id']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">社保方案id</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['scheme_id']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['scheme_id']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">年</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['year']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['year']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">月</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['month']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['month']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">个人社保金额</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['personal_insurance_amount']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['personal_insurance_amount']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">个人公积金金额</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['personal_provident_fund_amount']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['personal_provident_fund_amount']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">公司社保金额</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['corporate_insurance_amount']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['corporate_insurance_amount']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">公司社保金额</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['corporate_provident_fund_amount']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['corporate_provident_fund_amount']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">create_time</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['create_time']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['create_time']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">每月社保状态 0 停保 1 正常</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['status']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['status']"></v-text-field>
       </v-col>
        
     </v-row>
@@ -163,80 +163,80 @@
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">i_emp_record_id</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['i_emp_record_id']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['i_emp_record_id']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">每月生成社保id</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['iRecordId']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['iRecordId']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">员工id</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['employee_id']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['employee_id']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">社保方案id</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['scheme_id']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['scheme_id']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">年</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['year']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['year']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">月</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['month']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['month']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">个人社保金额</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['personal_insurance_amount']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['personal_insurance_amount']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">个人公积金金额</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['personal_provident_fund_amount']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['personal_provident_fund_amount']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">公司社保金额</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['corporate_insurance_amount']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['corporate_insurance_amount']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">公司社保金额</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['corporate_provident_fund_amount']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['corporate_provident_fund_amount']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">create_time</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['create_time']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['create_time']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">每月社保状态 0 停保 1 正常</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['status']"></v-text-field>
+        <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['status']"></v-text-field>
       </v-col>
        
 <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
 <!--        &lt;!&ndash; 必填字段样式 demo :rules="requireRules" &ndash;&gt;-->
 <!--            <span class="inputLabel">学生ID</span>-->
-<!--        <v-text-field class="cus-v-input " dense filled single-line label="学生ID" v-model="editItem.studentId" :rules="requireRules"></v-text-field>-->
+<!--        <v-text-field class="jh-v-input " dense filled single-line label="学生ID" v-model="editItem.studentId" :rules="requireRules"></v-text-field>-->
 <!--      </v-col>-->
 <!--      &lt;!&ndash; select 字段 demo &ndash;&gt;-->
 <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
 <!--            <span class="inputLabel">班级ID</span>-->
-<!--        <v-select class="cus-v-input " dense filled single-line clearable label="班级ID" v-model="editItem.classId" :items="constantCollection.classId"></v-select>-->
+<!--        <v-select class="jh-v-input " dense filled single-line clearable label="班级ID" v-model="editItem.classId" :items="constantCollection.classId"></v-select>-->
 <!--      </v-col>-->
 <!--      &lt;!&ndash; 日期选择 demo &ndash;&gt;-->
 <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
 <!--        <span class="inputLabel">出生日期</span>-->
-<!--        <v-menu class="cus-v-input " offset-y max-width="290">-->
+<!--        <v-menu class="jh-v-input " offset-y max-width="290">-->
 <!--          <template v-slot:activator="{ on, attrs }">-->
-<!--            <v-text-field class="cus-v-input " dense filled single-line v-on="on" label="出生日期" v-model="editItem.dateOfBirth"></v-text-field>-->
+<!--            <v-text-field class="jh-v-input " dense filled single-line v-on="on" label="出生日期" v-model="editItem.dateOfBirth"></v-text-field>-->
 <!--          </template>-->
 <!--          <v-date-picker color="success" elevation="20" v-model="editItem.dateOfBirth"></v-date-picker>-->
 <!--        </v-menu>-->

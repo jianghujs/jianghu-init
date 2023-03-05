@@ -10,7 +10,7 @@
           v-model="serverSearchForm.employeeName" 
           prefix="考核名称：" 
           color="success" 
-          class="cus-v-input"
+          class="jh-v-input"
           dense filled single-line
           append-icon="mdi-magnify"
           @click:append="getTableData">
@@ -186,7 +186,7 @@ width="70%"
         <div class="mb-1">场景名称</div>
         <v-row>
           <v-col sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-            <v-text-field class="cus-v-input" :rules="requireRules" dense filled single-line hide-details v-model="newScene.name" placeholder="场景名称，最多10个字符"></v-text-field>
+            <v-text-field class="jh-v-input" :rules="requireRules" dense filled single-line hide-details v-model="newScene.name" placeholder="场景名称，最多10个字符"></v-text-field>
           </v-col>
         </v-row>
       </div>
@@ -204,26 +204,26 @@ width="70%"
             itemsPerPage: 15
           }">
           <template v-slot:item.fieldName="{ item, index }">
-            <v-select class="cus-v-input" dense filled single-line clearable hide-details
+            <v-select class="jh-v-input" dense filled single-line clearable hide-details
               v-model="item.fieldName" :items="constantCollection.sceneFiledList"
               @change="doUiAction('fieldNameChange', {item, index})"
               :rules="requireRules"></v-select>
           </template>
           <template v-slot:item.operator="{ item }">
-            <v-select :rules="requireRules" :items="constantCollection.operatorList" class="cus-v-input" dense filled single-line clearable hide-details v-model="item.operator"> </v-select>
+            <v-select :rules="requireRules" :items="constantCollection.operatorList" class="jh-v-input" dense filled single-line clearable hide-details v-model="item.operator"> </v-select>
           </template>
           <template v-slot:item.condition="{ item }">
-            <v-select v-if="item.type === 'select'" class="cus-v-input" dense filled single-line clearable hide-details
+            <v-select v-if="item.type === 'select'" class="jh-v-input" dense filled single-line clearable hide-details
               v-model="item.condition" :items="constantCollection[item.fieldName]"
             :rules="requireRules"></v-select>
-            <v-menu v-else-if="item.type === 'date'" class="cus-v-input" offset-y max-width="290">
+            <v-menu v-else-if="item.type === 'date'" class="jh-v-input" offset-y max-width="290">
               <template v-slot:activator="{ on, attrs }">
-                <v-text-field class="cus-v-input" :rules="requireRules" dense filled single-line hide-details v-on="on"
+                <v-text-field class="jh-v-input" :rules="requireRules" dense filled single-line hide-details v-on="on"
                 v-model="item.condition"></v-text-field>
               </template>
               <v-date-picker color="success" elevation="20" v-model="item.condition"></v-date-picker>
             </v-menu>
-            <v-text-field v-else class="cus-v-input" dense filled single-line hide-details
+            <v-text-field v-else class="jh-v-input" dense filled single-line hide-details
             v-model="item.condition" :rules="requireRules" placeholder="多个条件请用；隔开"></v-text-field>
           </template>
           <template v-slot:item.action="{ item, index }">

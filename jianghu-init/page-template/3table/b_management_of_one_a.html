@@ -121,7 +121,7 @@ SQL END!-->
                           //===// <=% for f in tableMiddleFields %=>
                           <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                             <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
-                            <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
+                            <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
                           </v-col>//===// <=% endfor %=>
                         </v-row>
                         <v-row class="mx-0 justify-end mt-4" :class="{'px-4': isMobile, 'px-10': !isMobile, 'mb-8': isMobile}">

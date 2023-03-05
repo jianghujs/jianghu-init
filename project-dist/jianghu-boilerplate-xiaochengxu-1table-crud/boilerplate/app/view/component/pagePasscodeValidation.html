@@ -10,7 +10,7 @@
         <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
           <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
             <span class="inputLabel">认证码</span>
-            <v-text-field class="cus-v-input" dense filled single-line type="password" v-model="passcodeOfUser"></v-text-field>
+            <v-text-field class="jh-v-input" dense filled single-line type="password" v-model="passcodeOfUser"></v-text-field>
             <p style="text-align: right;">认证成功后, {{ validationDurationHour }}小时内无需重复认证。</p>
           </v-col>
         </v-row>  

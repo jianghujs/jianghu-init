@@ -54,7 +54,7 @@ SQL END!-->
           
                 <v-spacer></v-spacer>
                 <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-                  <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+                  <v-text-field v-model="searchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
                 </v-col>
               </v-row>
               <v-data-table 
@@ -109,7 +109,7 @@ SQL END!-->
                 //===// <=% for f in tableBFields %=>
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
-                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
+                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
                 </v-col>
                 //===// <=% endfor %=>
               </v-row>
@@ -138,7 +138,7 @@ SQL END!-->
                 //===// <=% for f in tableBFields %=>
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
-                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
+                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
                 </v-col>
                 //===// <=% endfor %=>
               </v-row>

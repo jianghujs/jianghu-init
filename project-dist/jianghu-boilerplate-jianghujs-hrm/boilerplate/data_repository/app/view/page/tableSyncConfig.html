@@ -19,7 +19,7 @@
       <v-spacer></v-spacer>
 
       <v-col cols="12" xs="12" sm="6" md="3" xl="3" class="px-0">
-        <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+        <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="jh-v-input" dense filled single-line></v-text-field>
       </v-col>
 
     </v-row>
@@ -63,15 +63,15 @@
       <v-row  :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">数据库</span>
-          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="数据库" :rules="requireRules" v-model="editItem.sourceDatabase" :items="constantCollection.sourceDatabase"></v-select>
+          <v-select class="jh-v-input mr-2" dense filled single-line clearable label="数据库" :rules="requireRules" v-model="editItem.sourceDatabase" :items="constantCollection.sourceDatabase"></v-select>
         </v-col>
         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">表格</span>
-          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="表格" :rules="requireRules" v-model="editItem.sourceTable" :items="constantCollection.sourceTable"></v-select>
+          <v-select class="jh-v-input mr-2" dense filled single-line clearable label="表格" :rules="requireRules" v-model="editItem.sourceTable" :items="constantCollection.sourceTable"></v-select>
         </v-col>
         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">同步间隔（分）</span>
-          <v-text-field class="cus-v-input mr-2" dense filled single-line label="同步间隔（分）" type="number" :rules="numberRules" v-model="editItem.syncTimeSlot"></v-text-field>
+          <v-text-field class="jh-v-input mr-2" dense filled single-line label="同步间隔（分）" type="number" :rules="numberRules" v-model="editItem.syncTimeSlot"></v-text-field>
         </v-col>
       </v-row>
       <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">

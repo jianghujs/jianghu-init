@@ -33,7 +33,7 @@
                                 </v-col>
                                     <v-spacer></v-spacer>
                                 <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-                                    <v-text-field v-model="searchInput" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+                                    <v-text-field v-model="searchInput" prefix="表格过滤：" class="jh-v-input" dense filled single-line></v-text-field>
                                 </v-col>
                             </v-row>
 
@@ -94,25 +94,25 @@
                             <v-row class="mt-0" :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
                                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                                     <span class="inputLabel">constantKey</span>
-                                    <v-text-field class="cus-v-input" dense filled single-line v-model="addItem['constantKey']">
+                                    <v-text-field class="jh-v-input" dense filled single-line v-model="addItem['constantKey']">
                                     </v-text-field>
                                 </v-col>
                     
                                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                                     <span class="inputLabel">常量类型</span>
-                                    <v-text-field class="cus-v-input" dense filled single-line v-model="addItem['constantType']">
+                                    <v-text-field class="jh-v-input" dense filled single-line v-model="addItem['constantType']">
                                     </v-text-field>
                                 </v-col>
                     
                                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                                     <span class="inputLabel">页面id</span>
-                                    <v-text-field class="cus-v-input" dense filled single-line v-model="addItem['pageId']">
+                                    <v-text-field class="jh-v-input" dense filled single-line v-model="addItem['pageId']">
                                     </v-text-field>
                                 </v-col>
                     
                                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                                     <span class="inputLabel">描述</span>
-                                    <v-text-field class="cus-v-input" dense filled single-line
+                                    <v-text-field class="jh-v-input" dense filled single-line
                                         v-model="addItem['desc']"></v-text-field>
                                 </v-col>
                     
@@ -124,7 +124,7 @@
                                     <v-textarea v-else-if="addItem.constantType === 'html'" filled single-line v-model="addItem[language]"
                                         name="input-7-4" label="常量内容" filled single-line :rows="12"
                                         value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."></v-textarea>
-                                    <v-text-field v-else class="cus-v-input" dense filled single-line label="常量内容"
+                                    <v-text-field v-else class="jh-v-input" dense filled single-line label="常量内容"
                                         v-model="addItem[language]"></v-text-field>
                                 </v-col>
                             </v-row>
@@ -153,25 +153,25 @@
                             <v-row class="mt-0" :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
                                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                                     <span class="inputLabel">constantKey</span>
-                                    <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['constantKey']">
+                                    <v-text-field class="jh-v-input" dense filled single-line v-model="editItem['constantKey']">
                                     </v-text-field>
                                 </v-col>
                     
                                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                                     <span class="inputLabel">常量类型</span>
-                                    <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['constantType']">
+                                    <v-text-field class="jh-v-input" dense filled single-line v-model="editItem['constantType']">
                                     </v-text-field>
                                 </v-col>
                     
                                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                                     <span class="inputLabel">页面id</span>
-                                    <v-text-field class="cus-v-input" dense filled single-line v-model="editItem['pageId']">
+                                    <v-text-field class="jh-v-input" dense filled single-line v-model="editItem['pageId']">
                                     </v-text-field>
                                 </v-col>
                     
                                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                                     <span class="inputLabel">描述</span>
-                                    <v-text-field class="cus-v-input" dense filled single-line
+                                    <v-text-field class="jh-v-input" dense filled single-line
                                         v-model="editItem['desc']"></v-text-field>
                                 </v-col>
                     
@@ -183,7 +183,7 @@
                                     <v-textarea v-else-if="editItem.constantType === 'html'" filled single-line v-model="editItem[language]"
                                         name="input-7-4" label="常量内容" filled single-line :rows="12"
                                         value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."></v-textarea>
-                                    <v-text-field v-else class="cus-v-input" dense filled single-line label="常量内容"
+                                    <v-text-field v-else class="jh-v-input" dense filled single-line label="常量内容"
                                         v-model="editItem[language]"></v-text-field>
                                 </v-col>
                             </v-row>

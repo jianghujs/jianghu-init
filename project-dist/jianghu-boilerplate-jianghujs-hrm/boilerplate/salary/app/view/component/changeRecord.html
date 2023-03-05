@@ -75,10 +75,10 @@
                 >
                   <td>{{ item.name }}</td>
                   <td>
-                    <v-text-field class="cus-v-input " :readonly="editItem.employeeStatus == 1 || !editItem.isAccess" type="number" dense filled single-line v-model="item.value"></v-text-field>
+                    <v-text-field class="jh-v-input " :readonly="editItem.employeeStatus == 1 || !editItem.isAccess" type="number" dense filled single-line v-model="item.value"></v-text-field>
                   </td>
                   <td>
-                    <v-text-field :readonly="!editItem.isAccess" class="cus-v-input " type="number" dense filled single-line v-model="editItem.salary.newSalary[index].value"></v-text-field>
+                    <v-text-field :readonly="!editItem.isAccess" class="jh-v-input " type="number" dense filled single-line v-model="editItem.salary.newSalary[index].value"></v-text-field>
                   </td>
                 </tr>
                 <tr>
@@ -117,10 +117,10 @@
                 >
                   <td>{{ item.name }}</td>
                   <td>
-                    <v-text-field v-if="editItem.proSalary.oldSalary[index]" class="cus-v-input " :readonly="editItem.employeeStatus == 1 || !editItem.isAccess" type="number" dense filled single-line v-model="editItem.proSalary.oldSalary[index].value"></v-text-field>
+                    <v-text-field v-if="editItem.proSalary.oldSalary[index]" class="jh-v-input " :readonly="editItem.employeeStatus == 1 || !editItem.isAccess" type="number" dense filled single-line v-model="editItem.proSalary.oldSalary[index].value"></v-text-field>
                   </td>
                   <td>
-                    <v-text-field :readonly="!editItem.isAccess" class="cus-v-input " type="number" dense filled single-line v-model="item.value"></v-text-field>
+                    <v-text-field :readonly="!editItem.isAccess" class="jh-v-input " type="number" dense filled single-line v-model="item.value"></v-text-field>
                   </td>
                 </tr>
                 <tr>
@@ -155,10 +155,10 @@
                 >
                   <td>{{ item.name }}</td>
                   <td>
-                    <v-text-field v-if="editItem.salary.oldSalary[index]" class="cus-v-input " :readonly="editItem.employeeStatus == 1 || !editItem.isAccess" type="number" dense filled single-line v-model="editItem.salary.oldSalary[index].value"></v-text-field>
+                    <v-text-field v-if="editItem.salary.oldSalary[index]" class="jh-v-input " :readonly="editItem.employeeStatus == 1 || !editItem.isAccess" type="number" dense filled single-line v-model="editItem.salary.oldSalary[index].value"></v-text-field>
                   </td>
                   <td>
-                    <v-text-field :readonly="!editItem.isAccess" class="cus-v-input " type="number" dense filled single-line v-model="item.value"></v-text-field>
+                    <v-text-field :readonly="!editItem.isAccess" class="jh-v-input " type="number" dense filled single-line v-model="item.value"></v-text-field>
                   </td>
                 </tr>
                 <tr>
@@ -173,21 +173,21 @@
          
         <v-col v-if="!editItem.isMake" cols="6" sm="12" md="6" xl="6" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel">调薪原因</span>
-          <v-select class="cus-v-input " dense filled single-line label="班级ID" v-model="editItem.changeReason"
+          <v-select class="jh-v-input " dense filled single-line label="班级ID" v-model="editItem.changeReason"
           :items="constantCollection.changeReason" item-text="text" item-value="value"></v-select>
         </v-col>
         <v-col v-if="!editItem.isMake" cols="6" sm="12" md="6" xl="6" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel">调薪生效日期</span>
-          <v-menu  :readonly="!editItem.isAccess" class="cus-v-input " offset-y max-width="290">
+          <v-menu  :readonly="!editItem.isAccess" class="jh-v-input " offset-y max-width="290">
             <template v-slot:activator="{ on, attrs }">
-              <v-text-field class="cus-v-input " dense filled single-line v-on="on" label="调薪生效日期" v-model="editItem.enableDate"></v-text-field>
+              <v-text-field class="jh-v-input " dense filled single-line v-on="on" label="调薪生效日期" v-model="editItem.enableDate"></v-text-field>
             </template>
             <v-date-picker color="success" elevation="20" v-model="editItem.enableDate"></v-date-picker>
          </v-menu>
         </v-col>
         <v-col cols="12" sm="12" md="12" xl="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
           <span class="inputLabel">备注</span>
-          <v-textarea :readonly="!editItem.isAccess" class="cus-v-input " dense filled single-line v-model="editItem['remarks']" filled single-line auto-grow rows="4"></v-textarea>
+          <v-textarea :readonly="!editItem.isAccess" class="jh-v-input " dense filled single-line v-model="editItem['remarks']" filled single-line auto-grow rows="4"></v-textarea>
         </v-col>
       </v-row>
       <v-row v-if="editItem.isAccess" class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">

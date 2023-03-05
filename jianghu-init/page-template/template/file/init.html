@@ -29,7 +29,7 @@
                 </v-col>
                 <v-spacer></v-spacer>
                 <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-                  <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+                  <v-text-field v-model="searchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
                 </v-col>
               </v-row>
               <v-data-table 
@@ -83,12 +83,12 @@
               <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}" v-if="isEditDrawerShow">
                 <v-col v-if="currentClickButton.action === 'add'" cols="12" sm="12" md="6" xl="6" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">文件</span>
-                  <v-file-input v-model="inputFile" class="cus-v-input mr-2" dense filled single-line chips label="请选择文件" ></v-file-input>
+                  <v-file-input v-model="inputFile" class="jh-v-input mr-2" dense filled single-line chips label="请选择文件" ></v-file-input>
                 </v-col>
                 //===// <=% for f in fields %=>
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
-                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
+                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
                 </v-col>//===// <=% endfor %=>
               </v-row>
               <!--抽屉操作按钮-->

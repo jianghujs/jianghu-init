@@ -16,7 +16,7 @@
     <v-spacer></v-spacer>
 
     <v-col cols="12" xs="12" sm="4" md="3" xl="3" class="px-0">
-      <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled single-line></v-text-field>
+      <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="jh-v-input" dense filled single-line></v-text-field>
     </v-col>
 
   </v-row>
@@ -55,15 +55,15 @@
     <v-row  :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
       <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">应用ID</span>
-        <v-text-field class="cus-v-input mr-2" :disabled="currentClickButton.action !== 'add'" dense filled single-line label="应用ID" v-model="editItem.appId" :rules="requireRules"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" :disabled="currentClickButton.action !== 'add'" dense filled single-line label="应用ID" v-model="editItem.appId" :rules="requireRules"></v-text-field>
       </v-col>
       <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">应用名</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line label="应用名" v-model="editItem.appName" :rules="requireRules"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line label="应用名" v-model="editItem.appName" :rules="requireRules"></v-text-field>
       </v-col>
       <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">应用类型</span>
-        <v-select class="cus-v-input mr-2" dense filled single-line clearable label="应用类型" v-model="editItem.appType" :items="constantCollection.appType"></v-select>
+        <v-select class="jh-v-input mr-2" dense filled single-line clearable label="应用类型" v-model="editItem.appType" :items="constantCollection.appType"></v-select>
       </v-col>
     </v-row>
     <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">

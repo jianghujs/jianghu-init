@@ -36,7 +36,7 @@
                     添加新{{tabItemTitle}}
                   </v-btn>
                   <v-col>
-                    <v-text-field label="搜索" dense color="success" class="cus-v-input" placeholder="搜索" v-model="tabsSearchKeyword"
+                    <v-text-field label="搜索" dense color="success" class="jh-v-input" placeholder="搜索" v-model="tabsSearchKeyword"
                       prepend-inner-icon="mdi-text-search" filled single-line></v-text-field>
                   </v-col>
                 </template>
@@ -73,7 +73,7 @@
                         <v-spacer></v-spacer>
               
                         <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="px-0">
-                          <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input" dense filled
+                          <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="jh-v-input" dense filled
                             single-line></v-text-field>
                         </v-col>
               
@@ -101,14 +101,14 @@
                         '信息'}}</v-list-item-title>
                       <v-form v-model="isFormValidRight" ref="formRight" lazy-validation>
                         <v-list-item v-for="item of tabItemKeys" class="pl-0 pt-4 pr-0">
-                          <v-select v-if="item.type === 'select'" class="cus-v-input mr-2" dense filled single-line item-value="value"
+                          <v-select v-if="item.type === 'select'" class="jh-v-input mr-2" dense filled single-line item-value="value"
                             :label="item.text" v-model="activeItemInfo[item.value]"
                             :rules="item.require == false ? nullRules : requireRules"
                             :items="constantCollection[item.value]"></v-select>
-                          <v-textarea v-else-if="item.type === 'textarea'" class="cus-v-input mr-2" dense filled single-line
+                          <v-textarea v-else-if="item.type === 'textarea'" class="jh-v-input mr-2" dense filled single-line
                             :label="item.text" v-model="activeItemInfo[item.value]"
                             :rules="item.require == false ? nullRules : requireRules"></v-textarea>
-                          <v-text-field v-else class="cus-v-input mr-2" dense filled single-line :label="item.text"
+                          <v-text-field v-else class="jh-v-input mr-2" dense filled single-line :label="item.text"
                             v-model="activeItemInfo[item.value]"
                             :rules="item.require == false ? nullRules : requireRules"></v-text-field>
                         </v-list-item>
@@ -138,17 +138,17 @@
                   <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
                     <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                       <span class="inputLabel">UserID</span>
-                      <v-select class="cus-v-input mr-2" dense filled single-line clearable label="UserID" :rules="requireRules"
+                      <v-select class="jh-v-input mr-2" dense filled single-line clearable label="UserID" :rules="requireRules"
                         v-model="editItem.userId" :items="constantCollection.user"></v-select>
                     </v-col>
                     <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                       <span class="inputLabel">GroupID</span>
-                      <v-select class="cus-v-input mr-2" dense filled single-line clearable label="GroupID" :rules="requireRules"
+                      <v-select class="jh-v-input mr-2" dense filled single-line clearable label="GroupID" :rules="requireRules"
                         v-model="editItem.groupId" :items="constantCollection.group"></v-select>
                     </v-col>
                     <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                       <span class="inputLabel">RoleId</span>
-                      <v-select class="cus-v-input mr-2" dense filled single-line clearable label="RoleId" :rules="requireRules"
+                      <v-select class="jh-v-input mr-2" dense filled single-line clearable label="RoleId" :rules="requireRules"
                         v-model="editItem.roleId" :items="constantCollection.role"></v-select>
                     </v-col>
                   </v-row>
@@ -171,71 +171,71 @@
                       <v-row :class="{'px-10': !isMobile, 'pb-7': isMobile}" v-if="pageTab == 0">
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">用户ID</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="用户ID" v-model="editItem.userId"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="用户ID" v-model="editItem.userId"
                             :rules="requireRules"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">用户名</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="用户名" v-model="editItem.username"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="用户名" v-model="editItem.username"
                             :rules="requireRules"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">用户状态</span>
-                          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="用户状态"
+                          <v-select class="jh-v-input mr-2" dense filled single-line clearable label="用户状态"
                             v-model="editItem.userStatus" :items="constantCollection.userStatus"></v-select>
                         </v-col>
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">用户类型</span>
-                          <v-select class="cus-v-input mr-2" dense filled single-line clearable label="用户类型"
+                          <v-select class="jh-v-input mr-2" dense filled single-line clearable label="用户类型"
                             v-model="editItem.userType" :items="constantCollection.userType"></v-select>
                         </v-col>
                         <v-col v-if="currentClickButton.action === 'add'" cols="12" sm="12" md="6" class="pb-xs-4 pb-3">
                           <span class="inputLabel">初始密码</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="初始密码"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="初始密码"
                             v-model="editItem.clearTextPassword" :rules="requireRules"></v-text-field>
                         </v-col>
                       </v-row>
                       <v-row :class="{'px-10': !isMobile, 'pb-7': isMobile}" v-if="pageTab == 1">
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">组织ID</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织ID" v-model="editItem.groupId"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="组织ID" v-model="editItem.groupId"
                             :rules="requireRules"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">组织名</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织名" v-model="editItem.groupName"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="组织名" v-model="editItem.groupName"
                             :rules="requireRules"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">组织描述</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织描述"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="组织描述"
                             v-model="editItem.groupDesc"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">组织Logo</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="组织Logo"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="组织Logo"
                             v-model="editItem.groupAvatar"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">拓展字段</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="拓展字段"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="拓展字段"
                             v-model="editItem.groupExtend"></v-text-field>
                         </v-col>
                       </v-row>
                       <v-row :class="{'px-10': !isMobile,  'pb-7': isMobile}" v-if="pageTab == 2">
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">角色ID</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="角色ID" v-model="editItem.roleId"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="角色ID" v-model="editItem.roleId"
                             :rules="requireRules"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">角色名</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="角色名" v-model="editItem.roleName"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="角色名" v-model="editItem.roleName"
                             :rules="requireRules"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="12" md="4" :class="{'pa-0': isMobile, 'px-3': isMobile, 'pt-6': isMobile}">
                           <span class="inputLabel">角色描述</span>
-                          <v-text-field class="cus-v-input mr-2" dense filled single-line label="角色描述"
+                          <v-text-field class="jh-v-input mr-2" dense filled single-line label="角色描述"
                             v-model="editItem.roleDesc"></v-text-field>
                         </v-col>
                       </v-row>

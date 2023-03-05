@@ -6,36 +6,36 @@
         <v-col v-if="item.type !== 'textarea' && item.type !== 'searchMultiple'" cols="12" sm="12" md="4" xl="3"
           class="pa-xs-0 pb-xs-4 pb-3">
           <!-- 下拉框 -->
-          <v-select v-if="item.type === 'select'" :disabled="item.disabled" class="cus-v-input mr-2" dense outlined clearable color="success"
+          <v-select v-if="item.type === 'select'" :disabled="item.disabled" class="jh-v-input mr-2" dense outlined clearable color="success"
             v-model="editItem[item.value]" :items="constantCollection[item.value]" :label="item.text"
             :rules="item.required && requireRules"></v-select>
           <!-- 时间选择器 -->
-          <v-menu v-else-if="item.type === 'date'" class="cus-v-input mr-2" offset-y max-width="290">
+          <v-menu v-else-if="item.type === 'date'" class="jh-v-input mr-2" offset-y max-width="290">
             <template v-slot:activator="{ on, attrs }">
-              <v-text-field class="cus-v-input mr-2" :rules="item.required && requireRules" dense outlined v-on="on"
+              <v-text-field class="jh-v-input mr-2" :rules="item.required && requireRules" dense outlined v-on="on"
                 :label="item.text" :value="editItem[item.value]"></v-text-field>
             </template>
             <v-date-picker color="success" elevation="20" v-model="editItem[item.value]"></v-date-picker>
           </v-menu>
           <!-- 单选搜索框 -->
-          <v-autocomplete v-else-if="item.type === 'searchOne'" :disabled="item.disabled" class="cus-v-input mr-2" dense outlined
+          <v-autocomplete v-else-if="item.type === 'searchOne'" :disabled="item.disabled" class="jh-v-input mr-2" dense outlined
             v-model="editItem[item.value]" :items="constantCollection[item.value]" :filter="customFilter"
             :label="item.text"></v-autocomplete>
 
           <!-- 普通文本框 -->
-          <v-text-field v-else-if="item.type === 'number'" class="cus-v-input mr-2" :disabled="item.disabled" dense outlined color="success" :label="item.text"
+          <v-text-field v-else-if="item.type === 'number'" class="jh-v-input mr-2" :disabled="item.disabled" dense outlined color="success" :label="item.text"
             type="number" v-model="editItem[item.value]" :rules="item.required && requireRules"></v-text-field>
 
           <!-- 普通文本框 -->
-          <v-text-field v-else class="cus-v-input mr-2" :disabled="item.disabled" dense outlined color="success" :label="item.text"
+          <v-text-field v-else class="jh-v-input mr-2" :disabled="item.disabled" dense outlined color="success" :label="item.text"
             v-model="editItem[item.value]" :rules="item.required && requireRules"></v-text-field>
         </v-col>
         <v-col v-else cols="12" sm="12" md="12" xl="12" class="pa-xs-0 pb-xs-4 pb-3">
           <!-- 多行编辑器 -->
-          <v-textarea v-if="item.type === 'textarea'" :disabled="item.disabled" class="cus-v-input mr-2" dense outlined color="success"
+          <v-textarea v-if="item.type === 'textarea'" :disabled="item.disabled" class="jh-v-input mr-2" dense outlined color="success"
             :rules="item.required && requireRules" :label="item.text" v-model="editItem[item.value]"></v-textarea>
           <!-- 多选搜索框 -->
-          <v-autocomplete v-else-if="item.type === 'searchMultiple'" class="cus-v-input mr-2"
+          <v-autocomplete v-else-if="item.type === 'searchMultiple'" class="jh-v-input mr-2"
             v-model="editItem[item.value]" :items="constantCollection[item.value]" dense chips outlined
             :disabled="item.disabled"
             :label="item.text" multiple>

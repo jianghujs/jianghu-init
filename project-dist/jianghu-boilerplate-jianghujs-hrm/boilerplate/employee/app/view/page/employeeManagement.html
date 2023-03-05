@@ -58,7 +58,7 @@
 <v-card :class="{'px-2': isMobile}" class="rounded-lg">
   <div class="d-flex justify-space-between align-center pa-4">
     <div class="d-flex align-center">
-      <v-text-field v-model="serverSearchForm.employeeName" prefix="员工姓名：" color="success" class="cus-v-input"
+      <v-text-field v-model="serverSearchForm.employeeName" prefix="员工姓名：" color="success" class="jh-v-input"
         :class="{'mr-1': !isMobile}" dense filled single-line
         append-icon="mdi-magnify"
           @click:append="getTableData"></v-text-field>
@@ -183,7 +183,7 @@ width="70%"
     <v-container class="px-0">
       <v-row :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
         <v-col sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-          <v-file-input v-model="improtInputFile" class="cus-v-input" dense filled single-line chips label="请选择excel文件" ></v-file-input>
+          <v-file-input v-model="improtInputFile" class="jh-v-input" dense filled single-line chips label="请选择excel文件" ></v-file-input>
         </v-col>
       </v-row>
       <v-row class="justify-end mx-0 mt-8" :class="{'px-6': !isMobile, 'px-4': isMobile}">

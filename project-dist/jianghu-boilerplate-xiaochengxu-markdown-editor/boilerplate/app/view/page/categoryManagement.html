@@ -8,13 +8,13 @@
 
   <v-spacer></v-spacer>
   <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex pl-0">
-    <v-select class="cus-v-input mr-2" v-model="categoryPublishStatusSelectList" prefix="分类状态："
+    <v-select class="jh-v-input mr-2" v-model="categoryPublishStatusSelectList" prefix="分类状态："
     :items="constantCollection.categoryPublishStatus" dense filled single-line multiple persistent-hint></v-select>
   </v-col>
 
 
   <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-    <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line ></v-text-field>
+    <v-text-field v-model="searchInput" label="表格过滤" class="jh-v-input" dense filled single-line ></v-text-field>
   </v-col>
 
   <v-col class="pl-0" :class="{'pr-0': isMobile, 'pt-0': isMobile}" style="max-width: 77px">
@@ -77,32 +77,32 @@
        
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类ID</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="addItem['categoryId']"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="addItem['categoryId']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类名称</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="addItem['categoryName']"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="addItem['categoryName']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类分组</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="addItem['categoryGroup']"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="addItem['categoryGroup']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类分组排序</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="addItem['categoryGroupSort']"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="addItem['categoryGroupSort']"></v-text-field>
       </v-col>
       
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类简介</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="addItem['categoryIntro']"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="addItem['categoryIntro']"></v-text-field>
       </v-col>
 
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">发布状态</span>
-        <v-select class="cus-v-input mr-2" dense filled single-line clearable v-model="addItem['categoryPublishStatus']" :items="constantCollection.categoryPublishStatus"></v-select>
+        <v-select class="jh-v-input mr-2" dense filled single-line clearable v-model="addItem['categoryPublishStatus']" :items="constantCollection.categoryPublishStatus"></v-select>
       </v-col>
     </v-row>
     <v-row class="justify-end pr-6">
@@ -127,32 +127,32 @@
        
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类ID</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['categoryId']" disabled></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['categoryId']" disabled></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类名称</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['categoryName']"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['categoryName']"></v-text-field>
       </v-col>
 
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类分组</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['categoryGroup']"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['categoryGroup']"></v-text-field>
       </v-col>
        
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类分组排序</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['categoryGroupSort']"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['categoryGroupSort']"></v-text-field>
       </v-col>
 
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">分类简介</span>
-        <v-text-field class="cus-v-input mr-2" dense filled single-line v-model="editItem['categoryIntro']"></v-text-field>
+        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['categoryIntro']"></v-text-field>
       </v-col>
 
       <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
         <span class="inputLabel">发布状态</span>
-        <v-select class="cus-v-input mr-2" dense filled single-line clearable v-model="editItem['categoryPublishStatus']" :items="constantCollection.categoryPublishStatus"></v-select>
+        <v-select class="jh-v-input mr-2" dense filled single-line clearable v-model="editItem['categoryPublishStatus']" :items="constantCollection.categoryPublishStatus"></v-select>
       </v-col>
     </v-row>
     <v-row class="justify-end pr-6">

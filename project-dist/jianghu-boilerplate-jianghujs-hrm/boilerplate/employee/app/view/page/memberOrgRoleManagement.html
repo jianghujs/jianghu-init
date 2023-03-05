@@ -77,11 +77,11 @@
     <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">职员名</span>
-        <v-text-field class="cus-v-input " disabled dense filled single-line v-model="editItem['employeeName']"></v-text-field>
+        <v-text-field class="jh-v-input " disabled dense filled single-line v-model="editItem['employeeName']"></v-text-field>
       </v-col>
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">组织</span>
-        <v-select class="cus-v-input mr-2" dense filled single-line clearable color="success"
+        <v-select class="jh-v-input mr-2" dense filled single-line clearable color="success"
         v-model="editItem['orgId']" :items="constantCollection['org']"
         :rules="requireRules">
         <template v-slot:item="data">
