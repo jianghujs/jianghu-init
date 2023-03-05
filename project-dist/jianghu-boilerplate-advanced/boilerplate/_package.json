@@ -10,7 +10,7 @@
   "dependencies": {
     "dayjs": "^1.10.5",
     "egg": "^2.15.1",
-    "@jianghujs/jianghu": "4.0.13",
+    "@jianghujs/jianghu": "4.0.25",
     "egg-scripts": "^2.11.0",
     "lodash": "^4.17.21",
     "md5-node": "^1.0.1"
@@ -20,10 +20,7 @@
     "autod-egg": "^1.1.0",
     "egg-bin": "^4.11.0",
     "egg-ci": "^1.11.0",
-    "egg-mock": "^3.21.0",
-    "eslint": "^7.32.0",
-    "eslint-config-egg": "^7.1.0",
-    "eslint-plugin-jsdoc": "^37.6.1"
+    "egg-mock": "^3.21.0"
   },
   "engines": {
     "node": ">=10.0.0"

@@ -124,11 +124,11 @@
               </template>
               <!-- 表格操作按钮 -->
               <template v-slot:item.action="{ item }">
-                <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateRelationDataItem', item)">
-                  <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+                <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateRelationDataItem', item)">
+                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
                 </span>
                 <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteRelationDataItem', item)">
-                  <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+                  <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
                 </span>
               </template>
               <!--没有数据-->
@@ -221,8 +221,8 @@
       <v-navigation-drawer v-model="isRelationDataCreateDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="createRelationDataForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">{{ currentOperation.title }}信息</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">{{ currentOperation.title }}信息</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
           <v-row class="mt-0 px-6">
@@ -257,8 +257,8 @@
       <v-navigation-drawer v-model="isRelationDataUpdateDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateRelationDataForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">{{ currentOperation.title }}信息</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">{{ currentOperation.title }}信息</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
           <v-row class="mt-0 px-6">
@@ -487,7 +487,7 @@ new Vue({
     isUpdateCurrentDataTypeDialog: false,
 
     relationDataTableHeader: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
       {text: "用户Id", value: "userId", width: 120},
       {text: "组织ID", value: "groupId", width: 120},
       {text: "角色ID", value: "roleId", width: 120},

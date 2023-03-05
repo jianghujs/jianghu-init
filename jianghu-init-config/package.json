@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-init-config",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "description": "jianghu init boilerplate config",
   "files": [
     "index.js"
@@ -14,6 +14,10 @@
       "basic": {
         "package": "@jianghujs/jianghu-boilerplate-basic",
         "description": "Jianghu basic"
+      },
+      "advanced": {
+        "package": "@jianghujs/jianghu-boilerplate-advanced",
+        "description": "Jianghu advanced"
       },
       "1table-crud-file": {
         "package": "@jianghujs/jianghu-boilerplate-1table-crud-file",

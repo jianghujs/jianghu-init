@@ -53,11 +53,11 @@
         >
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
-            <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateItem', item)">
-              <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+              <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
             </span>
             <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-              <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+              <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
             </span>
           </template>
           <!--性别-->
@@ -114,11 +114,11 @@
           class="elevation-0 mt-0 mb-xs-4">
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
-            <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startTaskUpdateItem', item)">
-              <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startTaskUpdateItem', item)">
+              <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
             </span>
             <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteTaskItem', item)">
-              <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+              <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
             </span>
           </template>
         </v-data-table>
@@ -130,11 +130,11 @@
       <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="createForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">新增信息</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">添加信息</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-6">
+          <v-row class="ma-0 px-4">
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label">学生ID</span>
               <v-text-field class="jh-v-input" dense single-line filled label="学生ID" v-model="createItem.studentId" :rules="validationRules.requireRules"></v-text-field>
@@ -195,11 +195,11 @@
       <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">修改信息</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">修改信息</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-6">
+          <v-row class="ma-0 px-4">
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label">学生ID</span>
               <v-text-field class="jh-v-input" disabled dense single-line filled label="学生ID" v-model="updateItem.studentId" :rules="validationRules.requireRules"></v-text-field>
@@ -260,8 +260,8 @@
       <v-navigation-drawer v-model="isCreateTaskDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="createTaskForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">新增任务</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">新增任务</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
           <v-row class="px-10">
@@ -293,8 +293,8 @@
       <v-navigation-drawer v-model="isUpdateTaskDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateTaskForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">新增任务</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">新增任务</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
           <v-row class="px-10">
@@ -383,7 +383,7 @@ new Vue({
     tableTaskDataFromBackend: [],
     // 一级表格头
     headers: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed-prevIsSelect', cellClass: 'fixed-prevIsSelect'},
+      {text: '操作', value: 'action', sortable: false, width: 120, class: 'fixed-prevIsSelect', cellClass: 'fixed-prevIsSelect'},
       {text: "学生ID", value: "studentId", width: 120},
       {text: "学生名字", value: "name", width: 120},
       {text: "性别", value: "gender", width: 60},
@@ -398,7 +398,7 @@ new Vue({
     ],
     // 二级表格头
     taskHeaders: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
       {text: "学生ID", value: "studentId", width: 130},
       {text: "任务", value: "taskName", width: 230},
       {text: "任务评语", value: "taskComment", width: 230},

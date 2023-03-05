@@ -7,8 +7,8 @@
   <jh-menu />
   <v-main class="mt-15">
     <!-- 头部内容 >>>>>>>>>>>>> -->
-    <div class="pageSecondBar d-flex px-8">
-      <div class="jh-page-second-bar px-8">
+    <div class="jh-page-second-bar d-flex px-8">
+      <div>
         <div class="pt-3 text-h7 font-weight-bold">页面、接口
           <!-- 帮助页按钮 -->
           <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
@@ -17,7 +17,7 @@
       </div>
       <v-spacer></v-spacer>
       <!-- 右上角功能切换菜单 >>>>>>>>>>>>> -->
-      <div class="d-flex mt-2">
+      <div class="mt-2">
         <v-tabs v-model="pageTab" height="36" slider-size="0" class="mt-2" color="success" active-class="jh-tab-active-class">
           <v-tab>接口管理</v-tab>
           <v-tab>页面管理</v-tab>
@@ -60,11 +60,11 @@
           </template>
           <!--表格 操作按钮-->
           <template v-slot:item.action="{ item }">
-            <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateItem', item)">
-              <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+              <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
             </span>
             <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-              <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+              <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
             </span>
           </template>
           <!--没有数据-->
@@ -89,66 +89,65 @@
       <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="createForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">新增信息</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">添加信息</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <!-- 接口表单 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-6" v-if="pageTab === 0">
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+          <v-row class="ma-0 px-4" v-if="pageTab === 0">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">pageId</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.pageId"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">actionId</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.actionId"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">resourceType</span>
               <v-select class="jh-v-input" dense filled single-line clearable v-model="createItem.resourceType" :items="constantObj.resourceType"></v-select>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">accessControlTable</span>
               <v-select class="jh-v-input" dense filled single-line clearable v-model="createItem.accessControlTable"
                         :items="constantObj.accessControlTable"></v-select>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">resourceHook</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.resourceHook"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">appDataSchema</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.appDataSchema"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="12" xl="12" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="12" xl="12" class="pb-3">
               <span class="jh-input-label">resourceData</span>
               <v-textarea class="jh-v-input" dense filled single-line v-model="createItem.resourceData"></v-textarea>
             </v-col>
-            <v-col cols="12" sm="12" md="12" xl="12" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="12" xl="12" class="pb-3">
               <span class="jh-input-label">desc</span>
               <v-textarea class="jh-v-input" dense filled single-line v-model="createItem.desc"></v-textarea>
             </v-col>
           </v-row>
           <!-- <<<<<<<<<<< 接口表单 -->
           <!--页面表单 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-6" v-if="pageTab === 1">
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+          <v-row class="mt-0 px-4" v-if="pageTab === 1">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">pageId</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.pageId" :rules="validationRules.requireRules"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">pageName</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.pageName"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">pageFile</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.pageFile"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">pageType</span>
               <v-select class="jh-v-input" dense filled single-line clearable v-model="createItem.pageType" :items="constantObj.pageType"></v-select>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">sort</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.sort"></v-text-field>
             </v-col>
@@ -172,34 +171,33 @@
       <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">编辑信息</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">修改信息</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <!-- 接口表单 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-6" v-if="pageTab === 0">
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+          <v-row class="ma-0 px-4" v-if="pageTab === 0">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">pageId</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="updateItem.pageId"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">actionId</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="updateItem.actionId"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">resourceType</span>
               <v-select class="jh-v-input" dense filled single-line clearable v-model="updateItem.resourceType" :items="constantObj.resourceType"></v-select>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">accessControlTable</span>
               <v-select class="jh-v-input" dense filled single-line clearable v-model="updateItem.accessControlTable"
                         :items="constantObj.accessControlTable"></v-select>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">resourceHook</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="updateItem.resourceHook"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">appDataSchema</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="updateItem.appDataSchema"></v-text-field>
             </v-col>
@@ -215,23 +213,23 @@
           <!-- <<<<<<<<<<< 接口表单 -->
           <!--页面表单 >>>>>>>>>>>>> -->
           <v-row class="mt-0 px-6" v-if="pageTab === 1">
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">pageId</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="updateItem.pageId" :rules="validationRules.requireRules"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">pageName</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="updateItem.pageName" :rules="validationRules.requireRules"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">pageFile</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="updateItem.pageFile"></v-text-field>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">pageType</span>
               <v-select class="jh-v-input" dense filled single-line clearable v-model="updateItem.pageType" :items="constantObj.pageType" :rules="validationRules.requireRules"></v-select>
             </v-col>
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">sort</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="updateItem.sort"></v-text-field>
             </v-col>
@@ -254,7 +252,7 @@
     </div>
     <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
     <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#3.doUiAction.md`" width="100%" height="100%"></iframe>
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#2.resourcePageManagement.md`" width="100%" height="100%"></iframe>
       <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
         <v-icon>mdi-close</v-icon>
       </v-btn>
@@ -309,7 +307,7 @@ new Vue({
     pageTableDataFromBackend: [],
     tabPageHeaders: [],
     resourceHeaders: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
       {text: "pageId", value: "pageId", width: 120},
       {text: "actionId", value: "actionId", width: 120},
       {text: "resourceType", value: "resourceType", width: 120},
@@ -323,7 +321,7 @@ new Vue({
     ],
 
     pageHeaders: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
       {text: "pageId", value: "pageId", width: 120},
       {text: "pageName", value: "pageName", width: 120},
       {text: "pageFile", value: "pageFile", width: 120},

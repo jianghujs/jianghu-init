@@ -46,27 +46,37 @@
           class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
-            <span role="button" class="error--text font-weight-medium font-size-2" @click="doUiAction('activeUserStatus', item)" v-if="item.userStatus !== 'active'">
-              <v-icon size="14" class="error--text">mdi-lock-open-variant-outline</v-icon>激活
+            <span role="button" class="error--text font-weight-medium font-size-2 mr-2" @click="doUiAction('activeUserStatus', item)" v-if="item.userStatus !== 'active'">
+              <v-icon size="16" class="error--text">mdi-lock-open-variant-outline</v-icon>激活
             </span>
-            <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('bannedUserStatus', item)" v-if="item.userStatus === 'active'">
-              <v-icon size="14" class="success--text">mdi-lock-outline</v-icon>禁用
+            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('bannedUserStatus', item)" v-if="item.userStatus === 'active'">
+              <v-icon size="16" class="success--text">mdi-lock-outline</v-icon>禁用
             </span>
-            <v-menu offset-y>
-              <template v-slot:activator="{ on, attrs }">
-                <span role="button" class="success--text font-weight-medium font-size-2 ma-1" v-bind="attrs" v-on="on">
-                  <v-icon size="14" class="success--text">mdi-dots-vertical</v-icon>操作
+            <template v-if="isMobile">
+              <v-menu offset-y>
+                <template v-slot:activator="{ on, attrs }">
+                <span role="button" class="success--text font-weight-medium font-size-2" v-bind="attrs" v-on="on">
+                  <v-icon size="16" class="success--text">mdi-dots-vertical</v-icon>操作
                 </span>
-              </template>
-              <v-list dense>
-                <v-list-item @click="doUiAction('startUpdateItem', item)">
-                  <v-list-item-title><v-icon size="14">mdi-note-edit-outline</v-icon>修改信息</v-list-item-title>
-                </v-list-item>
-                <v-list-item @click="doUiAction('startResetPassword', item)">
-                  <v-list-item-title><v-icon size="14">mdi-trash-can-outline</v-icon>修改密码</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+                </template>
+                <v-list dense>
+                  <v-list-item @click="doUiAction('startUpdateItem', item)">
+                    <v-list-item-title><v-icon size="16">mdi-note-edit-outline</v-icon>修改信息</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item @click="doUiAction('startResetPassword', item)">
+                    <v-list-item-title><v-icon size="16">mdi-trash-can-outline</v-icon>修改密码</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </template>
+            <template v-else>
+              <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)" v-if="item.userStatus === 'active'">
+                <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改信息
+              </span>
+              <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startResetPassword', item)" v-if="item.userStatus === 'active'">
+                <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>修改密码
+              </span>
+            </template>
           </template>
           <!-- 表格 密码复制 -->
           <template v-slot:item.clearTextPassword="{ item }">
@@ -105,11 +115,11 @@
       <v-navigation-drawer v-model="isResetUserPasswordDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="passwordForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">修改密码</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">修改密码</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-6">
+          <v-row class="ma-0 px-4">
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label">初始密码</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="userPasswordItem.clearTextPassword" :rules="validationRules.requireRules"></v-text-field>
@@ -133,12 +143,12 @@
       <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="createForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">添加信息</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">添加信息</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-6">
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+          <v-row class="ma-0 px-4">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">用户ID[登陆]</span>
               <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.userId" :rules="validationRules.requireRules"></v-text-field>
             </v-col>
@@ -177,12 +187,12 @@
       <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateForm" lazy-validation>
           <!-- 抽屉的头部标题 -->
-          <v-row>
-            <span class="text-h7 pa-6 pl-8">修改信息</span>
+          <v-row class="ma-0 px-6">
+            <span class="text-h7 pt-6">修改信息</span>
           </v-row>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-6">
-            <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+          <v-row class="ma-0 px-4">
+            <v-col cols="12" sm="12" md="4" xl="3" class="pb-3">
               <span class="jh-input-label">用户ID[登陆]</span>
               <v-text-field class="jh-v-input" dense filled single-line disabled v-model="updateItem.userId" :rules="validationRules.requireRules"></v-text-field>
             </v-col>
@@ -278,7 +288,7 @@ new Vue({
     tableData: [],
 
     headers: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: window.innerWidth < 500 ? 120 : 230, class: 'fixed', cellClass: 'fixed'},
       {text: "用户ID[登陆]", value: "userId", width: 120},
       {text: "用户名", value: "username", width: 140},
       {text: "用户类型", value: "userType", width: 120},
@@ -308,7 +318,8 @@ new Vue({
     clearTextPassword: null,
     resetPasswordUserId: null
   },
-  computed: {},
+  computed: {
+  },
   watch: {},
   async created() {
   },

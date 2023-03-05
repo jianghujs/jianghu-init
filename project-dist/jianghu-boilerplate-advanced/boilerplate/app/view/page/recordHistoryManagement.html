@@ -59,7 +59,7 @@
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
             <span role="button" class="success--text font-weight-medium font-size-2 text-no-wrap" @click="doUiAction('viewRecordHistory', item)">
-              <v-icon size="14" class="success--text">mdi-eye-outline</v-icon>查看数据版本<span v-if="item.count > 0" style="color: red">({{item.count}})</span>
+              <v-icon size="16" class="success--text">mdi-eye-outline</v-icon>查看数据版本<span v-if="item.count > 0" style="color: red">({{item.count}})</span>
             </span>
           </template>
           <!-- 操作时间 -->
@@ -87,7 +87,7 @@
 
       <v-navigation-drawer v-model="isHistoryDetailDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <!-- 抽屉的头部标题 -->
-        <div class="text-h7 pa-6">数据版本</div>
+        <div class="text-h7 pa-4">数据版本</div>
         <!-- 抽屉的表格主体 >>>>>>>>>>>>> -->
         <v-data-table
           fixed-header
@@ -106,7 +106,7 @@
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
             <span role="button" class="success--text font-weight-medium font-size-2 text-no-wrap" @click="doUiAction('restoreRecordByRecordHistory', item)">
-              <v-icon size="14" class="success--text">mdi-history</v-icon>还原数据
+              <v-icon size="16" class="success--text">mdi-history</v-icon>还原数据
             </span>
           </template>
           <!-- 操作时间 -->

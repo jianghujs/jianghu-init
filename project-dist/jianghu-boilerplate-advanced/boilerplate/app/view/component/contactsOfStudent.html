@@ -21,14 +21,13 @@
         checkbox-color="success"
         fixed-header
         data-bottom="90"
-
-        class="jh-fixed-table-height zebraLine elevation-0 mt-0 mb-xs-4">
+        class="zebraLine elevation-0 mt-0 mb-xs-4">
         <template v-slot:item.action="{ item }">
-          <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateItem', item)">
-            <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+          <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+            <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
           </span>
           <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-            <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+            <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
           </span>
         </template>
         <!--没有数据-->
@@ -132,7 +131,7 @@ Vue.component("contacts-of-student", {
     isTableLoading: true,
     tableData: [],
     headers: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
       {text: "ID", value: "id", width: 80, class: 'fixed', cellClass: 'fixed'},
       {text: "学生ID", value: "studentId"},
       {text: "联系人名字", value: "contactName"},

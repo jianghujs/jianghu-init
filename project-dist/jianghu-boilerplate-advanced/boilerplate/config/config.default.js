@@ -27,6 +27,12 @@ module.exports = appInfo => {
     primaryColor: "#4caf50",
     primaryColorA80: "#EEF7EE",
 
+    jianghuConfig: {
+      // 页面日志收集
+      enableHtmlErrorLogRecord: true,
+      htmlErrorLogRecordInterval: 60000,
+    },
+
     static: {
       dynamic: true,
       preload: false,

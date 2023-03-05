@@ -7,8 +7,8 @@
     <jh-menu />
     <v-main class="mt-15">
       <!-- 头部内容 >>>>>>>>>>>>> -->
-      <div class="pageSecondBar d-flex px-8">
-        <div class="jh-page-second-bar px-8">
+      <div class="jh-page-second-bar d-flex px-8">
+        <div>
           <div class="pt-3 text-h7 font-weight-bold">权限规则管理
             <!-- 帮助页按钮 -->
             <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
@@ -17,7 +17,7 @@
         </div>
         <v-spacer></v-spacer>
         <!-- 右上角功能切换菜单 >>>>>>>>>>>>> -->
-        <div class="d-flex mt-2">
+        <div class="mt-2">
           <v-tabs v-model="pageTab" height="36" slider-size="0" class="mt-2" color="success" active-class="jh-tab-active-class">
             <v-tab>接口权限</v-tab>
             <v-tab>页面权限</v-tab>
@@ -60,16 +60,16 @@
             </template>
             <!--表格 操作按钮-->
             <template v-slot:item.action="{ item }">
-            <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('startUpdateItem', item)">
-              <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+              <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
             </span>
               <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-              <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+              <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
             </span>
             </template>
             <!--状态-->
             <template v-slot:item.allowOrDeny="{ item }">
-              {{ getDisplayText({displayObj: constantObj.allowOrDeny, displayValue: item.allowOrDeny})  }}
+              {{ getDisplayText({displayObj: constantObj.allowOrDeny, displayValue: item.allowOrDeny}) }}
             </template>
             <!--没有数据-->
             <template v-slot:loading>
@@ -93,11 +93,11 @@
         <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
           <v-form ref="createForm" lazy-validation>
             <!-- 抽屉的头部标题 -->
-            <v-row>
-              <span class="text-h7 pa-6 pl-8">新增信息</span>
+            <v-row class="ma-0 px-6">
+              <span class="text-h7 pt-6">添加信息</span>
             </v-row>
             <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-            <v-row class="mt-0 px-6">
+            <v-row class="ma-0 px-4">
               <v-col cols="12" sm="12" md="4">
                 <span class="jh-input-label">用户ID/通配符(*)</span>
                 <v-autocomplete
@@ -123,7 +123,7 @@
                   @update:search-input="onConstantChange($event, 'role')">
                 </v-autocomplete>
               </v-col>
-              <v-col v-if="pageTab === 0" cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <v-col v-if="pageTab === 0" cols="12" sm="12" md="4" xl="3" class="pb-3">
                 <span class="jh-input-label">ResourceId/通配符(*)</span>
                 <v-autocomplete
                   class="jh-v-input" dense filled single-line clearable
@@ -132,7 +132,7 @@
                   @update:search-input="onConstantChange($event, 'resource')">
                 </v-autocomplete>
               </v-col>
-              <v-col v-if="pageTab === 1" cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <v-col v-if="pageTab === 1" cols="12" sm="12" md="4" xl="3" class="pb-3">
                 <span class="jh-input-label">PageId/通配符(*)</span>
                 <v-autocomplete
                   class="jh-v-input" dense filled single-line clearable
@@ -172,11 +172,11 @@
         <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
           <v-form ref="updateForm" lazy-validation>
             <!-- 抽屉的头部标题 -->
-            <v-row>
-              <span class="text-h7 pa-6 pl-8">编辑信息</span>
+            <v-row class="ma-0 px-6">
+              <span class="text-h7 pt-6">编辑信息</span>
             </v-row>
             <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-            <v-row class="mt-0 px-6">
+            <v-row class="ma-0 px-4">
               <v-col cols="12" sm="12" md="4">
                 <span class="jh-input-label">用户ID/通配符(*)</span>
                 <v-autocomplete
@@ -202,7 +202,7 @@
                   @update:search-input="onConstantChange($event, 'role')">
                 </v-autocomplete>
               </v-col>
-              <v-col v-if="pageTab === 0" cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <v-col v-if="pageTab === 0" cols="12" sm="12" md="4" xl="3" class="pb-3">
                 <span class="jh-input-label">ResourceId/通配符(*)</span>
                 <v-autocomplete
                   class="jh-v-input" dense filled single-line clearable
@@ -211,7 +211,7 @@
                   @update:search-input="onConstantChange($event, 'resource')">
                 </v-autocomplete>
               </v-col>
-              <v-col v-if="pageTab === 1" cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
+              <v-col v-if="pageTab === 1" cols="12" sm="12" md="4" xl="3" class="pb-3">
                 <span class="jh-input-label">PageId/通配符(*)</span>
                 <v-autocomplete
                   class="jh-v-input" dense filled single-line clearable
@@ -250,7 +250,7 @@
       </div>
       <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
       <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-        <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#3.doUiAction.md`" width="100%" height="100%"></iframe>
+        <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#4.userGroupRolePageOrResourceManagement.md`" width="100%" height="100%"></iframe>
         <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
           <v-icon>mdi-close</v-icon>
         </v-btn>
@@ -307,7 +307,7 @@ new Vue({
     pageTableDataFromBackend: [],
     tabPageHeaders: [],
     resourceHeaders: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
       {text: "用户ID/通配符(*)", value: "user", width: 120},
       {text: "GroupID/通配符(*)", value: "group", width: 120},
       {text: "RoleId/通配符(*)", value: "role", width: 120},
@@ -319,7 +319,7 @@ new Vue({
     ],
     // 页面权限字段
     pageHeaders: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 105, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
       {text: "用户ID/通配符(*)", value: "user", width: 120},
       {text: "GroupID/通配符(*)", value: "group", width: 120},
       {text: "RoleId/通配符(*)", value: "role", width: 120},
@@ -556,20 +556,20 @@ new Vue({
     },
     // description: ✅动态增加下来选项
     onConstantChange(e, key) {
-      if(!this.constantObj[key]) {
+      if (!this.constantObj[key]) {
         return;
       }
-      if(e && e !== '*' && e !== '通配符*') {
+      if (e && e !== '*' && e !== '通配符*') {
         let customItem = this.constantObj[key].find(item => item.custom);
-        if(!customItem) {
+        if (!customItem) {
           return;
         }
         this.$set(customItem, 'value', e);
         this.$set(customItem, 'text', e);
-        if(this.currentOperation === 'createItem') {
+        if (this.currentOperation === 'createItem') {
           this.createItem[key] = e
         }
-        if(this.currentOperation === 'updateItem') {
+        if (this.currentOperation === 'updateItem') {
           this.updateItem[key] = e
         }
       }
