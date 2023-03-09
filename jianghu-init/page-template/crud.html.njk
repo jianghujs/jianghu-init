@@ -99,7 +99,7 @@ SQL END!-->
         </v-data-table>
       </v-card>
       <!-- 新增抽屉 -->
-      <v-navigation-drawer v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="createForm" lazy-validation>
           <!-- 抽屉标题 -->
           <v-row>
@@ -128,7 +128,7 @@ SQL END!-->
         </v-btn>
       </v-navigation-drawer>
       <!-- 编辑抽屉 -->
-      <v-navigation-drawer v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateForm" lazy-validation>
           <!-- 抽屉标题 -->
           <v-row>
@@ -159,7 +159,7 @@ SQL END!-->
     </div>
 
     <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-    <v-navigation-drawer v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+    <v-navigation-drawer v-if="isHelpPageDrawerShown" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
       <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#404.md`" width="100%" height="100%"></iframe>
       <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
         <v-icon>mdi-close</v-icon>
