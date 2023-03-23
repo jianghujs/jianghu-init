@@ -102,8 +102,8 @@ CREATE TABLE `_page`  (
 -- ----------------------------
 -- Records of _page
 -- ----------------------------
-INSERT INTO `_page` VALUES (2, 'help', '帮助', 'helpV3', 'dynamicInMenu', '11', 'insert', NULL, NULL, NULL);
-INSERT INTO `_page` VALUES (3, 'login', '登陆', 'loginV3', '', '', 'insert', NULL, NULL, NULL);
+INSERT INTO `_page` VALUES (2, 'help', '帮助', 'helpV4', 'dynamicInMenu', '11', 'insert', NULL, NULL, NULL);
+INSERT INTO `_page` VALUES (3, 'login', '登陆', 'loginV4', '', '', 'insert', NULL, NULL, NULL);
 INSERT INTO `_page` VALUES (10, 'workflowManagement', '课程设计', NULL, 'showInMenu', '1', 'update', 'vscode', 'vscode', '2022-10-08T09:35:35+08:00');
 INSERT INTO `_page` VALUES (11, 'workflowEditor', '流程编辑', NULL, 'dynamicInMenu', '1', 'insert', NULL, NULL, NULL);
 INSERT INTO `_page` VALUES (15, 'taskCreateManagement', '课程报名', NULL, 'showInMenu', '2', 'update', 'vscode', 'vscode', '2022-10-08T09:48:22+08:00');

@@ -109,8 +109,8 @@ CREATE TABLE `_page` (
 -- Records of _page
 -- ----------------------------
 BEGIN;
-INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (2, 'help', 'helpV3', '帮助', 'dynamicInMenu', '11', 'insert', NULL, NULL, NULL);
-INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (3, 'login', 'loginV3', '登陆', '', '', 'insert', NULL, NULL, NULL);
+INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (2, 'help', 'helpV4', '帮助', 'dynamicInMenu', '11', 'insert', NULL, NULL, NULL);
+INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (3, 'login', 'loginV4', '登陆', '', '', 'insert', NULL, NULL, NULL);
 INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (25, 'constantUiManagement', NULL, 'Ui配置', 'showInMenu', '2', 'update', 'vscode', 'vscode', '2022-08-11T17:45:42+08:00');
 INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (39, 'constantUiEditor', NULL, 'Ui配置编辑', 'dynamicInMenu', '3', 'update', 'vscode', 'vscode', '2022-08-13T16:29:15+08:00');
 COMMIT;
