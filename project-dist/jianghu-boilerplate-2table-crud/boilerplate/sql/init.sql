@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : jianghu
+ Source Server         : openjianghu02_db
  Source Server Type    : MySQL
- Source Server Version : 50737
- Source Host           : 127.0.0.1:40002
+ Source Server Version : 50738
+ Source Host           : localhost:43302
  Source Schema         : {{database}}
 
  Target Server Type    : MySQL
- Target Server Version : 50737
+ Target Server Version : 50738
  File Encoding         : 65001
 
- Date: 11/02/2023 23:41:34
+ Date: 16/02/2023 21:40:31
 */
 
 SET NAMES utf8mb4;
@@ -114,7 +114,7 @@ INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`,
 INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (2, 'login', 'loginV4', '登录', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
 INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (3, 'classList', NULL, '班级列表', 'showInMenu', '1', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
 INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (4, 'studentListOfOneClass', NULL, '班级的学生列表', 'dynamicInMenu', '2', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
-INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (5, 'classListSinglePage', NULL, '班级列表单页面', 'showInMenu', '3', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
+INSERT INTO `_page` (`id`, `pageId`, `pageFile`, `pageName`, `pageType`, `sort`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (5, 'classListSinglePage', NULL, '班级列表-高级', 'showInMenu', '3', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
 COMMIT;
 
 -- ----------------------------
@@ -134,7 +134,7 @@ CREATE TABLE `_record_history` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `index_record_id` (`recordId`) USING BTREE,
   KEY `index_table_action` (`table`,`operation`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='数据历史表';
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='数据历史表';
 
 -- ----------------------------
 -- Table structure for _resource
@@ -157,7 +157,7 @@ CREATE TABLE `_resource` (
   `operationByUser` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '操作者用户名',
   `operationAt` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=384 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='请求资源表; 软删除未启用; resourceId=`${appId}.${pageId}.${actionId}`';
+) ENGINE=InnoDB AUTO_INCREMENT=385 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='请求资源表; 软删除未启用; resourceId=`${appId}.${pageId}.${actionId}`';
 
 -- ----------------------------
 -- Records of _resource
@@ -171,11 +171,12 @@ INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `
 INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (6, NULL, NULL, 'classList', 'insertItem', '✅班级列表-添加成员', 'sql', '{}', '{ \"table\": \"class\", \"operation\": \"jhInsert\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
 INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (7, NULL, NULL, 'classList', 'updateItem', '✅班级列表-更新成员', 'sql', '{}', '{ \"table\": \"class\", \"operation\": \"jhUpdate\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
 INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (8, NULL, NULL, 'classList', 'deleteItem', '✅班级列表-删除信息', 'sql', '{}', '{ \"table\": \"class\", \"operation\": \"jhDelete\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
-INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (9, NULL, NULL, 'studentListOfOneClass', 'selectCurrentList', '✅班级的学生列表-查询当前班级下的学生列表', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"select\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
-INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (10, NULL, NULL, 'studentListOfOneClass', 'insertItem', '✅班级的学生列表-建立关系', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"jhInsert\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
-INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (11, NULL, NULL, 'studentListOfOneClass', 'deleteItem', '✅班级的学生列表-删除信息', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"jhDelete\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
-INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (12, NULL, NULL, 'studentListOfOneClass', 'updateItem', '✅班级的学生列表-更新信息', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"jhUpdate\" }', NULL, NULL, 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
-INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (13, NULL, NULL, 'studentListOfOneClass', 'selectAllList', '✅班级的学生列表-查询所有学生', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"select\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
+INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (9, NULL, NULL, 'classList', 'deleteStudentOfClass', '✅班级列表-删除班级的学生', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"jhDelete\" }', NULL, NULL, 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
+INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (10, NULL, NULL, 'studentListOfOneClass', 'selectCurrentList', '✅班级的学生列表-查询当前班级下的学生列表', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"select\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
+INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (11, NULL, NULL, 'studentListOfOneClass', 'insertItem', '✅班级的学生列表-建立关系', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"jhInsert\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
+INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (12, NULL, NULL, 'studentListOfOneClass', 'deleteItem', '✅班级的学生列表-删除信息', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"jhDelete\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
+INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (13, NULL, NULL, 'studentListOfOneClass', 'updateItem', '✅班级的学生列表-更新信息', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"jhUpdate\" }', NULL, NULL, 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
+INSERT INTO `_resource` (`id`, `accessControlTable`, `resourceHook`, `pageId`, `actionId`, `desc`, `resourceType`, `appDataSchema`, `resourceData`, `requestDemo`, `responseDemo`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) VALUES (14, NULL, NULL, 'studentListOfOneClass', 'selectAllList', '✅班级的学生列表-查询所有学生', 'sql', '{}', '{ \"table\": \"student\", \"operation\": \"select\" }', '', '', 'insert', 'admin', '系统管理员', '2022-09-15T23:46:04+08:00');
 COMMIT;
 
 -- ----------------------------
@@ -390,7 +391,7 @@ CREATE TABLE `_user_session` (
   KEY `userId_index` (`userId`) USING BTREE,
   KEY `userId_deviceId_index` (`userId`,`deviceId`) USING BTREE,
   KEY `authToken_index` (`authToken`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='用户session表; deviceId 维度;软删除未启用;';
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='用户session表; deviceId 维度;软删除未启用;';
 
 -- ----------------------------
 -- Table structure for class
@@ -407,7 +408,7 @@ CREATE TABLE `class` (
   `operationByUser` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '操作者用户名',
   `operationAt` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=180 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=183 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
 -- Records of class
@@ -441,7 +442,7 @@ CREATE TABLE `student` (
   `operationAt` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '操作时间; E.g: 2021-05-28T10:24:54+08:00 ',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `studentId` (`studentId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
 -- Records of student

@@ -1,57 +1,56 @@
 'use strict';
 
 const path = require('path');
-const assert = require('assert');
 
 const { middleware, middlewareMatch } = require('@jianghujs/jianghu/config/middlewareConfig');
 
-const jianghuPathTemp = require.resolve('@jianghujs/jianghu');
-const jianghuPath = path.join(jianghuPathTemp, '../');
+const eggJianghuDirResolve = require.resolve('@jianghujs/jianghu');
+const eggJianghuDir = path.join(eggJianghuDirResolve, '../');
 
 module.exports = appInfo => {
-  assert(appInfo);
 
-  const appId = "{{name}}";
-  const uploadDir = path.join(appInfo.baseDir, "upload");
-  const downloadBasePath = `/${appId}/upload`;
+  const appId = '{{name}}';
 
   return {
     appId,
     appTitle: "小程序-1table-crud",
-    appLogo: `${appId}/public/img/logo.png`,
-    appType: "single",
-    appDirectoryLink: "/",
-    indexPage: `/${appId}/page/studentManagement`,
+    appLogo: `${appId}/public/img/logo.svg`,
+
+    indexPage: `/${appId}/page/studentListPage`,
     loginPage: `/${appId}/page/login`,
     helpPage: `/${appId}/page/help`,
-    uploadDir,
-    downloadBasePath,
+
+    uploadDir: path.join(appInfo.baseDir, 'upload'),
+    downloadBasePath: `/${appId}/upload`,
+
+    primaryColor: "#4caf50",
+    primaryColorA80: "#EEF7EE",
+
     static: {
-      maxAge: 0,
-      buffer: false,
+      dynamic: true,
       preload: false,
-      maxFiles: 0,
+      maxAge: 31536000,
+      buffer: true,
       dir: [
-        {
-          prefix: `/${appId}/public/`,
-          dir: path.join(appInfo.baseDir, "app/public"),
-        },
-        {
-          prefix: `/${appId}/public/`,
-          dir: path.join(jianghuPath, "app/public"),
-        },
-        { prefix: `/${appId}/upload/`, dir: uploadDir },
+        { prefix: `/${appId}/public/`, dir: path.join(appInfo.baseDir, 'app/public') },
+        { prefix: `/${appId}/public/`, dir: path.join(eggJianghuDir, 'app/public') },
       ],
     },
-    view: {
-      defaultViewEngine: "nunjucks",
-      mapping: { ".html": "nunjucks" },
-      root: [
-        path.join(appInfo.baseDir, "app/view"),
-        path.join(appInfo.baseDir, "node_modules/@jianghujs/jianghu-duoxing", "app/view"),
-        path.join(jianghuPath, "app/view"),
-      ].join(","),
+    jianghuConfig: {
+      enableUploadStaticFileCache: true,
+      enableUploadStaticFileAuthorization: true,
     },
+
+    view: {
+      defaultViewEngine: 'nunjucks',
+      mapping: { '.html': 'nunjucks' },
+      root: [
+        path.join(appInfo.baseDir, 'app/view'),
+        path.join(appInfo.baseDir, "node_modules/@jianghujs/jianghu-duoxing", "app/view"),
+        path.join(eggJianghuDir, 'app/view'),
+      ].join(','),
+    },
+
     middleware,
     ...middlewareMatch,
   };

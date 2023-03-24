@@ -30,7 +30,7 @@
           
                 <v-spacer></v-spacer>
                 <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-                  <v-text-field v-model="searchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
+                  <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
                 </v-col>
               </v-row>
               <v-data-table 
@@ -81,47 +81,47 @@
               <v-row class="mt-0" :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">学生ID</span>
-                  <v-text-field class="jh-v-input " :rules="requireRules" required dense filled single-line v-model="addItem['studentId']"></v-text-field>
+                  <v-text-field class="cus-v-input " :rules="requireRules" required dense filled single-line v-model="addItem['studentId']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">学生名字</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['name']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['name']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">性别</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['gender']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['gender']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">出生日期</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['dateOfBirth']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['dateOfBirth']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">班级ID</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['classId']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['classId']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">年级</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['level']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['level']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">身高</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['bodyHeight']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['bodyHeight']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">学生状态</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['studentStatus']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['studentStatus']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">备注</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['remarks']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['remarks']"></v-text-field>
                 </v-col>
                  
               </v-row>
@@ -150,65 +150,65 @@
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">学生ID</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['studentId']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['studentId']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">学生名字</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['name']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['name']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">性别</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['gender']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['gender']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">出生日期</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['dateOfBirth']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['dateOfBirth']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">班级ID</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['classId']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['classId']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">年级</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['level']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['level']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">身高</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['bodyHeight']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['bodyHeight']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">学生状态</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['studentStatus']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['studentStatus']"></v-text-field>
                 </v-col>
                  
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">备注</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['remarks']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['remarks']"></v-text-field>
                 </v-col>
                  
           <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
           <!--        &lt;!&ndash; 必填字段样式 demo :rules="requireRules" &ndash;&gt;-->
           <!--            <span class="inputLabel">学生ID</span>-->
-          <!--        <v-text-field class="jh-v-input " dense filled single-line label="学生ID" v-model="editItem.studentId" :rules="requireRules"></v-text-field>-->
+          <!--        <v-text-field class="cus-v-input " dense filled single-line label="学生ID" v-model="editItem.studentId" :rules="requireRules"></v-text-field>-->
           <!--      </v-col>-->
           <!--      &lt;!&ndash; select 字段 demo &ndash;&gt;-->
           <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
           <!--            <span class="inputLabel">班级ID</span>-->
-          <!--        <v-select class="jh-v-input " dense filled single-line clearable label="班级ID" v-model="editItem.classId" :items="constantCollection.classId"></v-select>-->
+          <!--        <v-select class="cus-v-input " dense filled single-line clearable label="班级ID" v-model="editItem.classId" :items="constantCollection.classId"></v-select>-->
           <!--      </v-col>-->
           <!--      &lt;!&ndash; 日期选择 demo &ndash;&gt;-->
           <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
           <!--        <span class="inputLabel">出生日期</span>-->
-          <!--        <v-menu class="jh-v-input " offset-y max-width="290">-->
+          <!--        <v-menu class="cus-v-input " offset-y max-width="290">-->
           <!--          <template v-slot:activator="{ on, attrs }">-->
-          <!--            <v-text-field class="jh-v-input " dense filled single-line v-on="on" label="出生日期" v-model="editItem.dateOfBirth"></v-text-field>-->
+          <!--            <v-text-field class="cus-v-input " dense filled single-line v-on="on" label="出生日期" v-model="editItem.dateOfBirth"></v-text-field>-->
           <!--          </template>-->
           <!--          <v-date-picker color="success" elevation="20" v-model="editItem.dateOfBirth"></v-date-picker>-->
           <!--        </v-menu>-->

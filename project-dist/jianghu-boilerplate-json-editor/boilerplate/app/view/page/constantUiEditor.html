@@ -1,108 +1,110 @@
 {% extends 'template/jhTemplateV4.html'%}
-{% set appId = ctx.app.config.appId %}
-{% set static = "/" + appId + "/public" %}
+
 {% set language = ctx.app.config.language %}
 
 {% block vueTemplate %}
 
 <script type="text/html" id="app-template">
-    <div>
-        <v-app id="inspire" mobile-breakpoint="sm">
-            <jhMenu />
-            <v-main class="d-flex flex-column" style="margin-top: 60px">
-                <!-- 头部内容 >>>>>>>>>>>>> -->
-                <div class="pageSecondBar d-flex px-8 align-center">
-                    <div>
-                        <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
-                            <!-- 帮助页按钮 -->
-                            <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
-                        </div>
-                        <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
-                    </div>
-                    <v-spacer></v-spacer>
-                    <!-- 操作按钮 -->
-                    <div class="d-flex mb-sm-0">
-                        <v-spacer></v-spacer>
-                        <v-btn @click="doUiAction(dialogSaveInfoAction)" color="success" depressed small>
-                            <v-icon class="mr-1" small>>mdi-content-save-all</v-icon>
-                            保存
-                        </v-btn>
-                    </div>
-                </div>
-                <!-- <<<<<<<<<<<<< 头部内容 -->
+  <div>
+    <v-app mobile-breakpoint="sm">
+      <jh-menu />
+      <v-main class="mt-15">
+        <!-- 头部内容 >>>>>>>>>>>>> -->
+        <div class="jh-page-second-bar px-8">
+          <v-row>
+            <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+              <div class="pt-3 text-h7 font-weight-bold">Ui配置编辑
+                <!-- 帮助页按钮 -->
+                <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline
+                </v-icon>
+              </div>
+              <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+            </v-col>
+            <!-- 操作按钮 -->
+            <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+              <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2 mt-3">
+                <v-btn @click="doUiAction('save') " color="success" depressed small>
+                  <v-icon class="mr-1" small>mdi-content-save-all</v-icon>
+                  保存
+                </v-btn>
+              </v-row>
+            </v-col>
+          </v-row>
+        </div>
+        <!-- <<<<<<<<<<<<< 头部内容 -->
+  
+        <div class="jh-page-body-container px-8">
+          <!-- 页面内容 >>>>>>>>>>>>> -->
+          <v-card class="rounded-lg form-wrapper">
+            <!--表单-->
+            <v-form ref="editForm" lazy-validation>
+              <!--标题-->
+              <v-row class="ma-0">
+                <span class="text-subtitle-1 font-weight-medium px-4 pt-2">{{ editType }}信息</span>
+              </v-row>
+              <!--内容-->
+              <v-row class="mt-0 px-4">
+                <v-col cols="12" sm="12" md="4">
+                  <span class="jh-input-label">constantKey</span>
+                  <v-text-field class="jh-v-input" dense single-line filled label="constantKey"
+                    v-model="editItem.constantKey" :rules="validationRules.requireRules"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="12" md="4">
+                  <span class="jh-input-label">常量类型</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="常量类型"
+                    v-model="editItem['constantType']"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="12" md="4">
+                  <span class="jh-input-label">页面id</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="页面id"
+                    v-model="editItem['pageId']"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="12" md="4">
+                  <span class="jh-input-label">描述</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="描述"
+                    v-model="editItem['desc']"></v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <span class="jh-input-label">内容</span>
+                  <vue-json-editor v-if="constantTypeList.includes(editItem.constantType)" v-model="editItem[language]"
+                      :show-btns="true" :mode="'code'" lang="zh"></vue-json-editor>
+                  <v-textarea v-else-if="editItem.constantType === 'html'" filled single-line label="常量内容" :rows="12" v-model="editItem[language]"
+                      value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."></v-textarea>
+                  <v-text-field v-else class="jh-v-input" dense filled single-line label="常量内容"
+                    v-model="editItem['language']"></v-text-field>
+                </v-col>
+              </v-row>
+            </v-form>
 
-                <!-- 页面内容 >>>>>>>>>>>>> -->
-                <div class="pageBodyContainer px-8" style="flex: 1;">
-                    <!-- 页面主要内容 -->
-                    <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
-                        <v-card>
-                            <v-form v-model="isFormValid" ref="form" lazy-validation>
-                                <!--标题-->
-                                <v-row>
-                                    <span class="title pa-6 pt-8" :class="{'pl-8': !isMobile, 'pl-6': isMobile}">{{ currentClickButton.title }}信息</span>
-                                </v-row>
-                                <!--表单-->
-                                <v-row class="mt-0 pb-8" :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
-                                    <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-                                        <span class="inputLabel">constantKey</span>
-                                        <v-text-field class="jh-v-input" dense filled single-line v-model="editItem['constantKey']">
-                                        </v-text-field>
-                                    </v-col>
-                                    <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-                                        <span class="inputLabel">常量类型</span>
-                                        <v-text-field class="jh-v-input" dense filled single-line v-model="editItem['constantType']">
-                                        </v-text-field>
-                                    </v-col>
-                                    <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-                                        <span class="inputLabel">页面id</span>
-                                        <v-text-field class="jh-v-input" dense filled single-line v-model="editItem['pageId']">
-                                        </v-text-field>
-                                    </v-col>
-                                    <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-                                        <span class="inputLabel">描述</span>
-                                        <v-text-field class="jh-v-input" dense filled single-line
-                                            v-model="editItem['desc']"></v-text-field>
-                                    </v-col>
-                                    <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-                                        <span class="inputLabel">内容</span>
-                                        <vue-json-editor v-if="jsonConstantTypeList.includes(editItem.constantType)" v-model="editItem[language]"
-                                            :show-btns="true" :mode="'code'" lang="zh" @json-change="onJsonChange" @json-save="onJsonSave"
-                                            @has-error="onError"></vue-json-editor>
-                                        <v-textarea v-else-if="editItem.constantType === 'html'" filled single-line v-model="editItem[language]"
-                                            name="input-7-4" label="常量内容" filled single-line :rows="12"
-                                            value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."></v-textarea>
-                                        <v-text-field v-else class="jh-v-input" dense filled single-line label="常量内容"
-                                            v-model="editItem[language]"></v-text-field>
-                                    </v-col>
-                                </v-row>
-                            </v-form>
-
-                            <!-- 遮罩层 -->
-                            <v-overlay :value="loading" absolute opacity="0.1">
-                                <v-progress-circular indeterminate size="64"></v-progress-circular>
-                            </v-overlay>
-                        </v-card>
-                    </v-container>
-                </div>
-                <!-- <<<<<<<<<<<<< 页面内容 -->
-
-                <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-                <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" class="elevation-24">
-                    <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?markdownPath#2.constantUiEditor.md`" width="100%"
-                        height="100%"></iframe>
-                    <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
-                        @click="isHelpPageDrawerShow = false">
-                        <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                </v-navigation-drawer>
-                <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
-            </v-main>
-        </v-app>
-
-        <jhToast />
-        <jhMask />
-        <jhConfirmDialog />
-    </div>
+            <!-- 遮罩层 -->
+            <v-overlay :value="isFormLoading" absolute opacity="0.1">
+              <v-progress-circular indeterminate size="64"></v-progress-circular>
+            </v-overlay>
+          </v-card>
+          <!-- <<<<<<<<<<<<< 页面内容 -->
+        </div>
+  
+        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+        <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary
+          right width="80%" class="elevation-24">
+          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#2.constantUiEditor.md`" width="100%"
+            height="100%"></iframe>
+  
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+            @click="isHelpPageDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+  
+      </v-main>
+    </v-app>
+  
+    <jh-toast />
+    <jh-mask />
+    <jh-confirm-dialog />
+  
+  </div>
 </script>
 
 <div id="app">
@@ -117,169 +119,194 @@
 {% include 'component/vueJsonEditor.html' %}
 <!-- <<<<<<<<<<<<< 加载页面组件 -->
 
-<!-- 加载页面静态资源 >>>>>>>>>>>>> -->
-<link href="<$ static $>/jsoneditor/jsoneditor.css" rel="stylesheet">
-<script src="<$ static $>/jsoneditor/jsoneditor.js"></script>
-<!-- <<<<<<<<<<<<< 加载页面静态资源 -->
-
 <script type="module">
   new Vue({
     el: '#app',
     template: '#app-template',
+    vueComponent: 'page',
     vuetify: new Vuetify(),
-    data: () => ({
-      breadcrumbs: window.breadcrumbs,
-      isHelpPageDrawerShow: false,
-      isMobile: window.innerWidth < 600,
-      // 表格相关数据
+    data: {
       language: '<$ language $>',
-      isFormValid: true,
-      requireRules: [
-        v => !!v || 'This is required',
+
+      // 面包屑
+      breadcrumbs: [
+        {
+          text: '首页',
+          disabled: true,
+        },
+        {
+          text: 'Ui配置编辑',
+          disabled: true,
+        }
       ],
-      currentClickButton: { title: '新增', action: 'add' },
+      isHelpPageDrawerShown: false,
+
+      // 表单相关数据
+      validationRules: {
+        requireRules: [
+          v => !!v || 'This is required',
+        ],
+      },
+      isFormLoading: true,
+
+
+      //jsoneditor
+      constantTypeList: ['object', 'array'],
+
+      // 操作相关
       editItem: {},
-      dialogSaveInfoAction: 'createItem',
-      jsonError: false,
-      jsonConstantTypeList: ['object', 'array'],
-      loading: false
-    }),
-    async created() {
-      const searchParams = new URLSearchParams(location.search.substring(1));
-      const id = searchParams.get('id');
-      if(id) {
-        this.editItem = { id };
-        this.doUiAction('getItemInfo')
-      } else {
-        this.clearItemData();
-      }
+      editItemId: null,
+      editType: null,
+      saveActionData: {},
     },
-    mounted() { },
+    watch: {},
+    async mounted() {
+      await this.doUiAction('getUrlObj');
+      await this.doUiAction('getItemData');
+    },
     methods: {
       async doUiAction(uiActionId, uiActionData) {
         switch (uiActionId) {
-          case 'createItem':
-            await this.confirmCreateItemDialog(uiActionData);
-            await this.doCreateItem(uiActionData);
+          case 'getUrlObj':
+            await this.getUrlObj();
             break;
-          case 'updateItem':
-            await this.confirmUpdateItemDialog(uiActionData);
-            await this.doUpdateItem(uiActionData);
-            await this.getItemInfo();
+          case 'getItemData':
+            await this.getItemData();
+            await this.formatItemData();
             break;
-          case 'getItemInfo':
-            await this.getItemInfo();
+          case 'save':
+            await this.prepareSaveValidate();
+            await this.confirmSaveItemDialog();
+            await this.prepareDoSaveItem();
+            await this.doSaveItem();
+            await this.clearSave();
             break;
           default:
             console.error("[doUiAction] uiActionId not find", { uiActionId });
             break;
         }
       },
-      async clearItemData() {
-        this.currentClickButton = { title: '新增', action: 'add' },
-        this.editItem = {constantKey: '', constantType: '', pageId: '', desc: ''};
+
+      // ---------- 获取url参数 uiAction >>>>>>>>>> --------
+      async getUrlObj() {
+        const urlObj = new URLSearchParams(location.search.substring(1));
+        const id = urlObj.get('id');
+        if(id) {
+          this.editItemId = id;
+          this.editType = '修改';
+        } else {
+          this.editType = '新增';
+        }
       },
-      async getItemInfo() {
-        const _this = this;
-        this.loading = true;
-        this.currentClickButton = {action: 'edit', title: '修改'};
-        this.dialogSaveInfoAction = 'updateItem';
-        const { rows } = (await window.jianghuAxios({
+      // ---------- <<<<<<<<<<< 获取url参数 uiAction  --------
+
+      // ---------- 获取数据 uiAction >>>>>>>>>> --------
+      async getItemData() {
+        this.isFormLoading = true;
+        const result = await window.jianghuAxios({
           data: {
             appData: {
               pageId: "constantUiEditor",
               actionId: "getItemInfo",
-              where: {id: this.editItem.id},
+              where: {id: this.editItemId},
               actionData: {}
-            },
-          },
-        })).data.appData.resultData;
-        if (!rows.length) {
-          this.clearItemData();
-        } else {
-          rows[0][this.language] = this.jsonConstantTypeList.includes(rows[0].constantType) ? JSON.parse(rows[0][this.language]) : rows[0][this.language];
-        this.editItem = rows[0];
-        }
-        setTimeout(function() {
-          _this.loading = false;
-        }, 500)
-      },
-      /**
-       * uiActionId:  createItem
-       * description: ✅创建数据
-       * before: [{"function":"confirmCreateItemDialog"}]
-       * main:   [{"function":"doCreateItem"}]
-      */
-      async confirmCreateItemDialog() {
-        if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
-          throw new Error("[confirmCreateFormDialog] 否");
-        }
-      },
-
-      async doCreateItem() {
-        const {id, ...data} = this.editItem;
-        data[this.language] = this.jsonConstantTypeList.includes(this.editItem.constantType) ? JSON.stringify(this.editItem[this.language]) : this.editItem[this.language];
-        await window.vtoast.loading("新增数据");
-        const { rows } = (await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'constantUiManagement',
-              actionId: 'insertItem',
-              actionData: data
             }
           }
-        })).data.appData.resultData;
-        window.location.href = `/${window.appInfo.appId}/page/constantUiEditor?id=${rows[0]}`;
-        await window.vtoast.success("新增数据成功");
-      },
+        });
 
-      /**
-       * uiActionId:  updateItem
-       * description: ✅更新数据
-       * before: [{"function":"confirmUpdateItemDialog"}]
-       * main:   [{"function":"doUpdateItem"}]
-      */
-      async confirmUpdateItemDialog() {
-        if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
-          throw new Error("[confirmUpdateItemDialog] 否");
+        let rows = result.data.appData.resultData.rows; 
+        if(rows.length > 0){
+          this.editItem = rows[0];
+        }
+
+        this.isFormLoading = false;
+      },
+      async formatItemData() {
+        let row = _.cloneDeep(this.editItem); 
+        if (this.constantTypeList.includes(row.constantType)) {
+          row[this.language] = JSON.parse(row[this.language]);
+        }
+        this.editItem = row;
+      },
+      // ---------- <<<<<<<<<<< 获取数据 uiAction  --------
+
+      // ---------- 保存数据 uiAction >>>>>>>>>> --------
+      async prepareSaveValidate() {
+        if (await this.$refs.editForm.validate()) {
+          return true;
+        }
+        throw new Error("请完善表单信息")
+      },
+      async confirmSaveItemDialog() {
+        if (await window.confirmDialog({ title: this.editType, content: `确定${this.editType}吗？` }) === false) {
+          throw new Error("[confirmSaveItemDialog] 否");
         }
       },
+      prepareDoSaveItem() {
+        const { id, ...data } = this.editItem;
+        if(this.constantTypeList.includes(this.editItem.constantType)){
+          data[this.language] = JSON.stringify(this.editItem[this.language])
+        }
+        this.saveActionData = data;
+      },
+      async doSaveItem() {
+       if(this.editItemId){
+        await this.doUpdateItem();
+       }else{
+        await this.doCreateItem();
+        await this.refreshPage();
+        await this.getUrlObj();
+       }
+      },
+      async doCreateItem() {
+        await window.vtoast.loading("新增数据");
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'constantUiEditor',
+              actionId: 'insertItem',
+              actionData: this.saveActionData
+            }
+          }
+        })
+        await window.vtoast.success("新增数据成功");
 
+        this.editItemId = result.data.appData.resultData.rows[0];
+      },
       async doUpdateItem() {
-        const {id, ...data} = this.editItem;
-        data[this.language] = this.jsonConstantTypeList.includes(this.editItem.constantType) ? JSON.stringify(this.editItem[this.language]) : this.editItem[this.language];
         await window.vtoast.loading("修改数据");
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'constantUiManagement',
+              pageId: 'constantUiEditor',
               actionId: 'updateItem',
-              actionData: data,
-              where: { id }
+              actionData: this.saveActionData,
+              where: { id: this.editItemId }
             }
           }
         })
         await window.vtoast.success("修改数据成功");
       },
-
-      onJsonChange() {
-
+      async refreshPage() {
+        const newUrl = `/${window.appInfo.appId}/page/constantUiEditor?id=${this.editItemId}`;
+        history.pushState({}, null, newUrl);
       },
-      onJsonSave(value) {
-        if (this.jsonObj.type === 'ui') {
-          this.ui.list[this.jsonObj.index][this.jsonObj.key] = JSON.stringify(value);
-        } else {
-          this.resource.list[this.jsonObj.index][this.jsonObj.key] = JSON.stringify(value);
-        }
-        this.editJsonDialog = false;
+      async clearSave() {
+        this.saveActionData = {};
       },
-      onError(res) {
-        this.jsonError = res;
-      },
+      // ---------- <<<<<<<<<<< 保存数据 uiAction  --------
     }
   })
 </script>
 
 <style scoped>
+  .form-wrapper{
+    min-height: calc(100vh - 130px);
+  }
+  @media screen and (max-width: 500px) {
+    .form-wrapper{
+      min-height: calc(100vh - 180px);
+    }
+  }
 </style>
 {% endblock %}

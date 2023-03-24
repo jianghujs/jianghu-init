@@ -48,9 +48,8 @@
   <link href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/1.0.0/mdb.min.css" rel="stylesheet"/>
-  <link href="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/css/materialdesignicons.min.css" rel="stylesheet">
-  <link href="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/css/vuetify.min.css" rel="stylesheet">
-  <link href="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/css/vuetify.custom.css" rel="stylesheet">
+  <link href="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/lib/vuetify/materialdesignicons.min.css" rel="stylesheet">
+  <link href="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/lib/vuetify/vuetify.min.css" rel="stylesheet">
   <!-- css -->
   {% include 'util/jianghu/jianghuUiCss.html' %}
   {% include 'util/jianghu/jianghuCommonCss.html' %}
@@ -63,14 +62,14 @@
     }
   </script>
   <!-- js -->
-  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/jquery-1.9.1.min.js"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/lib/jquery/jquery.min.js"></script>
   <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js?v=1.0.5"></script>
-  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/lodash.min.js"></script>
-  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/dayjs.min.js"></script>
-  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/axios.min.js"></script>
-  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/vue.js"></script>
-  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/js/lib/vuetify.min.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/1.0.0/mdb.min.js"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/lib/lodash/lodash.min.js"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/lib/dayjs/dayjs.min.js"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/lib/axios/axios.min.js"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/lib/vue/vue.js"></script>
+  <script src="/<$ serverAppId if serverAppId else ctx.app.config.appId $>/public/lib/vuetify/vuetify.min.js"></script>
+  <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/1.0.0/mdb.min.js"></script>-->
 
   {% include 'common/jianghuAxios.html' %}
   {% include 'util/jianghu/jianghuJs.html' %}
@@ -84,7 +83,7 @@
   <!-- 使用 x-template 的模式，避免 vue-slot 不能支持大写字母的问题 -->
   <script type="text/x-template" id="app-template">
     <div id="container">
-      {% block vue_template %}
+      {% block vueTemplate %}
       {% endblock %}
       <jh-toast></jh-toast>
       <jh-confirm-dialog></jh-confirm-dialog>
@@ -97,7 +96,7 @@
   {% include 'component/jhToast.html' %}
   {% include 'component/jhConfirmDialog.html' %}
 
-  {% block vue_body %}
+  {% block vueScript %}
   {% endblock %}
 
   <script type="text/javascript">

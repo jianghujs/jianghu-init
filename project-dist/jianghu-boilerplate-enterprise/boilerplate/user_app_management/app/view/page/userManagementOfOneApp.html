@@ -45,7 +45,7 @@
               <span
                 role="button" class="success--text font-weight-medium font-size-2"
                 @click="doUiAction('deleteRelation', item)">
-                <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+                <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
               </span>
             </template>
             <!--没有数据-->
@@ -80,7 +80,7 @@
             <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('buildMultipleRelation')" small>保存选中</v-btn>
           </v-row>
           <!--抽屉表单主体-->
-          <v-row class="mt-0 px-6">
+          <v-row class="ma-0">
             <v-data-table
               :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
               :items-per-page="-1"
@@ -114,7 +114,7 @@
                 <span
                   role="button" class="success--text font-weight-medium font-size-2"
                   @click="doUiAction('buildRelation', item)">
-                  <v-icon size="14" class="success--text">mdi-plus-box</v-icon>新增
+                  <v-icon size="16" class="success--text">mdi-plus-box</v-icon>新增
                 </span>
               </template>
             </v-data-table>
@@ -183,7 +183,7 @@ new Vue({
       userType: [{"value": "common", "text": "普通用户"}],
     },
     headers: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 60, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'},
       {text: "用户ID[登陆]", value: "userId", width: 120},
       {text: "用户名", value: "username", align: "start", width: 120},
       {text: "用户类型", value: "userType", width: 120},
@@ -192,7 +192,7 @@ new Vue({
       {text: "操作时间", value: "operationAt", width: 160},
     ],
     drawerHeaders: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 60, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 60, class: 'fixed', cellClass: 'fixed'},
       {text: "用户ID[登陆]", value: "userId", width: 120},
       {text: "用户名", value: "username", align: "start", sortable: true, width: 120},
       {text: "用户类型", value: "userType", width: 120},

@@ -53,10 +53,7 @@ class UtilService extends Service {
     const {jianghuKnex, config} = this.app;
     const targetDatabase = this.getTargetDatabase();
     const rows = await jianghuKnex('information_schema.SCHEMATA')
-      .where(function () {
-        this.where('schema_name', 'like', 'jianghujs_enterprise' + '%')
-      })
-      // .whereNotIn('schema_name', [targetDatabase, 'sys', 'information_schema'])
+      .whereNotIn('schema_name', [targetDatabase, 'sys', 'information_schema'])
       .orderBy('schema_name', 'desc')
       .select('schema_name as sourceDatabase');
     return {rows};
@@ -238,7 +235,7 @@ class UtilService extends Service {
       let outsideMode = false
       let targetTable = `${sourceDatabase}__${sourceTable}`;
       let sourceDatabaseInDb = sourceDatabase;
-      if (sourceDatabase.startsWith('{')) {
+      if (sourceDatabselectSourceDatabasease.startsWith('{')) {
         outsideMode = true
         const {name, ...knexConfig} = JSON.parse(sourceDatabase);
         sourceConnection = knexConfig;

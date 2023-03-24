@@ -1,405 +1,472 @@
-{% extends 'template/xiaochengxuTemplateV3.html'%}
+{% extends 'template/xiaochengxuTemplateV4.html'%}
 
-{% block vue_template %}
+{% block vueTemplate %}
 
-<xiaochengxu-layout-v3>
+<script type="text/html" id="app-template">
+<div>
+  <v-app mobile-breakpoint="sm">
+    <jh-menu />
+    <v-main class="mt-15">
+      <!-- 头部内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-second-bar px-8">
+        <v-row>
+          <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+            <div class="pt-3 text-h7 font-weight-bold">分类管理</div>
+            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          </v-col>
+          <!-- pc端的搜索条件表单 >>>>>>>> -->
+          <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+            <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
+              <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pr-1 pr-xs-0">
+                <v-select @mouseup="openSelectCategoryDialog"
+                  v-model="serverSearchInput.categoryId" color="success" prefix="文章分类："
+                  class="jh-v-input bg-white" :items="constantObj.category"
+                  dense readonly hide-details dense filled single-line hide-no-data
+                          hide-selected></v-select>
+              </v-col>
+              <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pr-1 pr-xs-0">
+                <v-select
+                  v-model="serverSearchInput.articlePublishStatus" color="success" prefix="发布状态："
+                  class="jh-v-input bg-white" :items="constantObj.allArticlePublishStatus"
+                  dense filled single-line multiple persistent-hint></v-select>
+              </v-col>
+              <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </v-row>
+          </v-col>
+          <!-- <<<<<<<< pc端的搜索条件表单 -->
+        </v-row>
+      </div>
+      <!-- <<<<<<<<<<<<< 头部内容 -->
 
-  <template slot="serverSearch">
-    <v-row class="ma-0 align-center" :class="{'pa-0': isMobile, 'pa-2': !isMobile}" style="justify-content: end">
+      <div class="jh-page-body-container px-8">
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <v-card class="rounded-lg">
+          <v-row class="ma-0 pa-4">
+            <!-- 新增按钮 -->
+            <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('goToXiaochengxuPage', { pageId: 'articleEdit', query: { title: '未定义', articleStatus: articleStatus } })" small>新增
+            </v-btn>
+            <v-spacer></v-spacer>
+            <!-- 搜索过滤 -->
+            <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+              <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+          <!-- 表格 -->
+          <v-data-table
+            :headers="headers"
+            :items="tableData"
+            :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+            :items-per-page="-1"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            checkbox-color="success"
+            :class="{'zebraLine': isTableZebraLineShown }"
+            fixed-header
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <!-- 表格操作按钮 -->
+            <template v-slot:item.action="{ item }">
+              <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+                <v-icon size="16" class="success--text">mdi-menu-open</v-icon>修改发布状态
+              </span>
+              <template v-if="!isMobile">
+                <span role="button" class="success--text font-weight-medium font-size-2 mr-2"
+                      @click="doUiAction('goToXiaochengxuPage', { pageId: 'articleEdit', query: { articleId: item.articleId, title: item.articleTitle, articleStatus: item.articleStatus  } })">
+                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>文章编辑
+                </span>
+                <span role="button" class="success--text font-weight-medium font-size-2"
+                      @click="doUiAction('goToXiaochengxuPage', { pageId: 'articleViewer', query: { articleId: item.articleId, title: item.articleTitle, articleStatus: item.articleStatus } })">
+                  <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>文章预览
+                </span>
+              </template>
+              <template v-else>
+                <v-menu offset-y>
+                  <template v-slot:activator="{ on, attrs }">
+                    <span role="button" class="success--text font-weight-medium font-size-2" v-bind="attrs" v-on="on">
+                      <v-icon size="16" class="success--text">mdi-dots-vertical</v-icon>操作
+                    </span>
+                  </template>
+                  <v-list dense>
+                    <v-list-item @click="doUiAction('goToXiaochengxuPage', { pageId: 'articleEdit', query: { articleId: item.articleId, title: item.articleTitle, articleStatus: item.articleStatus  } })">
+                      <v-list-item-title><v-icon size="16">mdi-note-edit-outline</v-icon>文章编辑</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('goToXiaochengxuPage', { pageId: 'articleViewer', query: { articleId: item.articleId, title: item.articleTitle, articleStatus: item.articleStatus } })">
+                      <v-list-item-title><v-icon size="16">mdi-trash-can-outline</v-icon>文章预览</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </template>
+            </template>
+            <template v-slot:item.articlePublishStatus="{ item }">
+              {{ getDisplayText({displayObj: constantObj.articlePublishStatus, displayValue: item.articlePublishStatus}) }}
+            </template>
+            <template v-slot:item.articleStatus="{ item }">
+              {{ getDisplayText({displayObj: constantObj.articleStatus, displayValue: item.articleStatus}) }}
+            </template>
+            <template v-slot:item.articleCreateTime="{ item }">
+              {{ item.operationAt && dayjs(item.articleCreateTime).format('YYYY-MM-DD HH:mm:ss') }}
+            </template>
+            <template v-slot:item.articleUpdateTime="{ item }">
+              {{ item.operationAt && dayjs(item.articleUpdateTime).format('YYYY-MM-DD HH:mm:ss') }}
+            </template>
+            <!-- 没有数据 -->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <!-- 表格分页 -->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+              <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            </template>
+          </v-data-table>
+        </v-card>
 
-      <v-col cols="12" xs="12" sm="3" md="3" xl="3" class="pb-3" :class="{'px-0': isMobile, 'pt-0': isMobile}">
-      <v-select @mouseup="openSelectCategoryDialog" v-model="serverSearchInput.categoryId" prefix="文章分类："
-        :items="constantCollection.category" readonly hide-details dense filled single-line hide-no-data
-        hide-selected />
-    </v-col> 
+        <!-- 编辑抽屉 -->
+        <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="updateForm" lazy-validation>
+            <!-- 抽屉标题 -->
+            <v-row>
+              <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">编辑信息</span>
+            </v-row>
+            <!-- 抽屉表单 -->
+            <v-row class="mt-0 px-4">
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">文章ID</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="文章ID" v-model="updateItem.articleId" disabled></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">标题</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="标题" v-model="updateItem.articleTitle" disabled></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">文章发布状态</span>
+                <v-select class="jh-v-input" dense single-line filled clearable label="文章发布状态" v-model="updateItem.articlePublishStatus" :items="constantObj.articlePublishStatus"></v-select>
+              </v-col>
+            </v-row>
+            <!-- 抽屉操作按钮 -->
+            <v-row class="justify-end mx-0 mt-8 px-6">
+              <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+              <v-btn class="elevation-0 ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+          </v-form>
+          <!-- 抽屉关闭按钮 -->
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <single-select v-model="selectCategoryDialog" :dataList="constantObj.category" title="选择分类"
+                      @close="selectCategoryDialog=false" @done="onSelectCategory" />
+        <!-- <<<<<<<<<<<<< 页面内容 -->
+      </div>
+    </v-main>
+  </v-app>
 
-    <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex pl-0">
-      <v-select class="jh-v-input mr-2" v-model="serverSearchInput.articlePublishStatus" prefix="发布状态:"
-        :items="constantCollection.allArticlePublishStatus" dense filled single-line multiple persistent-hint></v-select>
-    </v-col>
+  <jh-toast />
+  <jh-mask />
+  <jh-confirm-dialog />
+</div>
+</script>
 
-    <v-col class="pl-0" :class="{'pr-0': isMobile, 'pt-0': isMobile}" style="max-width: 77px">
-     <v-btn class="elevation-0" color="success" dark @click="doUiAction('refreshTableData')">
-      查询
-     </v-btn>
-    </v-col>
-
-    </v-row>
-
-    </template>
-
-
-  <!-- 页面主要内容 -->
-  <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
-    <v-card>
-    <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 "
-      :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
-
-      <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
-        <v-btn color="success" dark class="elevation-0 mr-2"
-          @click="doUiAction('goToXiaochengxuPage', { pageId: 'articleEdit', query: { title: '未定义', articleStatus: articleStatus } })">
-          新增</v-btn>
-        <span class="body-2">共{{ tableData.length }}条记录</span>
-      </v-col>
-
-      <v-spacer></v-spacer>
-
-
-      <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-        <v-text-field v-model="searchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
-      </v-col>
-
-    </v-row>
-    <v-data-table fixed-header :headers="headers" :items="tableData" :search="searchInput"
-      :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }" :items-per-page="-1" mobile-breakpoint="0"
-      :loading="isTableLoading" checkbox-color="success" class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-      <template v-slot:item.articlePublishStatus="{ item }">
-        {{ articlePublishStatusMap[item.articlePublishStatus] || item.articlePublishStatus }}
-      </template>
-      <template v-slot:item.articleStatus="{ item }">
-        {{ articleStatusMap[item.articleStatus] || item.articleStatus }}
-      </template>
-      <template v-slot:item.action="{ item }">
-        <v-btn small class="mr-2 success"
-          @click="doUiAction('goToXiaochengxuPage', { pageId: 'articleEdit', query: { articleId: item.articleId, title: item.articleTitle, articleStatus: item.articleStatus  } })">
-          文章编辑</v-btn>
-        <v-btn small class="mr-2 success"
-          @click="doUiAction('goToXiaochengxuPage', { pageId: 'article', query: { articleId: item.articleId, title: item.articleTitle, articleStatus: item.articleStatus } })">
-          文章预览</v-btn>
-        <v-btn small class="mr-2 success" @click="doUiAction('startUpdateItem', {item})">修改发布状态</v-btn>
-      </template>
-      </v-card>
-    </v-data-table>
-  </v-container>
-
-  <!-- 编辑抽屉 -->
-  <v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%"
-    hide-overlay class="elevation-24">
-    <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
-      <v-row>
-        <span class="title pa-6">编辑信息</span>
-        <v-spacer></v-spacer>
-        <v-btn class="mt-7 mr-8 elevation-0" fab x-small @click="isEditDrawerShow = false">
-          <v-icon dark>mdi-close</v-icon>
-        </v-btn>
-      </v-row>
-      <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none">
-
-        <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-          <span class="inputLabel">文章ID</span>
-          <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['articleId']" disabled>
-          </v-text-field>
-        </v-col>
-
-        <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-          <span class="inputLabel">标题</span>
-          <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['articleTitle']" disabled>
-          </v-text-field>
-        </v-col>
-
-        <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-          <span class="inputLabel">文章发布状态</span>
-          <v-select class="jh-v-input mr-2" dense filled single-line clearable
-            v-model="editItem['articlePublishStatus']" :items="constantCollection.articlePublishStatus"
-            :rules="requireRules"></v-select>
-        </v-col>
-      </v-row>
-      <v-row class="justify-end pr-6">
-        <v-btn color="success" small @click="doUiAction('updateItem')"
-          :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">保存
-        </v-btn>
-        <v-btn class="ml-2" small @click="isEditDrawerShow = false"
-          :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
-      </v-row>
-    </v-form>
-  </v-navigation-drawer>
-
-
-  <SingleSelect v-model="selectCategoryDialog" :dataList="constantCollection.category" title="选择分类"
-    @close="selectCategoryDialog=false" @done="onSelectCategory" />
-
-</xiaochengxu-layout-v3>
+<div id="app">
+</div>
 
 {% endblock %}
 
-{% block vue_body %}
+{% block vueScript %}
 
-{% include 'layout/xiaochengxuLayout.html' %}
-{% include 'common/resetTableMaxHeight.html' %}
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 {% include 'component/singleSelectDialog.html' %}
 
 <script type="module">
-  new Vue({
-    el: '#app',
-    template: '#app-template',
-    vuetify: new Vuetify(),
-    data: () => ({
-      // 表格相关数据
-      isFormValid: true,
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    // 面包屑
+    breadcrumbs: [
+      {
+        text: '首页',
+        disabled: true,
+      },
+      {
+        text: '分类管理',
+        disabled: true,
+      }
+    ],
+    isHelpPageDrawerShown: false,
+    isMobile: window.innerWidth < 500,
+    // 表格相关数据
+    isTableZebraLineShown: true,
+    validationRules: {
       requireRules: [
         v => !!v || 'This is required',
       ],
-      constantCollection: {
-        articlePublishStatus: [
-          { text: "公开", value: "public" },
-          { text: "登录可见", value: "login" },
-          { text: "草稿", value: "draft" },
-          { text: "回收站", value: "deleted" },
-        ],
-        articleStatus: [
-          { text: "一稿", value: "firstDraft" },
-        ],
-        allArticlePublishStatus: [
-          { text: "公开", value: "public" },
-          { text: "登录可见", value: "login" },
-          { text: "草稿", value: "draft" },
-          { text: "回收站", value: "deleted" },
-        ],
-        category: [
-          { text: "全部类目", value: "all" },
-        ],
-      },
-
-      categoryIdToName: {},
-      selectCategoryDialog: false,
-      serverSearchInput: {
-        articleTitle: null,
-        categoryId: "all",
-        categoryName: "全部类目",
-        articlePublishStatus: ['public','login'],
-        isFirstSearch: true,
-        searchSummary: null,
-        page: 1,
-        total: 0,
-      },
-      articleStatus: 'firstDraft',
-      searchInput: null,
-      isTableLoading: true,
-      isEditDrawerShow: false,
-      tableDataFromBackend: [],
-      headers: [
-        { text: "文章标题", value: "articleTitle", width: 250, class: 'fixed', cellClass: 'fixed' },
-        { text: "文章ID", value: "articleId", width: 120 },
-        { text: "文章状态", value: "articleStatus", width: 120 },
-        { text: "分类名", value: "categoryName", width: 150 },
-        // { text: "文章所属分组名", value: "articleGroupName", width: 120 },
-        { text: "文章发布状态", value: "articlePublishStatus", width: 120 },
-        // { text: "文章发布时间", value: "articlePublishTime", width: 120 },
-        { text: "创建时间", value: "articleCreateTime", width: 120 },
-        { text: "创建者用户名", value: "articleCreateUsername", width: 120 },
-        { text: "更新时间", value: "articleUpdateTime", width: 120 },
-        { text: "更新者用户名", value: "articleUpdateUsername", width: 120 },
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 350, class: 'fixed', cellClass: 'fixed' },
+    },
+    // 下拉选项
+    constantObj: {
+      articlePublishStatus: [
+        { text: "公开", value: "public" },
+        { text: "登录可见", value: "login" },
+        { text: "草稿", value: "draft" },
+        { text: "回收站", value: "deleted" },
       ],
-      editItem: {},
-    }),
-    computed: {
-      isMobile() {
-        return window.innerWidth < 600;
-      },
-      tableData() {
-        return this.tableDataFromBackend;
-      },
-      articlePublishStatusMap() {
-        const map = {};
-        this.constantCollection.articlePublishStatus.forEach(constantObj => {
-          map[constantObj.value] = constantObj.text;
-        })
-        return map;
-      },
-      articleStatusMap() {
-        const map = {};
-        this.constantCollection.articleStatus.forEach(constantObj => {
-          map[constantObj.value] = constantObj.text;
-        })
-        return map;
-      }
+      articleStatus: [
+        { text: "一稿", value: "firstDraft" },
+      ],
+      allArticlePublishStatus: [
+        { text: "公开", value: "public" },
+        { text: "登录可见", value: "login" },
+        { text: "草稿", value: "draft" },
+        { text: "回收站", value: "deleted" },
+      ],
+      category: [
+        { text: "全部类目", value: "all" },
+      ],
     },
-    watch: {
-      'serverSearchInput.page': {
-        handler() {
-          this.doUiAction('refreshTableData')
-        }
-      },
+    categoryIdToName: {},
+    selectCategoryDialog: false,
+    serverSearchInput: {
+      articleTitle: null,
+      categoryId: "all",
+      categoryName: "全部类目",
+      articlePublishStatus: ['public','login'],
+      isFirstSearch: true,
+      searchSummary: null,
+      page: 1,
+      total: 0,
     },
+    articleStatus: 'firstDraft',
+    searchInput: null,
+    isTableLoading: true,
+    tableData: [],
+    headers: [
+      {text: '操作', value: 'action', type: 'button', sortable: false, width: window.innerWidth < 500 ? 170 : 300, class: 'fixed', cellClass: 'fixed'},
+      { text: "文章ID", value: "articleId", class: 'fixed', cellClass: 'fixed noWarp' },
+      { text: "文章标题", value: "articleTitle", width: 250 },
+      { text: "文章状态", value: "articleStatus", width: 120 },
+      { text: "分类名", value: "categoryName", width: 150 },
+      { text: "文章发布状态", value: "articlePublishStatus", width: 120 },
+      { text: "创建时间", value: "articleCreateTime", width: 180 },
+      { text: "创建者用户名", value: "articleCreateUsername", width: 120 },
+      { text: "更新时间", value: "articleUpdateTime", width: 180 },
+      { text: "更新者用户名", value: "articleUpdateUsername", width: 120 },
+    ],
 
-    async created() {
-      if (!this.isMobile) {
-        this.headers[this.headers.length - 1].class = 'fixed'
-        this.headers[this.headers.length - 1].cellClass = 'fixed'
-      }
-      const urlParams = new URLSearchParams(location.search);
-      const categoryId = urlParams.get('categoryId');
-      if (categoryId) {
-        this.serverSearchInput.categoryId = categoryId;
-      }
+    isUpdateDrawerShown: false,
+    updateItem: {},
+    updateItemId: null,
+    updateActionData: {},
+    deleteItem: {},
+    deleteItemId: null
 
-      await this.getCategoryData();
-      this.doUiAction('refreshTableData')
-    },
-
-    mounted() { },
-    methods: {
-      async doUiAction(uiActionId, uiActionData) {
-        switch (uiActionId) {
-          case 'refreshTableData':
-            await this.refreshTableData();
-            break;
-          case 'startUpdateItem':
-            await this.prepareItemData(uiActionData);
-            await this.openUpdateDialog();
-            break;
-          case 'updateItem':
-            await this.confirmUpdateItemDialog();
-            await this.doUpdateItem();
-            await this.closeDrawerShow();
-            await this.refreshTableData();
-            break;
-          case 'goToXiaochengxuPage':
-            await this.goToXiaochengxuPage(uiActionData);
-            break;
-          default:
-            console.error("[doUiAction] uiActionId not find", { uiActionId });
-            break;
-        }
-      },
-      // =================================uiAction 公共方法 start ======================================
-      async refreshTableData() {
-        this.isTableLoading = true;
-        const serverSearchInput = _.pickBy(this.serverSearchInput, value => !!value);
-        const where = {articleStatus: 'firstDraft'};
-        if (this.serverSearchInput.categoryId !== 'all') {
-          where.categoryId = this.serverSearchInput.categoryId;
-        }
-        const limit = 200;
-
-        const { rows, articleCount } = (await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'firstDraftManagement',
-              actionId: 'selectItemList',
-              where,
-              whereIn: {
-                articlePublishStatus: this.serverSearchInput.articlePublishStatus
-              },
-              whereLike: {
-                articleTitle: this.serverSearchInput.articleTitle,
-              },
-              limit,
-              offset: (this.serverSearchInput.page - 1) * limit,
-              orderBy: [{ column: 'articleUpdateTime', order: 'desc' }, { column: 'categoryGroup', order: 'desc' }, { column: 'categoryGroupSort', order: 'asc' }, { column: 'articleTitle', order: 'asc' }]
-            }
-          }
-        })).data.appData.resultData;
-
-
-
-
-        // 补充 categoryName
-        rows.forEach(item => {
-          item.categoryGroupConcat = item.categoryId && this.categoryIdToName[item.categoryId] || '未分类'
-        })
-
-        this.serverSearchInput.articlePublishStatusText = this.constantCollection.allArticlePublishStatus
-          .filter(item => this.serverSearchInput.articlePublishStatus.indexOf(item.value) > -1)
-          .map(item => item.text);
-
-        const conditions = [];
-        if (this.serverSearchInput.articleTitle) {
-          conditions.push(`标题包含【${this.serverSearchInput.articleTitle}】`);
-        }
-        if (this.serverSearchInput.categoryName) {
-          conditions.push(`分类为【${this.serverSearchInput.categoryName}】`);
-        }
-        if (this.serverSearchInput.articlePublishStatusText) {
-          conditions.push(`状态为【${this.serverSearchInput.articlePublishStatusText}】`);
-        }
-        if (this.serverSearchInput.isFirstSearch && this.serverSearchInput.categoryId === 'all') {
-          this.serverSearchInput.searchSummary = conditions.join('，') + `，首次仅查询最新的200条，共${articleCount}条记录`;
-        } else {
-          this.serverSearchInput.searchSummary = conditions.join('，') + `，共${articleCount}条记录`;
-        }
-
-        this.serverSearchInput.total = articleCount;
-
-        this.tableDataFromBackend = rows;
-        this.isTableLoading = false;
-        this.serverSearchInput.isFirstSearch = false;
-      },
-
-      async getCategoryData() {
-        const { rows } = (await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'firstDraftManagement',
-              actionId: 'selectCategoryList',
-              actionData: {},
-              orderBy: [{ column: 'categoryGroup', order: 'asc' }, { column: 'categoryGroupSort', order: 'asc' }]
-            }
-          }
-        })).data.appData.resultData;
-        rows.forEach(item => {
-          const text = `${item.categoryGroupConcat || ''}${item.categoryName} [共${item.articleCount}篇]`;
-          this.constantCollection.category.push({ text, value: item.categoryId + "" });
-          this.categoryIdToName[item.categoryId] = `${item.categoryGroupConcat || ''}${item.categoryName}`;
-        })
-        this.serverSearchInput.categoryName = this.categoryIdToName[this.serverSearchInput.categoryId];
-      },
-
-      // =================================uiAction 公共方法 end ======================================
-
-      openSelectCategoryDialog() {
-        this.selectCategoryDialog = true
-      },
-
-      onSelectCategory(item) {
-        this.serverSearchInput.categoryId = item.value;
-        this.serverSearchInput.categoryName = item.text;
-      },
-
-      async goToXiaochengxuPage({ pageId, query }) {
-        window.changeXiaochengxuPage({ pageId, query });
-      },
-
-      async prepareItemData({ item }) {
-        this.editItem = { ...item };
-      },
-      async openUpdateDialog() {
-        this.isEditDrawerShow = true;
-      },
-
-      async confirmUpdateItemDialog() {
-        if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
-          throw new Error("取消");
-        }
-      },
-      async doUpdateItem() {
-        if (!this.$refs.form.validate()) {
-          return false
-        };
-        const { articleId, articlePublishStatus } = this.editItem;
-        await window.vtoast.loading("修改数据");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'firstDraftManagement',
-              actionId: 'updateItem',
-              actionData: { articlePublishStatus },
-              where: { articleId }
-            }
-          }
-        })
-        await window.vtoast.success("修改数据成功");
-      },
-
-      async closeDrawerShow() {
-        this.isEditDrawerShow = false;
-      },
-
+  }),
+  async created() {
+    const urlParams = new URLSearchParams(location.search);
+    const categoryId = urlParams.get('categoryId');
+    if (categoryId) {
+      this.serverSearchInput.categoryId = categoryId;
     }
-  })
+    await this.getCategoryData();
+    this.doUiAction('getTableData');
+  },
+  watch: {
+    'serverSearchInput.page': {
+      handler() {
+        this.doUiAction('getTableData')
+      }
+    },
+  },
+  mounted() {
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareUpdateFormData(uiActionData);
+          await this.openUpdateDrawer();
+          break;
+        case 'updateItem':
+          await this.prepareUpdateValidate();
+          await this.confirmUpdateItemDialog();
+          await this.prepareDoUpdateItem();
+          await this.doUpdateItem();
+          await this.closeUpdateDrawer();
+          await this.getTableData();
+          break;
+        case 'goToXiaochengxuPage':
+          await this.goToXiaochengxuPage(uiActionData);
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
+    /**
+     * 获取表格数据
+     */
+    async getTableData() {
+      this.isTableLoading = true;
+      const backendSearchData = _.pickBy(this.serverSearchInput, ( fieldValue, fieldKey ) => {
+        if(fieldValue !== null && fieldValue !== '') {
+          return true;
+        }
+      });
+      const where = {articleStatus: 'firstDraft'};
+      if (this.serverSearchInput.categoryId !== 'all') {
+        where.categoryId = this.serverSearchInput.categoryId;
+      }
+      const limit = 200;
+      const { rows, articleCount } = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'firstDraftManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where,
+            whereIn: {
+              articlePublishStatus: this.serverSearchInput.articlePublishStatus
+            },
+            whereLike: {
+              articleTitle: this.serverSearchInput.articleTitle,
+            },
+            limit,
+            offset: (this.serverSearchInput.page - 1) * limit,
+            orderBy: [{ column: 'articleUpdateTime', order: 'desc' }, { column: 'categoryGroup', order: 'desc' }, { column: 'categoryGroupSort', order: 'asc' }, { column: 'articleTitle', order: 'asc' }]
+          }
+        }
+      })).data.appData.resultData;
+      // 补充 categoryName
+      rows.forEach(item => {
+        item.categoryGroupConcat = item.categoryId && this.categoryIdToName[item.categoryId] || '未分类'
+      })
+
+      this.serverSearchInput.articlePublishStatusText = this.constantObj.allArticlePublishStatus
+        .filter(item => this.serverSearchInput.articlePublishStatus.indexOf(item.value) > -1)
+        .map(item => item.text);
+
+      const conditions = [];
+      if (this.serverSearchInput.articleTitle) {
+        conditions.push(`标题包含【${this.serverSearchInput.articleTitle}】`);
+      }
+      if (this.serverSearchInput.categoryName) {
+        conditions.push(`分类为【${this.serverSearchInput.categoryName}】`);
+      }
+      if (this.serverSearchInput.articlePublishStatusText) {
+        conditions.push(`状态为【${this.serverSearchInput.articlePublishStatusText}】`);
+      }
+      if (this.serverSearchInput.isFirstSearch && this.serverSearchInput.categoryId === 'all') {
+        this.serverSearchInput.searchSummary = conditions.join('，') + `，首次仅查询最新的200条，共${articleCount}条记录`;
+      } else {
+        this.serverSearchInput.searchSummary = conditions.join('，') + `，共${articleCount}条记录`;
+      }
+      this.serverSearchInput.total = articleCount;
+
+      this.tableData = rows;
+      this.isTableLoading = false;
+      this.serverSearchInput.isFirstSearch = false;
+    },
+    async getCategoryData() {
+      const { rows } = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'firstDraftManagement',
+            actionId: 'selectCategoryList',
+            actionData: {},
+            orderBy: [{ column: 'categoryGroup', order: 'asc' }, { column: 'categoryGroupSort', order: 'asc' }]
+          }
+        }
+      })).data.appData.resultData;
+      rows.forEach(item => {
+        const text = `${item.categoryGroupConcat || ''}${item.categoryName} [共${item.articleCount}篇]`;
+        this.constantObj.category.push({ text, value: item.categoryId + "" });
+        this.categoryIdToName[item.categoryId] = `${item.categoryGroupConcat || ''}${item.categoryName}`;
+      })
+      this.serverSearchInput.categoryName = this.categoryIdToName[this.serverSearchInput.categoryId];
+    },
+
+    openSelectCategoryDialog() {
+      this.selectCategoryDialog = true
+    },
+    onSelectCategory(item) {
+      this.serverSearchInput.categoryId = item.value;
+      this.serverSearchInput.categoryName = item.text;
+    },
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    async prepareUpdateFormData(funObj) {
+      this.updateItem = _.cloneDeep(funObj);
+    },
+
+    async openUpdateDrawer() {
+      this.isUpdateDrawerShown = true;
+    },
+
+    async prepareUpdateValidate() {
+      if (await this.$refs.updateForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息")
+    },
+
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("[confirmUpdateItemDialog] 否");
+      }
+    },
+
+    async prepareDoUpdateItem() {
+      const {id, articlePublishStatus, ...data} = this.updateItem;
+      this.updateItemId = id;
+      this.updateActionData = {articlePublishStatus};
+    },
+
+    async doUpdateItem() {
+      await window.jhMask.show();
+      await window.vtoast.loading("修改数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'firstDraftManagement',
+            actionId: 'updateItem',
+            actionData: this.updateActionData,
+            where: {id: this.updateItemId}
+          }
+        }
+      })
+
+      await window.jhMask.hide();
+      await window.vtoast.success("修改数据成功");
+    },
+
+    async closeUpdateDrawer() {
+      this.isUpdateDrawerShown = false;
+      this.updateItem = {};
+      this.updateActionData = null;
+      this.updateItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
+    // ---------- uiAction >>>>>>>>>>>> --------
+    async goToXiaochengxuPage({ pageId, query }) {
+      const { articleId, title, articleStatus  } = query;
+      console.log('<$ ctx.app.config.duoxingBot.url $>')
+      window.location.href = `<$ ctx.app.config.duoxingBot.url $>?botUserId=<$ ctx.app.config.duoxingBot.userId $>&pageId=${pageId}&articleId=${articleId}&title=${title}&articleStatus=${articleStatus}`;
+      // window.location.href = `/jianghujs-xiaochengxu-markdown-editor/page/${pageId}?articleId=${articleId}&title=${title}&articleStatus=${articleStatus}`;
+    },
+    // ---------- <<<<<<<<<<< uiAction ---------
+  }
+})
 </script>
 
 <style scoped>
-</style>
-{% endblock %}
+</style>{% endblock %}

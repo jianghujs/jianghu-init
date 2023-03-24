@@ -4,9 +4,15 @@
   </div>
 </script>
 
+<!-- 加载页面静态资源 >>>>>>>>>>>>> -->
+<link href="/<$ ctx.app.config.appId $>/public/jsoneditor/jsoneditor.css" rel="stylesheet">
+<script src="/<$ ctx.app.config.appId $>/public/jsoneditor/jsoneditor.js"></script>
+<!-- <<<<<<<<<<<<< 加载页面静态资源 -->
+
 <script>
   Vue.component("vue-json-editor", {
     template: "#vue-json-editor",
+    vueComponent: 'vue-json-editor',
     props: {
       value: [String, Number, Object, Array],
       showBtns: [Boolean],
@@ -24,28 +30,13 @@
           return ["tree", "code", "form", "text", "view"];
         }
       },
-      lang: {
-        type: String,
-        default: "en"
-      },
-      title: {
-        type: String,
-        default: ''
-      },
-      type: {
-        type: String,
-        default: 'ui'
-      }
     },
     watch: {
       value: {
         immediate: true,
         async handler(val) {
           if (!this.internalChange) {
-            await this.setEditor(val);
-
-            this.error = false;
-            this.expandAll();
+            this.doUiAction('setEditor', val);
           }
         },
         deep: true
@@ -58,73 +49,87 @@
         json: this.value,
         internalChange: false,
         expandedModes: ["tree", "view", "form"],
-        locale: {
-          it: {
-            save: "SALVA"
-          },
-          en: {
-            save: "SAVE"
-          },
-          zh: {
-            save: "保存"
-          }
-        }
+        JSONEditorOptions: {},
       };
     },
     mounted() {
-      this.$emit("has-error", false);
-      this.init();
+      this.doUiAction('init')
     },
     methods: {
-      init() {
-        let self = this;
-
-        let options = {
-          mode: this.mode,
-          modes: this.modes, // allowed modes
-          onChange() {
-            try {
-              let json = self.editor.get();
-              self.json = json;
-              self.error = false;
-              self.$emit("json-change", json);
-              self.$emit("has-error", false);
-              self.internalChange = true;
-              self.$emit("input", json);
-              self.$nextTick(function () {
-                self.internalChange = false;
-              });
-            } catch (e) {
-              self.error = true;
-              self.$emit("has-error", true);
-            }
-          },
-          onModeChange() {
-            self.expandAll();
-          }
-        };
-        this.editor = new JSONEditor(
-          self.$el.querySelector(".jsoneditor-vue"),
-          options,
-          self.json
-        );
-      },
-      expandAll() {
-        if (
-          this.expandedOnStart &&
-          this.expandedModes.includes(this.editor.getMode())
-        ) {
-          this.editor.expandAll();
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'init':
+            await this.prepareInitData();
+            await this.initJSONEditor();
+            break;
+          case 'setEditor':
+            await this.setEditor(uiActionData);
+            await this.clearError();
+            await this.expandAll();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
         }
       },
 
-      onSave() {
-        this.$emit("json-save", this.json);
-      },
+      // ---------- 初始化编辑器 uiAction >>>>>>>>>> --------
+      prepareInitData() {
+        let that = this;
 
+        this.JSONEditorOptions = {
+          mode: this.mode,
+          modes: this.modes, 
+          onChange() {
+            try {
+              let json = that.editor.get();
+
+              that.json = json;
+              that.error = false;
+              that.internalChange = true;
+
+              that.$emit("json-change", json);
+              that.$emit("input", json);
+              that.$emit("has-error", false);
+
+              that.$nextTick(function () {
+                that.internalChange = false;
+              });
+            } catch (e) {
+              that.error = true;
+              that.$emit("has-error", true);
+            }
+          },
+          onModeChange() {
+            that.expandAll();
+          }
+        };
+      },
+      initJSONEditor() {
+        this.editor = new JSONEditor(
+          this.$el.querySelector(".jsoneditor-vue"),
+          this.JSONEditorOptions,
+          this.json
+        );
+      },
+      // ---------- <<<<<<<<<<< 初始化编辑器 uiAction  --------
+
+      // ---------- 设置数据  >>>>>>>>>> --------
       async setEditor(value) {
         if (this.editor) this.editor.set(value);
-      }
+      },
+      clearError(){
+        this.error = false;
+      },
+      // ---------- <<<<<<<<<<< 设置数据   --------
+
+      // ---------- 公共方法  >>>>>>>>>> --------
+      expandAll() {
+        if ( this.expandedOnStart && this.expandedModes.includes(this.editor.getMode()) ) { 
+          this.editor.expandAll(); 
+        }
+      },
+      // ---------- <<<<<<<<<<< 公共方法   --------
     }
   });
 </script>
@@ -162,10 +167,6 @@
     justify-content: space-between;
     align-items: center;
     padding: 5px;
-  }
-
-  .jsoneditor-vue {
-    /* height: calc(100vh - 45vh); */
   }
 
   .jsoneditor-vue .jsoneditor-outer {

@@ -1,188 +1,252 @@
-{% extends 'template/xiaochengxuTemplateV3.html'%}
+{% extends 'template/xiaochengxuTemplateV4.html'%}
 
-{% block vue_template %}
+{% block vueTemplate %}
 
-<xiaochengxu-layout-v3>
-  <template slot="serverSearch">
-    <v-row class="ma-0 align-center" :class="{'pa-0': isMobile, 'pa-2': !isMobile}" style="justify-content: end">
+<script type="text/html" id="app-template">
+<div>
+  <v-app mobile-breakpoint="sm">
+    <jh-menu />
+    <v-main class="mt-15">
+      <!-- 头部内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-second-bar px-8">
+        <v-row>
+          <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+            <div class="pt-3 text-h7 font-weight-bold">分类管理</div>
+            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          </v-col>
+          <!-- pc端的搜索条件表单 >>>>>>>> -->
+          <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+            <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
+              <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pr-1 pr-xs-0">
+                <v-select
+                  v-model="serverSearchInput.categoryPublishStatus" color="success" prefix="分类状态："
+                  class="jh-v-input bg-white" :items="constantObj.categoryPublishStatus"
+                  dense filled single-line multiple persistent-hint></v-select>
+              </v-col>
+              <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </v-row>
+          </v-col>
+          <!-- <<<<<<<< pc端的搜索条件表单 -->
+        </v-row>
+      </div>
+      <!-- <<<<<<<<<<<<< 头部内容 -->
 
-  <v-spacer></v-spacer>
-  <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-xs-0 pa-xs-2 col-sm-8-flex pl-0">
-    <v-select class="jh-v-input mr-2" v-model="categoryPublishStatusSelectList" prefix="分类状态："
-    :items="constantCollection.categoryPublishStatus" dense filled single-line multiple persistent-hint></v-select>
-  </v-col>
+      <div class="jh-page-body-container px-8">
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <v-card class="rounded-lg">
+          <v-row class="ma-0 pa-4">
+            <!-- 新增按钮 -->
+            <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增
+            </v-btn>
+            <v-spacer></v-spacer>
+            <!-- 搜索过滤 -->
+            <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+              <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+          <!-- 表格 -->
+          <v-data-table
+            :headers="headers"
+            :items="tableData"
+            :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+            :items-per-page="-1"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            checkbox-color="success"
+            :class="{'zebraLine': isTableZebraLineShown }"
+            fixed-header
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <!-- 表格操作按钮 -->
+            <template v-slot:item.action="{ item }">
+              <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('goToDraftManagementPage', {item, articleStatus: 'firstDraft'})">
+                <v-icon size="16" class="success--text">mdi-menu-open</v-icon>一稿管理 <span class="error--text">({{item.firstDraftCount}})</span>
+              </span>
+              <template v-if="!isMobile">
+                <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
+                </span>
+                  <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                  <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
+                </span>
+              </template>
+              <template v-else>
+                <v-menu offset-y>
+                  <template v-slot:activator="{ on, attrs }">
+                    <span role="button" class="success--text font-weight-medium font-size-2" v-bind="attrs" v-on="on">
+                      <v-icon size="16" class="success--text">mdi-dots-vertical</v-icon>操作
+                    </span>
+                  </template>
+                  <v-list dense>
+                    <v-list-item @click="doUiAction('startUpdateItem', item)">
+                      <v-list-item-title><v-icon size="16">mdi-note-edit-outline</v-icon>修改信息</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('deleteItem', item)">
+                      <v-list-item-title><v-icon size="16">mdi-trash-can-outline</v-icon>删除信息</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </template>
+            </template>
+            <template v-slot:item.categoryPublishStatus="{ item }">
+              {{ getDisplayText({displayObj: constantObj.categoryPublishStatus, displayValue: item.categoryPublishStatus}) }}
+            </template>
+            <!-- 没有数据 -->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <!-- 表格分页 -->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+              <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            </template>
+          </v-data-table>
+        </v-card>
+        <!-- 新增抽屉 -->
+        <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="createForm" lazy-validation>
+            <!-- 抽屉标题 -->
+            <v-row>
+              <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">新增信息</span>
+            </v-row>
+            <!-- 抽屉表单 -->
+            <v-row class="mt-0 px-4">
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">分类ID</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="分类ID" v-model="createItem.categoryId" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">分类名称</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="分类名称" v-model="createItem.categoryName" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">分类分组</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="分类分组" v-model="createItem.categoryGroup" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">分类分组排序</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="分类分组排序" v-model="createItem.categoryGroupSort" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">分类简介</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="分类简介" v-model="createItem.categoryIntro" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">发布状态</span>
+                <v-select class="jh-v-input" dense single-line filled clearable label="发布状态" v-model="createItem.categoryPublishStatus" :items="constantObj.categoryPublishStatus"></v-select>
+              </v-col>
+            </v-row>
+            <!-- 抽屉操作按钮 -->
+            <v-row class="justify-end mx-0 mt-8 px-6">
+              <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+              <v-btn class="elevation-0 ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+          </v-form>
+          <!-- 抽屉关闭按钮 -->
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- 编辑抽屉 -->
+        <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="updateForm" lazy-validation>
+            <!-- 抽屉标题 -->
+            <v-row>
+              <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">新增信息</span>
+            </v-row>
+            <!-- 抽屉表单 -->
+            <v-row class="mt-0 px-4">
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">分类ID</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="分类ID" v-model="updateItem.categoryId" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">分类名称</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="分类名称" v-model="updateItem.categoryName" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">分类分组</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="分类分组" v-model="updateItem.categoryGroup" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">分类分组排序</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="分类分组排序" v-model="updateItem.categoryGroupSort" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">分类简介</span>
+                <v-text-field class="jh-v-input" dense single-line filled label="分类简介" v-model="updateItem.categoryIntro" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">发布状态</span>
+                <v-select class="jh-v-input" dense single-line filled clearable label="发布状态" v-model="updateItem.categoryPublishStatus" :items="constantObj.categoryPublishStatus"></v-select>
+              </v-col>
+            </v-row>
+            <!-- 抽屉操作按钮 -->
+            <v-row class="justify-end mx-0 mt-8 px-6">
+              <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+              <v-btn class="elevation-0 ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+          </v-form>
+          <!-- 抽屉关闭按钮 -->
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 页面内容 -->
+      </div>
+    </v-main>
+  </v-app>
 
+  <jh-toast />
+  <jh-mask />
+  <jh-confirm-dialog />
+</div>
+</script>
 
-  <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-    <v-text-field v-model="searchInput" label="表格过滤" class="jh-v-input" dense filled single-line ></v-text-field>
-  </v-col>
-
-  <v-col class="pl-0" :class="{'pr-0': isMobile, 'pt-0': isMobile}" style="max-width: 77px">
-    <v-btn
-     class="elevation-0" color="success" dark @click="doUiAction('refreshTableData')">查询
-    </v-btn>
-</v-col>
-
-</v-row>
-</template>
-
-<!-- 页面主要内容 -->
-<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
-  <v-card>
-  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
-
-    <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
-      <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem')">新增</v-btn>
-      <span class="body-2">共{{ tableData.length }}条记录</span>
-    </v-col>
-   
-  </v-row>
-  <v-data-table fixed-header
-                :headers="headers"
-                :items="tableData"
-                :search="searchInput"
-                :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
-                :items-per-page="-1"
-                mobile-breakpoint="0"
-                :loading="isTableLoading"
-                checkbox-color="success"
-                class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-    <template v-slot:item.categoryPublishStatus="{ item }">
-      {{ categoryPublishStatusMap[item.categoryPublishStatus] || item.categoryPublishStatus }}
-    </template>
-    <template v-slot:item.action="{ item }">
-      <v-btn small class="mr-2 success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
-      <v-btn small class="mr-2 error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
-      <v-badge color="success" :content="`${item.firstDraftCount}`" overlap>
-        <v-btn small class="mr-2 default" @click.stop="doUiAction('goToDraftManagementPage', {item, articleStatus: 'firstDraft' })">
-          一稿管理
-        </v-btn>  
-      </v-badge>
-    </template>
-  </v-data-table>
-  </v-card>
-</v-container>
-
-<!-- 新增 -->
-<v-navigation-drawer v-model="isAddDrawerShow" :permanent="isAddDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
-  <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="form" lazy-validation>
-    <v-row>
-      <span class="title pa-6">新增信息</span>
-      <v-spacer></v-spacer>
-      <v-btn class="mt-7 mr-8 elevation-0" fab x-small @click="isAddDrawerShow = false">
-        <v-icon dark>mdi-close</v-icon>
-      </v-btn>
-    </v-row>
-    <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none">
-       
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">分类ID</span>
-        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="addItem['categoryId']"></v-text-field>
-      </v-col>
-       
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">分类名称</span>
-        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="addItem['categoryName']"></v-text-field>
-      </v-col>
-       
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">分类分组</span>
-        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="addItem['categoryGroup']"></v-text-field>
-      </v-col>
-       
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">分类分组排序</span>
-        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="addItem['categoryGroupSort']"></v-text-field>
-      </v-col>
-      
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">分类简介</span>
-        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="addItem['categoryIntro']"></v-text-field>
-      </v-col>
-
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">发布状态</span>
-        <v-select class="jh-v-input mr-2" dense filled single-line clearable v-model="addItem['categoryPublishStatus']" :items="constantCollection.categoryPublishStatus"></v-select>
-      </v-col>
-    </v-row>
-    <v-row class="justify-end pr-6">
-      <v-btn color="success" small @click="doUiAction('createItem')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">新增</v-btn>
-      <v-btn class="ml-2" small @click="isAddDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
-    </v-row>
-  </v-form>
-</v-navigation-drawer>
-
-
-<!-- 编辑抽屉 -->
-<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
-  <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
-    <v-row>
-      <span class="title pa-6">编辑信息</span>
-      <v-spacer></v-spacer>
-      <v-btn class="mt-7 mr-8 elevation-0" fab x-small @click="isEditDrawerShow = false">
-        <v-icon dark>mdi-close</v-icon>
-      </v-btn>
-    </v-row>
-    <v-row class="pa-0 ma-0 pa-xs-4 pb-xs-4 flex-none">
-       
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">分类ID</span>
-        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['categoryId']" disabled></v-text-field>
-      </v-col>
-       
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">分类名称</span>
-        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['categoryName']"></v-text-field>
-      </v-col>
-
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">分类分组</span>
-        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['categoryGroup']"></v-text-field>
-      </v-col>
-       
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">分类分组排序</span>
-        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['categoryGroupSort']"></v-text-field>
-      </v-col>
-
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">分类简介</span>
-        <v-text-field class="jh-v-input mr-2" dense filled single-line v-model="editItem['categoryIntro']"></v-text-field>
-      </v-col>
-
-      <v-col cols="12" sm="12" md="4" xl="3" class="pa-xs-0 pb-xs-4 pb-3">
-        <span class="inputLabel">发布状态</span>
-        <v-select class="jh-v-input mr-2" dense filled single-line clearable v-model="editItem['categoryPublishStatus']" :items="constantCollection.categoryPublishStatus"></v-select>
-      </v-col>
-    </v-row>
-    <v-row class="justify-end pr-6">
-      <v-btn color="success" small @click="doUiAction('updateItem')" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mb-2': isMobile, 'mr-4': isMobile}">保存</v-btn>
-      <v-btn class="ml-2" small @click="isEditDrawerShow = false" :style="{width: isMobile ? 'calc(100% - 45px)' : '200px'}" :class="{'mr-4': isMobile}">取消</v-btn>
-    </v-row>
-  </v-form>
-</v-navigation-drawer>
-
-</xiaochengxu-layout-v3>
+<div id="app">
+</div>
 
 {% endblock %}
 
-{% block vue_body %}
+{% block vueScript %}
 
-{% include 'layout/xiaochengxuLayout.html' %}
-{% include 'common/resetTableMaxHeight.html' %}
-
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 <script type="module">
 new Vue({
   el: '#app',
   template: '#app-template',
   vuetify: new Vuetify(),
   data: () => ({
-    // 表格相关数据
-    isFormValid: true,
-    requireRules: [
-      v => !!v || 'This is required',
+    // 面包屑
+    breadcrumbs: [
+      {
+        text: '首页',
+        disabled: true,
+      },
+      {
+        text: '分类管理',
+        disabled: true,
+      }
     ],
-    constantCollection: {
+    isHelpPageDrawerShown: false,
+    isMobile: window.innerWidth < 500,
+    // 表格相关数据
+    isTableZebraLineShown: true,
+    validationRules: {
+      requireRules: [
+        v => !!v || 'This is required',
+      ],
+    },
+    // 下拉选项
+    constantObj: {
       categoryPublishStatus: [
         { text: "公开", value: "public" },
         { text: "登录可见", value: "login" },
@@ -190,221 +254,257 @@ new Vue({
         { text: "回收站", value: "deleted" },
       ],
     },
-
-    categoryPublishStatusSelectList: [ 'public', 'login' ],
     serverSearchInput: {
-      studentId: null,
-      classId: null
+      categoryPublishStatus: ['public', 'login'],
     },
     searchInput: null,
     isTableLoading: true,
-    tableDataFromBackend: [],
+    tableData: [],
     headers: [
-      {text: "ID", value: "id", width: 120, class: 'fixed', cellClass: 'fixed'},
-       
-      {text: "分类ID", value: "categoryId", width: 120}, 
-      {text: "分类名称", value: "categoryName", width: 200}, 
-      {text: "分类分组", value: "categoryGroup", width: 120}, 
-      {text: "分类分组排序", value: "categoryGroupSort", width: 120}, 
-      // {text: "分类目录中需要省略的文字", value: "categoryArticleIgnoreTiltle", width: 200}, 
-      {text: "分类简介", value: "categoryIntro", width: 120}, 
-      {text: "发布状态", value: "categoryPublishStatus", width: 120}, 
-      {text: "创建时间", value: "categoryCreateTime", width: 220}, 
-      {text: "创建者", value: "categoryCreateUsername", width: 120}, 
-      {text: "修改时间", value: "categoryUpdateTime", width: 220}, 
-      {text: "修改者", value: "categoryUpdateUsername", width: 120}, 
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 450, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', type: 'button', sortable: false, width: window.innerWidth < 500 ? 170 : 220, class: 'fixed', cellClass: 'fixed'},
+      {text: "ID", value: "id", class: 'fixed', cellClass: 'fixed noWarp'},
+      {text: "分类ID", value: "categoryId", width: 120},
+      {text: "分类名称", value: "categoryName", width: 200},
+      {text: "分类分组", value: "categoryGroup", width: 120},
+      {text: "分类分组排序", value: "categoryGroupSort", width: 120},
+      {text: "分类简介", value: "categoryIntro", width: 120},
+      {text: "发布状态", value: "categoryPublishStatus", width: 120},
+      {text: "创建时间", value: "categoryCreateTime", width: 220},
+      {text: "创建者", value: "categoryCreateUsername", width: 120},
+      {text: "修改时间", value: "categoryUpdateTime", width: 220},
+      {text: "修改者", value: "categoryUpdateUsername", width: 120},
     ],
-    isEditDrawerShow: false,
-    editItem: {},
-    isAddDrawerShow: false,
-    addItem: {}
+
+    isCreateDrawerShown: false,
+    createItem: {},
+    createActionData: {},
+    isUpdateDrawerShown: false,
+    updateItem: {},
+    updateItemId: null,
+    updateActionData: {},
+    deleteItem: {},
+    deleteItemId: null
+
   }),
-  computed: {
-    isMobile() {
-      return window.innerWidth < 600;
-    },
-    tableData() {
-      return this.tableDataFromBackend.filter(({ categoryPublishStatus }) => this.categoryPublishStatusSelectList.indexOf(categoryPublishStatus) > -1);
-    },
-    categoryPublishStatusMap() {
-      const map = {};
-      this.constantCollection.categoryPublishStatus.forEach(constantObj => {
-        map[constantObj.value] = constantObj.text;
-      })
-      return map;
-    },
-  },
-  watch: {},
   async created() {
-    await this.doUiAction('refreshTableData');
   },
-  mounted() {},
+  mounted() {
+    this.doUiAction('getTableData');
+  },
   methods: {
     async doUiAction(uiActionId, uiActionData) {
       switch (uiActionId) {
-        case 'refreshTableData':
-          await this.refreshTableData();
+        case 'getTableData':
+          await this.getTableData();
           break;
         case 'startCreateItem':
-          await this.clearItemData();
-          await this.openCreateItemDialog();
+          await this.prepareCreateFormData();
+          await this.openCreateDrawer();
           break;
         case 'createItem':
+          await this.prepareCreateValidate();
           await this.confirmCreateItemDialog();
+          await this.prepareDoCreateItem();
           await this.doCreateItem();
-          await this.closeDrawerShow();
-          await this.refreshTableData();
+          await this.closeCreateDrawer();
+          await this.getTableData();
           break;
         case 'startUpdateItem':
-          await this.prepareItemData(uiActionData);
-          await this.openUpdateDialog();
+          await this.prepareUpdateFormData(uiActionData);
+          await this.openUpdateDrawer();
           break;
         case 'updateItem':
+          await this.prepareUpdateValidate();
           await this.confirmUpdateItemDialog();
+          await this.prepareDoUpdateItem();
           await this.doUpdateItem();
-          await this.closeDrawerShow();
-          await this.refreshTableData();
+          await this.closeUpdateDrawer();
+          await this.getTableData();
           break;
         case 'deleteItem':
+          await this.prepareDeleteFormData(uiActionData);
           await this.confirmDeleteItemDialog();
-          await this.doDeleteItem(uiActionData);
-          await this.refreshTableData();
+          await this.prepareDoDeleteItem();
+          await this.doDeleteItem();
+          await this.clearDeleteItem();
+          await this.getTableData();
           break;
         case 'goToDraftManagementPage':
           await this.goToDraftManagementPage(uiActionData);
           break;
         default:
-          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
           break;
       }
     },
-    // =================================uiAction 公共方法 start ======================================
-    async refreshTableData() {
+    /**
+     * 获取表格数据
+     */
+    async getTableData() {
       this.isTableLoading = true;
-      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
-      const result = await window.jianghuAxios({
+      const backendSearchData = _.pickBy(this.serverSearchInput, ( fieldValue, fieldKey ) => {
+        if(fieldValue !== null && fieldValue !== '') {
+          return true;
+        }
+      });
+      const rows = (await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'categoryManagement',
             actionId: 'selectItemList',
             actionData: {},
             where: {},
-            whereLike: serverSearchInput,
+            whereIn: backendSearchData,
             orderBy: [{column: 'operationAt', order: 'desc'}]
           }
         }
-      });
-
-      this.tableDataFromBackend = result.data.appData.resultData.rows;
+      })).data.appData.resultData.rows;
+      this.tableData = rows;
       this.isTableLoading = false;
     },
-    // =================================uiAction 公共方法 end ======================================
-
-    /** 
-     * uiActionId:  refreshTableData
-     * description: ✅获取表格数据
-     * main:   [{"function":"refreshTableData"}]
-    */
-
-    /** 
-     * uiActionId:  startCreateItem
-     * description: ✅获取表格数据
-     * main:   [{"function":"clearItemData"},{"function":"openCreateItemDialog"}]
-    */
-    async clearItemData() {
-      this.addItem = {};
+    // ---------- 新增数据 uiAction >>>>>>>>>> --------
+    async prepareCreateFormData() {
+      this.createItem = {};
     },
-    async openCreateItemDialog() {
-      this.isAddDrawerShow = true;
+
+    async openCreateDrawer() {
+      this.isCreateDrawerShown = true;
+    },
+
+    async prepareCreateValidate() {
+      if (await this.$refs.createForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息")
     },
 
     async confirmCreateItemDialog() {
       if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
-        throw new Error("取消");
+        throw new Error("[confirmCreateFormDialog] 否");
       }
     },
+
+    prepareDoCreateItem() {
+      const {id, ...data} = this.createItem;
+      this.createActionData = data;
+    },
+
     async doCreateItem() {
-      const { id, ...data } = this.addItem;
-      await window.vtoast.loading("新增数据");
+      await window.jhMask.show();
+      await window.vtoast.loading("新增学生");
       await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'categoryManagement',
             actionId: 'insertItem',
-            actionData: data
+            actionData: this.createActionData
           }
         }
       })
-      await window.vtoast.success("新增数据成功");
+      await window.jhMask.hide();
+      await window.vtoast.success("新增学生成功");
     },
-    async closeDrawerShow() {
-      this.isEditDrawerShow = false;
-      this.isAddDrawerShow = false;
+    async closeCreateDrawer() {
+      this.isCreateDrawerShown = false;
+      this.createItem = {};
+      this.createActionData = null;
+    },
+    // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    async prepareUpdateFormData(funObj) {
+      this.updateItem = _.cloneDeep(funObj);
     },
 
-    async prepareItemData({item}) {
-      this.editItem = {...item};
+    async openUpdateDrawer() {
+      this.isUpdateDrawerShown = true;
     },
-    async openUpdateDialog() {
-      this.isEditDrawerShow = true;
+
+    async prepareUpdateValidate() {
+      if (await this.$refs.updateForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息")
     },
 
     async confirmUpdateItemDialog() {
       if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
-        throw new Error("取消");
+        throw new Error("[confirmUpdateItemDialog] 否");
       }
     },
+
+    async prepareDoUpdateItem() {
+      const {id, ...data} = this.updateItem;
+      this.updateItemId = id;
+      this.updateActionData = data;
+    },
+
     async doUpdateItem() {
-      const { id, ...data } = this.editItem;
-      delete data.firstDraftCount;
-      delete data.secondDraftCount;
-      delete data.thirdDraftCount;
-      delete data.categoryGroupConcat;
-      await window.vtoast.loading("修改数据");
+      await window.jhMask.show();
+      await window.vtoast.loading("修改学生");
       await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'categoryManagement',
             actionId: 'updateItem',
-            actionData: data,
-            where: {id}
+            actionData: this.updateActionData,
+            where: {id: this.updateItemId}
           }
         }
       })
-      await window.vtoast.success("修改数据成功");
+
+      await window.jhMask.hide();
+      await window.vtoast.success("修改学生成功");
     },
 
+    async closeUpdateDrawer() {
+      this.isUpdateDrawerShown = false;
+      this.updateItem = {};
+      this.updateActionData = null;
+      this.updateItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
+    // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+    async prepareDeleteFormData(funObj) {
+      this.deleteItem = _.cloneDeep(funObj);
+    },
     async confirmDeleteItemDialog() {
       if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
-        throw new Error("取消");
+        throw new Error("[confirmDeleteItemDialog] 否");
       }
     },
-    async doDeleteItem({item}) {
-      const { id } = item;
-      await window.vtoast.loading("删除数据");
+    async prepareDoDeleteItem() {
+      const {id} = this.deleteItem;
+      this.deleteItemId = id;
+    },
+    async doDeleteItem() {
+      await window.vtoast.loading("删除学生");
       await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'categoryManagement',
             actionId: 'deleteItem',
             actionData: {},
-            where: { id: id }
+            where: {id: this.deleteItemId}
           }
         }
       });
-      await window.vtoast.success("删除数据成功");
+      await window.vtoast.success("删除学生成功");
     },
-
+    async clearDeleteItem() {
+      this.deleteItem = {};
+      this.deleteItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
+    // ---------- 一稿管理 uiAction >>>>>>>>>>>> --------
     async goToDraftManagementPage({item, articleStatus}) {
       const { categoryId } = item;
       const pageId = `${articleStatus}Management`;
-      window.changeXiaochengxuPage({ pageId, query: { categoryId } });
+      window.location.href = `<$ ctx.app.config.duoxingBot.url $>?botUserId=<$ ctx.app.config.duoxingBot.userId $>&pageId=${pageId}&categoryId=${categoryId}`;
     },
+    // ---------- <<<<<<<<<<< 一稿管理 uiAction ---------
   }
 })
 </script>
 
 <style scoped>
-</style>
-{% endblock %}
+</style>{% endblock %}

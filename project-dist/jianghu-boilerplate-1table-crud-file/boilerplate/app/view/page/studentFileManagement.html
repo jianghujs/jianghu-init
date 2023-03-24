@@ -30,7 +30,7 @@
                 </v-col>
                 <v-spacer></v-spacer>
                 <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-                  <v-text-field v-model="searchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
+                  <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
                 </v-col>
               </v-row>
               <v-data-table 
@@ -86,22 +86,22 @@
               <v-row class="mt-0" :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">文件</span>
-                  <v-file-input v-model="addInputFile" class="jh-v-input mr-2" dense filled single-line chips label="请选择文件" ></v-file-input>
+                  <v-file-input v-model="addInputFile" class="cus-v-input mr-2" dense filled single-line chips label="请选择文件" ></v-file-input>
                 </v-col>
           
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">文档类型</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['docType']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['docType']"></v-text-field>
                 </v-col>
           
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">学生名字</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['studentName']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['studentName']"></v-text-field>
                 </v-col>
           
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">备注</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem['remarks']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['remarks']"></v-text-field>
                 </v-col>
           
               </v-row>
@@ -130,22 +130,22 @@
           
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">文件</span>
-                  <v-file-input v-model="editInputFile" class="jh-v-input mr-2" dense filled single-line chips label="请选择文件" ></v-file-input>
+                  <v-file-input v-model="editInputFile" class="cus-v-input mr-2" dense filled single-line chips label="请选择文件" ></v-file-input>
                 </v-col>
           
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">文档类型</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['docType']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['docType']"></v-text-field>
                 </v-col>
           
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">学生名字</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['studentName']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['studentName']"></v-text-field>
                 </v-col>
           
                 <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel">备注</span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['remarks']"></v-text-field>
+                  <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['remarks']"></v-text-field>
                 </v-col>
           
               </v-row>

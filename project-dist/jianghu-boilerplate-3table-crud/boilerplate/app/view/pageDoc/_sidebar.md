@@ -2,5 +2,5 @@
 * [学生列表](2.studentList.md)
 * [学生的班级列表](3.classListOfOneStudent.md)
 * [班级的学生列表](4.studentListOfOneClass.md)
-* [班级列表单页面](5.classListSinglePage.md)
-* [学生列表单页面](6.studentListSinglePage.md)
+* [班级列表-高级](5.classListSinglePage.md)
+* [学生列表-高级](6.studentListSinglePage.md)

@@ -43,19 +43,19 @@
             class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
             <template v-slot:item.action="{ item }">
               <span
-                role="button" class="success--text font-weight-medium font-size-2"
+                role="button" class="success--text font-weight-medium font-size-2 mr-2"
                 @click="doUiAction('startUpdateItem', item)">
-                <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>修改
+                <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
               </span>
               <span
-                role="button" class="success--text font-weight-medium font-size-2"
+                role="button" class="success--text font-weight-medium font-size-2 mr-2"
                 @click="doUiAction('deleteItem', item)">
-                <v-icon size="14" class="success--text">mdi-trash-can-outline</v-icon>删除
+                <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
               </span>
               <span
                 role="button" class="success--text font-weight-medium font-size-2"
                 @click="doUiAction('manualSyncOneTable', item)">
-                <v-icon size="14" class="success--text">mdi-sync</v-icon>同步
+                <v-icon size="16" class="success--text">mdi-sync</v-icon>同步
               </span>
             </template>
             <!--没有数据-->
@@ -88,10 +88,10 @@
           <v-form ref="createForm" lazy-validation>
             <!--抽屉标题-->
             <v-row>
-              <span class="title pa-6 pl-8">添加信息</span>
+              <span class="text-subtitle-1 font-weight-medium pa-6 pl-8">添加信息</span>
             </v-row>
             <!--抽屉表单主体-->
-            <v-row class="mt-0 px-6">
+            <v-row class="ma-0 px-2">
               <v-col cols="12" sm="12" md="4">
                 <span class="jh-input-label">数据库</span>
                 <v-select
@@ -126,10 +126,10 @@
           <v-form ref="updateForm" lazy-validation>
             <!--抽屉标题-->
             <v-row>
-              <span class="title pa-6 pl-8">编辑信息</span>
+              <span class="text-subtitle-1 font-weight-medium pa-6 pl-8">编辑信息</span>
             </v-row>
             <!--抽屉表单主体-->
-            <v-row class="mt-0 px-6">
+            <v-row class="ma-0 px-2">
               <v-col cols="12" sm="12" md="4">
                 <span class="jh-input-label">数据库</span>
                 <v-select
@@ -221,8 +221,8 @@ new Vue({
     isTableLoading: true,
     tableData: [],
     headers: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 150, class: 'fixed', cellClass: 'fixed'},
-      {text: "数据库", value: "sourceDatabase", width: 140},
+      {text: '操作', value: 'action', sortable: false, width: 180, class: 'fixed', cellClass: 'fixed'},
+      {text: "数据库", value: "sourceDatabaseShowName", width: 140},
       {text: "表格", value: "sourceTable", width: 140},
       {text: "同步间隔/同步检查间隔（分）", value: "syncTimeSlot", width: 140},
       {text: "同步状态", value: "syncDesc", width: 200},
@@ -337,6 +337,19 @@ new Vue({
       });
 
       this.tableData = result.data.appData.resultData.rows;
+      let sourceDatabaseObj;
+      let hasError;
+      this.tableData.forEach(element => {
+        hasError = false;
+        try {
+          sourceDatabaseObj = JSON.parse(element.sourceDatabase);
+        } catch {
+          // internal database
+          hasError = true;
+        }
+        element.sourceDatabaseShowName = hasError ? element.sourceDatabase :
+          sourceDatabaseObj.name + '-' + sourceDatabaseObj.database;
+      });
       this.isTableLoading = false;
     },
     // ---------- 获取数据库列表 uiAction >>>>>>>>>> --------
@@ -444,6 +457,7 @@ new Vue({
       const {id, ...data} = this.updateItem;
       this.updateItemId = id;
       this.updateActionData = data;
+      delete this.updateActionData['sourceDatabaseShowName'];
     },
 
     async doUpdateItem() {

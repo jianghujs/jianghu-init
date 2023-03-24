@@ -58,7 +58,7 @@ class ArticleService extends Service {
     }
     if (!dayjs(articlePublishTime).isValid()) {
       articlePublishTime = dayjs().tz("Asia/Shanghai").format();
-    }    
+    }
     Object.assign(this.ctx.request.body.appData.actionData, {
       articleId,
       articlePublishTime,
@@ -139,7 +139,7 @@ class ArticleService extends Service {
   async getArticleAndFillArticles() {
     const { ctx, app } = this;
     const { jianghuKnex } = app;
-    const { articleId, articleStatus } = ctx.request.body.appData.actionData;
+    const { articleId, articleStatus } = ctx.request.body.appData ? ctx.request.body.appData.actionData : ctx.request.query;
     const article = await jianghuKnex(tableEnum.article)
       .where({ articleId })
       .first();

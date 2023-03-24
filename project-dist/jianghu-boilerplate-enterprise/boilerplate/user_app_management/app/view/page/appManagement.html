@@ -46,12 +46,12 @@
               <span
                 role="button" class="success--text font-weight-medium font-size-2"
                 @click="doUiAction('jump', `/${appInfo.appId}/page/userManagementOfOneApp?id=${item.appId}&title=${item.appName}`)">
-                <v-icon size="14" class="success--text">mdi-account-supervisor</v-icon>用户管理
+                <v-icon size="16" class="success--text">mdi-account-supervisor</v-icon>用户管理
               </span>
               <v-menu offset-y>
                 <template v-slot:activator="{ on, attrs }">
                 <span role="button" class="success--text font-weight-medium font-size-2 ma-1" v-bind="attrs" v-on="on">
-                  <v-icon size="14" class="success--text">mdi-dots-vertical</v-icon>操作
+                  <v-icon size="16" class="success--text">mdi-dots-vertical</v-icon>操作
                 </span>
                 </template>
                 <v-list dense>
@@ -97,10 +97,10 @@
           <v-form ref="createForm" lazy-validation>
             <!--抽屉标题-->
             <v-row>
-              <span class="title pa-6 pl-8">添加信息</span>
+              <span class="text-subtitle-1 font-weight-medium pa-6 pl-8">添加信息</span>
             </v-row>
             <!--抽屉表单主体-->
-            <v-row class="mt-0 px-6">
+            <v-row class="ma-0 px-2">
               <v-col cols="12" sm="12" md="4">
                 <span class="jh-input-label">应用ID</span>
                 <v-text-field class="jh-v-input" dense single-line filled label="应用ID" v-model="createItem.appId" :rules="validationRules.requireRules"></v-text-field>
@@ -131,10 +131,10 @@
           <v-form ref="updateForm" lazy-validation>
             <!--抽屉标题-->
             <v-row>
-              <span class="title pa-6 pl-8">编辑信息</span>
+              <span class="text-subtitle-1 font-weight-medium pa-6 pl-8">编辑信息</span>
             </v-row>
             <!--抽屉表单主体-->
-            <v-row class="mt-0 px-6">
+            <v-row class="ma-0 px-2">
               <v-col cols="12" sm="12" md="4">
                 <span class="jh-input-label">应用ID</span>
                 <v-text-field class="jh-v-input" dense single-line filled label="应用ID" v-model="updateItem.appId" disabled></v-text-field>
@@ -223,7 +223,7 @@ new Vue({
     isTableLoading: true,
     tableData: [],
     headers: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 140, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 150, class: 'fixed', cellClass: 'fixed'},
       {text: "应用ID", value: "appId"},
       {text: "应用名", value: "appName"},
       {text: "应用类型", value: "appType"},

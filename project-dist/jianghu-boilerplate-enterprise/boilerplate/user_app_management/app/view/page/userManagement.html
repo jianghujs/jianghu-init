@@ -49,12 +49,12 @@
               <span
                 role="button" class="success--text font-weight-medium font-size-2"
                 @click="doUiAction('jump', `/${appInfo.appId}/page/appManagementOfOneUser?id=${item.userId}&title=${item.username}`)">
-                <v-icon size="14" class="success--text">mdi-account-supervisor</v-icon>APP管理
+                <v-icon size="16" class="success--text">mdi-account-supervisor</v-icon>APP管理
               </span>
               <v-menu offset-y>
                 <template v-slot:activator="{ on, attrs }">
                 <span role="button" class="success--text font-weight-medium font-size-2 ma-1" v-bind="attrs" v-on="on">
-                  <v-icon size="14" class="success--text">mdi-dots-vertical</v-icon>操作
+                  <v-icon size="16" class="success--text">mdi-dots-vertical</v-icon>操作
                 </span>
                 </template>
                 <v-list dense>
@@ -114,7 +114,7 @@
               <span class="text-h7 pa-6 pl-8">修改密码</span>
             </v-row>
             <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-            <v-row class="mt-0 px-6">
+            <v-row class="ma-0">
               <v-col cols="12" sm="12" md="4">
                 <span class="jh-input-label">初始密码</span>
                 <v-text-field class="jh-v-input" dense filled single-line v-model="userPasswordItem.clearTextPassword" :rules="validationRules.requireRules"></v-text-field>
@@ -142,7 +142,7 @@
               <span class="text-h7 pa-6 pl-8">添加信息</span>
             </v-row>
             <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-            <v-row class="mt-0 px-6">
+            <v-row class="ma-0 px-2">
               <v-col cols="12" sm="12" md="4">
                 <span class="jh-input-label">用户ID[登陆]</span>
                 <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.userId" :rules="validationRules.requireRules"></v-text-field>
@@ -186,7 +186,7 @@
               <span class="text-h7 pa-6 pl-8">修改信息</span>
             </v-row>
             <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-            <v-row class="mt-0 px-6">
+            <v-row class="ma-0 px-2">
               <v-col cols="12" sm="12" md="4" xl="3" class="pb-xs-4 pb-3">
                 <span class="jh-input-label">用户ID[登陆]</span>
                 <v-text-field class="jh-v-input" dense filled single-line disabled v-model="updateItem.userId" :rules="validationRules.requireRules"></v-text-field>
@@ -283,7 +283,7 @@ new Vue({
     tableData: [],
 
     headers: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 130, class: 'fixed', cellClass: 'fixed'},
+      {text: '操作', value: 'action', sortable: false, width: 150, class: 'fixed', cellClass: 'fixed'},
       {text: "用户ID[登陆]", value: "userId", width: 120},
       {text: "用户名", value: "username", width: 140},
       {text: "用户类型", value: "userType", width: 120},
