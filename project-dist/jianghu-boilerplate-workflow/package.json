@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-boilerplate-workflow",
-  "version": "1.0.16",
+  "version": "1.0.18",
   "description": "boilerplate for jianghu quickstart",
   "scripts": {
     "autod": "autod",
