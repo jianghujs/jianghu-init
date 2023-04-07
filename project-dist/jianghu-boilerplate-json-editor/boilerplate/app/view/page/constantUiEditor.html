@@ -66,8 +66,8 @@
                 </v-col>
                 <v-col cols="12">
                   <span class="jh-input-label">内容</span>
-                  <vue-json-editor v-if="constantTypeList.includes(editItem.constantType)" v-model="editItem[language]"
-                      :show-btns="true" :mode="'code'" lang="zh"></vue-json-editor>
+                  <vue-json-editor v-if="constantTypeList.includes(editItem.constantType)" v-model="editItem[language]" height="calc(100vh - 400px)"
+                      ></vue-json-editor>
                   <v-textarea v-else-if="editItem.constantType === 'html'" filled single-line label="常量内容" :rows="12" v-model="editItem[language]"
                       value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."></v-textarea>
                   <v-text-field v-else class="jh-v-input" dense filled single-line label="常量内容"

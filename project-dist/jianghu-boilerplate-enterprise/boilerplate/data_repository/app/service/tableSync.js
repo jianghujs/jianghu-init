@@ -235,7 +235,7 @@ class UtilService extends Service {
       let outsideMode = false
       let targetTable = `${sourceDatabase}__${sourceTable}`;
       let sourceDatabaseInDb = sourceDatabase;
-      if (sourceDatabselectSourceDatabasease.startsWith('{')) {
+      if (sourceDatabase.startsWith('{')) {
         outsideMode = true
         const {name, ...knexConfig} = JSON.parse(sourceDatabase);
         sourceConnection = knexConfig;

@@ -1,28 +1,23 @@
 <script type="text/x-template" id="vue-json-editor">
   <div>
-    <div class="jsoneditor-vue"></div>
+    <div class="jsoneditor-vue" :style="{height}"></div>
   </div>
 </script>
 
-<!-- 加载页面静态资源 >>>>>>>>>>>>> -->
-<link href="/<$ ctx.app.config.appId $>/public/jsoneditor/jsoneditor.css" rel="stylesheet">
-<script src="/<$ ctx.app.config.appId $>/public/jsoneditor/jsoneditor.js"></script>
-<!-- <<<<<<<<<<<<< 加载页面静态资源 -->
-
+<link href="/<$ ctx.app.config.appId $>/public/plugins/jsoneditor/jsoneditor.min.css" rel="stylesheet">
+<script src="/<$ ctx.app.config.appId $>/public/plugins/jsoneditor/jsoneditor.min.js"></script>
 <script>
   Vue.component("vue-json-editor", {
     template: "#vue-json-editor",
-    vueComponent: 'vue-json-editor',
     props: {
       value: [String, Number, Object, Array],
-      showBtns: [Boolean],
       expandedOnStart: {
         type: Boolean,
         default: false
       },
       mode: {
         type: String,
-        default: "tree"
+        default: "code"
       },
       modes: {
         type: Array,
@@ -30,13 +25,21 @@
           return ["tree", "code", "form", "text", "view"];
         }
       },
+      // Add the totalHeight prop
+      height: {
+        type: String,
+        default: 'calc(100vh - 240px)'
+      },
     },
     watch: {
       value: {
         immediate: true,
         async handler(val) {
           if (!this.internalChange) {
-            this.doUiAction('setEditor', val);
+            await this.setEditor(val);
+
+            this.error = false;
+            this.expandAll();
           }
         },
         deep: true
@@ -49,160 +52,72 @@
         json: this.value,
         internalChange: false,
         expandedModes: ["tree", "view", "form"],
-        JSONEditorOptions: {},
       };
     },
     mounted() {
-      this.doUiAction('init')
+      this.$emit("has-error", false);
+      this.init();
     },
     methods: {
-      async doUiAction(uiActionId, uiActionData) {
-        switch (uiActionId) {
-          case 'init':
-            await this.prepareInitData();
-            await this.initJSONEditor();
-            break;
-          case 'setEditor':
-            await this.setEditor(uiActionData);
-            await this.clearError();
-            await this.expandAll();
-            break;
-          default:
-            console.error("[doUiAction] uiActionId not find", { uiActionId });
-            break;
-        }
-      },
+      init() {
+        let self = this;
 
-      // ---------- 初始化编辑器 uiAction >>>>>>>>>> --------
-      prepareInitData() {
-        let that = this;
-
-        this.JSONEditorOptions = {
+        let options = {
           mode: this.mode,
-          modes: this.modes, 
+          modes: this.modes, // allowed modes
+          // theme: "bootstrap4",
+          themeColor: "#007bff",
           onChange() {
             try {
-              let json = that.editor.get();
-
-              that.json = json;
-              that.error = false;
-              that.internalChange = true;
-
-              that.$emit("json-change", json);
-              that.$emit("input", json);
-              that.$emit("has-error", false);
-
-              that.$nextTick(function () {
-                that.internalChange = false;
+              let json = self.editor.get();
+              self.json = json;
+              self.error = false;
+              self.$emit("has-error", false);
+              self.internalChange = true;
+              self.$emit("input", json);
+              self.$nextTick(function () {
+                self.internalChange = false;
               });
             } catch (e) {
-              that.error = true;
-              that.$emit("has-error", true);
+              self.error = true;
+              self.$emit("has-error", true);
             }
           },
           onModeChange() {
-            that.expandAll();
+            self.expandAll();
           }
         };
-      },
-      initJSONEditor() {
         this.editor = new JSONEditor(
-          this.$el.querySelector(".jsoneditor-vue"),
-          this.JSONEditorOptions,
-          this.json
+          self.$el.querySelector(".jsoneditor-vue"),
+          options,
+          self.json
         );
       },
-      // ---------- <<<<<<<<<<< 初始化编辑器 uiAction  --------
-
-      // ---------- 设置数据  >>>>>>>>>> --------
-      async setEditor(value) {
-        if (this.editor) this.editor.set(value);
-      },
-      clearError(){
-        this.error = false;
-      },
-      // ---------- <<<<<<<<<<< 设置数据   --------
-
-      // ---------- 公共方法  >>>>>>>>>> --------
       expandAll() {
-        if ( this.expandedOnStart && this.expandedModes.includes(this.editor.getMode()) ) { 
-          this.editor.expandAll(); 
+        if (
+          this.expandedOnStart &&
+          this.expandedModes.includes(this.editor.getMode())
+        ) {
+          this.editor.expandAll();
         }
       },
-      // ---------- <<<<<<<<<<< 公共方法   --------
+
+      async setEditor(value) {
+        if (this.editor) this.editor.set(value);
+      }
     }
   });
 </script>
 
 <style scoped>
-  .json-title {
-    font-size: 16px;
-    font-weight: bold;
-    max-width: 380px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
+  .jsoneditor-menu a.jsoneditor-poweredBy {
+    display: none;
   }
-
-  .ace_line_group {
-    text-align: left;
+  .jsoneditor-menu {
+    background-color: #4caf50;
+    border-bottom: 1px solid #4caf50;
   }
-
-  .json-editor-container {
-    display: flex;
-    width: 100%;
-  }
-
-  .json-editor-container .tree-mode {
-    width: 50%;
-  }
-
-  .json-editor-container .code-mode {
-    flex-grow: 1;
-  }
-
-  .jsoneditor-btns {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px;
-  }
-
-  .jsoneditor-vue .jsoneditor-outer {
-    min-height: calc(100vh - 55vh);
-  }
-  textarea.jsoneditor-text, .ace-jsoneditor {
-    min-height: calc(100vh - 55vh);
-  }
-
-  .jsoneditor-vue div.jsoneditor-tree {
-    min-height: 350px;
-  }
-
-  .json-save-btn {
-    background-color: #20A0FF;
-    border: none;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .json-save-btn:focus {
-    outline: none;
-  }
-
-  .json-save-btn[disabled] {
-    background-color: #a1d6ff;
-    cursor: not-allowed;
-  }
-
-  code {
-    background-color: #f5f5f5;
-  }
-
-  .jsoneditor-vue-min {
-    height: calc(100vh - 56vh);
+  .jsoneditor {
+    border: thin solid #4caf50;
   }
 </style>
