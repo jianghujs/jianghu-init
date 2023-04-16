@@ -54,7 +54,6 @@ module.exports = class InitPage1Table extends CommandBase {
   async generateBasic({ pageType, pageId, table }) {
     this.info('开始生成 basic代码');
     const tableCamelCase = _.camelCase(table);
-    const filepath = `./app/view/page/${pageId}.html`;
     // 写文件前确认是否覆盖
     // if (fs.existsSync(filepath)) {
     //   const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
@@ -87,6 +86,8 @@ module.exports = class InitPage1Table extends CommandBase {
       fields,
     });
 
+    // TODO: 待适配
+    const filepath = `./app/view/page/${pageId}.html`;
     fs.writeFileSync(filepath, result);
   }
 
