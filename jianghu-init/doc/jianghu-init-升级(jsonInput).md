@@ -9,6 +9,10 @@
     description: 'crud description',
     basicConfig: {
         tableFields: [], tableIgnoreFields: [],tableSortFields: [],
+        headSearch: [
+            { type: 'input', vueDataItem: 'serarch.garde', width: '120px', lable: '年纪' },
+            { type: 'search', text: '查询' }
+        ]
     },
     featureList: [
         { name: 'insert', enable: false, description: 'insert description' },
