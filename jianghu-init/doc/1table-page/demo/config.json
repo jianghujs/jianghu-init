@@ -1,0 +1,41 @@
+{
+	"id": 0,
+	"type": "1table-page",
+	"table": "student",
+	"targetPageFile": "basic.success.html",
+	"description": "crud description",
+	"basicConfig": {
+		"tableFields": [],
+		"tableIgnoreFields": [],
+		"tableSortFields": [],
+		"headSearch": [
+			{
+				"type": "input",
+				"vueDataItem": "search.garde",
+				"width": "120px",
+				"label": "年级"
+			},
+			{
+				"type": "search",
+				"text": "查询"
+			}
+		]
+	},
+	"featureList": [
+		{
+			"name": "insert",
+			"enable": false,
+			"description": "insert description"
+		},
+		{
+			"name": "update",
+			"enable": false,
+			"description": "update description"
+		},
+		{
+			"name": "delete",
+			"enable": false,
+			"description": "delete description"
+		}
+	]
+}
