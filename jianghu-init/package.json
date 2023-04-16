@@ -4,7 +4,9 @@
   "description": "Init jianghu app helper tools.",
   "main": "lib/entry.js",
   "scripts": {
-    "autod": "autod"
+    "autod": "autod",
+    "test1:jianghu-init": "node bin/jianghu-init.js json --type=1table-page",
+    "test2:jianghu-init": "node bin/jianghu-init.js json --jsonText='{\"pageType\":\"1table-page\",\"pageId\":\"studentManagment2\",\"table\":\"student\",\"featureList\":[{}]}'"
   },
   "preferGlobal": true,
   "bin": {
