@@ -1,7 +1,7 @@
 <!-- 基础html >>> -->
 <v-row>
 	<v-col cols="12" xs="12" sm="12" md="4" xl="3">
-		<div class="pt-3 text-h7 font-weight-bold">0
+		<div class="pt-3 text-h7 font-weight-bold">1table-page
 			<!-- 帮助页按钮 -->
 			<v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
 		</div>
@@ -13,9 +13,13 @@
 <v-card class="rounded-lg">
 	<v-row class="ma-0 pa-4">
 		
-
+			<v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
+		
 		<v-spacer></v-spacer>
-
+		
+			<v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+				<v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+			</v-col>
 		
 	</v-row>
 	<v-data-table

@@ -1,5 +1,5 @@
 {
-	"id": 0,
+	"id": "1table-page",
 	"type": "1table-page",
 	"table": "student",
 	"targetPageFile": "basic.success.html",
