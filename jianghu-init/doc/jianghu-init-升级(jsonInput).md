@@ -1,33 +1,22 @@
-const config = {
+## page template config
+
+```html
+{
     table: 'student',
     targetPageFile: 'studentManagment.html',
-    basicFeature: {
-        name: 'basic',
-        enable: false,
-        description: 'basic description',
-        searchFields: [],
-        // ... other config..
+
+    type: '1table-page',
+    description: 'crud description',
+    basicConfig: {
+        tableFields: [], tableIgnoreFields: [],tableSortFields: [],
     },
     featureList: [
-        {
-            name: 'insert',
-            enable: false,
-            description: 'insert description',
-            // ... other config..
-        },{
-            name: 'update',
-            enable: false,
-            description: 'update description',
-            // ... other config..
-        },{
-            name: 'delete',
-            enable: false,
-            description: 'delete description',
-            // ... other config..
-        }
-    ]
+        { name: 'insert', enable: false, description: 'insert description' },
+        { name: 'update', enable: false, description: 'update description' },
+        { name: 'delete', enable: false, description: 'delete description' },
+    ]    
 }
-
+```
 
 ## html 结构
 
@@ -55,6 +44,18 @@ const config = {
     - 编辑uiActionFunc
     - 删除uiActionFunc
     
+## feature 实现方案
+
+
+> 以crud为例
+- basicFeature
+    - 决定了基础html排版
+- featureList
+    - 是否开启某些特性
+
+
+
+
 
 
 
