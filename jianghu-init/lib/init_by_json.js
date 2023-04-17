@@ -3,6 +3,7 @@ const yargs = require('yargs');
 const InitPage1Table = require('./json/init_page_1table');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
+const fs = require('fs');
 
 const pageTypes = [
   {
@@ -22,7 +23,14 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.cwd = cwd;
 
     const jsonText = this.argv.jsonText;
-    this.jsonArgv = JSON.parse(jsonText);
+    const jsonFile = this.argv.jsonFile;
+    if (jsonText) {
+      this.jsonArgv = JSON.parse(jsonText);
+    }
+    if (jsonFile) {
+      const jsonFileText = fs.readFileSync(jsonFile).toString();
+      this.jsonArgv = JSON.parse(jsonFileText);
+    }
     if (this.jsonArgv.pageType === '1table-page') {
       await new InitPage1Table().run(process.cwd(), this.jsonArgv);
     }
@@ -54,6 +62,10 @@ module.exports = class InitByJsonCommand extends CommandBase {
       jsonText: {
         type: 'string',
         description: 'json text',
+      },
+      jsonFile: {
+        type: 'string',
+        description: 'json file',
       },
     };
   }
