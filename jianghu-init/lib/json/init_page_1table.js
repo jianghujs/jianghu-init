@@ -16,7 +16,7 @@ module.exports = class InitPage1Table extends CommandBase {
 
   async run(cwd, jsonArgv) {
     this.cwd = cwd;
-    const { pageType, pageId, table, featureList } = jsonArgv;
+    const { pageType, pageId, table, basicConfig, featureList } = jsonArgv;
 
     // 检查当前目录是否是在项目中
     await this.checkPath();
@@ -39,16 +39,16 @@ module.exports = class InitPage1Table extends CommandBase {
 
     // ==============old code===============
     // generate crud
-    // await this.generateCrud();
+    await this.generateCrud({ table, pageId, pageType, featureList });
 
     // TODO: generate basic & featureList
     // - generate basic
     // - generate insert
     // - generate update
     // - generate delete
-    await this.generateBasic({ pageType, pageId, table });
+    // await this.generateBasic({ pageType, pageId, table });
 
-    // this.success('init crud is success');
+    this.success('init crud is success');
   }
 
   async generateBasic({ pageType, pageId, table }) {
@@ -64,12 +64,13 @@ module.exports = class InitPage1Table extends CommandBase {
     // }
 
     const templatePath = `${path.join(__dirname, '../../')}page-template-json`;
-    let listTemplate = fs.readFileSync(`${templatePath}/${pageType}/basic.html`).toString();
+    const templateTargetPath = `${templatePath}/${pageType}/basic.html`;
+    let listTemplate = fs.readFileSync(templateTargetPath).toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
     listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
 
     // 生成 vue
-    nunjucks.configure(`${templatePath}/crud.html.njk`, {
+    nunjucks.configure(templateTargetPath, {
       tags: {
         blockStart: '<=%',
         blockEnd: '%=>',
@@ -95,27 +96,26 @@ module.exports = class InitPage1Table extends CommandBase {
   /**
    * 生成 crud
    */
-  async generateCrud() {
+  async generateCrud({ table, pageId, pageType, featureList }) {
     this.info('开始生成 CRUD');
-    const tables = await this.promptTables('请输入你要生成 CRUD 的 table', '');
-    if (!tables || !tables.length) {
-      this.info('未选择 table，流程结束');
+    if (!table) {
+      this.info('未配置table，流程结束');
       return;
     }
-    for (const table of tables) {
-      this.info(`开始生成 ${table} 的 CRUD`);
-      const tableCamelCase = _.camelCase(table);
-      let pageId = `${tableCamelCase}Management`;
-      pageId = await this.readlineMethod(`【${table}】数据表pageId`, pageId);
-      // 生成 vue
-      if (await this.renderVue(table, pageId)) {
-        this.success(`生成 ${table} 的 vue 文件完成`);
+    
+    this.info(`开始生成 ${table} 的 CRUD`);
+    // 生成 vue
+    const enableInsert = (featureList.find(feature => feature.name === "insert") || {}).enable || false;
+    const enableUpdate = (featureList.find(feature => feature.name === "update") || {}).enable || false;
+    const enableDelete = (featureList.find(feature => feature.name === "delete") || {}).enable || false;
+    const featureEnableInfo = { enableInsert, enableUpdate, enableDelete }
+    if (await this.renderVue(table, pageId, pageType, featureEnableInfo)) {
+      this.success(`生成 ${table} 的 vue 文件完成`);
 
-        // 数据库
-        this.info(`开始生成 ${table} 的相关数据`);
-        await this.modifyTable(table, pageId);
-        this.success(`生成 ${table} 的相关数据完成`);
-      }
+      // 数据库
+      this.info(`开始生成 ${table} 的相关数据`);
+      await this.modifyTable(table, pageId);
+      this.success(`生成 ${table} 的相关数据完成`);
     }
   }
 
@@ -127,10 +127,7 @@ module.exports = class InitPage1Table extends CommandBase {
 
     sql = sql.replace(/\{\{pageId}}/g, pageId);
     sql = sql.replace(/\{\{table}}/g, table);
-    // const appId = `${tableCamelCase}Management`;
-    // sql = sql.replace(/\{\{appId}}/g, appId);
-    // console.log(sql);
-
+    
     for (const line of sql.split('\n')) {
       if (!line) {
         continue;
@@ -168,7 +165,7 @@ module.exports = class InitPage1Table extends CommandBase {
   /**
    * 生成 vue
    */
-  async renderVue(table, pageId) {
+  async renderVue(table, pageId, pageType, featureEnableInfo) {
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
@@ -181,13 +178,14 @@ module.exports = class InitPage1Table extends CommandBase {
     }
 
     // 读取文件
-    const templatePath = `${path.join(__dirname, '../../')}page-template`;
-    let listTemplate = fs.readFileSync(`${templatePath}/crud.html.njk`).toString();
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json`;
+    const templateTargetPath = `${templatePath}/${pageType}/basic.html`;
+    let listTemplate = fs.readFileSync(templateTargetPath).toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
     listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
 
     // 生成 vue
-    nunjucks.configure(`${templatePath}/crud.html.njk`, {
+    nunjucks.configure(templateTargetPath, {
       tags: {
         blockStart: '<=%',
         blockEnd: '%=>',
@@ -202,6 +200,7 @@ module.exports = class InitPage1Table extends CommandBase {
       tableCamelCase,
       pageId,
       fields,
+      featureEnableInfo
     });
 
     fs.writeFileSync(filepath, result);
