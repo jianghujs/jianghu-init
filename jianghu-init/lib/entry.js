@@ -15,10 +15,12 @@ const initTypes = [
   {
     value: 'project',
     name: 'project - Create a project and init table.',
-  }, {
+  }, 
+  {
     value: 'page',
     name: 'page - Generate manage or test page from database table.',
-  }, {
+  }, 
+  {
     value: 'tool',
     name: 'tool - Add some tools to manage your app.',
   }];

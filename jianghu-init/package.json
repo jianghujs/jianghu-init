@@ -6,8 +6,8 @@
   "scripts": {
     "autod": "autod",
     "test1:jianghu-init": "node bin/jianghu-init.js json --type=1table-page",
-    "test2:jianghu-init": "node bin/jianghu-init.js json --jsonText='{\"pageType\":\"1table-page\",\"pageId\":\"studentManagment2\",\"table\":\"student\",\"featureList\":[{}]}'",
-    "test3:jianghu-init": "node bin/jianghu-init.js json --jsonFile='./doc/jsonFileDemo/studentManagment2.json'"
+    "test2:jianghu-init": "node bin/jianghu-init.js json --jsonText='{\"pageType\":\"1table-page\",\"pageId\":\"studentManagement2\",\"table\":\"student\",\"featureList\":[{}]}'",
+    "test3:jianghu-init": "node bin/jianghu-init.js json --jsonFile='./doc/jsonFileDemo/studentManagement2.json'"
   },
   "preferGlobal": true,
   "bin": {
