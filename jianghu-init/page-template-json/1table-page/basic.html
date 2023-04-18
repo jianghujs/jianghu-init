@@ -120,7 +120,7 @@
                   <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
                   //===// <=% for f in fields %=>
                   <v-col cols="12" sm="12" md="4">
-                    <span class="jh-input-label"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
+                    <span class="jh-input-label"><=$ f.COLUMN_COMMENT $=></span>
                     <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
                   </v-col>
                   //===// <=% endfor %=>          
@@ -140,9 +140,14 @@
           </div>
 
           <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-          <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
-            <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#404.md`" width="100%" height="100%"></iframe>
-            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+            <iframe
+              style="border: 0" :src="`/${appInfo.appId}/pageDoc#3.doUiAction.md`" width="100%"
+              height="100%"></iframe>
+
+            <v-btn
+              elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+              @click="isHelpPageDrawerShown = false">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-navigation-drawer>
@@ -207,7 +212,7 @@
           {text: "ID", value: "id", width: 120},
 
           //===// <=% for f in fields %=>
-          {text: "<=$ f.COLUMN_COMMENT.split(';')[0] $=>", value: "<=$ f.COLUMN_NAME $=>", width: 120},
+          {text: "<=$ f.COLUMN_COMMENT $=>", value: "<=$ f.COLUMN_NAME $=>", width: 120},
           //===// <=% endfor %=>
 
           {text: "操作者", value: "operationByUser", width: 120},
