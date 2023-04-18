@@ -3,14 +3,14 @@
 ```html
 {
     table: 'student',
-    targetPageFile: 'studentManagment.html',
+    targetPageFile: 'studentManagement.html',
 
     type: '1table-page',
     description: 'crud description',
     basicConfig: {
         tableFields: [], tableIgnoreFields: [],tableSortFields: [],
         headSearch: [
-            { type: 'input', vueDataItem: 'serarch.garde', width: '120px', lable: '年纪' },
+            { type: 'input', vueDataItem: 'search.garde', width: '120px', label: '年纪' },
             { type: 'search', text: '查询' }
         ]
     },
