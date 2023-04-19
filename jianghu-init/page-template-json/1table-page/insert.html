@@ -25,7 +25,7 @@
             <!-- 页面内容 >>>>>>>>>>>>> -->
             <v-card class="rounded-lg">
               <v-row class="ma-0 pa-4">
-                <=% if feature.create.enable %=>
+                <=% if featureEnableInfo.enableInsert %=>
                   <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
                 <=% endif %=>
                 <!-- 新增按钮 -->
@@ -50,13 +50,13 @@
                 class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
                 <!-- 表格操作按钮 -->
                 <template v-slot:item.action="{ item }">
-                  <=% if feature.update.enable %=>
+                  <=% if featureEnableInfo.enableUpdate %=>
                   <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
                     <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
                   </span>
                   <=% endif %=>
                   
-                  <=% if feature.delete.enable %=>
+                  <=% if featureEnableInfo.enableDelete %=>
                   <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
                     <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
                   </span>
@@ -205,7 +205,7 @@
         isTableLoading: true,
         tableData: [],
         headers: [
-          //===// <=% if feature.update.enable or feature.delete.enable %=>
+          //===// <=% if featureEnableInfo.enableUpdate or featureEnableInfo.enableDelete %=>
           {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
           //===// <=% endif %=>
 

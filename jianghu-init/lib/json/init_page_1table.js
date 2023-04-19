@@ -16,7 +16,10 @@ module.exports = class InitPage1Table extends CommandBase {
 
   async run(cwd, jsonArgv) {
     this.cwd = cwd;
-    const { pageType, pageId, table, basicConfig, featureList } = jsonArgv;
+    const { pageType, pageId, table, basicConfig, feature } = jsonArgv;
+    if (!feature.create) feature.create = {enable: false};
+    if (!feature.update) feature.update = {enable: false};
+    if (!feature.delete) feature.delete = {enable: false};
 
     // 检查当前目录是否是在项目中
     await this.checkPath();
@@ -37,66 +40,15 @@ module.exports = class InitPage1Table extends CommandBase {
     await this.getKnex(this.dbSetting);
     this.success('初始化数据库连接成功');
 
-    // ==============old code===============
     // generate crud
-    await this.generateCrud({ table, pageId, pageType, featureList });
-
-    // TODO: generate basic & featureList
-    // - generate basic
-    // - generate insert
-    // - generate update
-    // - generate delete
-    // await this.generateBasic({ pageType, pageId, table });
-
-    this.success('init crud is success');
+    await this.generateCrud({ table, pageId, pageType, feature });
+    this.success('初始化数据库成功');
   }
 
-  async generateBasic({ pageType, pageId, table }) {
-    this.info('开始生成 basic代码');
-    const tableCamelCase = _.camelCase(table);
-    // 写文件前确认是否覆盖
-    // if (fs.existsSync(filepath)) {
-    //   const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
-    //   if (overwrite !== 'y' && overwrite !== 'Y') {
-    //     this.warning(`跳过 ${table} 表 CRUD 的生成`);
-    //     return false;
-    //   }
-    // }
-
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json`;
-    const templateTargetPath = `${templatePath}/${pageType}/basic.html`;
-    let listTemplate = fs.readFileSync(templateTargetPath).toString();
-    // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
-    listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
-
-    // 生成 vue
-    nunjucks.configure(templateTargetPath, {
-      tags: {
-        blockStart: '<=%',
-        blockEnd: '%=>',
-        variableStart: '<=$',
-        variableEnd: '$=>',
-      },
-    });
-    const fields = await this.getFields(table);
-    this.info('表字段', fields);
-    const result = nunjucks.renderString(listTemplate, {
-      table,
-      tableCamelCase,
-      pageId,
-      fields,
-    });
-
-    // TODO: 待适配
-    const filepath = `./app/view/page/${pageId}.html`;
-    fs.writeFileSync(filepath, result);
-  }
-
-  // =====================old code=======================
   /**
    * 生成 crud
    */
-  async generateCrud({ table, pageId, pageType, featureList }) {
+  async generateCrud({ table, pageId, pageType, feature }) {
     this.info('开始生成 CRUD');
     if (!table) {
       this.info('未配置table，流程结束');
@@ -105,36 +57,49 @@ module.exports = class InitPage1Table extends CommandBase {
     
     this.info(`开始生成 ${table} 的 CRUD`);
     // 生成 vue
-    const enableInsert = (featureList.find(feature => feature.name === "insert") || {}).enable || false;
-    const enableUpdate = (featureList.find(feature => feature.name === "update") || {}).enable || false;
-    const enableDelete = (featureList.find(feature => feature.name === "delete") || {}).enable || false;
-    const featureEnableInfo = { enableInsert, enableUpdate, enableDelete }
-    if (await this.renderVue(table, pageId, pageType, featureEnableInfo)) {
+    if (await this.renderVue(table, pageId, pageType, feature)) {
       this.success(`生成 ${table} 的 vue 文件完成`);
 
       // 数据库
       this.info(`开始生成 ${table} 的相关数据`);
-      await this.modifyTable(table, pageId);
+      await this.modifyTable(table, pageId, feature);
       this.success(`生成 ${table} 的相关数据完成`);
     }
   }
 
-  async modifyTable(table, pageId) {
+  async modifyTable(table, pageId, feature) {
     const knex = await this.getKnex();
 
-    const templatePath = `${path.join(__dirname, '../../')}page-template`;
-    let sql = fs.readFileSync(`${templatePath}/crud.sql`).toString();
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json`;
 
-    sql = sql.replace(/\{\{pageId}}/g, pageId);
-    sql = sql.replace(/\{\{table}}/g, table);
-    
-    for (const line of sql.split('\n')) {
+    let clearSql = fs.readFileSync(`${templatePath}/clear_crud.sql`).toString();
+    clearSql = clearSql.replace(/\{\{pageId}}/g, pageId);
+    clearSql = clearSql.replace(/\{\{table}}/g, table);
+    // 删除数据
+    for (const line of clearSql.split('\n')) {
       if (!line) {
         continue;
       }
       if (line.startsWith('--')) {
-        this.info(`正在执行 ${line}`);
+        this.info(`正在执行删除 ${line}`);
       } else {
+        await knex.raw(line);
+      }
+    }    
+
+    let sql = fs.readFileSync(`${templatePath}/crud.sql`).toString();
+    sql = sql.replace(/\{\{pageId}}/g, pageId);
+    sql = sql.replace(/\{\{table}}/g, table);
+    // 插入数据
+    for (const line of sql.split('\n')) {
+      if (!line) continue;
+      if (line.startsWith('--')) {
+        this.info(`正在执行插入/更新 ${line}`);
+      } else {
+        if (!feature.create.enable && line.includes('insertItem')) continue;
+        if (!feature.update.enable && line.includes('updateItem')) continue;
+        if (!feature.delete.enable && line.includes('deleteItem')) continue;
+
         await knex.raw(line);
       }
     }
@@ -165,15 +130,15 @@ module.exports = class InitPage1Table extends CommandBase {
   /**
    * 生成 vue
    */
-  async renderVue(table, pageId, pageType, featureEnableInfo) {
+  async renderVue(table, pageId, pageType, feature) {
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
     if (fs.existsSync(filepath)) {
-      const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
-      if (overwrite !== 'y' && overwrite !== 'Y') {
-        this.warning(`跳过 ${table} 表 CRUD 的生成`);
-        return false;
+      const isBackUp = await this.readlineMethod(`文件 ${filepath} 已经存在，是否备份?(y/N)`, 'n');
+      if (['y', 'Y'].includes(isBackUp)) {
+        const backFilePath = `./app/view/page/${pageId}.html.bak`;
+        fs.copyFileSync(filepath, backFilePath);
       }
     }
 
@@ -200,7 +165,7 @@ module.exports = class InitPage1Table extends CommandBase {
       tableCamelCase,
       pageId,
       fields,
-      featureEnableInfo
+      feature
     });
 
     fs.writeFileSync(filepath, result);
