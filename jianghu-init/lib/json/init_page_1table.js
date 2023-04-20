@@ -7,6 +7,7 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 const nunjucks = require('nunjucks');
 const _ = require('lodash');
+const moment = require('moment');
 const path = require('path');
 
 /**
@@ -137,7 +138,9 @@ module.exports = class InitPage1Table extends CommandBase {
     if (fs.existsSync(filepath)) {
       const isBackUp = await this.readlineMethod(`文件 ${filepath} 已经存在，是否备份?(y/N)`, 'n');
       if (['y', 'Y'].includes(isBackUp)) {
-        const backFilePath = `./app/view/page/${pageId}.html.bak`;
+        const bakPath = `./app/view/page/${pageId}-bak`;
+        if (!fs.existsSync(bakPath)) fs.mkdirSync(bakPath);
+        const backFilePath = `${bakPath}/${pageId}.html.${moment().format('YYYYMMDDHHmmss')}`;
         fs.copyFileSync(filepath, backFilePath);
       }
     }

@@ -31,6 +31,7 @@
     "lodash": "^4.17.21",
     "log-symbols": "^3.0.0",
     "mkdirp": "^0.5.1",
+    "moment": "^2.29.4",
     "mysql": "2.18.1",
     "mysql-import": "^5.0.21",
     "mz-modules": "^2.1.0",
