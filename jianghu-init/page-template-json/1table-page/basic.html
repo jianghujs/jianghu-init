@@ -26,7 +26,9 @@
             <v-card class="rounded-lg">
               <v-row class="ma-0 pa-4">
                 <=% if feature.create.enable %=>
+                  <!-- ### feature.create ### -->
                   <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
+                  <!-- ### feature.create ### -->
                 <=% endif %=>
                 <!-- 新增按钮 -->
                 <v-spacer></v-spacer>
@@ -51,15 +53,19 @@
                 <!-- 表格操作按钮 -->
                 <template v-slot:item.action="{ item }">
                   <=% if feature.update.enable %=>
+                  <!-- ### feature.update ### -->
                   <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
                     <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
                   </span>
+                  <!-- ### feature.update ### -->
                   <=% endif %=>
                   
                   <=% if feature.delete.enable %=>
+                  <!-- ### feature.delete ### -->
                   <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
                     <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
                   </span>
+                  <!-- ### feature.delete ### -->
                   <=% endif %=>
                 </template>
                 <!-- 没有数据 -->
