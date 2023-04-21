@@ -42,14 +42,14 @@ module.exports = class InitPage1Table extends CommandBase {
     this.success('初始化数据库连接成功');
 
     // generate crud
-    await this.generateCrud({ table, pageId, pageType, feature });
+    await this.generateCrud({ table, pageId, pageType, feature, basicConfig });
     this.success('初始化数据库成功');
   }
 
   /**
    * 生成 crud
    */
-  async generateCrud({ table, pageId, pageType, feature }) {
+  async generateCrud({ table, pageId, pageType, feature, basicConfig }) {
     this.info('开始生成 CRUD');
     if (!table) {
       this.info('未配置table，流程结束');
@@ -58,17 +58,17 @@ module.exports = class InitPage1Table extends CommandBase {
     
     this.info(`开始生成 ${table} 的 CRUD`);
     // 生成 vue
-    if (await this.renderVue(table, pageId, pageType, feature)) {
+    if (await this.renderVue(table, pageId, pageType, feature, basicConfig)) {
       this.success(`生成 ${table} 的 vue 文件完成`);
 
       // 数据库
       this.info(`开始生成 ${table} 的相关数据`);
-      await this.modifyTable(table, pageId, feature);
+      await this.modifyTable(table, pageId, feature, basicConfig);
       this.success(`生成 ${table} 的相关数据完成`);
     }
   }
 
-  async modifyTable(table, pageId, feature) {
+  async modifyTable(table, pageId, feature, basicConfig) {
     const knex = await this.getKnex();
 
     const templatePath = `${path.join(__dirname, '../../')}page-template-json`;
@@ -131,7 +131,7 @@ module.exports = class InitPage1Table extends CommandBase {
   /**
    * 生成 vue
    */
-  async renderVue(table, pageId, pageType, feature) {
+  async renderVue(table, pageId, pageType, feature, basicConfig) {
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
@@ -161,13 +161,14 @@ module.exports = class InitPage1Table extends CommandBase {
         variableEnd: '$=>',
       },
     });
-    const fields = await this.getFields(table);
+    const fields = await this.getFields(table, feature, basicConfig);
     this.info('表字段', fields);
     const result = nunjucks.renderString(listTemplate, {
       table,
       tableCamelCase,
       pageId,
       fields,
+      basicConfig,
       feature
     });
 
@@ -178,7 +179,7 @@ module.exports = class InitPage1Table extends CommandBase {
   /**
    * 获取表字段
    */
-  async getFields(table) {
+  async getFields(table, feature, basicConfig) {
     const knex = await this.getKnex();
     const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT').from('INFORMATION_SCHEMA.COLUMNS').where({
       TABLE_SCHEMA: this.dbSetting.database,
@@ -197,14 +198,18 @@ module.exports = class InitPage1Table extends CommandBase {
       });
     }
 
-    return result.filter(column => {
-      return ![ ...defaultColumn, 'id' ].includes(column.COLUMN_NAME);
-    }).map(column => {
+    const columns = result.map(column => {
       return {
         COLUMN_NAME: column.COLUMN_NAME,
         COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '').split(';')[0].split('；')[0].split(':')[0],
       };
     });
-  }
+    const tableFields = columns.filter(column => ![ ...defaultColumn, ...basicConfig.tableIgnoreFields, 'id' ].includes(column.COLUMN_NAME));
 
+    let createFields = tableFields, updateFields = tableFields;
+    if(!_.isEmpty(feature.create.ignoreFields)) createFields = columns.filter(column => !feature.create.ignoreFields.includes(column.COLUMN_NAME));
+    if(!_.isEmpty(feature.update.ignoreFields)) updateFields = columns.filter(column => !feature.update.ignoreFields.includes(column.COLUMN_NAME));
+
+    return { tableFields, createFields, updateFields};
+  }
 };
