@@ -78,6 +78,8 @@
                 </template>
               </v-data-table>
             </v-card>
+
+            <=% if feature.create.enable %=>
             <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
               <v-form ref="createForm" lazy-validation>
                 <v-row>
@@ -101,6 +103,9 @@
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-navigation-drawer>
+            <=% endif %=>
+
+            <=% if feature.update.enable %=>
             <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24">
               <v-form ref="updateForm" lazy-validation>
                 <v-row>
@@ -123,6 +128,7 @@
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-navigation-drawer>
+            <=% endif %=>
           </div>
 
           <=% if feature.helpPage.enable %=>
@@ -171,8 +177,6 @@
             disabled: true,
           }
         ],
-        isHelpPageDrawerShown: false,
-        isHelpPageDrawerLoaded: false,
         isMobile: window.innerWidth < 500,
         // 表格相关数据
         isTableZebraLineShown: true,
@@ -207,16 +211,45 @@
           {text: "操作时间", value: "operationAt", width: 250},
         ],
 
+        <=% if basicConfig.helpPage.enable %=>
+        // ### basicConfig.helpPage ###
+        isHelpPageDrawerShown: false,
+        isHelpPageDrawerLoaded: false,
+        // ### basicConfig.helpPage ###
+        <=% endif %=>
+
+        <=% if feature.create.enable %=>
+        // ### feature.create ###
         isCreateDrawerShown: false,
         createItem: {},
         createActionData: {},
+        // ### feature.create ###
+        <=% endif %=>
+
+        <=% if feature.update.enable %=>
+        // ### feature.update ###
         isUpdateDrawerShown: false,
         updateItem: {},
         updateItemId: null,
         updateActionData: {},
+        // ### feature.update ###
+        <=% endif %=>
+
+        <=% if feature.delete.enable %=>
+        // ### feature.delete ###
         deleteItem: {},
         deleteItemId: null
+        // ### feature.delete ###
+        <=% endif %=>
       }),
+
+      async created() {},
+      mounted() {
+        this.doUiAction('getTableData');
+      },
+
+      <=% if basicConfig.helpPage.enable %=>
+      // ### basicConfig.helpPage ###
       watch: {
         isHelpPageDrawerShown(val) {
           if (val && !this.isHelpPageDrawerLoaded) {
@@ -224,16 +257,18 @@
           }
         },
       },
-      async created() {},
-      mounted() {
-        this.doUiAction('getTableData');
-      },
+      // ### basicConfig.helpPage ###
+      <=% endif %=>
+    
       methods: {
         async doUiAction(uiActionId, uiActionData) {
           switch (uiActionId) {
             case 'getTableData':
               await this.getTableData();
               break;
+
+            <=% if feature.create.enable %=>
+            // ### basicConfig.create ###
             case 'startCreateItem':
               await this.prepareCreateFormData();
               await this.openCreateDrawer();
@@ -246,6 +281,11 @@
               await this.closeCreateDrawer();
               await this.getTableData();
               break;
+            // ### basicConfig.create ###
+            <=% endif %=>
+
+            <=% if feature.update.enable %=>
+            // ### basicConfig.update ###
             case 'startUpdateItem':
               await this.prepareUpdateFormData(uiActionData);
               await this.openUpdateDrawer();
@@ -258,6 +298,11 @@
               await this.closeUpdateDrawer();
               await this.getTableData();
               break;
+            // ### basicConfig.update ###
+            <=% endif %=>
+
+            <=% if feature.delete.enable %=>
+            // ### basicConfig.delete ###
             case 'deleteItem':
               await this.prepareDeleteFormData(uiActionData);
               await this.confirmDeleteItemDialog();
@@ -266,6 +311,9 @@
               await this.clearDeleteItem();
               await this.getTableData();
               break;
+            // ### basicConfig.delete ###
+            <=% endif %=>
+
             default:
               console.error("[doUiAction] uiActionId not find", {uiActionId});
               break;
@@ -297,33 +345,29 @@
           this.tableData = rows;
           this.isTableLoading = false;
         },
-        // ---------- 新增数据 uiAction >>>>>>>>>> --------
+
+        <=% if feature.create.enable %=>
         async prepareCreateFormData() {
           this.createItem = {};
         },
-
         async openCreateDrawer() {
           this.isCreateDrawerShown = true;
         },
-
         async prepareCreateValidate() {
           if (await this.$refs.createForm.validate()) {
             return true;
           }
           throw new Error("请完善表单信息")
         },
-
         async confirmCreateItemDialog() {
           if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
             throw new Error("[confirmCreateFormDialog] 否");
           }
         },
-
         prepareDoCreateItem() {
           const {id, ...data} = this.createItem;
           this.createActionData = data;
         },
-
         async doCreateItem() {
           await window.jhMask.show();
           await window.vtoast.loading("新增数据");
@@ -344,35 +388,31 @@
           this.createItem = {};
           this.createActionData = null;
         },
-        // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
-        // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+        <=% endif %=>
+
+        <=% if feature.update.enable %=>
         async prepareUpdateFormData(funObj) {
           this.updateItem = _.cloneDeep(funObj);
         },
-
         async openUpdateDrawer() {
           this.isUpdateDrawerShown = true;
         },
-
         async prepareUpdateValidate() {
           if (await this.$refs.updateForm.validate()) {
             return true;
           }
           throw new Error("请完善表单信息")
         },
-
         async confirmUpdateItemDialog() {
           if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
             throw new Error("[confirmUpdateItemDialog] 否");
           }
         },
-
         async prepareDoUpdateItem() {
           const {id, ...data} = this.updateItem;
           this.updateItemId = id;
           this.updateActionData = data;
         },
-
         async doUpdateItem() {
           await window.jhMask.show();
           await window.vtoast.loading("修改数据");
@@ -397,8 +437,9 @@
           this.updateActionData = null;
           this.updateItemId = null;
         },
-        // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
-        // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+        <=% endif %=>
+
+        <=% if feature.delete.enable %=>
         async prepareDeleteFormData(funObj) {
           this.deleteItem = _.cloneDeep(funObj);
         },
@@ -429,7 +470,7 @@
           this.deleteItem = {};
           this.deleteItemId = null;
         }
-        // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
+        <=% endif %=>
       }
     })
   </script>
