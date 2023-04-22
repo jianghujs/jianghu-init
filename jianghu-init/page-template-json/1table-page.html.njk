@@ -84,12 +84,12 @@
                   <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">新增信息</span>
                 </v-row>
                 <v-row class="mt-0 px-4">
-                  //===// <=% for f in fields.createFields %=>
+                  <=% for f in fields.createFields %=>
                   <v-col cols="12" sm="12" md="4">
                     <span class="jh-input-label"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
                     <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
                   </v-col>
-                  //===// <=% endfor %=>
+                  <=% endfor %=>
                 </v-row>
 
                 <v-row class="justify-end mx-0 mt-8 px-6">
@@ -107,12 +107,12 @@
                   <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">修改信息</span>
                 </v-row>
                 <v-row class="mt-0 px-4">
-                  //===// <=% for f in fields.updateFields %=>
+                  <=% for f in fields.updateFields %=>
                   <v-col cols="12" sm="12" md="4">
                     <span class="jh-input-label"><=$ f.COLUMN_COMMENT $=></span>
                     <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
                   </v-col>
-                  //===// <=% endfor %=>          
+                  <=% endfor %=>          
                 </v-row>
                 <v-row class="justify-end mx-0 mt-8 px-6">
                   <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
@@ -193,15 +193,15 @@
         isTableLoading: true,
         tableData: [],
         headers: [
-          //===// <=% if feature.update.enable or feature.delete.enable %=>
+          <=% if feature.update.enable or feature.delete.enable %=>
           {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
-          //===// <=% endif %=>
+          <=% endif %=>
 
           {text: "ID", value: "id", width: 120},
 
-          //===// <=% for f in fields.tableFields %=>
+          <=% for f in fields.tableFields %=>
           {text: "<=$ f.COLUMN_COMMENT $=>", value: "<=$ f.COLUMN_NAME $=>", width: 120},
-          //===// <=% endfor %=>
+          <=% endfor %=>
 
           {text: "操作者", value: "operationByUser", width: 120},
           {text: "操作时间", value: "operationAt", width: 250},
@@ -290,7 +290,7 @@
                 actionId: 'selectItemList',
                 actionData: {},
                 where: backendSearchData,
-                orderBy: [{column: 'operationAt', order: 'desc'}]
+                orderBy: [<=% for order in basicConfig.orders %=>{column: '<=$ order.column $=>',order: '<=$ order.order $=>'}<=% endfor %=>]
               }
             }
           })).data.appData.resultData.rows;
