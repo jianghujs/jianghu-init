@@ -17,7 +17,7 @@ module.exports = class InitPage1Table extends CommandBase {
 
   async run(cwd, jsonArgv) {
     this.cwd = cwd;
-    const { pageType, pageId, table, basicConfig, feature } = jsonArgv;
+    const { pageType, table, basicConfig, feature } = jsonArgv;
     if (!feature.create) feature.create = {enable: false};
     if (!feature.update) feature.update = {enable: false};
     if (!feature.delete) feature.delete = {enable: false};
@@ -42,14 +42,14 @@ module.exports = class InitPage1Table extends CommandBase {
     this.success('初始化数据库连接成功');
 
     // generate crud
-    await this.generateCrud({ table, pageId, pageType, feature, basicConfig });
+    await this.generateCrud({ table, pageType, feature, basicConfig });
     this.success('初始化数据库成功');
   }
 
   /**
    * 生成 crud
    */
-  async generateCrud({ table, pageId, pageType, feature, basicConfig }) {
+  async generateCrud({ table, pageType, feature, basicConfig }) {
     this.info('开始生成 CRUD');
     if (!table) {
       this.info('未配置table，流程结束');
@@ -57,21 +57,23 @@ module.exports = class InitPage1Table extends CommandBase {
     }
     
     this.info(`开始生成 ${table} 的 CRUD`);
+    const tableCamelCase = _.camelCase(table);
+    let pageId = `${tableCamelCase}Management`;
     // 生成 vue
     if (await this.renderVue(table, pageId, pageType, feature, basicConfig)) {
       this.success(`生成 ${table} 的 vue 文件完成`);
 
       // 数据库
       this.info(`开始生成 ${table} 的相关数据`);
-      await this.modifyTable(table, pageId, feature, basicConfig);
+      await this.modifyTable(table, pageId, feature);
       this.success(`生成 ${table} 的相关数据完成`);
     }
   }
 
-  async modifyTable(table, pageId, feature, basicConfig) {
+  async modifyTable(table, pageId, feature) {
     const knex = await this.getKnex();
 
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
 
     let clearSql = fs.readFileSync(`${templatePath}/clear_crud.sql`).toString();
     clearSql = clearSql.replace(/\{\{pageId}}/g, pageId);
@@ -107,28 +109,6 @@ module.exports = class InitPage1Table extends CommandBase {
   }
 
   /**
-   * 确认生成表
-   */
-  async promptTables() {
-    const knex = await this.getKnex();
-
-    const result = await knex.select('TABLE_NAME').from('INFORMATION_SCHEMA.TABLES').where({
-      TABLE_SCHEMA: this.dbSetting.database,
-      TABLE_TYPE: 'BASE TABLE',
-    });
-    const tables = result.map(item => item.TABLE_NAME).filter(table => !table.startsWith('_'));
-    const answer = await inquirer.prompt({
-      name: 'tables',
-      type: 'checkbox',
-      message: '请选择你要生成 crud 的表',
-      choices: tables,
-      pageSize: 100,
-    });
-    console.log(answer);
-    return answer.tables;
-  }
-
-  /**
    * 生成 vue
    */
   async renderVue(table, pageId, pageType, feature, basicConfig) {
@@ -146,7 +126,7 @@ module.exports = class InitPage1Table extends CommandBase {
     }
 
     // 读取文件
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
     const templateTargetPath = `${templatePath}/${pageType}.html.njk`;
     let listTemplate = fs.readFileSync(templateTargetPath).toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
