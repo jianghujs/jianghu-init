@@ -1,6 +1,7 @@
 'use strict';
 const yargs = require('yargs');
 const InitPage1Table = require('./json/init_page_1table');
+const InitPage2Table = require('./json/init_page_2table');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 const fs = require('fs');
@@ -33,6 +34,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
     }
     if (this.jsonArgv.pageType === '1table-page') {
       await new InitPage1Table().run(process.cwd(), this.jsonArgv);
+    } else if(this.jsonArgv.pageType === '2table-page'){
+      await new InitPage2Table().run(process.cwd(), this.jsonArgv);
     }
     this.success('jianghu init by json is success');
   }
