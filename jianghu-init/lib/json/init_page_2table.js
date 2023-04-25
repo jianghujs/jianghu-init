@@ -3,11 +3,11 @@ const yargs = require('yargs');
 const CommandBase = require('../command_base');
 
 require('colors');
-const inquirer = require('inquirer');
 const fs = require('fs');
 const nunjucks = require('nunjucks');
 const _ = require('lodash');
 const path = require('path');
+const moment = require('moment');
 
 /**
  * 根据 table 定义生成 crud 页面（3 table）
@@ -47,10 +47,10 @@ module.exports = class InitPage2Table extends CommandBase {
    */
   async generateCrud({ tableAInfo, tableBInfo }) {
     this.info('开始生成 CRUD');
-    const { tableA, nameA, primaryFieldA } = tableAInfo;
-    const { tableB, nameB, primaryFieldB } = tableBInfo;
+    const { table: tableA, name: nameA, primaryField: primaryFieldA } = tableAInfo;
+    const { table: tableB, name: nameB, primaryField: primaryFieldB } = tableBInfo;
     if (!tableA || !tableB) {
-      this.info('未选择 table，流程结束');
+      this.info('未配置 table，流程结束');
       return;
     }
     this.info(`开始生成 ${tableA} 的 CRUD`);
@@ -72,10 +72,12 @@ module.exports = class InitPage2Table extends CommandBase {
   // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
     if (fs.existsSync(filepath)) {
-      const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
-      if (overwrite !== 'y' && overwrite !== 'Y') {
-        this.warning(`跳过 ${filepath} 的生成`);
-        return false;
+      const isBackUp = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
+      if (['y', 'Y'].includes(isBackUp)) {
+        const bakPath = `./app/view/page/${pageId}-bak`;
+        if (!fs.existsSync(bakPath)) fs.mkdirSync(bakPath);
+        const backFilePath = `${bakPath}/${pageId}.html.${moment().format('YYYYMMDDHHmmss')}`;
+        fs.copyFileSync(filepath, backFilePath);
       }
     }
 
@@ -109,7 +111,7 @@ module.exports = class InitPage2Table extends CommandBase {
     let result = nunjucks.renderString(listTemplate, context);
 
     // 生成 table
-    this.modifyTable(templatePath, sqlTemplate, context)
+    await this.modifyTable(templatePath, sqlTemplate, context)
 
     // 写入文件
     fs.writeFileSync(filepath, result);
