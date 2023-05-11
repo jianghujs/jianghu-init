@@ -20,7 +20,7 @@
 # 数据库初始化
 create database `{{name}}` default character set utf8mb4 collate utf8mb4_bin;
 use {{name}};
-# 运行 sql/{{name}}.sql 文件
+# 运行 sql/init.sql 文件
 ```
 
 ## 测试账号 & 测试环境
