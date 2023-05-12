@@ -144,11 +144,12 @@ function process(type) {
 
 // process('1table-crud');
 // process('1table-crud-file');
-process('1table-crud-enterprise');
+// process('1table-crud-enterprise');
 // process('2table-crud');
 // process('3table-crud');
-process('enterprise');
+// process('enterprise');
 // process('workflow');
+process('basic');
 // process('json-editor');
 // process('xiaochengxu-markdown-editor');
 // process('xiaochengxu-1table-crud');

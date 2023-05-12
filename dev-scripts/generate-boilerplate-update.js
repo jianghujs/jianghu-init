@@ -19,7 +19,7 @@ const locals = [
  * 不打包的文件夹
  */
 const ignoreFolders = [
-  'node_modules', '/out/', '/run/', 'dist', 'typings', '.idea', '.git/',
+  'node_modules', '/out/', '/run/', 'typings', '.idea', '.git/',
   'logs/', 'coverage/', '.nyc_output/', '.github',
   'config/config.local.js',
   'config/config.prod.js',
