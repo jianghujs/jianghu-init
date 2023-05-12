@@ -115,15 +115,15 @@
     "projectName": "workflow",
     "replaceList": [
       {
-        "from": "xianfeng-v1",
+        "from": "jianghujs-workflow",
         "to": "__name__"
       },
       {
-        "from": "xianfeng_v1",
+        "from": "jianghujs_workflow",
         "to": "__database__"
       }
     ],
-    "repositoryUrl": "git@github.com:jianghujs/jianghujs-workflow.git"
+    "repositoryUrl": "https://github.com/jianghujs/jianghujs-workflow.git"
   },
   {
     "projectName": "xiaochengxu-markdown-editor",

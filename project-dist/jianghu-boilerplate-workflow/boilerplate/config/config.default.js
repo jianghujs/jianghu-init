@@ -9,7 +9,7 @@ const eggJianghuDir = path.join(eggJianghuDirResolve, '../');
 
 module.exports = appInfo => {
 
-  const appId = '{{name}}';
+  const appId = 'xianfeng-v1';
 
   return {
     appId,

@@ -1,5 +1,5 @@
 {
-  "name": "jianghujs-workflow",
+  "name": "{{name}}",
   "version": "1.0.0",
   "description": "",
   "private": true,
@@ -24,8 +24,8 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --port=9501 --title={{name}}",
-    "stop": "egg-scripts stop --title={{name}}",
+    "start": "egg-scripts start --daemon --port=9501 --title=xianfeng-v1",
+    "stop": "egg-scripts stop --title=xianfeng-v1",
     "dev": "egg-bin dev --port=9501",
     "debug": "egg-bin debug",
     "test": "npm run lint -- --fix && npm run test-local",

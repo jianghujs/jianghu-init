@@ -5,7 +5,7 @@
  Source Server Type    : MySQL
  Source Server Version : 50738
  Source Host           : localhost:3306
- Source Schema         : test_jianghujs_workflow
+ Source Schema         : test___database__
 
  Target Server Type    : MySQL
  Target Server Version : 50738
@@ -176,7 +176,7 @@ INSERT INTO `_resource` (accessControlTable,resourceHook,pageId,actionId,`desc`,
 	 (NULL,'','workflowManagement','selectUserList','✅查询-用户列表','sql',NULL,'{"table": "_user", "operation": "select"}','','','update','vscode','vscode','2022-07-04T22:27:58+08:00'),
 	 (NULL,'','workflowManagement','selectGroupList','✅查询-组列表','sql',NULL,'{"table": "_group", "operation": "select"}','','','update','vscode','vscode','2022-07-04T22:27:58+08:00'),
 	 (NULL,NULL,'workflowManagement','selectItemList','✅workflowManagement查询-查询列表','sql','{}','{"table": "workflow", "operation": "select"}','','','insert',NULL,NULL,NULL),
-	 (NULL,'{"before":[{"service":"workflow","serviceFunction":"createWorkflowId"}]}','workflowManagement','insertItem','✅workflowManagement查询-添加成员','sql','{"type":"object","required":["actionData"],"properties":{"actionData":{"type":"object","required":["workflowName","workflowId","workflowConfig","workflowForm"],"properties":{"workflowName":{"type":"string"},"workflowId":{"type":"number"},"workflowConfig":{"type":"string"},"workflowForm":{"type":"string"}},"additionalProperties":true}},"additionalProperties":true}','{"table": "workflow", "operation": "jhInsert"}','','','insert',NULL,NULL,NULL),
+	 (NULL,'{"before":[{"service":"workflow","serviceFunction":"createWorkflowId"}]}','workflowManagement','insertItem','✅workflowManagement查询-添加成员','sql','{"type":"object","required":["actionData"],"properties":{"actionData":{"type":"object","required":["workflowName","workflowId","workflowConfig","workflowForm"],"properties":{"workflowName":{"type":"string"},"workflowConfig":{"type":"string"},"workflowForm":{"type":"string"}},"additionalProperties":true}},"additionalProperties":true}','{"table": "workflow", "operation": "jhInsert"}','','','insert',NULL,NULL,NULL),
 	 (NULL,NULL,'workflowManagement','updateItem','✅workflowManagement查询-更新成员','sql','{"type":"object","required":["actionData"],"properties":{"actionData":{"type":"object","required":["workflowName","workflowId","workflowConfig","workflowForm"],"properties":{"workflowName":{"type":"string"},"workflowId":{"type":"string"},"workflowConfig":{"type":"string"},"workflowForm":{"type":"string"}},"additionalProperties":true}},"additionalProperties":true}','{"table": "workflow", "operation": "jhUpdate"}','','','insert',NULL,NULL,NULL);
 INSERT INTO `_resource` (accessControlTable,resourceHook,pageId,actionId,`desc`,resourceType,appDataSchema,resourceData,requestDemo,responseDemo,operation,operationByUserId,operationByUser,operationAt) VALUES
 	 (NULL,NULL,'todo','selectItemList','✅查询列表','sql','{}','{ "table": "task", "operation": "select" }',NULL,NULL,'insert',NULL,NULL,NULL),
