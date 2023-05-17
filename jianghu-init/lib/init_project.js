@@ -17,13 +17,13 @@ module.exports = class InitProjectCommand extends CommandBase {
   async run(cwd, args) {
     this.argv = this.getParser().parse(args || []);
     this.cwd = cwd;
-    // console.log('%j', argv);
 
     // 如果是 xiaoapp-in-multi，则需要先获取 dbPrefix
     const dbPrefix = this.tryGetDbPrefix();
 
     // 下载模板并生成项目
     const { targetDir, boilerplate, database = '' } = await new InitBoilerplate({ dbPrefix }).run(cwd, args);
+    
     const projectName = path.basename(path.resolve(targetDir));
 
     // 运行数据库初始化
@@ -93,7 +93,11 @@ module.exports = class InitProjectCommand extends CommandBase {
     const apps = [];
     if (this.multiDemoProject.includes(boilerplate.name)) {
       apps.push('data_repository', 'user_app_management', 'directory'); // , 'simple_xiaoapp'
-      process.chdir(projectName);
+      console.log('projectName', projectName);
+      // 如果projectName是当前目录，则不需要切换目录
+      if (projectName !== path.basename(path.resolve('.'))) {
+        process.chdir(projectName);
+      }
     } else {
       apps.push(projectName);
     }

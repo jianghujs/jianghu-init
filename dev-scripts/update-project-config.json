@@ -1,5 +1,90 @@
 [
   {
+    "projectName": "1table-crud",
+    "replaceList": [
+      {
+        "from": "jianghujs-1table-crud",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_1table_crud",
+        "to": "__database__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-1table-crud.git"
+  },
+  {
+    "projectName": "basic",
+    "replaceList": [
+      {
+        "from": "jianghujs-basic",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_basic",
+        "to": "__database__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-basic.git"
+  },
+  {
+    "projectName": "1table-crud-file",
+    "replaceList": [
+      {
+        "from": "jianghujs-1table-crud-file",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_1table_crud_file",
+        "to": "__database__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-1table-crud-file.git"
+  },
+ 
+  {
+    "projectName": "2table-crud",
+    "replaceList": [
+      {
+        "from": "jianghujs-2table-crud",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_2table_crud",
+        "to": "__database__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-2table-crud.git"
+  },
+  {
+    "projectName": "3table-crud",
+    "replaceList": [
+      {
+        "from": "jianghujs-3table-crud",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_3table_crud",
+        "to": "__database__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-3table-crud.git"
+  },
+  {
+    "projectName": "json-editor",
+    "replaceList": [
+      {
+        "from": "jianghujs-json-editor",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_json_editor",
+        "to": "__database__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-json-editor.git"
+  },
+  {
     "projectName": "workflow",
     "replaceList": [
       {
@@ -11,6 +96,49 @@
         "to": "__database__"
       }
     ],
-    "repositoryUrl": "git@github.com:jianghujs/jianghujs-workflow.git"
+    "repositoryUrl": "https://github.com/jianghujs/jianghujs-workflow.git"
+  },
+
+  {
+    "projectName": "enterprise",
+    "replaceList": [
+      {
+        "from": "jianghujs_enterprise_",
+        "to": "{{dbPrefix}}"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-enterprise.git"
+  },
+  {
+    "projectName": "1table-crud-enterprise",
+    "replaceList": [
+      {
+        "from": "jianghujs_enterprise_",
+        "to": "{{dbPrefix}}"
+      },
+      {
+        "from": "jianghujs-enterprise-1table-crud",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_enterprise_1table_crud",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-enterprise-1table-crud.git"
+  },
+  {
+    "projectName": "advanced",
+    "replaceList": [
+      {
+        "from": "jianghujs-advanced",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_advanced",
+        "to": "__database__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-advanced.git"
   }
 ]
