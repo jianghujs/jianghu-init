@@ -93,8 +93,7 @@ module.exports = class InitProjectCommand extends CommandBase {
     const apps = [];
     if (this.multiDemoProject.includes(boilerplate.name)) {
       apps.push('data_repository', 'user_app_management', 'directory'); // , 'simple_xiaoapp'
-      console.log('projectName', projectName);
-      // 如果projectName是当前目录，则不需要切换目录
+      // 不在项目目录，则切换到项目目录
       if (projectName !== path.basename(path.resolve('.'))) {
         process.chdir(projectName);
       }
