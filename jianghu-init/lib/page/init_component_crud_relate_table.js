@@ -55,9 +55,12 @@ module.exports = class InitPage1TableFile extends CommandBase {
     for (const table of tables) {
       this.info(`开始生成 ${table} 的 CRUD`);
       const tableCamelCase = _.camelCase(table);
-      const pageId = await this.readlineMethod('指定页面Id', 'xxxxManagement');
-      const componentId = await this.readlineMethod(`【${table}】数据表componentId`, tableCamelCase);
-      const relateId = await this.readlineMethod('数据表关联Id', 'xxxxId');
+      const pageId = await this.readlineMethod('主页面Id', 'xxxxManagement');
+      const componentId = await this.readlineMethod('组件名', 'xxxx');
+      const relateId = await this.readlineMethod('主页面与数据表关联Id', 'xxxxId');
+      const relateIdOfCamel = _.camelCase(relateId);
+      const relateIdOfKebab = _.kebabCase(relateId);
+
       // 生成 vue
       if (await this.renderVue(table, pageId, componentId, relateId)) {
         this.success(`生成 ${table} 的 vue 文件完成`);
@@ -68,7 +71,7 @@ module.exports = class InitPage1TableFile extends CommandBase {
             <v-row>
               <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">{{${componentId}ComponentItem.xxx}}--${componentId}列表</span>
             </v-row>
-            <${pageId}-${componentId} :product-id="${componentId}ComponentItem.${relateId}"/>
+            <${pageId}-${componentId} :${relateIdOfKebab}="${componentId}ComponentItem.${relateId}"/>
             <!-- 抽屉关闭按钮 -->
             <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="${componentId}DrawerShown = false">
               <v-icon>mdi-close</v-icon>
