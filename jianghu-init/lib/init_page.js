@@ -50,6 +50,11 @@ const pageTypes = [
     pageId: 'userGroupRole',
     path: 'template/user-group-role/',
   }, {
+    value: 'user-group-role-enterprise-page',
+    name: 'user-group-role-enterprise-page - generate pages from user-group-role-enterprise',
+    pageId: 'userGroupRole',
+    path: 'template/user-group-role-enterprise/',
+  }, {
     value: 'user-page-resource-page',
     name: 'user-page-resource-page - generate pages from user-page-resource',
     pageId: 'userPageResource',
