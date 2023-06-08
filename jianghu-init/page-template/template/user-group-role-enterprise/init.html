@@ -24,6 +24,7 @@
             placeholder="搜索"
             v-model="tabsSearchKeyword"
             prepend-inner-icon="mdi-text-search"
+            @input="buildDataTypeData"
             filled single-line
           ></v-text-field>
         </v-col>
@@ -154,12 +155,12 @@
             <v-form ref="formCurrentDataTypeDetail" lazy-validation>
               <!--右侧信息表单 >>>>>>>>>>>>> -->
               <v-list-item v-for="item of dataTypeFieldList" class="pl-0 pt-4 pr-0">
-                <v-select
+                <v-autocomplete
                   v-if="item.type === 'select'"
                   class="jh-v-input" dense filled single-line
                   item-value="value"
                   :label="item.text" v-model="currentDataTypeItem[item.value]"
-                  :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules" :items="constantObj[item.value]"></v-select>
+                  :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules" :items="constantObj[item.value]"></v-autocomplete>
                 <v-textarea
                   v-else-if="item.type === 'textarea'" class="jh-v-input" dense filled single-line :label="item.text" v-model="currentDataTypeItem[item.value]"
                   :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules"></v-textarea>
@@ -185,12 +186,12 @@
                 <v-form ref="formCurrentDataTypeDetail" lazy-validation>
                   <!--右侧信息表单 >>>>>>>>>>>>> -->
                   <v-list-item v-for="item of dataTypeFieldList" class="pl-0 pt-4 pr-0">
-                    <v-select
+                    <v-autocomplete
                       v-if="item.type === 'select'"
                       class="jh-v-input" dense filled single-line
                       item-value="value"
                       :label="item.text" v-model="currentDataTypeItem[item.value]"
-                      :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules" :items="constantObj[item.value]"></v-select>
+                      :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules" :items="constantObj[item.value]"></v-autocomplete>
                     <v-textarea
                       v-else-if="item.type === 'textarea'" class="jh-v-input" dense filled single-line :label="item.text" v-model="currentDataTypeItem[item.value]"
                       :rules="item.require == false ? validationRules.nullRules : validationRules.requireRules"></v-textarea>
@@ -227,15 +228,15 @@
           <v-row class="mt-0 px-6">
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label">UserID</span>
-              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.userId" :items="userListFromBackend"></v-select>
+              <v-autocomplete class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.userId" :items="userListFromBackend"></v-autocomplete>
             </v-col>
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label">GroupID</span>
-              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.groupId" :items="groupListFromBackend"></v-select>
+              <v-autocomplete class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.groupId" :items="groupListFromBackend"></v-autocomplete>
             </v-col>
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label">RoleId</span>
-              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.roleId" :items="roleListFromBackend"></v-select>
+              <v-autocomplete class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.roleId" :items="roleListFromBackend"></v-autocomplete>
             </v-col>
           </v-row>
           <!-- <<<<<<<<<<< 抽屉的主体 -->
@@ -263,15 +264,15 @@
           <v-row class="mt-0 px-6">
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label">UserID</span>
-              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.userId" :items="userListFromBackend"></v-select>
+              <v-autocomplete class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.userId" :items="userListFromBackend"></v-autocomplete>
             </v-col>
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label">GroupID</span>
-              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.groupId" :items="groupListFromBackend"></v-select>
+              <v-autocomplete class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.groupId" :items="groupListFromBackend"></v-autocomplete>
             </v-col>
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label">RoleId</span>
-              <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.roleId" :items="roleListFromBackend"></v-select>
+              <v-autocomplete class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.roleId" :items="roleListFromBackend"></v-autocomplete>
             </v-col>
           </v-row>
           <!-- <<<<<<<<<<< 抽屉的主体 -->
@@ -479,6 +480,7 @@ new Vue({
   watch: {
     // description: ✅响应左侧抽屉数据类型的切换
     async dataType() {
+      this.tabsSearchKeyword = null;
       this.dataTypeName = ['组织', '角色'][this.dataType];
       // 根据左侧tab类型动态改变右侧表单的字段
       if (this.dataType === 0) {
