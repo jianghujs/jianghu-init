@@ -661,7 +661,8 @@ new Vue({
         data: {
           appData: {
             pageId: 'userGroupRole',
-            actionId: 'selectUser'
+            actionId: 'selectUser',
+            where: {appId: '<$ ctx.app.config.appId $>'}
           }
         }
       });
