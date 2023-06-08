@@ -8,7 +8,7 @@
     "framework": "@jianghujs/jianghu"
   },
   "dependencies": {
-    "@jianghujs/jianghu": "4.0.35",
+    "@jianghujs/jianghu": "4.0.43",
     "egg": "^2.15.1",
     "egg-scripts": "^2.11.0"
   },
@@ -28,14 +28,7 @@
     "start": "egg-scripts start --daemon --port=7001 --title={{name}}",
     "stop": "egg-scripts stop --title={{name}}",
     "dev": "egg-bin dev --port=7001",
-    "debug": "egg-bin debug",
-    "jianghuConfigImportData": "jianghu jianghuConfigImportData",
-    "jianghuConfigDumpData": "jianghu jianghuConfigDumpData",
-    "test": "npm run lint -- --fix && npm run test-local",
-    "test-local": "egg-bin test",
-    "cov": "egg-bin cov",
-    "lint": "eslint .",
-    "ci": "npm run lint && npm run cov",
+    "debug": "egg-bin debug --port=7001",
     "autod": "autod"
   },
   "repository": {

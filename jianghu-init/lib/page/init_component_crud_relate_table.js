@@ -55,36 +55,35 @@ module.exports = class InitPage1TableFile extends CommandBase {
     for (const table of tables) {
       this.info(`开始生成 ${table} 的 CRUD`);
       const tableCamelCase = _.camelCase(table);
-      const pageId = await this.readlineMethod('指定页面Id', 'xxxxManagement');
-      const componentId = await this.readlineMethod(`【${table}】数据表componentId`, tableCamelCase);
-      const relateId = await this.readlineMethod('数据表关联Id', 'xxxxId');
-      const relateIdOfSelect = _.camelCase('select' + relateId);
-      const relateIdOfKebabCase = _.kebabCase(relateId);
+      const pageId = await this.readlineMethod('主页面Id', 'xxxxManagement');
+      const componentId = await this.readlineMethod('组件名', 'xxxx');
+      const relateId = await this.readlineMethod('主页面与数据表关联Id', 'xxxxId');
+      const relateIdOfCamel = _.camelCase(relateId);
+      const relateIdOfKebab = _.kebabCase(relateId);
+
       // 生成 vue
       if (await this.renderVue(table, pageId, componentId, relateId)) {
         this.success(`生成 ${table} 的 vue 文件完成`);
         this.success(`页面引入组件: {% include 'component/${pageId}-${componentId}.html' %}`);
-        this.success(`页面使用组件: <${pageId}-${componentId} :${relateIdOfKebabCase}="${relateIdOfSelect}"></${pageId}-${componentId}>`);
-        this.success(`页面代码适配:
-          <v-data-table
-            v-model="selectedRows"
-            show-select
-            single-select
-            @click:row="(item, row) => {
-              row.select(true);
-            }"
-            >
-          </v-data-table>
-        
-          data: () => ({
-            selectedRows: [],
-          })
+        this.success(`页面使用组件:
+          <!-- ${componentId}组件抽屉 -->
+          <v-navigation-drawer v-if="${componentId}DrawerShown" v-model="${componentId}DrawerShown" :permanent="${componentId}DrawerShown" fixed temporary right width="80%" class="elevation-24">
+            <v-row>
+              <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">{{${componentId}ComponentItem.xxx}}--${componentId}列表</span>
+            </v-row>
+            <${pageId}-${componentId} :${relateIdOfKebab}="${componentId}ComponentItem.${relateId}"/>
+            <!-- 抽屉关闭按钮 -->
+            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="${componentId}DrawerShown = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-navigation-drawer>
 
-          computed: {
-            ${relateIdOfSelect}() {
-              return this.selectedRows.length ? this.selectedRows[0].${relateId} : null;
-            },
-          },
+          // vue data 新增
+          ${componentId}DrawerShown: false,
+          ${componentId}ComponentItem: {},
+
+          // 添加打开抽屉代码
+          @click="() => { ${componentId}ComponentItem=item; ${componentId}DrawerShown=true; }"
         `);
         // 数据库
         this.info(`开始生成 ${table} 的相关数据`);

@@ -1,0 +1,73 @@
+<!-- 基础html >>> -->
+<v-row>
+	<v-col cols="12" xs="12" sm="12" md="4" xl="3">
+		<div class="pt-3 text-h7 font-weight-bold"><=$ pageId $=>
+			<!-- 帮助页按钮 -->
+			<v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
+		</div>
+		<v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+	</v-col>
+</v-row>
+
+<v-card class="rounded-lg">
+	<v-row class="ma-0 pa-4">
+		{# 新增按钮 #}
+		<=% if pageId %=>
+			<v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
+		<=% endif %=>
+		<v-spacer></v-spacer>
+		{# 搜索按钮 #}
+		<=% if pageId %=>
+			<v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+				<v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+			</v-col>
+		<=% endif %=>
+	</v-row>
+	<v-data-table
+	:headers="headers"
+	:items="tableData"
+	:search="searchInput"
+	:footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+	:items-per-page="-1"
+	mobile-breakpoint="0"
+	:loading="isTableLoading"
+	checkbox-color="success"
+	:class="{'zebraLine': isTableZebraLineShown }"
+	fixed-header
+	class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+		<template v-slot:item.action="{ item }">
+			<span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+			<v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
+			</span>
+			<span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+			<v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
+			</span>
+		</template>
+		<template v-slot:loading>
+			<div class="jh-no-data">数据加载中</div>
+		</template>
+		<template v-slot:no-data>
+			<div class="jh-no-data">暂无数据</div>
+		</template>
+		<template v-slot:no-results>
+			<div class="jh-no-data">暂无数据</div>
+		</template>
+		<template v-slot:footer.page-text="pagination">
+			<span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+			<span class="ml-1">共{{pagination.itemsLength}}条</span>
+		</template>
+	</v-data-table>
+</v-card>
+<!-- <<< 基础html -->
+
+
+<!-- 基础vueData >>> -->
+<!-- <<< 基础vueData -->
+
+
+<!-- 基础uiAction >>> -->
+<!-- <<< 基础uiAction -->
+
+
+<!-- 基础uiActionFunc >>> -->
+<!-- <<< 基础uiActionFunc -->
