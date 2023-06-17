@@ -1,0 +1,17 @@
+{
+  "name": "jianghujs-enterprise",
+  "version": "1.0.0",
+  "description": "企业多应用项目",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jianghujs/jianghujs-enterprise.git"
+  },
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/jianghujs/jianghujs-enterprise/issues"
+  },
+  "homepage": "https://github.com/jianghujs/jianghujs-enterprise#readme",
+  "license": "Apache-2.0"
+}

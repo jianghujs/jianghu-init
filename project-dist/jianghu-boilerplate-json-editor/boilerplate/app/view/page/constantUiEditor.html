@@ -71,7 +71,7 @@
                   <v-textarea v-else-if="editItem.constantType === 'html'" filled single-line label="常量内容" :rows="12" v-model="editItem[language]"
                       value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."></v-textarea>
                   <v-text-field v-else class="jh-v-input" dense filled single-line label="常量内容"
-                    v-model="editItem['language']"></v-text-field>
+                    v-model="editItem[language]"></v-text-field>
                 </v-col>
               </v-row>
             </v-form>
@@ -217,6 +217,9 @@
         let rows = result.data.appData.resultData.rows; 
         if(rows.length > 0){
           this.editItem = rows[0];
+          if(this.constantTypeList.includes(this.editItem.constantType)){
+            this.editItem[this.language] = JSON.parse(this.editItem[this.language])
+          } 
         }
 
         this.isFormLoading = false;
@@ -245,7 +248,7 @@
       prepareDoSaveItem() {
         const { id, ...data } = this.editItem;
         if(this.constantTypeList.includes(this.editItem.constantType)){
-          data[this.language] = JSON.stringify(this.editItem[this.language])
+          data[this.language] = JSON.stringify(data[this.language])
         }
         this.saveActionData = data;
       },

@@ -1,5 +1,5 @@
 {
-  "name": "{{database}}",
+  "name": "{{name}}",
   "version": "0.0.1",
   "description": "",
   "private": true,
@@ -23,8 +23,8 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --port=7002 --title={{database}}",
-    "stop": "egg-scripts stop --title={{database}}",
+    "start": "egg-scripts start --daemon --port=7002 --title={{name}}",
+    "stop": "egg-scripts stop --title={{name}}",
     "dev": "egg-bin dev --port=7002",
     "debug": "egg-bin debug",
     "test": "npm run lint -- --fix && npm run test-local",
@@ -35,7 +35,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jianghujs/{{database}}.git"
+    "url": "https://github.com/jianghujs/{{name}}.git"
   },
   "author": "jianghujs.org",
   "license": "Apache-2.0"
