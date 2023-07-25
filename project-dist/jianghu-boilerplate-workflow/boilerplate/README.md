@@ -1,4 +1,4 @@
-# {{name}}
+# jianghujs-workflow
 
 ## 配置
 
@@ -10,7 +10,7 @@
    port: 3306,
    user: 'root',
    password: '123456',
-   database: '{{name}}'
+   database: 'jianghujs_workflow'
    ```
 4. 启动 npm run dev
    
@@ -18,9 +18,9 @@
 
 ```sql
 # 数据库初始化
-create database `{{name}}` default character set utf8mb4 collate utf8mb4_bin;
-use {{name}};
-# 运行 sql/{{name}}.sql 文件
+create database `jianghujs_workflow` default character set utf8mb4 collate utf8mb4_bin;
+use jianghujs_workflow;
+# 运行 sql/init.sql 文件
 ```
 
 ## 测试账号 & 测试环境

@@ -1,0 +1,126 @@
+{
+  "type": "page",
+  "data": {
+    "pageId": "studentManagement",
+    "pageType": "1table-page",
+    "table": "student",
+    "title": "学生管理"
+  },
+  "title": "标题",
+  "subTitle": "副标题",
+  "pageHeader": [{
+      "type": "v-breadcrumbs",
+      "props": {
+        "items": ["首页", "学生管理"],
+        "divider": "-"
+      }
+    },{
+      "type": "v-select",
+      "align": "right",
+      "props": {
+        "items": ["全部", "男", "女"]
+      }
+  }],
+  "body": {
+    "type": "crud",
+    "bulkActions": [
+      {
+        "type": "v-btn",
+        "label": "批量删除",
+        "confirmText": "确定要批量删除?",
+        "props": {
+          "color": "danger",
+          "height": "100px"
+        }
+      },
+      {
+        "type": "v-btn",
+        "label": "批量修改",
+        "confirmText": "确定要批量删除?",
+        "props": {
+          "color": "danger",
+          "height": "100px"
+        }
+      }
+    ],
+    "headerToolbar": [
+      "bulkActions",
+      {
+        "type": "v-btn",
+        "label": "新增",
+        "props": {
+          "class": "v-middle"
+        }
+      }
+    ],
+    "footerToolbar": [
+      "pagination"
+    ],
+    "columns": [
+      {
+        "name": "id",
+        "label": "ID",
+        "type": "v-text-field",
+        "width": 20,
+        "sortable": true,
+        "props": {
+          "color": "red",
+          "height": "100"
+        },
+        "searchable": {
+          "type": "v-text-field",
+          "name": "id",
+          "label": "主键",
+          "placeholder": "输入id",
+          "props": {}
+        }
+      },
+      {
+        "name": "gender",
+        "label": "性别",
+        "type": "v-text-field",
+        "searchable": {
+          "type": "v-select",
+          "name": "gender",
+          "label": "性别",
+          "placeholder": "选择浏览器",
+          "props": {
+            "items": ["全部", "男", "女"]
+          }
+        }
+      },
+      {
+        "name": "classId",
+        "label": "班级",
+        "type": "v-text-field",
+        "sortable": true,
+        "props": {}
+      },
+      {
+        "type": "action",
+        "label": "操作",
+        "width": 100,
+        "actions": [
+          {
+            "type": "v-btn",
+            "label": "修改",
+            "actionType": "drawer",
+            "drawer": {
+              "title": "修改",
+              "body": [{
+                "type": "input-text",
+                "name": "name",
+                "label": "员工名称"
+              }]
+            }
+          },
+          {
+            "type": "v-btn",
+            "label": "删除",
+            "confirmText": "您确认要删除?"
+          }
+        ]
+      }
+    ]
+  }
+}

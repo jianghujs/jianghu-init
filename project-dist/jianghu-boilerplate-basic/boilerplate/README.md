@@ -4,8 +4,8 @@
 
 ```sql
 # 数据库初始化
-create database `{{name}}` default character set utf8mb4 collate utf8mb4_bin;
-use {{name}};
+create database `{{database}}` default character set utf8mb4 collate utf8mb4_bin;
+use {{database}};
 # 运行 sql/init.sql 文件
 ```
 
@@ -19,7 +19,7 @@ use {{name}};
   port: 3306,
   user: 'root',
   password: '123456',
-  database: '{{name}}'
+  database: '{{database}}'
   ```
 4. 启动 npm run dev
    

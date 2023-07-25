@@ -18,8 +18,8 @@
 
 ```sql
 # 数据库初始化
-create database `jianghujs-enterprise-{{name}}` default character set utf8mb4 collate utf8mb4_bin;
-use jianghujs-enterprise-{{name}};
+create database `{{dbPrefix}}{{name}}` default character set utf8mb4 collate utf8mb4_bin;
+use {{dbPrefix}}{{name}};
 # 运行 sql/init.sql 文件
 ```
 
