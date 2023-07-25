@@ -13,7 +13,7 @@
         "items": ["全部", "男", "女"]
       }
   }],
-  "headerToolbar": [
+  "tableHeader": [
     {
       "type": "v-btn",
       "label": "新增",
@@ -22,7 +22,7 @@
       }
     }
   ],
-  "footerToolbar": [ "pagination" ],
+  "tableFooter": [ "pagination" ],
   "columns": [
     {
       "name": "id",

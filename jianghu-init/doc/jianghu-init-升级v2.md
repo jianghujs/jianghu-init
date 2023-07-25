@@ -1,50 +1,68 @@
+# 概念
+- schema
+  ```
+  "type": "page",
+  "data": {
+    "name": "张三",
+  },
+  "body": {
+    "type": "page",
+    "data": {},
+    "body": {}
+  }
+  ```
+- schemaNode
+  ```
+  body为一个schemaNode, 内部可以写任意的schema
+  ```
 # 思路
 - 按照jianghu-init现有的页面布局，通过json树结构来描述页面布局，支持每一块组件可配置
 - 页面的每一模块都用相同的数据协议type、data、body来标识
   - type: 用于标识当前模块的类型
-    - 自定义type, 比如整个页面的type为page、自定义模板为tpl、table
-      ```
-      "type": "page",
-      "data": {
-        "name": "张三",
-      },
-      "body": {
-        "type": "tpl",
-        "data": {
-          "name": "张三",
-        },
-        "tpl": "my name is ${name}"
-      }
-      ```
-      ```
-      "type": "tpl",
-      "data": {
-        "name": "张三",
-      },
-      "tpl": "my name is ${name}"
-      ```
-      ```
-      "type": "table",
-      "columns": [{
-        "name": "id",
-        "type": "v-text-field",
-        "label": "唯一标识",
-        "originalProps": {
-          "value": "id",
-          "readonly": true,
-          "sortable": true,
-          "searchable": true,
-        }
-      }],
-      ```
-    - vuetify的type, 比如v-text-field、v-select、v-button等
-      ```
-      "type": "v-text-field",
-      "name": "id",
-      "className": "success--text",
-      "label": "唯一标识",
+    - 自定义type, 比如整个页面的type为page、自定义模板为tpl、
+    - vuetify的type, 比如v-text-field、v-select、v-button等table
+
+  ```
+  "type": "page",
+  "data": {
+    "name": "张三",
+  },
+  "body": {
+    "type": "tpl",
+    "data": {
+      "name": "张三",
+    },
+    "tpl": "my name is ${name}"
+  }
+  ```
+  ```
+  "type": "tpl",
+  "data": {
+    "name": "张三",
+  },
+  "tpl": "my name is ${name}"
+  ```
+  ```
+  "type": "crud",
+  "columns": [{
+    "name": "id",
+    "type": "v-text-field",
+    "label": "唯一标识",
+    "props": {
+      "value": "id",
       "readonly": true,
-      ```
+      "sortable": true,
+      "searchable": true,
+    }
+  }],
+  ```
+  ```
+  "type": "v-text-field",
+  "name": "id",
+  "className": "success--text",
+  "label": "唯一标识",
+  "readonly": true,
+  ```
   - data: 用于标识当前模块的数据，例如：pageId、pageType、table等
   - body: 用于标识当前模块的子模块，例如：pageHeader、bulkActions、headerToolbar、footerToolbar、columns等
     - 各个子模块都使用相同的数据协议type、data、body来标识

@@ -6,7 +6,7 @@
     "table": "student",
     "title": "学生管理"
   },
-  "title": "标题",
+  "title": "${title}",
   "subTitle": "副标题",
   "pageHeader": [{
       "type": "v-breadcrumbs",
@@ -62,6 +62,7 @@
         "label": "ID",
         "type": "v-text-field",
         "width": 20,
+        "hidden": true,
         "sortable": true,
         "props": {
           "color": "red",
