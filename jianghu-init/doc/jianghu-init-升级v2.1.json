@@ -4,7 +4,10 @@
   "table": "student",
   "title": "学生管理",
   "pageHeader": [{
-      "breadcrumbs": ["首页", "学生管理"]
+      "type": "v-breadcrumbs",
+      "props": {
+        "items": ["首页", "学生管理"]
+      }
     },{
       "type": "v-select",
       "label": "性别",
@@ -30,7 +33,10 @@
       "type": "v-text-field",
       "width": 20,
       "sortable": true,
-      "searchable": false
+      "searchable": false,
+      "props": {
+        "color": "red"
+      }
     },
     {
       "name": "gender",
@@ -42,7 +48,10 @@
       "rules": [
         "v => !!v || '此项必填'",
         "v => !!v != 2 || '此项必须===2'"
-      ]
+      ],
+      "props": {
+        "color": "red"
+      }
     },
     {
       "name": "classId",
@@ -50,7 +59,10 @@
       "type": "v-text-field",
       "required": false,
       "sortable": true,
-      "searchable": false
+      "searchable": false,
+      "props": {
+        "color": "red"
+      }
     },
     {
       "type": "action",

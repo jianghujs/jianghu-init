@@ -1,0 +1,97 @@
+{
+    "pageType": "2table-page",
+
+    "tableA": {
+      "pageId": "classManagement",
+      "table": "class",
+      "name": "班级",
+      "primaryField": "classId"
+    },
+    "tableB": {
+      "pageId": "studentManagementOfOneClass",
+      "table": "student",
+      "name": "学生",
+      "primaryField": "studentId"
+    },
+    "basicPageContent": {
+      "pageHeader": [{
+        "type": "v-breadcrumbs",
+        "props": {
+          "items": ["首页", "学生管理"]
+        }
+      },{
+        "type": "v-select",
+        "label": "性别",
+        "align": "right",
+        "props": {
+          "items": ["全部", "男", "女"]
+        }
+      }],
+      "tableHeader": [
+        {
+          "type": "v-btn",
+          "label": "新增",
+          "props": {
+            "class": "v-middle"
+          }
+        }
+      ],
+      "tableFooter": [
+        "pagination" 
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "label": "ID",
+          "type": "v-text-field",
+          "width": 20,
+          "sortable": true,
+          "searchable": false,
+          "props": {
+            "color": "red"
+          }
+        },
+        {
+          "name": "gender",
+          "label": "性别",
+          "type": "v-text-field",
+          "required": true,
+          "sortable": true,
+          "searchable": true,
+          "rules": [
+            "v => !!v || '此项必填'",
+            "v => !!v != 2 || '此项必须===2'"
+          ],
+          "props": {
+            "color": "red"
+          }
+        },
+        {
+          "name": "classId",
+          "label": "班级",
+          "type": "v-text-field",
+          "required": false,
+          "sortable": true,
+          "searchable": false,
+          "props": {
+            "color": "red"
+          }
+        },
+        {
+          "type": "action",
+          "label": "操作",
+          "width": 100,
+          "actions": [
+            {
+              "type": "v-btn",
+              "label": "修改"
+            },
+            {
+              "type": "v-btn",
+              "label": "删除"
+            }
+          ]
+        }
+      ]
+    }
+  }
