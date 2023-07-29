@@ -1,4 +1,4 @@
-# jianghu-init-json协议配置
+# jianghu-init-json协议配置文档
 
 ## 页面配置框架
 - `pageType`: **页面类型，指示页面的布局类型为 "1table-page"，表示该页面包含一个表格。**
@@ -18,7 +18,7 @@
   - `pageId`: **页面标识符，用于一标识页面: "studentManagement"。**
   - `table`: **表格标识符，指示该表格对应的数据表为 "student"。**
   - `pageContent`: **页面布局,继承pageBasicContent**
-- `pageBasicContent`: **页面布局。**
+- `pageBasicContent`: **页面布局配置。**
   - `pageHeader`: **页面头部。**
   - `tableHeader`: **表格头部。**
   - `tableFooter`: **表格页脚。**
@@ -50,7 +50,7 @@
 | ----- | ------ | ------------------- |
 | type  | 必传   | vuetify组件名       |
 | label | ''     | 组件名label名       |
-| align | right  | 左右浮动            |
+| align | right  | 对齐方式            |
 | props | {}     | 原生vuetify组件属性 |
 `面包屑`
 ```json
@@ -83,7 +83,7 @@
 | ----- | ------ | ------------------- |
 | type  | 必传   | vuetify组件名       |
 | label | ''     | 组件名label名       |
-| align | right  | 左右浮动            |
+| align | right  | 对齐方式            |
 | props | {}     | 原生vuetify组件属性 |
 `操作按钮`
 ```json
@@ -184,7 +184,7 @@
 | ----- | ------ | ------------------- |
 | type  | 必传   | vuetify组件名       |
 | label | ''     | 组件名label名       |
-| align | right  | 左右浮动            |
+| align | right  | 对齐方式            |
 | props | {}     | 原生vuetify组件属性 |
 
 `字段校验规则`
