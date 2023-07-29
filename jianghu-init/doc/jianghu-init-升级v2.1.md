@@ -26,13 +26,13 @@
 
 ## 协议字段配置
 ### Page
-| 属性             | 默认值 | 说明                                       |
-| ---------------- | ------ | ------------------------------------------ |
-| pageType         | 必传  | 页面类型 eg: 1table-page                   |
-| tableA           | 必传[[Table*](#Table*)]   | 数据库表A   eg: class                      |
-| tableB           | {}[[Table*](#Table*)]     | 数据库表B eg: student                      |
-| tableABRelation  | {}[[Table*](#Table*)]     | 数据库表A、表B关联关系表 eg: student_class |
-| pageBasicContent | 必传[[PageBasicContent](#PageBasicContent)]   | 页面内容体                                 |
+| 属性             | 默认值                                      | 说明                                       |
+| ---------------- | ------------------------------------------- | ------------------------------------------ |
+| pageType         | 必传                                        | 页面类型 eg: 1table-page                   |
+| tableA           | 必传[[Table*](#Table*)]                     | 数据库表A   eg: class                      |
+| tableB           | {}[[Table*](#Table*)]                       | 数据库表B eg: student                      |
+| tableABRelation  | {}[[Table*](#Table*)]                       | 数据库表A、表B关联关系表 eg: student_class |
+| pageBasicContent | 必传[[PageBasicContent](#PageBasicContent)] | 页面内容体                                 |
 
 ### Table*
 | 属性         | 默认值 | 说明                             |
