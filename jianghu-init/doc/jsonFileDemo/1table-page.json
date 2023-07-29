@@ -2,6 +2,7 @@
     "pageType": "1table-page",
     "pageId": "studentManagement",
     "table": "student",
+    
     "pageHeader": [{
         "type": "v-breadcrumbs",
         "props": {

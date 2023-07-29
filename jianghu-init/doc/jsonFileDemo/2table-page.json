@@ -11,7 +11,22 @@
       "pageId": "studentManagementOfOneClass",
       "table": "student",
       "name": "学生",
-      "primaryField": "studentId"
+      "primaryField": "studentId",
+      "pageContent": {
+        "pageHeader": [{
+          "type": "v-breadcrumbs",
+          "props": {
+            "items": ["首页", "学生管理"]
+          }
+        },{
+          "type": "v-select",
+          "label": "性别",
+          "align": "right",
+          "props": {
+            "items": ["全部", "男", "女"]
+          }
+        }]
+      }
     },
     "basicPageContent": {
       "pageHeader": [{
