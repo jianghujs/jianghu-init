@@ -1,0 +1,122 @@
+{
+  "pageType": "1table-page",
+  "pageId": "studentManagement",
+  "table": "student",
+  "pageHeader": {
+    "title": "studentManagement",
+    "pageDocEnable": true,
+    "pageDocSrc": "studentManagement.md",
+    "backendSearch": {
+      "submitBtn": "搜索",
+      "items": [
+        {
+          "type": "v-select",
+          "label": "性别",
+          "props": {
+            "items": [
+              "全部",
+              "男",
+              "女"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "tableHeader": {
+    "btnList": [
+      {
+        "title": "新增",
+        "uiActionId": "createItem",
+        "uiActionData": {}
+      },
+      {
+        "title": "导出",
+        "uiActionId": "exportItem",
+        "uiActionData": {}
+      },
+      {
+        "title": "导入",
+        "uiActionId": "importItem",
+        "uiActionData": {}
+      }
+    ],
+    "searchIgnoreFields": [
+      "name",
+      "title"
+    ]
+  },
+  "tableBody": {
+    "operationPosition": "left",
+    "operationBtnList": [
+      {
+        "title": "修改",
+        "uiActionId": "updateItem",
+        "uiActionData": {}
+      },
+      {
+        "title": "删除",
+        "uiActionId": "deleteItem",
+        "uiActionData": {}
+      }
+    ],
+    // "headers": [
+    //   {"text": "ID", "value": "id", "width": 120},
+    //   {"text": "学生ID", "value": "studentId", "width": 120}, 
+    // ],
+
+    "zebraLineEnable": true
+  },
+  "tableFooter": {
+    "itemsPerPageText": "每页",
+    "itemsPerPageOptions": [
+      20,
+      50,
+      -1
+    ],
+    "itemsPerPageAllText": "所有"
+  },
+  "columns": [
+    {
+      "name": "id",
+      "label": "ID",
+      "type": "v-text-field",
+      "width": 20,
+      "align": "center",
+      "fixed": true,
+      "createEnable": true,
+      "updateEnable": true,
+      "sortable": true,
+      "searchable": false,
+      "props": {
+        "color": "red"
+      }
+    },
+    {
+      "name": "gender",
+      "label": "性别",
+      "type": "v-text-field",
+      "required": true,
+      "sortable": true,
+      "searchable": true,
+      "rules": [
+        "v => !!v || '此项必填'",
+        "v => !!v != 2 || '此项必须===2'"
+      ],
+      "props": {
+        "color": "red"
+      }
+    },
+    {
+      "name": "classId",
+      "label": "班级",
+      "type": "v-text-field",
+      "required": false,
+      "sortable": true,
+      "searchable": false,
+      "props": {
+        "color": "red"
+      }
+    }
+  ]
+}
