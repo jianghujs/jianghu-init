@@ -8,13 +8,13 @@
   - `name`: **字段业务属性名 "学生"**
   - `primaryField`: **业务id "studentId"**
   - `pageContent`: **页面布局,继承pageBasicContent**
-- `tableB`
+- `tableB(非必须)`
   - `pageId`: **页面标识符，用于一标识页面: "studentManagement"。**
   - `table`: **表格标识符，指示该表格对应的数据表为 "student"。**
   - `name`: **字段业务属性名 "学生"**
   - `primaryField`: **业务id "studentId"**
   - `pageContent`: **页面布局,继承pageBasicContent**
-- `tableABRelation`
+- `tableABRelation(非必须)`
   - `pageId`: **页面标识符，用于一标识页面: "studentManagement"。**
   - `table`: **表格标识符，指示该表格对应的数据表为 "student"。**
   - `pageContent`: **页面布局,继承pageBasicContent**
@@ -25,10 +25,18 @@
   - `columns`: **表格列。**
 
 ## 协议字段配置
-### BasicData
+### Page
+| 属性             | 默认值 | 说明                                       |
+| ---------------- | ------ | ------------------------------------------ |
+| pageType         | 必传  | 页面类型 eg: 1table-page                   |
+| tableA           | 必传[[Table*](#Table*)]   | 数据库表A   eg: class                      |
+| tableB           | {}[[Table*](#Table*)]     | 数据库表B eg: student                      |
+| tableABRelation  | {}[[Table*](#Table*)]     | 数据库表A、表B关联关系表 eg: student_class |
+| pageBasicContent | 必传[[PageBasicContent](#PageBasicContent)]   | 页面内容体                                 |
+
+### Table*
 | 属性         | 默认值 | 说明                             |
 | ------------ | ------ | -------------------------------- |
-| pageType     | 必传   | 页面类型 eg: 1table-page         |
 | pageId       | 必传   | 页面ID   eg: studentManagement   |
 | table        | 必传   | 数据库表名 eg: student           |
 | name         | 必传   | 数据库表名 eg: 学生              |
