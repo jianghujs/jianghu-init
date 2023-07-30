@@ -14,42 +14,40 @@ const path = require('path');
  * 根据 table 定义生成 crud 页面
  */
 module.exports = class InitPage1Table extends CommandBase {
-
   async run(cwd, jsonArgv) {
     this.cwd = cwd;
-    const { pageType, table, basicConfig, feature } = jsonArgv;
-    if (!feature.create) feature.create = {enable: false};
-    if (!feature.update) feature.update = {enable: false};
-    if (!feature.delete) feature.delete = {enable: false};
-
+    // 检查配置 && 生成json配置中缺省的默认配置
+    const finalJsonConfig = this.checkAndGenerateDefaultConfig(jsonArgv);
     // 检查当前目录是否是在项目中
     await this.checkPath();
     // 初始化数据库连接
     this.dbSetting = this.readDbConfigFromFile();
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
-    // 如果是 multi，则切换到 user_app_management 获取前缀
-    if (fs.existsSync('../user_app_management')) {
-      const oldCwd = process.cwd();
-      process.chdir('../user_app_management');
-      this.dbPrefix = this.readDbPrefixFromFile();
-      process.chdir(oldCwd);
-      if (this.dbPrefix && this.app.startsWith(this.dbPrefix)) {
-        this.app = this.app.slice(this.dbPrefix.length);
-      }
-    }
     await this.getKnex(this.dbSetting);
     this.success('初始化数据库连接成功');
-
     // generate crud
-    await this.generateCrud({ table, pageType, feature, basicConfig });
+    await this.generateCrud(finalJsonConfig);
     this.success('初始化数据库成功');
+  }
+
+  /** 
+   * 检查配置 && 生成json配置中缺省的默认配置
+   */
+  checkAndGenerateDefaultConfig(originJsonConfig) {
+    const jsonConfig = _.cloneDeep(originJsonConfig);
+    // TODO1: 检查配置
+
+    // TODO2: 生成缺省配置
+    
+    return jsonConfig;
   }
 
   /**
    * 生成 crud
    */
-  async generateCrud({ table, pageType, feature, basicConfig }) {
+  async generateCrud(jsonConfig) {
+    const { pageType, pageId, table, columns } = jsonConfig;
     this.info('开始生成 CRUD');
     if (!table) {
       this.info('未配置table，流程结束');
@@ -57,16 +55,19 @@ module.exports = class InitPage1Table extends CommandBase {
     }
     
     this.info(`开始生成 ${table} 的 CRUD`);
-    const tableCamelCase = _.camelCase(table);
-    let pageId = `${tableCamelCase}Management`;
+
     // 生成 vue
-    if (await this.renderVue(table, pageId, pageType, feature, basicConfig)) {
+    const renderResult = await this.renderVue(table, pageId, pageType, columns);
+    if (renderResult) {
       this.success(`生成 ${table} 的 vue 文件完成`);
 
       // 数据库
       this.info(`开始生成 ${table} 的相关数据`);
-      await this.modifyTable(table, pageId, feature);
+      await this.modifyTable(table, pageId);
       this.success(`生成 ${table} 的相关数据完成`);
+    } else {
+      this.error(`生成 ${table} 的 vue 文件失败`);
+      return;
     }
   }
 
@@ -99,10 +100,6 @@ module.exports = class InitPage1Table extends CommandBase {
       if (line.startsWith('--')) {
         this.info(`正在执行插入/更新 ${line}`);
       } else {
-        if (!feature.create.enable && line.includes('insertItem')) continue;
-        if (!feature.update.enable && line.includes('updateItem')) continue;
-        if (!feature.delete.enable && line.includes('deleteItem')) continue;
-
         await knex.raw(line);
       }
     }
@@ -111,7 +108,7 @@ module.exports = class InitPage1Table extends CommandBase {
   /**
    * 生成 vue
    */
-  async renderVue(table, pageId, pageType, feature, basicConfig) {
+  async renderVue(table, pageId, pageType, columns) {
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
@@ -129,10 +126,8 @@ module.exports = class InitPage1Table extends CommandBase {
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
     const templateTargetPath = `${templatePath}/${pageType}.html.njk`;
     let listTemplate = fs.readFileSync(templateTargetPath).toString();
-    // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
-    listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
 
-    // 生成 vue
+    // 设置njk渲染模板
     nunjucks.configure(templateTargetPath, {
       tags: {
         blockStart: '<=%',
@@ -141,15 +136,21 @@ module.exports = class InitPage1Table extends CommandBase {
         variableEnd: '$=>',
       },
     });
-    const fields = await this.getFields(table, feature, basicConfig);
-    this.info('表字段', fields);
+    //获取数据库表所有原生字段
+    const allFields = await this.getTableFields(table);
+    //获取enableInsertFields、enableUpdateFields
+    const enableInsertFields = await this.getFormInsertFields(allFields, columns);
+    const enableUpdateFields = await this.getFormUpdateFields(allFields, columns);
+    //获取tableHeaders
+    const tableHeaders = await this.getTableHeaders(allFields, columns);
+   
     const result = nunjucks.renderString(listTemplate, {
       table,
       tableCamelCase,
       pageId,
-      fields,
-      basicConfig,
-      feature
+      enableInsertFields,
+      enableUpdateFields,
+      tableHeaders
     });
 
     fs.writeFileSync(filepath, result);
@@ -157,9 +158,52 @@ module.exports = class InitPage1Table extends CommandBase {
   }
 
   /**
-   * 获取表字段
+   * 获取可以创建的表单字段信息
+   * @param {*} fields 
+   * @param {*} columns 
+   * @returns 
    */
-  async getFields(table, feature, basicConfig) {
+  async getFormInsertFields(fields, columns){
+    const enableInsertColumnNames = columns.filter(column => column.createEnable !== false).map(x => x.name);
+    const enableInsertFields = fields.filter(field => enableInsertColumnNames.includes(field.COLUMN_NAME));
+    return enableInsertFields;
+  }
+
+  /**
+   * 获取可以更新的表单字段信息
+   * @param {*} fields 
+   * @param {*} columns 
+   * @returns 
+   */
+  async getFormUpdateFields(fields, columns){
+    const enableUpdateColumnNames = columns.filter(column => column.updateEnable !== false).map(x => x.name);
+    const enableUpdateFields = fields.filter(field => enableUpdateColumnNames.includes(field.COLUMN_NAME));
+    return enableUpdateFields;
+  }
+
+  async getTableHeaders(fields, columns){
+    const tableHeaders = [];
+    // TODO 根据配置动态获取
+    tableHeaders.push({text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'});
+
+    for (const column of columns) {
+      const fieldInfo = fields.find(x => x.COLUMN_NAME === column.name) || {};
+      if (!_.isEmpty(fieldInfo)) {
+        tableHeaders.push({
+          text: fieldInfo.COLUMN_COMMENT, 
+          value: fieldInfo.COLUMN_NAME, 
+          width: column.width
+        })
+      }
+    }
+    
+    return tableHeaders;
+  }
+
+  /**
+   * 获取数据库表所有原生字段
+   */
+  async getTableFields(table) {
     const knex = await this.getKnex();
     const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT').from('INFORMATION_SCHEMA.COLUMNS').where({
       TABLE_SCHEMA: this.dbSetting.database,
@@ -184,12 +228,7 @@ module.exports = class InitPage1Table extends CommandBase {
         COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '').split(';')[0].split('；')[0].split(':')[0],
       };
     });
-    const tableFields = columns.filter(column => ![ ...defaultColumn, ...basicConfig.tableIgnoreFields, 'id' ].includes(column.COLUMN_NAME));
 
-    let createFields = tableFields, updateFields = tableFields;
-    if(!_.isEmpty(feature.create.ignoreFields)) createFields = columns.filter(column => !feature.create.ignoreFields.includes(column.COLUMN_NAME));
-    if(!_.isEmpty(feature.update.ignoreFields)) updateFields = columns.filter(column => !feature.update.ignoreFields.includes(column.COLUMN_NAME));
-
-    return { tableFields, createFields, updateFields};
+    return columns;
   }
 };

@@ -60,11 +60,6 @@
         "uiActionData": {}
       }
     ],
-    // "headers": [
-    //   {"text": "ID", "value": "id", "width": 120},
-    //   {"text": "学生ID", "value": "studentId", "width": 120}, 
-    // ],
-
     "zebraLineEnable": true
   },
   "tableFooter": {
