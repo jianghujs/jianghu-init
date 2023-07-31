@@ -53,14 +53,11 @@ module.exports = class InitPage1Table extends CommandBase {
       this.info('未配置table，流程结束');
       return;
     }
-    
     this.info(`开始生成 ${table} 的 CRUD`);
-
     // 生成 vue
     const renderResult = await this.renderVue(table, pageId, pageType, columns);
     if (renderResult) {
       this.success(`生成 ${table} 的 vue 文件完成`);
-
       // 数据库
       this.info(`开始生成 ${table} 的相关数据`);
       await this.modifyTable(table, pageId);
@@ -73,7 +70,6 @@ module.exports = class InitPage1Table extends CommandBase {
 
   async modifyTable(table, pageId, feature) {
     const knex = await this.getKnex();
-
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
 
     let clearSql = fs.readFileSync(`${templatePath}/clear_crud.sql`).toString();
@@ -112,22 +108,11 @@ module.exports = class InitPage1Table extends CommandBase {
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
-    if (fs.existsSync(filepath)) {
-      const isBackUp = await this.readlineMethod(`文件 ${filepath} 已经存在，是否备份?(y/N)`, 'n');
-      if (['y', 'Y'].includes(isBackUp)) {
-        const bakPath = `./app/view/page/${pageId}-bak`;
-        if (!fs.existsSync(bakPath)) fs.mkdirSync(bakPath);
-        const backFilePath = `${bakPath}/${pageId}.html.${moment().format('YYYYMMDDHHmmss')}`;
-        fs.copyFileSync(filepath, backFilePath);
-      }
-    }
-
-    // 读取文件
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
-    const templateTargetPath = `${templatePath}/${pageType}.html.njk`;
-    let listTemplate = fs.readFileSync(templateTargetPath).toString();
+    await this.handleViewBackUp(pageId, filepath);
 
     // 设置njk渲染模板
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
+    const templateTargetPath = `${templatePath}/${pageType}.html.njk`;
     nunjucks.configure(templateTargetPath, {
       tags: {
         blockStart: '<=%',
@@ -136,6 +121,7 @@ module.exports = class InitPage1Table extends CommandBase {
         variableEnd: '$=>',
       },
     });
+
     //获取数据库表所有原生字段
     const allFields = await this.getTableFields(table);
     //获取enableInsertFields、enableUpdateFields
@@ -144,6 +130,7 @@ module.exports = class InitPage1Table extends CommandBase {
     //获取tableHeaders
     const tableHeaders = await this.getTableHeaders(allFields, columns);
    
+    const listTemplate = fs.readFileSync(templateTargetPath).toString();
     const result = nunjucks.renderString(listTemplate, {
       table,
       tableCamelCase,
@@ -158,9 +145,28 @@ module.exports = class InitPage1Table extends CommandBase {
   }
 
   /**
+   * 处理文件备份
+   * @param {String} pageId
+   * @param {String} filepath
+   * @returns 
+   */
+  async handleViewBackUp(pageId, filepath){
+    // 写文件前确认是否覆盖
+    if (fs.existsSync(filepath)) {
+      const isBackUp = await this.readlineMethod(`文件 ${filepath} 已经存在，是否备份?(y/N)`, 'n');
+      if (['y', 'Y'].includes(isBackUp)) {
+        const bakPath = `./app/view/page/${pageId}-bak`;
+        if (!fs.existsSync(bakPath)) fs.mkdirSync(bakPath);
+        const backFilePath = `${bakPath}/${pageId}.html.${moment().format('YYYYMMDDHHmmss')}`;
+        fs.copyFileSync(filepath, backFilePath);
+      }
+    }
+  }
+
+  /**
    * 获取可以创建的表单字段信息
-   * @param {*} fields 
-   * @param {*} columns 
+   * @param {Array} fields 
+   * @param {Array} columns 
    * @returns 
    */
   async getFormInsertFields(fields, columns){
@@ -171,8 +177,8 @@ module.exports = class InitPage1Table extends CommandBase {
 
   /**
    * 获取可以更新的表单字段信息
-   * @param {*} fields 
-   * @param {*} columns 
+   * @param {Array} fields 
+   * @param {Array} columns 
    * @returns 
    */
   async getFormUpdateFields(fields, columns){
@@ -181,6 +187,12 @@ module.exports = class InitPage1Table extends CommandBase {
     return enableUpdateFields;
   }
 
+  /**
+   * 获取tableHeaders
+   * @param {Array} fields 
+   * @param {Array} columns 
+   * @returns 
+   */
   async getTableHeaders(fields, columns){
     const tableHeaders = [];
     // TODO 根据配置动态获取
@@ -202,6 +214,8 @@ module.exports = class InitPage1Table extends CommandBase {
 
   /**
    * 获取数据库表所有原生字段
+   * @param {String} table
+   * @returns
    */
   async getTableFields(table) {
     const knex = await this.getKnex();
