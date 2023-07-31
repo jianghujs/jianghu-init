@@ -36,9 +36,22 @@ module.exports = class InitPage1Table extends CommandBase {
    */
   checkAndGenerateDefaultConfig(originJsonConfig) {
     const jsonConfig = _.cloneDeep(originJsonConfig);
-    // TODO1: 检查配置
-
-    // TODO2: 生成缺省配置
+    // 1: 检查配置
+    if (!jsonConfig.pageId) {
+      this.info('未配置pageId，流程结束');
+      return;
+    }
+    if (!jsonConfig.table) {
+      this.info('未配置数据库table，流程结束');
+      return;
+    }
+    // 2: 生成缺省配置
+    for (const column of jsonConfig.columns) {
+      if (!_.isBoolean(column.sortable)) column.sortable = true;
+      if (!_.isBoolean(column.fixed)) column.fixed = false;
+      if (!column.width) column.width = 80;
+      if (!column.align) column.align = "left";
+    }
     
     return jsonConfig;
   }
@@ -68,7 +81,7 @@ module.exports = class InitPage1Table extends CommandBase {
     }
   }
 
-  async modifyTable(table, pageId, feature) {
+  async modifyTable(table, pageId) {
     const knex = await this.getKnex();
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
 
@@ -113,6 +126,7 @@ module.exports = class InitPage1Table extends CommandBase {
     // 设置njk渲染模板
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
     const templateTargetPath = `${templatePath}/${pageType}.html.njk`;
+    const listTemplate = fs.readFileSync(templateTargetPath).toString();
     nunjucks.configure(templateTargetPath, {
       tags: {
         blockStart: '<=%',
@@ -130,7 +144,6 @@ module.exports = class InitPage1Table extends CommandBase {
     //获取tableHeaders
     const tableHeaders = await this.getTableHeaders(allFields, columns);
    
-    const listTemplate = fs.readFileSync(templateTargetPath).toString();
     const result = nunjucks.renderString(listTemplate, {
       table,
       tableCamelCase,

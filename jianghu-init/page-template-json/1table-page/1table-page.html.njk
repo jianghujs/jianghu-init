@@ -288,20 +288,11 @@ new Vue({
     isTableLoading: true,
     tableData: [],
     headers: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
-      {text: "ID", value: "id", width: 120},
-       
-      {text: "学生ID", value: "studentId", width: 120}, 
-      {text: "学生名字", value: "name", width: 120}, 
-      {text: "性别", value: "gender", width: 120}, 
-      {text: "出生日期", value: "dateOfBirth", width: 120}, 
-      {text: "班级ID", value: "classId", width: 120}, 
-      {text: "年级", value: "level", width: 120}, 
-      {text: "身高", value: "bodyHeight", width: 120}, 
-      {text: "学生状态", value: "studentStatus", width: 120}, 
-      {text: "备注", value: "remarks", width: 120}, 
+      <=%- for header in tableHeaders %=>
+      {text: "<=$ header.text $=>", value: "<=$ header.value $=>", <=% if header.align %=>align: "<=$ header.align $=>",<=% endif %=><=% if header.sortable %=>sortable: "<=$ header.sortable $=>",<=% endif %=><=% if header.width %=>width: "<=$ header.width $=>",<=% endif %=><=% if header.class %=>class: "<=$ header.class $=>",<=% endif %=><=% if header.cellClass %=>cellClass: "<=$ header.cellClass $=>",<=% endif %=>},
+      <=%- endfor %=>
       {text: "操作者", value: "operationByUser", width: 120},
-      {text: "操作时间", value: "operationAt", width: 250},
+      {text: "操作时间", value: "operationAt", width: 120}
     ],
 
     isCreateDrawerShown: false,
