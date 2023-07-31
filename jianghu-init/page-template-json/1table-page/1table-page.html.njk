@@ -95,53 +95,14 @@
           <!-- 抽屉表单 -->
           <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
           <v-row class="mt-0 px-4">
+            <=% for f in enableCreateColumns %=>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生ID</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.studentId"></v-text-field>
+              <span class="jh-input-label"><=$ f.label $=></span>
+              <=%- if f.type == "v-text-field" %=> <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ f.name $=>"></v-text-field> <=% endif %=>
+              <=%- if f.type == "v-select" %=> <v-select class="cus-v-input mr-2" dense filled single-line v-model="createItem.<=$ f.name $=>" :items='constantObj.<=$ f.name $=>Items' :rules="validationRules.<=$ f.name $=>Rules"></v-select> <=% endif %=>
             </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生名字</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.name"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">性别</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.gender"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">出生日期</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.dateOfBirth"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">班级ID</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.classId"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">年级</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.level"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">身高</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.bodyHeight"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生状态</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.studentStatus"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">备注</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.remarks"></v-text-field>
-            </v-col>
-             
+            <=% endfor %=>
           </v-row>
-
           <!-- 抽屉操作按钮 -->
           <v-row class="justify-end mx-0 mt-8 px-6">
             <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
@@ -162,53 +123,13 @@
           </v-row>
           <!-- 抽屉表单 -->
           <v-row class="mt-0 px-4">
-            <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
-             
+            <=% for f in enableUpdateColumns %=>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生ID</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.studentId"></v-text-field>
+              <span class="jh-input-label"><=$ f.label $=></span>
+              <=%- if f.type == "v-text-field" %=> <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ f.name $=>"></v-text-field> <=% endif %=>
+              <=%- if f.type == "v-select" %=> <v-select class="cus-v-input mr-2" dense filled single-line v-model="updateItem.<=$ f.name $=>" :items='constantObj.<=$ f.name $=>Items' :rules="validationRules.<=$ f.name $=>Rules"></v-select> <=% endif %=>
             </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生名字</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.name"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">性别</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.gender"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">出生日期</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.dateOfBirth"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">班级ID</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.classId"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">年级</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.level"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">身高</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.bodyHeight"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生状态</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.studentStatus"></v-text-field>
-            </v-col>
-             
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">备注</span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.remarks"></v-text-field>
-            </v-col>
-                       
+            <=% endfor %=>  
           </v-row>
           <!-- 抽屉操作按钮 -->
           <v-row class="justify-end mx-0 mt-8 px-6">
@@ -273,13 +194,16 @@ new Vue({
     // 表格相关数据
     isTableZebraLineShown: true,
     validationRules: {
-      requireRules: [
-        v => !!v || 'This is required',
-      ],
+      <=%- for column in enableCreateColumns %=>
+      <=% if column.required %=> requireRules: [ v => !!v || 'This is required' ],<=% endif %=>
+      <=% if column.rules %=> <=$ column.name $=>Rules: [<=$ column.rules | safe $=>],<=% endif %=>
+      <=%- endfor -%=>
     },
     // 下拉选项
     constantObj: {
-      gender: [{"value": null, "text": "全部"}, {"value": "male", "text": "男"}, {"value": "female", "text": "女"}],
+      <=%- for column in enableCreateColumns %=>
+      <=% if column.items %=> <=$ column.name $=>Items: <=$ column.items | toArrayString | safe $=>,<=% endif %=>
+      <=%- endfor -%=>
     },
     serverSearchInput: {
       gender: null
@@ -289,7 +213,7 @@ new Vue({
     tableData: [],
     headers: [
       <=%- for header in tableHeaders %=>
-      {text: "<=$ header.text $=>", value: "<=$ header.value $=>", <=% if header.align %=>align: "<=$ header.align $=>",<=% endif %=><=% if header.sortable %=>sortable: "<=$ header.sortable $=>",<=% endif %=><=% if header.width %=>width: "<=$ header.width $=>",<=% endif %=><=% if header.class %=>class: "<=$ header.class $=>",<=% endif %=><=% if header.cellClass %=>cellClass: "<=$ header.cellClass $=>",<=% endif %=>},
+      {text: "<=$ header.text $=>", value: "<=$ header.value $=>", <=% if header.align %=>align: "<=$ header.align $=>",<=% endif %=><=% if header.sortable %=>sortable: "<=$ header.sortable $=>",<=% endif %=><=% if header.width %=>width: <=$ header.width $=>,<=% endif %=><=% if header.class %=>class: "<=$ header.class $=>",<=% endif %=><=% if header.cellClass %=>cellClass: "<=$ header.cellClass $=>",<=% endif %=>},
       <=%- endfor %=>
       {text: "操作者", value: "operationByUser", width: 120},
       {text: "操作时间", value: "operationAt", width: 120}

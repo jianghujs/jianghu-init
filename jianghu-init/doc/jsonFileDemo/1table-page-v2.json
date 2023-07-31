@@ -79,8 +79,8 @@
       "width": 20,
       "align": "center",
       "fixed": true,
-      "createEnable": true,
-      "updateEnable": true,
+      "createEnable": false,
+      "updateEnable": false,
       "sortable": true,
       "searchable": false,
       "props": {
@@ -90,13 +90,13 @@
     {
       "name": "gender",
       "label": "性别",
-      "type": "v-text-field",
+      "type": "v-select",
       "required": true,
       "sortable": true,
       "searchable": true,
+      "items": ["全部", "男", "女"],
       "rules": [
-        "v => !!v || '此项必填'",
-        "v => !!v != 2 || '此项必须===2'"
+        "v => !!v === 2 || '此项必须===2'"
       ],
       "props": {
         "color": "red"

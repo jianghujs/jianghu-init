@@ -47,7 +47,12 @@ module.exports = class InitPage1Table extends CommandBase {
     }
     // 2: 生成缺省配置
     for (const column of jsonConfig.columns) {
+      // TODO: 检查 column 组件type
+      const supportType = ["v-text-field", "v-textarea", "v-select", "v-date-picker", "v-checkbox"]
+      if (!supportType.includes(column.type)) column.type = "v-text-field";
       if (!_.isBoolean(column.sortable)) column.sortable = true;
+      if (!_.isBoolean(column.createEnable)) column.createEnable = true;
+      if (!_.isBoolean(column.updateEnable)) column.updateEnable = true;
       if (!_.isBoolean(column.fixed)) column.fixed = false;
       if (!column.width) column.width = 80;
       if (!column.align) column.align = "left";
@@ -127,7 +132,7 @@ module.exports = class InitPage1Table extends CommandBase {
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
     const templateTargetPath = `${templatePath}/${pageType}.html.njk`;
     const listTemplate = fs.readFileSync(templateTargetPath).toString();
-    nunjucks.configure(templateTargetPath, {
+    const nunjucksEnv = nunjucks.configure(templateTargetPath, {
       tags: {
         blockStart: '<=%',
         blockEnd: '%=>',
@@ -139,17 +144,21 @@ module.exports = class InitPage1Table extends CommandBase {
     //获取数据库表所有原生字段
     const allFields = await this.getTableFields(table);
     //获取enableInsertFields、enableUpdateFields
-    const enableInsertFields = await this.getFormInsertFields(allFields, columns);
-    const enableUpdateFields = await this.getFormUpdateFields(allFields, columns);
+    const enableCreateColumns = await this.getFormCreateColumns(allFields, columns);
+    const enableUpdateColumns = await this.getFormUpdateColumns(allFields, columns);
     //获取tableHeaders
     const tableHeaders = await this.getTableHeaders(allFields, columns);
    
+    nunjucksEnv.addFilter('toArrayString', function(array) {
+      return JSON.stringify(array);
+    });
+    
     const result = nunjucks.renderString(listTemplate, {
       table,
       tableCamelCase,
       pageId,
-      enableInsertFields,
-      enableUpdateFields,
+      enableCreateColumns,
+      enableUpdateColumns,
       tableHeaders
     });
 
@@ -182,10 +191,10 @@ module.exports = class InitPage1Table extends CommandBase {
    * @param {Array} columns 
    * @returns 
    */
-  async getFormInsertFields(fields, columns){
-    const enableInsertColumnNames = columns.filter(column => column.createEnable !== false).map(x => x.name);
-    const enableInsertFields = fields.filter(field => enableInsertColumnNames.includes(field.COLUMN_NAME));
-    return enableInsertFields;
+  async getFormCreateColumns(fields, columns){
+    const enableInsertFieldNames = fields.map(field => field.COLUMN_NAME);
+    const enableCreateColumns = columns.filter(column => column.createEnable !== false && enableInsertFieldNames.includes(column.name));
+    return enableCreateColumns;
   }
 
   /**
@@ -194,10 +203,10 @@ module.exports = class InitPage1Table extends CommandBase {
    * @param {Array} columns 
    * @returns 
    */
-  async getFormUpdateFields(fields, columns){
-    const enableUpdateColumnNames = columns.filter(column => column.updateEnable !== false).map(x => x.name);
-    const enableUpdateFields = fields.filter(field => enableUpdateColumnNames.includes(field.COLUMN_NAME));
-    return enableUpdateFields;
+  async getFormUpdateColumns(fields, columns){
+    const enableUpdateFieldNames = fields.map(field => field.COLUMN_NAME);
+    const enableUpdateColumns = columns.filter(column => column.updateEnable !== false && enableUpdateFieldNames.includes(column.name));
+    return enableUpdateColumns;
   }
 
   /**
