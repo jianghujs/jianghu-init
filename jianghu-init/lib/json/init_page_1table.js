@@ -133,6 +133,7 @@ module.exports = class InitPage1Table extends CommandBase {
     const templateTargetPath = `${templatePath}/${pageType}.html.njk`;
     const listTemplate = fs.readFileSync(templateTargetPath).toString();
     const nunjucksEnv = nunjucks.configure(templateTargetPath, {
+      autoescape: false,
       tags: {
         blockStart: '<=%',
         blockEnd: '%=>',

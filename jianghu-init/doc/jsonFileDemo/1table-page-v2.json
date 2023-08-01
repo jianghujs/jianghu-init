@@ -88,6 +88,10 @@
       }
     },
     {
+      "name": "studentId",
+      "label": "学生ID"
+    },
+    {
       "name": "gender",
       "label": "性别",
       "type": "v-select",
@@ -112,6 +116,10 @@
       "props": {
         "color": "red"
       }
+    },
+    {
+      "name": "dateOfBirth",
+      "label": "生日"
     }
   ]
 }
