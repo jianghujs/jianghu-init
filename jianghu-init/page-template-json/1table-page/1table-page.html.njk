@@ -137,27 +137,23 @@
           </v-row>
           <!-- 抽屉表单 -->
           <v-row class="mt-0 px-4">
-            <=% for f in enableUpdateColumns %=>
+            <=%- for f in enableUpdateColumns %=>
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label"><=$ f.label $=></span>
-              <=%- if f.type == "v-text-field" %=> 
+              <=% if f.type == "v-text-field" -%=> 
               <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ f.name $=>" :rules="validationRules.<=$ f.name $=>Rules"></v-text-field> 
-              <=% endif %=>
-
-              <=%- if f.type == "v-select" %=> 
+              <=%- elif f.type == "v-select" -%=>
               <v-select class="cus-v-input mr-2" dense filled single-line v-model="updateItem.<=$ f.name $=>" :items='constantObj.<=$ f.name $=>Items' :rules="validationRules.<=$ f.name $=>Rules"></v-select> 
-              <=% endif %=>
-
-              <=%- if f.type == "v-date-picker" %=> 
+              <=%- elif f.type == "v-date-picker" -%=> 
               <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
                   <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.<=$ f.name $=>" class="cus-v-input" dense single-line filled readonly label="<=$ f.label $=>"></v-text-field>
                 </template>
                 <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ f.name $=>"></v-date-picker>
               </v-menu>
-              <=% endif %=>
+              <=%- endif %=>
             </v-col>
-            <=% endfor %=>  
+            <=%- endfor %=>  
           </v-row>
           <!-- 抽屉操作按钮 -->
           <v-row class="justify-end mx-0 mt-8 px-6">
@@ -222,16 +218,14 @@ new Vue({
     // 表格相关数据
     isTableZebraLineShown: true,
     validationRules: {
-      <=%- for column in enableCreateColumns %=>
-      <=% if column.required %=> requireRules: [v => !!v || 'This is required'],<=% endif %=>
-      <=% if column.rules %=> <=$ column.name $=>Rules: [<=$ column.rules $=>],<=% endif %=>
-      <=%- endfor -%=>
+      <=% for column in enableCreateColumns %=><=% if column.rules -%=> <=$ column.name $=>Rules: [
+        <=% if column.required %=>v => !!v || 'This is required',<=% endif %=>
+        <=$ column.rules | join(',\n') | indent(8) $=>
+      ],<=% endif %=><=% endfor %=>
     },
     // 下拉选项
     constantObj: {
-      <=%- for column in enableCreateColumns %=>
-      <=% if column.items %=> <=$ column.name $=>Items: <=$ column.items | toArrayString $=>,<=% endif %=>
-      <=%- endfor -%=>
+      <=% for column in enableCreateColumns %=><=% if column.items %=> <=$ column.name $=>Items: <=$ column.items | toArrayString $=>,<=% endif %=><=% endfor %=>
     },
     serverSearchInput: {
       gender: null

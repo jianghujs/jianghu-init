@@ -4,23 +4,19 @@
   "table": "student",
   "pageHeader": {
     "title": "studentManagement",
+
     "pageDocEnable": true,
     "pageDocSrc": "studentManagement.md",
+
     "backendSearch": {
       "submitBtn": "搜索",
-      "items": [
-        {
-          "type": "v-select",
-          "label": "性别",
-          "props": {
-            "items": [
-              "全部",
-              "男",
-              "女"
-            ]
-          }
+      "items": [{
+        "type": "v-select",
+        "label": "性别",
+        "props": {
+          "items": ["全部","男","女"]
         }
-      ]
+      }]
     }
   },
   "tableHeader": {
@@ -64,11 +60,7 @@
   },
   "tableFooter": {
     "itemsPerPageText": "每页",
-    "itemsPerPageOptions": [
-      20,
-      50,
-      -1
-    ],
+    "itemsPerPageOptions": [20,50,-1],
     "itemsPerPageAllText": "所有"
   },
   "columns": [
@@ -111,11 +103,12 @@
       "name": "classId",
       "label": "班级",
       "type": "v-text-field",
-      "required": false,
+      "required": true,
       "sortable": true,
       "searchable": false,
       "rules": [
-        "v => v.length > 10 || 'classId must be less than 10 characters'"
+        "v => v.length > 10 || 'classId must be less than 10 characters'",
+        "v => _.startsWith(v, 'S') || 'classId must be start with S'"
       ],
       "props": {
         "color": "red"
