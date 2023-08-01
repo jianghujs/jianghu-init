@@ -80,10 +80,6 @@
       }
     },
     {
-      "name": "studentId1",
-      "label": "学生ID1"
-    },
-    {
       "name": "studentId",
       "label": "学生ID"
     },
