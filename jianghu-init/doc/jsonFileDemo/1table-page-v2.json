@@ -88,6 +88,10 @@
       }
     },
     {
+      "name": "studentId1",
+      "label": "学生ID1"
+    },
+    {
       "name": "studentId",
       "label": "学生ID"
     },
@@ -99,9 +103,6 @@
       "sortable": true,
       "searchable": true,
       "items": ["全部", "男", "女"],
-      "rules": [
-        "v => !!v === 2 || '此项必须===2'"
-      ],
       "props": {
         "color": "red"
       }
@@ -113,6 +114,9 @@
       "required": false,
       "sortable": true,
       "searchable": false,
+      "rules": [
+        "v => v.length > 10 || 'classId must be less than 10 characters'"
+      ],
       "props": {
         "color": "red"
       }
