@@ -119,7 +119,9 @@
     },
     {
       "name": "dateOfBirth",
-      "label": "生日"
+      "label": "生日",
+      "type": "v-date-picker",
+      "props": {}
     }
   ]
 }
