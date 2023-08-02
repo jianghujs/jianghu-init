@@ -76,7 +76,8 @@
       "sortable": true,
       "searchable": false,
       "props": {
-        "color": "red"
+        "color": "red",
+        "placeholder": "请输入ID"
       }
     },
     {
@@ -107,7 +108,8 @@
         "v => _.startsWith(v, 'S') || 'classId must be start with S'"
       ],
       "props": {
-        "color": "red"
+        "color": "red",
+        "placeholder": "请输入ID"
       }
     },
     {

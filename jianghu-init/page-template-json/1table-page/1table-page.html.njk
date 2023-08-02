@@ -99,7 +99,7 @@
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label"><=$ f.label $=></span>
               <=%- if f.type == "v-text-field" %=> 
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ f.name $=>" :rules="validationRules.<=$ f.name $=>Rules"></v-text-field> 
+              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ f.name $=>" :rules="validationRules.<=$ f.name $=>Rules" <=% for prop, value in f.props %=> <=$ prop $=>="<=$ value $=>"<=%- endfor %=>></v-text-field> 
 
               <=%- elif f.type == "v-select" %=>
               <v-select class="cus-v-input mr-2" dense filled single-line v-model="createItem.<=$ f.name $=>" :items='constantObj.<=$ f.name $=>Items' :rules="validationRules.<=$ f.name $=>Rules"></v-select> 
@@ -231,7 +231,11 @@ new Vue({
     },
     // 下拉选项
     constantObj: {
-      <=% for column in enableCreateColumns %=><=% if column.items %=> <=$ column.name $=>Items: <=$ column.items | toArrayString $=>,<=% endif %=><=% endfor %=>
+      <=%- for column in enableCreateColumns %=>
+      <=%- if column.items %=> 
+      <=$ column.name $=>Items: <=$ column.items | toArrayString $=>,
+      <=%- endif %=>
+      <=%- endfor %=>
     },
     serverSearchInput: {
       gender: null
