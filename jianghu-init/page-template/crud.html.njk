@@ -21,24 +21,26 @@ SQL END!-->
   <v-main class="mt-15">
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
-      <v-row>
+      <v-row class="align-center">
         <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-          <div class="pt-3 text-h7 font-weight-bold"><=$ pageId $=>
+          <div class="py-4 text-body-1 font-weight-bold"><=$ pageId $=>
             <!-- 帮助页按钮 -->
-            <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline
-            </v-icon>
+            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+            </span>
           </div>
-          <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
         </v-col>
         <!-- 搜索条件表单 >>>>>>>> -->
         <!-- <v-col cols="12" xs="12" sm="12" md="8" xl="9">
-          <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
-            <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+          <v-row class="jh-backend-form-container justify-end ma-0 py-3">
+            <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-sm-2">
               <v-select v-model="serverSearchInput.gender" color="success" prefix="性别：" class="jh-v-input bg-white" :items="constantObj.gender" dense filled single-line></v-select>
             </v-col>
-            <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">
-              查询
-            </v-btn>
+            <div class="jh-backend-search-btn">
+              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </div>
           </v-row>
         </v-col> -->
         <!-- <<<<<<<< 搜索条件表单 -->
@@ -74,12 +76,32 @@ SQL END!-->
           class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
-            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
-              <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
-            </span>
-            <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-              <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
-            </span>
+            <!-- pc端 -->
+            <template v-if="!isMobile">
+              <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+                <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
+              </span>
+              <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>删除
+              </span>
+            </template>
+            <!-- 手机端 -->
+            <v-menu offset-y v-if="isMobile">
+              <template v-slot:activator="{ on, attrs }">
+                <span role="button" class="success--text font-weight-medium font-size-2"
+                  v-bind="attrs" v-on="on">
+                  操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                </span>
+              </template>
+              <v-list dense>
+                <v-list-item @click="doUiAction('startUpdateItem', item)">
+                  <v-list-item-title>修改</v-list-item-title>
+                </v-list-item>
+                <v-list-item @click="doUiAction('deleteItem', item)">
+                  <v-list-item-title>删除</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </template>
           <!-- 没有数据 -->
           <template v-slot:loading>
@@ -102,12 +124,13 @@ SQL END!-->
       <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="createForm" lazy-validation>
           <!-- 抽屉标题 -->
-          <v-row>
-            <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">新增信息</span>
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">添加信息</span>
           </v-row>
+          <v-divider class="jh-divider"></v-divider>
           <!-- 抽屉表单 -->
-          <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
           <v-row class="mt-0 px-4">
+            <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
             //===// <=% for f in fields %=>
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
@@ -117,9 +140,9 @@ SQL END!-->
           </v-row>
 
           <!-- 抽屉操作按钮 -->
-          <v-row class="justify-end mx-0 mt-8 px-6">
+          <v-row class="justify-end mx-0 mt-8 px-4">
             <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
-            <v-btn class="elevation-0 ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+            <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
           </v-row>
         </v-form>
         <!-- 抽屉关闭按钮 -->
@@ -131,9 +154,10 @@ SQL END!-->
       <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateForm" lazy-validation>
           <!-- 抽屉标题 -->
-          <v-row>
-            <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">修改信息</span>
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">修改信息</span>
           </v-row>
+          <v-divider class="jh-divider"></v-divider>
           <!-- 抽屉表单 -->
           <v-row class="mt-0 px-4">
             <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
@@ -145,9 +169,9 @@ SQL END!-->
             //===// <=% endfor %=>          
           </v-row>
           <!-- 抽屉操作按钮 -->
-          <v-row class="justify-end mx-0 mt-8 px-6">
-            <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
-            <v-btn class="elevation-0 ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+          <v-row class="justify-end mx-0 mt-8 px-4">
+            <v-btn color="success" small @click="doUiAction('updateItem')">保存</v-btn>
+            <v-btn class="ml-2" small @click="isUpdateDrawerShown = false">取消</v-btn>
           </v-row>
         </v-form>
         <!-- 抽屉关闭按钮 -->
@@ -190,17 +214,6 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: () => ({
-    // 面包屑
-    breadcrumbs: [
-      {
-        text: '首页',
-        disabled: true,
-      },
-      {
-        text: '<=$ pageId $=>',
-        disabled: true,
-      }
-    ],
     isHelpPageDrawerShown: false,
     isHelpPageDrawerLoaded: false,
     isMobile: window.innerWidth < 500,
@@ -222,12 +235,12 @@ new Vue({
     isTableLoading: true,
     tableData: [],
     headers: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
-      {text: "ID", value: "id", width: 120},
+      {text: "ID", value: "id", width: 90},
       //===// <=% for f in fields %=>
       {text: "<=$ f.COLUMN_COMMENT.split(';')[0] $=>", value: "<=$ f.COLUMN_NAME $=>", width: 120},//===// <=% endfor %=>
-      {text: "操作者", value: "operationByUser", width: 120},
-      {text: "操作时间", value: "operationAt", width: 250},
+      {text: "操作者", value: "operationByUser", width: 90},
+      {text: "操作时间", value: "operationAt", width: 150},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 60 : 120, class: 'fixed', cellClass: 'fixed'},
     ],
 
     isCreateDrawerShown: false,
@@ -317,6 +330,10 @@ new Vue({
           }
         }
       })).data.appData.resultData.rows;
+
+      rows.forEach(row => {
+        row.operationAt = dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss');
+      })
       this.tableData = rows;
       this.isTableLoading = false;
     },
