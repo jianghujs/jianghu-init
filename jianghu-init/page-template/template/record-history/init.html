@@ -8,26 +8,29 @@
   <v-main class="mt-15">
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
-      <v-row>
+      <v-row class="align-center">
         <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-          <div class="pt-3 text-h7 font-weight-bold">数据历史
+          <div class="py-4 text-body-1 font-weight-bold">数据历史
             <!-- 帮助页按钮 -->
-            <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
+            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+            </span>
           </div>
-          <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
         </v-col>
         <!--pc端的搜索条件表单 >>>>>>>> -->
         <v-col cols="12" xs="12" sm="12" md="8" xl="9">
-          <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
-            <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pr-1 pr-xs-1">
-              <v-select v-model="serverSearchInput.table" color="success" prefix="数据表：" class="jh-v-input bg-white" :items="constantObj.table" dense filled single-line></v-select>
+          <v-row class="jh-backend-form-container justify-end ma-0 py-3">
+            <v-col cols="12" xs="12" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-sm-2">
+              <v-select v-model="serverSearchInput.table" color="success" prefix="数据表：" class="jh-v-input bg-white" :items="constantObj.table" dense filled single-line hide-details></v-select>
             </v-col>
-            <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
-              <v-select v-model="serverSearchInput.dataType" color="success" prefix="数据类型：" class="jh-v-input bg-white" :items="constantObj.dataType" dense filled single-line></v-select>
+            <v-col cols="12" xs="12" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
+              <v-select v-model="serverSearchInput.dataType" color="success" prefix="数据类型：" class="jh-v-input bg-white" :items="constantObj.dataType" dense filled single-line hide-details></v-select>
             </v-col>
-            <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">
-              查询
-            </v-btn>
+            <div class="jh-backend-search-btn">
+              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </div>
           </v-row>
         </v-col>
         <!-- <<<<<<<< pc端的搜索条件表单 -->
@@ -36,10 +39,11 @@
     <!-- <<<<<<<<<<<<< 头部内容 -->
     <div class="jh-page-body-container px-8">
       <!-- 页面主要内容 -->
-      <v-card :class="{'px-2': isMobile}">
-        <v-row class="justify-end ma-0 pa-4" pb-0>
+      <v-card class="rounded-lg">
+        <v-row class="ma-0 pa-4 pb-0">
+          <v-spacer></v-spacer>
           <!--搜索过滤-->
-          <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+          <v-col cols="12" sm="4" md="3" lg="2" xl="2" class="pa-0">
             <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
           </v-col>
         </v-row>
@@ -86,9 +90,13 @@
       </v-card>
 
       <v-navigation-drawer v-model="isHistoryDetailDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-        <!-- 抽屉的头部标题 -->
-        <div class="text-h7 pa-6">数据版本</div>
-        <!-- 抽屉的表格主体 >>>>>>>>>>>>> -->
+        <!-- 抽屉标题 -->
+        <v-row no-gutters>
+          <span class="text-h7 font-weight-bold pa-4">数据版本</span>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+
+        <!-- 表格操作 -->
         <v-data-table
           fixed-header
           checkbox-color="success"
@@ -286,7 +294,7 @@ new Vue({
           }
           headers.push({text: key, value: key, width: 120});
         }
-        headers.unshift({text: '操作', value: 'action', align: 'left', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'});
+        headers.push({text: '操作', value: 'action', align: 'left', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'});
         this.headers = headers;
       }
     },
