@@ -7,11 +7,10 @@
   <div>
     <v-app mobile-breakpoint="sm">
       <jh-menu />
-      <v-main class="mt-15">
+      <v-main class="mt-15" style="overflow: hidden;">
         <!-- 头部内容 >>>>>>>>>>>>> -->
         <div class="jh-page-second-bar px-8">
-          <div class="pt-3 text-h7 font-weight-bold">操作手册</div>
-          <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          <div class="py-4 text-body-1 font-weight-bold">操作手册</div>
         </div>
         <!-- <<<<<<<<<<<<< 头部内容 -->
         <div class="jh-page-body-container px-8">
@@ -39,17 +38,6 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: () => ({
-    // 面包屑
-    breadcrumbs: [
-      {
-        text: '首页',
-        disabled: true,
-      },
-      {
-        text: '操作手册',
-        disabled: true,
-      }
-    ],
     appInfo: window.appInfo,
   }),
   computed: {},
@@ -59,4 +47,9 @@ new Vue({
   methods: {}
 })
 </script>
+<style>
+  .jh-page-doc-container {
+    height: calc(100vh - 116px);
+  }
+</style>
 {% endblock %}

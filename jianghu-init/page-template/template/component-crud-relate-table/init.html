@@ -1,8 +1,8 @@
 <template id="<=$ pageId $=>-<=$ componentId $=>"> 
-  <div class="jh-page-body-container px-8 pl-4">
+  <div class="jh-page-body-container">
     <!-- 页面内容 >>>>>>>>>>>>> -->
     <v-card class="rounded-lg">
-      <v-row class="ma-0 pa-2 pl-0">
+      <v-row class="ma-0 pa-4">
         <!-- 新增按钮 -->
         <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增<=$ componentId $=>
         </v-btn>
@@ -51,13 +51,16 @@
         </template>
       </v-data-table>
     </v-card>
+
+    <v-overlay :value="isCreateDrawerShown || isUpdateDrawerShown" z-index="11"></v-overlay>
     <!-- 新增抽屉 -->
-    <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
+    <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24" hide-overlay>
       <v-form ref="createForm" lazy-validation>
         <!-- 抽屉标题 -->
-        <v-row>
-          <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">新增信息</span>
+        <v-row no-gutters>
+          <span class="text-h7 font-weight-bold pa-4">新增信息</span>
         </v-row>
+        <v-divider class="jh-divider"></v-divider>
         <!-- 抽屉表单 -->
         <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
         <v-row class="mt-0 px-4">
@@ -81,12 +84,13 @@
       </v-btn>
     </v-navigation-drawer>
     <!-- 编辑抽屉 -->
-    <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24">
+    <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24" hide-overlay>
       <v-form ref="updateForm" lazy-validation>
         <!-- 抽屉标题 -->
-        <v-row>
-          <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">修改信息</span>
+        <v-row no-gutters>
+          <span class="text-h7 font-weight-bold pa-4">修改信息</span>
         </v-row>
+        <v-divider class="jh-divider"></v-divider>
         <!-- 抽屉表单 -->
         <v-row class="mt-0 px-4">
           <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
@@ -138,9 +142,9 @@ Vue.component("<=$ pageId $=>-<=$ componentId $=>", {
     isTableLoading: true,
     tableData: [],
     headers: [
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
       //===// <=% for f in fields %=>
       {text: "<=$ f.COLUMN_COMMENT.split(';')[0] $=>", value: "<=$ f.COLUMN_NAME $=>", width: 120},//===// <=% endfor %=>
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
     ],
     isCreateDrawerShown: false,
     createItem: {},
