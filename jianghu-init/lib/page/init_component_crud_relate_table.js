@@ -68,9 +68,10 @@ module.exports = class InitPage1TableFile extends CommandBase {
         this.success(`页面使用组件:
           <!-- ${componentId}组件抽屉 -->
           <v-navigation-drawer v-if="${componentId}DrawerShown" v-model="${componentId}DrawerShown" :permanent="${componentId}DrawerShown" fixed temporary right width="80%" class="elevation-24">
-            <v-row>
-              <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">{{${componentId}ComponentItem.xxx}}--${componentId}列表</span>
+            <v-row no-gutters>
+              <span class="text-h7 font-weight-bold pa-4">{{${componentId}ComponentItem.xxx}}--${componentId}列表</span>
             </v-row>
+            <v-divider class="jh-divider"></v-divider>
             <${pageId}-${componentId} :${relateIdOfKebab}="${componentId}ComponentItem.${relateId}"/>
             <!-- 抽屉关闭按钮 -->
             <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="${componentId}DrawerShown = false">

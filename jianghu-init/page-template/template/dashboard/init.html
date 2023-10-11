@@ -1,147 +1,190 @@
-{% extends 'template/jhTemplateV3.html'%}
+{% extends 'template/jhTemplateV4.html'%}
 
-{% block vue_template %}
-<jh-layout-v3>
-  <template slot="serverSearch">
-    <v-row class="ma-0 align-center py-2" :class="{'pa-0': isMobile}" style="justify-content: end">
-      <v-col cols="12" sm="12" xs="12" md="4" xl="2" class="pb-3 px-0" :class="{'pt-0': isMobile}">
-        <div style="background-color: #fff;
-          height: 40px;
-          line-height: 40px;
-          padding: 0 10px;
-          border-radius: 6px;" class="d-flex">
-          <span style="font-size: 14px;color: #a5a9ab;">时间区间：</span>
-          <v-icon style="color: #a5a9ab;" small class="mr-1">mdi-calendar</v-icon>
-          <div style="display: inline-block">
-            <v-menu ref="timeRangeRef" offset-y :close-on-content-click="false">
-              <template v-slot:activator="{ on, attrs }">
-              <span v-bind="attrs" v-on="on" style="letter-spacing: 0.5px;
-                font-size: 14px;
-                font-weight: 500;
-                color: #5E6278;">
-                {{timeRange && dayjs(timeRange[0]).format('YYYY-MM-DD')}} - {{timeRange && dayjs(timeRange[1]).format('YYYY-MM-DD')}}
-              </span>
-              </template>
-              <v-list v-if="viewsCount">
-                <v-date-picker
-                    v-model="timeRange"
-                    range
-                ></v-date-picker>
-              </v-list>
-            </v-menu>
-          </div>
-        </div>
-      </v-col>
-    </v-row>
-  </template>
+{% block vueTemplate %}
 
-  <!-- 页面主要内容 -->
-  <v-card :class="{'px-2': isMobile}" style="background-color: #f5f8fa;">
-    <v-card class="mx-auto pa-4 mb-4" flat style="max-height: 350px">
-      <div class="echartsContainer" id="viewsBox"></div>
-    </v-card>
+<!--SQL START
+-- 以下为 jianghu init 工具生成的参考 SQL，使用后删除
+-- 创建 page
+INSERT INTO `_page` (`pageId`,`pageName`,`pageType`,`sort`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT '<=$ pageId $=>','<=$ nameA $=>页面','showInMenu','5','jhInsert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_page` WHERE `pageId`='<=$ pageId $=>');
 
-    <v-row class="ma-0" dense no-gutters>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.总览">
-        <v-card class="mx-auto pa-4" flat style="height: 100%">
-          <div class="smallBox">
-            <div class="chart-title mb-2">
-              总览
-            </div>
-            <div class="d-flex pa-2"><span>总浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewTotalCount}}</span></div>
-            <v-divider></v-divider>
-            <div class="d-flex pa-2"><span>Days in range</span><v-spacer></v-spacer><span>{{overView.dayRange}}</span></div>
-            <v-divider></v-divider>
-            <div class="d-flex pa-2"><span>Average Daily Pageviews</span><v-spacer></v-spacer><span>{{overView.perDayPageviewCount}}</span></div>
-            <v-divider></v-divider>
-            <div class="d-flex pa-2"><span>独立设备总数</span><v-spacer></v-spacer><span>{{overView.deviceTotalCount}}</span></div>
-            <v-divider></v-divider>
-            <div class="d-flex pa-2"><span>昨日浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewYestodayCount}}</span></div>
-            <v-divider></v-divider>
-            <div class="d-flex pa-2"><span>今日浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewTodayCount}}</span></div>
-            <v-divider></v-divider>
-            <div class="d-flex pa-2"><span>最后30分钟浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewLastHalfHourCount}}</span></div>
-            <v-divider></v-divider>
-          </div>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.访问日志">
-        <v-card class="mx-auto pa-4" flat style="height: 100%">
-          <div class="smallBox">
-            <span class="chart-title">
-              访问日志
+-- 创建 resource
+INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'<=$ pageId $=>','selectItemList','✅<=$ nameA $=>查询-查询列表','sql','{}','{ \"table\": \"<=$ table $=>\", \"operation\": \"select\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='<=$ pageId $=>' AND `actionId`='selectItemList');
+INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'<=$ pageId $=>','insertItem','✅<=$ nameA $=>查询-添加成员','sql','{}','{ \"table\": \"<=$ table $=>\", \"operation\": \"insert\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='<=$ pageId $=>' AND `actionId`='insertItem');
+INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'<=$ pageId $=>','updateItem','✅<=$ nameA $=>查询-更新成员','sql','{}','{ \"table\": \"<=$ table $=>\", \"operation\": \"update\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='<=$ pageId $=>' AND `actionId`='updateItem');
+INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'<=$ pageId $=>','deleteItem','✅<=$ nameA $=>查询-删除信息','sql','{}','{ \"table\": \"<=$ table $=>\", \"operation\": \"delete\" }','','','insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='<=$ pageId $=>' AND `actionId`='deleteItem');
+SQL END!-->
+
+<script type="text/html" id="app-template">
+<div>
+<v-app mobile-breakpoint="sm">
+  <jh-menu />
+  <v-main class="mt-15">
+    <!-- 头部内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-second-bar px-8">
+      <v-row class="align-center">
+        <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+          <div class="py-4 text-body-1 font-weight-bold"><=$ pageId $=>
+            <!-- 帮助页按钮 -->
+            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
             </span>
-            <v-list style="height: 280px;" class="overflow-y-auto">
-              <template v-for="(item, index) in pageviewList">
-                <div class="d-flex pa-1">
-                  <span><a :href="item.pageviewUrl" target="_blank">{{item.pageviewTitle}}</a></span>
-                  <v-spacer></v-spacer>
-                  <span class="pa-1">{{item.pageviewUserIp}}</span>
-                </div>
-                <v-divider
-                  v-if="index < pageviewList.length - 1"
-                  :key="index"
-                ></v-divider>
-              </template>
-            </v-list>
           </div>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.站内搜索关键词">
-        <CommonChart idPrefix="websiteSearchList" @showBigChart="showBigChart" :listData="websiteSearchList" title="站内搜索关键词" keyName="关键词" defaultType="List"/>
-      </v-col>
-      <!-- <v-col cols="12" md="4" lg="3" sm="6" class="block-item">
-        <CommonChart idPrefix="browserSearchList" @showBigChart="showBigChart" :listData="browserSearchList" title="搜索引擎搜索关键词" keyName="关键词"/>
-      </v-col> -->
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.页面访问量列表">
-        <v-card class="mx-auto pa-4" flat style="height: 100%">
-          <div class="smallBox">
-            <span class="chart-title">
-              页面访问量列表
-            </span>
-            <v-list style="height: 280px;" class="overflow-y-auto">
-              <template v-for="(item, index) in pageviewRankingList">
-                <div class="d-flex pa-1">
-                  <span><a :href="item.link" target="_blank">{{item.name}}</a></span>
-                  <v-spacer></v-spacer>
-                  <span>{{item.value}}</span>
+        </v-col>
+        <!-- 搜索条件表单 >>>>>>>> -->
+        <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+          <v-row class="jh-backend-form-container justify-end ma-0 py-3">
+            <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-sm-2">
+              <div style="background-color: #fff;
+                height: 40px;
+                line-height: 40px;
+                padding: 0 10px;
+                border-radius: 6px;" class="d-flex">
+                <span style="font-size: 14px;color: #a5a9ab;">时间区间：</span>
+                <v-icon style="color: #a5a9ab;" small class="mr-1">mdi-calendar</v-icon>
+                <div style="display: inline-block">
+                  <v-menu ref="timeRangeRef" offset-y :close-on-content-click="false">
+                    <template v-slot:activator="{ on, attrs }">
+                    <span v-bind="attrs" v-on="on" style="letter-spacing: 0.5px;
+                      font-size: 14px;
+                      font-weight: 500;
+                      color: #5E6278;">
+                      {{timeRange && dayjs(timeRange[0]).format('YYYY-MM-DD')}} - {{timeRange && dayjs(timeRange[1]).format('YYYY-MM-DD')}}
+                    </span>
+                    </template>
+                    <v-list v-if="viewsCount">
+                      <v-date-picker
+                          v-model="timeRange"
+                          range
+                      ></v-date-picker>
+                    </v-list>
+                  </v-menu>
                 </div>
-                <v-divider
-                  v-if="index < pageviewRankingList.length - 1"
-                  :key="index"
-                ></v-divider>
-              </template>
-            </v-list>
-            <!-- <div style="text-align: right">
-              <a href="#">查看更多</a>
-            </div> -->
-          </div>
+              </div>
+            </v-col>
+          </v-row>
+        </v-col>
+        <!-- <<<<<<<< 搜索条件表单 -->
+      </v-row>
+    </div>
+    <div class="jh-page-body-container px-8">
+      <v-card :class="{'px-2': isMobile}" style="background-color: #f5f8fa;">
+        <v-card class="mx-auto pa-4 mb-4" flat style="max-height: 350px">
+          <div class="echartsContainer" id="viewsBox"></div>
         </v-card>
-      </v-col>
-      <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.屏幕分辨率">
-          <CommonChart ref="screenCommonChart" idPrefix="screenRankingList" @showBigChart="showBigChart" :listData="screenRankingList" title="屏幕分辨率(设备数)" keyName="分辨率" defaultType="List"/>
-      </v-col>
-    </v-row>
-  </v-card>
+    
+        <v-row class="ma-0" dense no-gutters>
+          <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.总览">
+            <v-card class="mx-auto pa-4" flat style="height: 100%">
+              <div class="smallBox">
+                <div class="chart-title mb-2">
+                  总览
+                </div>
+                <div class="d-flex pa-2"><span>总浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewTotalCount}}</span></div>
+                <v-divider></v-divider>
+                <div class="d-flex pa-2"><span>Days in range</span><v-spacer></v-spacer><span>{{overView.dayRange}}</span></div>
+                <v-divider></v-divider>
+                <div class="d-flex pa-2"><span>Average Daily Pageviews</span><v-spacer></v-spacer><span>{{overView.perDayPageviewCount}}</span></div>
+                <v-divider></v-divider>
+                <div class="d-flex pa-2"><span>独立设备总数</span><v-spacer></v-spacer><span>{{overView.deviceTotalCount}}</span></div>
+                <v-divider></v-divider>
+                <div class="d-flex pa-2"><span>昨日浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewYestodayCount}}</span></div>
+                <v-divider></v-divider>
+                <div class="d-flex pa-2"><span>今日浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewTodayCount}}</span></div>
+                <v-divider></v-divider>
+                <div class="d-flex pa-2"><span>最后30分钟浏览量</span><v-spacer></v-spacer><span>{{overView.pageviewLastHalfHourCount}}</span></div>
+                <v-divider></v-divider>
+              </div>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.访问日志">
+            <v-card class="mx-auto pa-4" flat style="height: 100%">
+              <div class="smallBox">
+                <span class="chart-title">
+                  访问日志
+                </span>
+                <v-list style="height: 280px;" class="overflow-y-auto">
+                  <template v-for="(item, index) in pageviewList">
+                    <div class="d-flex pa-1">
+                      <span><a :href="item.pageviewUrl" target="_blank">{{item.pageviewTitle}}</a></span>
+                      <v-spacer></v-spacer>
+                      <span class="pa-1">{{item.pageviewUserIp}}</span>
+                    </div>
+                    <v-divider
+                      v-if="index < pageviewList.length - 1"
+                      :key="index"
+                    ></v-divider>
+                  </template>
+                </v-list>
+              </div>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.站内搜索关键词">
+            <CommonChart idPrefix="websiteSearchList" @showBigChart="showBigChart" :listData="websiteSearchList" title="站内搜索关键词" keyName="关键词" defaultType="List"/>
+          </v-col>
+          <!-- <v-col cols="12" md="4" lg="3" sm="6" class="block-item">
+            <CommonChart idPrefix="browserSearchList" @showBigChart="showBigChart" :listData="browserSearchList" title="搜索引擎搜索关键词" keyName="关键词"/>
+          </v-col> -->
+          <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.页面访问量列表">
+            <v-card class="mx-auto pa-4" flat style="height: 100%">
+              <div class="smallBox">
+                <span class="chart-title">
+                  页面访问量列表
+                </span>
+                <v-list style="height: 280px;" class="overflow-y-auto">
+                  <template v-for="(item, index) in pageviewRankingList">
+                    <div class="d-flex pa-1">
+                      <span><a :href="item.link" target="_blank">{{item.name}}</a></span>
+                      <v-spacer></v-spacer>
+                      <span>{{item.value}}</span>
+                    </div>
+                    <v-divider
+                      v-if="index < pageviewRankingList.length - 1"
+                      :key="index"
+                    ></v-divider>
+                  </template>
+                </v-list>
+                <!-- <div style="text-align: right">
+                  <a href="#">查看更多</a>
+                </div> -->
+              </div>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="4" lg="3" sm="6" class="block-item mb-4" v-if="website.websiteConfig && website.websiteConfig.屏幕分辨率">
+              <CommonChart ref="screenCommonChart" idPrefix="screenRankingList" @showBigChart="showBigChart" :listData="screenRankingList" title="屏幕分辨率(设备数)" keyName="分辨率" defaultType="List"/>
+          </v-col>
+        </v-row>
+      </v-card>
+    </div>
+    
+    <v-overlay app :value="isBigChartDrawerShow"></v-overlay>
+    <v-navigation-drawer v-model="isBigChartDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
+      <CommonChart
+        v-if="isBigChartDrawerShow"
+        :idPrefix="bigChartComp.idPrefix + '_big'"
+        :listData="bigChartComp.listData"
+        :title="bigChartComp.title"
+        :keyName="bigChartComp.keyName"
+        :bigChart="true"
+        defaultType="bigChartComp.currentType"
+        class="pa-10"
+      />
+    </v-navigation-drawer>
+  </v-main>
+</v-app>
 
-  <v-overlay app :value="isBigChartDrawerShow"></v-overlay>
-  <v-navigation-drawer v-model="isBigChartDrawerShow" fixed temporary right width="80%" hide-overlay class="elevation-24">
-    <CommonChart
-      v-if="isBigChartDrawerShow"
-      :idPrefix="bigChartComp.idPrefix + '_big'"
-      :listData="bigChartComp.listData"
-      :title="bigChartComp.title"
-      :keyName="bigChartComp.keyName"
-      :bigChart="true"
-      defaultType="bigChartComp.currentType"
-      class="pa-10"
-    />
-  </v-navigation-drawer>
-</jh-layout-v3>
+<jh-toast />
+<jh-mask />
+<jh-confirm-dialog />
+
+</div>
+</script>
+
+<div id="app">
+</div>
 
 {% endblock %}
 
-{% block vue_body %}
+{% block vueScript %}
 {% include 'echartOption/views.html' %}
 {% include 'echartOption/commonChart.html' %}
 <script src="/<$ ctx.app.config.appId $>/public/js/echarts/echarts.min.js"></script>

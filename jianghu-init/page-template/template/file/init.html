@@ -91,13 +91,13 @@
                   <v-text-field class="jh-v-input " dense filled single-line v-model="editItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
                 </v-col>//===// <=% endfor %=>
               </v-row>
-              <!--抽屉操作按钮-->
+              <!-- 抽屉操作按钮 -->
               <v-row class="mx-0 justify-end mt-4" :class="{'px-4': isMobile, 'px-6': !isMobile, 'mb-8': isMobile}">
                 <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)" small>保存</v-btn>
                 <v-btn class="elevation-0 ml-2" @click="isEditDrawerShow = false" small>取消</v-btn>
               </v-row>
             </v-form>
-            <!--抽屉关闭按钮-->
+            <!-- 抽屉关闭按钮 -->
             <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isEditDrawerShow = false">
               <v-icon>mdi-close</v-icon>
             </v-btn>
@@ -180,8 +180,8 @@
         {text: "文件", value: "filePath", width: 250},
           //===// <=% for f in fields %=>
         {text: "<=$ f.COLUMN_COMMENT $=>", value: "<=$ f.COLUMN_NAME $=>", width: 120},//===// <=% endfor %=>
-        {text: "操作人", value: "operationByUser", width: 120},
-        {text: "操作时间", value: "operationAt", width: 250},
+        {text: "操作人", value: "operationByUser", width: 90},
+        {text: "操作时间", value: "operationAt", width: 150},
       ],
       tableButtonList: [
         {text: '修改', buttonType: 'edit', color: 'success', action: 'startUpdateItem'},
@@ -258,7 +258,7 @@
        */
       async refreshTableData() {
         this.isTableLoading = true;
-        const result = await window.jianghuAxios({
+        const rows = (await window.jianghuAxios({
           data: {
             appData: {
               pageId: '<=$ pageId $=>',
@@ -266,9 +266,12 @@
               orderBy: [{column: 'operationAt', order: 'desc'}]
             }
           }
-        });
+        })).data.appData.resultData.rows;
 
-        this.tableDataFromBackend = result.data.appData.resultData.rows;
+        rows.forEach(row => {
+          row.operationAt = window.dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss');
+        })
+        this.tableDataFromBackend = rows;
         this.isTableLoading = false;
       },
 
