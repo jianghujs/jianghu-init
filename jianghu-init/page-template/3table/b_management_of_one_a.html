@@ -50,7 +50,7 @@ SQL END!-->
               small>分配<=$ nameB $=></v-btn>
               <v-spacer></v-spacer>
               <!-- 搜索过滤 -->
-              <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+              <v-col cols="12" xs="8" sm="4" md="3" lg="2" xl="2" class="pa-0">
                 <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense
                   filled single-line></v-text-field>
               </v-col>
@@ -97,7 +97,7 @@ SQL END!-->
             <!-- 表格操作 -->
             <v-row class="ma-0 mt-4 px-4">
               <!-- 新增按钮 -->
-              <v-btn class="success elevation-0 mr-2" small outlined :disabled="allotTableSelected.length === 0" @click="doUiAction('allotItem')">批量新增</v-btn>
+              <v-btn class="elevation-0 mr-2" color="success" small outlined :disabled="allotTableSelected.length === 0" @click="doUiAction('allotItem')">批量新增</v-btn>
               <v-spacer></v-spacer>
               <!-- 搜索过滤 -->
               <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">

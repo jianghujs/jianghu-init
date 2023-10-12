@@ -59,7 +59,7 @@ SQL END!-->
               <v-btn class="red--text text--accent-2 elevation-0 mr-2" small outlined :disabled="tableSelected.length === 0" @click="doUiAction('batchDelete')">批量删除</v-btn>
               <v-spacer></v-spacer>
               <!-- 搜索过滤 -->
-              <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+              <v-col cols="12" xs="8" sm="4" md="3" lg="2" xl="2" class="pa-0">
                 <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense
                   filled single-line></v-text-field>
               </v-col>
@@ -159,7 +159,7 @@ SQL END!-->
           <!-- 编辑抽屉 -->
           <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary
             right width="80%" class="elevation-24">
-            <v-form ref="editForm" lazy-validation>
+            <v-form ref="updateForm" lazy-validation>
               <!-- 抽屉标题 -->
               <v-row no-gutters>
                 <span class="text-h7 font-weight-bold pa-4">修改信息</span>
@@ -248,7 +248,7 @@ SQL END!-->
         {text: "<=$ f.COLUMN_COMMENT.split(\';\')[0] $=>", value: "<=$ f.COLUMN_NAME $=>", width: 120},//===// <=% endfor %=>
         {text: "操作者", value: "operationByUser", width: 90},
         {text: "操作时间", value: "operationAt", width: 150},
-        {text: '操作', value: 'action', align: 'center', sortable: false, width: 250, class: 'fixed', cellClass: 'fixed'},
+        {text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 60 : 250, class: 'fixed', cellClass: 'fixed'},
       ],
       tableSelected: [],
 

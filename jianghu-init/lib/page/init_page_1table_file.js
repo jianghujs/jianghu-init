@@ -52,13 +52,18 @@ module.exports = class InitPage1TableFile extends CommandBase {
       this.info('未选择 table，流程结束');
       return;
     }
+    const field = await this.promptFields(tables[0]);
+    if (!field || !field.length) {
+      this.info('未选择文件路径字段，流程结束');
+      return;
+    }
     for (const table of tables) {
       this.info(`开始生成 ${table} 的 CRUD`);
       const tableCamelCase = _.camelCase(table);
       let pageId = `${tableCamelCase}Management`;
       pageId = await this.readlineMethod(`【${table}】数据表pageId`, pageId);
       // 生成 vue
-      if (await this.renderVue(table, pageId)) {
+      if (await this.renderVue(table, field, pageId)) {
         this.success(`生成 ${table} 的 vue 文件完成`);
 
         // 数据库
@@ -116,9 +121,28 @@ module.exports = class InitPage1TableFile extends CommandBase {
   }
 
   /**
+   * 确认生成表
+   */
+  async promptFields(tableName) {
+    const knex = await this.getKnex();
+
+    const result = await knex.raw(`SHOW COLUMNS FROM ${tableName}`);
+    const fields = result[0].map(item => item.Field).filter(field => !['id', 'operationAt', 'operation', 'operationByUserId', 'operationByUser'].includes(field));
+    const answer = await inquirer.prompt({
+      name: 'fields',
+      type: 'checkbox',
+      message: `请选择 ${tableName} 表内的文件路径字段`,
+      choices: fields,
+      pageSize: 100,
+    });
+    console.log(answer);
+    return answer.fields ? answer.fields[0] : '';
+  }
+
+  /**
    * 生成 vue
    */
-  async renderVue(table, pageId) {
+  async renderVue(table, field, pageId) {
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
@@ -150,6 +174,7 @@ module.exports = class InitPage1TableFile extends CommandBase {
     const result = nunjucks.renderString(listTemplate, {
       table,
       tableCamelCase,
+      filePath: field,
       pageId,
       fields,
     });

@@ -21,12 +21,13 @@ SQL END!-->
 <script type="text/html" id="app-template">
   <div>
     <v-app mobile-breakpoint="sm">
+      <jh-menu />
       <v-main class="mt-15">
         <!-- 头部内容 >>>>>>>>>>>>> -->
         <div class="jh-page-second-bar px-8">
           <v-row class="align-center">
             <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-              <div class="py-4 text-body-1 font-weight-bold"><=$ pageId $=>
+              <div class="py-4 text-body-1 font-weight-bold">{{ title }}的<=$ nameB $=>列表&nbsp;&nbsp;|&nbsp;&nbsp;{{ <=$ primaryFieldA $=> }}
                 <!-- 帮助页按钮 -->
                 <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
                   <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
@@ -59,7 +60,7 @@ SQL END!-->
                 mobile-breakpoint="0"
                 :loading="isTableLoading"
                 checkbox-color="success" 
-                :class="{'zebraLine': showTableZebraLine }"
+                :class="{'zebraLine': isTableZebraLineShown }"
                 class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
               <template v-slot:item.action="{ item }">
                 <!-- pc端 -->
@@ -108,7 +109,7 @@ SQL END!-->
           </v-card>
           <!-- 新增 -->
           <v-navigation-drawer v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
-            <v-form v-model="isFormValid" v-if="isCreateDrawerShown" ref="createForm" lazy-validation>
+            <v-form v-if="isCreateDrawerShown" ref="createForm" lazy-validation>
               <!-- 抽屉标题 -->
               <v-row no-gutters>
                 <span class="text-h7 font-weight-bold pa-4">添加信息</span>
@@ -119,9 +120,8 @@ SQL END!-->
                 //===// <=% for f in tableBFields %=>
                 <v-col cols="12" sm="12" md="4">
                   <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="addItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
-                </v-col>
-                //===// <=% endfor %=>
+                  <v-text-field class="jh-v-input " dense filled single-line v-model="createItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
+                </v-col>//===// <=% endfor %=>
               </v-row>
               <!-- 抽屉操作按钮 -->
               <v-row class="justify-end mx-0 my-8 px-4">
@@ -139,7 +139,7 @@ SQL END!-->
           
           <!-- 编辑抽屉 -->
           <v-navigation-drawer v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24">
-            <v-form v-model="isFormValid" v-if="isUpdateDrawerShown" ref="editForm" lazy-validation>
+            <v-form v-if="isUpdateDrawerShown" ref="updateForm" lazy-validation>
               <!-- 抽屉标题 -->
               <v-row no-gutters>
                 <span class="text-h7 font-weight-bold pa-4">修改信息</span>
@@ -150,9 +150,8 @@ SQL END!-->
                 //===// <=% for f in tableBFields %=>
                 <v-col cols="12" sm="12" md="4">
                   <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
-                  <v-text-field class="jh-v-input " dense filled single-line v-model="editItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
-                </v-col>
-                //===// <=% endfor %=>
+                  <v-text-field class="jh-v-input " dense filled single-line v-model="updateItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
+                </v-col>//===// <=% endfor %=>
               </v-row>
               <!-- 抽屉操作按钮 -->
               <v-row class="justify-end mx-0 my-8 px-4">
@@ -196,6 +195,11 @@ SQL END!-->
 {% endblock %}
 
 {% block vueScript %}
+
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
+
 <script type="module">
 
   new Vue({
@@ -223,8 +227,9 @@ SQL END!-->
       headers: [
         //===// <=% for f in tableMiddleFields %=>
         { text: '<=$ f.COLUMN_COMMENT.split(\';\')[0] $=>', value: '<=$ f.COLUMN_NAME $=>', width: 120 },//===// <=% endfor %=>
-        { text: "操作者", value: "operationByUser", width: 120 },
-        { text: "操作时间", value: "operationAt", width: 250 },
+        { text: "操作者", value: "operationByUser", width: 90 },
+        { text: "操作时间", value: "operationAt", width: 150 },
+        { text: '操作', value: 'action', sortable: false, align: 'center', width: window.innerWidth < 500 ? 60 : 120, class: 'fixed', cellClass: 'fixed' },
       ],
 
       // 操作相关
@@ -298,7 +303,7 @@ SQL END!-->
       // ---------- 校验url传参 uiAction >>>>>>>>>> --------
       async prepareUrlObj() {
         const urlObj = new URLSearchParams(location.search);
-        const <=$ primaryFieldA $=> = urlParams.get('<=$ primaryFieldA $=>');
+        const <=$ primaryFieldA $=> = urlObj.get('<=$ primaryFieldA $=>');
         const title = urlObj.get('title');
         if (<=$ primaryFieldA $=> && title) {
           this.<=$ primaryFieldA $=> = <=$ primaryFieldA $=>;
