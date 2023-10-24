@@ -176,9 +176,11 @@ module.exports = class InitPage1Table extends CommandBase {
   async handleViewBackUp(pageId, filepath){
     // 写文件前确认是否覆盖
     if (fs.existsSync(filepath)) {
-      const bakPath = `./app/view/page/${pageId}-bak`;
-      if (!fs.existsSync(bakPath)) fs.mkdirSync(bakPath);
-      const backFilePath = `${bakPath}/${pageId}.html.${moment().format('YYYYMMDDHHmmss')}`;
+      const pageBakDir = `./app/view/page-bak`;
+      if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
+      const pageBakPath = `${pageBakDir}/${pageId}`;
+      if (!fs.existsSync(pageBakPath)) fs.mkdirSync(pageBakPath);
+      const backFilePath = `${pageBakPath}/${pageId}.html.${moment().format('YYYYMMDDHHmmss')}`;
       fs.copyFileSync(filepath, backFilePath);
     }
   }

@@ -25,12 +25,16 @@ module.exports = class InitByJsonCommand extends CommandBase {
 
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
+    const jsFile = this.argv.jsFile;
     if (jsonText) {
       this.jsonArgv = JSON.parse(jsonText);
     }
     if (jsonFile) {
       const jsonFileText = fs.readFileSync(jsonFile).toString();
       this.jsonArgv = JSON.parse(jsonFileText);
+    }
+    if (jsFile) {
+      this.jsonArgv = require(jsFile);
     }
     if (this.jsonArgv.pageType === '1table-page') {
       await new InitPage1Table().run(process.cwd(), this.jsonArgv);
