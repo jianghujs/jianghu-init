@@ -28,3 +28,6 @@ ceshi/
 ceshi2/
 ceshi3/
 dev-scripts/dist/
+
+temp/*
+!temp/README.md
