@@ -2,7 +2,7 @@
 
 ## 目录结构
 
-- jianghu-init 初始化工具项目，可全局安装
+- jianghu-init 初始化工具项目，可全局安装               注意：npm install 比较慢; 可以切换成 yarn install。
 - jianghu-init-config 保存模板配置的项目，纯配置项目
 - demo 本地测试项目，用于生成 boilerplate 模板项目
 - boilerplates 保存不同 type 的模板项目，由 demo 生成
