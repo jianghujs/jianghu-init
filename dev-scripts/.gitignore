@@ -22,3 +22,4 @@ config/config.unittest.js
 test/app/controller/json/resourceMap.json
 
 .github/
+.env
