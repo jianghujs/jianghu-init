@@ -8,16 +8,21 @@
   <v-main class="mt-15">
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
-     <div class="pt-3 text-h7 font-weight-bold">二次认证
-       <!-- 帮助页按钮 -->
-        <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-      </div>
-      <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+      <v-row class="align-center">
+        <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+          <div class="py-4 text-body-1 font-weight-bold">二次认证
+            <!-- 帮助页按钮 -->
+            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+            </span>
+          </div>
+        </v-col>
+      </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
+
     <div class="jh-page-body-container px-8">
       <!-- 页面主要内容 -->
-
       <v-card class="rounded-lg">
         <v-row class="ma-0 pa-4 pb-0">
           <!--新增按钮-->
@@ -41,14 +46,36 @@
           checkbox-color="success"
           fixed-header
           class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
-          <!-- 表格操作按钮 -->
+          <!-- 表格行操作按钮 -->
           <template v-slot:item.action="{ item }">
-            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
-              <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
-            </span>
-            <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-              <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
-            </span>
+            <template>
+              <!-- pc端 -->
+              <template v-if="!isMobile">
+                <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
+                </span>
+                <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                  <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>删除
+                </span>
+              </template>
+              <!-- 手机端 -->
+              <v-menu offset-y v-if="isMobile">
+                <template v-slot:activator="{ on, attrs }">
+                  <span role="button" class="success--text font-weight-medium font-size-2"
+                    v-bind="attrs" v-on="on">
+                    操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                  </span>
+                </template>
+                <v-list dense>
+                  <v-list-item @click="doUiAction('startUpdateItem', item)">
+                    <v-list-item-title>修改</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item @click="doUiAction('deleteItem', item)">
+                    <v-list-item-title>删除</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </template>
           </template>
           <!--性别-->
           <template v-slot:item.gender="{ item }">
@@ -79,30 +106,31 @@
       <!-- 新增抽屉 >>>>>>>>>>>>> -->
       <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="createForm" lazy-validation>
-          <!-- 抽屉的头部标题 -->
-          <v-row class="ma-0 px-6">
-            <span class="text-h7 pt-6">添加信息</span>
+          <!-- 抽屉标题 -->
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">添加信息</span>
           </v-row>
+          <v-divider class="jh-divider"></v-divider>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="ma-0 px-4">
+          <v-row class="mt-0 px-4">
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生ID</span>
+              <span class="jh-input-label">学生ID<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-text-field class="jh-v-input" dense single-line filled label="学生ID" v-model="createItem.studentId" :rules="validationRules.requireRules"></v-text-field>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">班级ID</span>
+              <span class="jh-input-label">班级ID<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense single-line filled clearable label="班级ID" v-model="createItem.classId" :items="constantObj.classId" :rules="validationRules.requireRules"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生名字</span>
+              <span class="jh-input-label">学生名字<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-text-field class="jh-v-input" dense single-line filled label="学生名字" v-model="createItem.name" :rules="validationRules.requireRules"></v-text-field>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">年级</span>
+              <span class="jh-input-label">年级<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense single-line filled clearable label="年级" v-model="createItem.level" :items="constantObj.level" :rules="validationRules.requireRules"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">性别</span>
+              <span class="jh-input-label">性别<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense single-line filled clearable label="性别" v-model="createItem.gender" :items="constantObj.gender" :rules="validationRules.requireRules"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
@@ -119,7 +147,7 @@
               <v-text-field class="jh-v-input" dense single-line filled label="身高" v-model="createItem.bodyHeight"></v-text-field>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生状态</span>
+              <span class="jh-input-label">学生状态<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense single-line filled clearable label="学生状态" v-model="createItem.studentStatus" :items="constantObj.studentStatus" :rules="validationRules.requireRules"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
@@ -129,7 +157,7 @@
           </v-row>
           <!-- <<<<<<<<<<<抽屉的主体  -->
           <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
-          <v-row class="justify-end mx-0 mt-8 px-6">
+          <v-row class="justify-end mx-0 my-8 px-4">
             <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
             <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
           </v-row>
@@ -145,34 +173,35 @@
       <!-- 编辑抽屉 >>>>>>>>>>>>> -->
       <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateForm" lazy-validation>
-          <!-- 抽屉的头部标题 -->
-          <v-row class="ma-0 px-6">
-            <span class="text-h7 pt-6">编辑信息</span>
+          <!-- 抽屉标题 -->
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">修改信息</span>
           </v-row>
+          <v-divider class="jh-divider"></v-divider>
           <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="ma-0 px-4">
+          <v-row class="mt-0 px-4">
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label">学生ID</span>
               <v-text-field class="jh-v-input" disabled dense single-line filled label="学生ID" v-model="updateItem.studentId" :rules="validationRules.requireRules"></v-text-field>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">班级ID</span>
+              <span class="jh-input-label">班级ID<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense single-line filled clearable label="班级ID" v-model="updateItem.classId" :items="constantObj.classId" :rules="validationRules.requireRules"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生名字</span>
+              <span class="jh-input-label">学生名字<<span class="red--text text--accent-2 ml-1">*必填</span>/span>
               <v-text-field class="jh-v-input" dense single-line filled label="学生名字" v-model="updateItem.name" :rules="validationRules.requireRules"></v-text-field>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">年级</span>
+              <span class="jh-input-label">年级<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense single-line filled clearable label="年级" v-model="updateItem.level" :items="constantObj.level" :rules="validationRules.requireRules"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">性别</span>
+              <span class="jh-input-label">性别<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense single-line filled clearable label="性别" v-model="updateItem.gender" :items="constantObj.gender" :rules="validationRules.requireRules"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">出生日期</span>
+              <span class="jh-input-label">出生日期<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
                   <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.dateOfBirth" class="jh-v-input" dense single-line filled readonly label="出生日期" :rules="validationRules.requireRules"></v-text-field>
@@ -185,7 +214,7 @@
               <v-text-field class="jh-v-input" dense single-line filled label="身高" v-model="updateItem.bodyHeight"></v-text-field>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">学生状态</span>
+              <span class="jh-input-label">学生状态<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense single-line filled clearable label="学生状态" v-model="updateItem.studentStatus" :items="constantObj.studentStatus" :rules="validationRules.requireRules"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
@@ -195,7 +224,7 @@
           </v-row>
           <!-- <<<<<<<<<<< 抽屉的主体 -->
           <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
-          <v-row class="justify-end mx-0 mt-8 px-6">
+          <v-row class="justify-end mx-0 my-8 px-4">
             <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
             <v-btn class="ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
           </v-row>
@@ -207,37 +236,46 @@
         </v-btn>
       </v-navigation-drawer>
       <!-- <<<<<<<<<<< 编辑抽屉 -->
+
       <!-- 页面认证弹窗 >>>>>>>>>>>>> -->
-      <v-dialog
-        v-model="isPageValidationDialogShown" persistent="true" :hide-overlay="false"
-        overlay-opacity="1"
-        transition="dialog-top-transition" max-width="600">
-        <v-card>
-          <v-toolbar color="primary text-h7 pl-5" dark>页面认证</v-toolbar>
-          <v-card-text>
-            <v-row class="px-10 pt-5">
-              <v-col cols="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-                <span class="jh-input-label">认证码</span>
-                <v-text-field class="jh-v-input" dense filled single-line type="password" v-model="passcodeOfUser"></v-text-field>
-                <p style="text-align: right;">认证成功后, {{ validationDurationHour }}小时内无需重复认证。</p>
-              </v-col>
+      <v-dialog v-model="isPageValidationDialogShown" scrollable persistent width="80%" overlay-opacity="0.46"
+      content-class="jh-fixed-dialog-height jh-dialog-mobile-fullscreen">
+        <v-card flat>
+          <v-card-title class="pa-4">
+            <v-row class="justify-space-between pt-3 px-3 pb-1">
+              <span class="text-h7 font-weight-bold">页面认证</span>
             </v-row>
+          </v-card-title>
+          <v-card-text class="px-0 pb-0">
+            <v-form ref="allotForm" lazy-validation>
+              <v-row class="mt-0 px-4">
+                <v-col cols="12" sm="12" md="6">
+                  <span class="jh-input-label">认证码<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="认证码" type="password" v-model="passcodeOfUser"></v-text-field>
+                  <p class="jh-font-size-13 mt-2">认证成功后, {{ validationDurationHour }}小时内无需重复认证。</p>
+                </v-col>
+              </v-row>
+            </v-form>
           </v-card-text>
-          <v-card-actions class="justify-end">
-            <v-btn depressed class="mr-2 primary" @click="doUiAction('doPageValidation')">确定</v-btn>
+          <v-card-actions class="pa-4">
+            <v-spacer></v-spacer>
+            <v-btn color="success" @click="doUiAction('doPageValidation')" small>
+              确定
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
       <!-- <<<<<<<<<<< 页面认证弹窗 -->
     </div>
-      <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+
+    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
     <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
       <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#5.pagePasscodeDemo.md`" width="100%" height="100%"></iframe>
       <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>
-      <!-- <<<<<<<<<<< 帮助页抽屉 -->
+    <!-- <<<<<<<<<<< 帮助页抽屉 -->
   </v-main>
 </v-app>
 <jh-toast />
@@ -261,10 +299,6 @@ new Vue({
   vuetify: new Vuetify(),
   data: () => ({
     isMobile: window.innerWidth < 500,
-    breadcrumbs: [
-      {text: '首页', disabled: true,},
-      {text: '用户管理', disabled: true,}
-    ],
     isHelpPageDrawerShown: false,
     // 页面认证数据
     isPageValidationDialogShown: false,
@@ -295,9 +329,7 @@ new Vue({
     isTableLoading: true,
     tableData: [],
     headers: [
-      {text: '操作', value: 'action', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
       {text: "ID", value: "id", width: 120},
-
       {text: "学生ID", value: "studentId", width: 120},
       {text: "学生名字", value: "name", width: 120},
       {text: "性别", value: "gender", width: 120},
@@ -309,6 +341,7 @@ new Vue({
       {text: "备注", value: "remarks", width: 120},
       {text: "操作者", value: "operationByUser", width: 120},
       {text: "操作时间", value: "operationAt", width: 250},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 80 : 120, class: 'fixed', cellClass: 'fixed'},
     ],
     // 新增数据
     isCreateDrawerShown: false,

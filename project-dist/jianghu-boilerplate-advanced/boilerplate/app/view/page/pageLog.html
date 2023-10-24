@@ -8,23 +8,26 @@
   <v-main class="mt-15">
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
-      <v-row>
+      <v-row class="align-center">
         <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-          <div class="pt-3 text-h7 font-weight-bold">二次认证
+          <div class="py-4 text-body-1 font-weight-bold">页面访问日志
             <!-- 帮助页按钮 -->
-            <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
+            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+            </span>
           </div>
-          <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
         </v-col>
-        <!--pc端的搜索条件表单 >>>>>>>> -->
+        <!-- pc端的搜索条件表单 >>>>>>>> -->
         <v-col cols="12" xs="12" sm="12" md="8" xl="9">
-          <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
-            <v-col cols="8" xs="6" sm="6" md="6" xl="6" class="pa-xs-0 pb-2 pr-1 pr-xs-1">
-              <v-select v-model="logFileSelected" :items="constantCollection.logFile" prefix="文件:" class="jh-v-input bg-white" dense filled single-line />
-            </v-col>
-            <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('refreshTableData')">
-              查询
-            </v-btn>
+          <v-row class="jh-backend-form-container justify-end ma-0 py-3">
+              <v-col cols="12" xs="12" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-sm-2">
+                <v-select v-model="logFileSelected" :items="constantCollection.logFile" prefix="文件：" class="jh-v-input bg-white" dense filled single-line hide-details/>
+              </v-col>
+              <div class="jh-backend-search-btn">
+                <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
+                  查询
+                </v-btn>
+              </div>
           </v-row>
         </v-col>
         <!-- <<<<<<<< pc端的搜索条件表单 -->
@@ -94,7 +97,7 @@ new Vue({
     },
     breadcrumbs: [
       {text: '首页', disabled: true,},
-      {text: '用户管理', disabled: true,}
+      {text: '页面访问日志', disabled: true,}
     ],
     isHelpPageDrawerShown: false,
 
@@ -104,8 +107,8 @@ new Vue({
 
     tableDataFromBackend: [],
     headers: [
-      {text: "访问时间", value: "date", width: 220, class: 'fixed', cellClass: 'fixed'}, 
-      {text: "访问页面", value: "pageName", width: 120, class: 'fixed', cellClass: 'fixed'}, 
+      {text: "访问时间", value: "date", width: 200, class: 'fixed', cellClass: 'fixed'}, 
+      {text: "访问页面", value: "pageName", width: 200, class: 'fixed', cellClass: 'fixed'}, 
       {text: "访问页面Id", value: "pageId", width: 220}, 
       {text: "访问用户Id", value: "userId", width: 120}, 
       {text: "访问用户名", value: "username", width: 120}, 

@@ -9,11 +9,16 @@
     <v-main class="mt-15">
       <!-- 头部内容 >>>>>>>>>>>>> -->
       <div class="jh-page-second-bar px-8">
-        <div class="pt-3 text-h7 font-weight-bold">数据表同步日志
-          <!-- 帮助页按钮 -->
-          <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-        </div>
-        <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+        <v-row class="align-center">
+          <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+            <div class="py-4 text-body-1 font-weight-bold">数据表同步日志
+              <!-- 帮助页按钮 -->
+              <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+                <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+              </span>
+            </div>
+          </v-col>
+        </v-row>
       </div>
       <!-- <<<<<<<<<<<<< 头部内容 -->
 
@@ -39,6 +44,17 @@
             checkbox-color="success"
             fixed-header
             class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <!--没有数据-->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <!--表格分页-->
             <template v-slot:footer.page-text="pagination">
               <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
               <span class="ml-1">共{{pagination.itemsLength}}条</span>
@@ -87,10 +103,6 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: {
-    breadcrumbs: [
-      {text: '首页', disabled: true,},
-      {text: '数据表同步日志', disabled: true,}
-    ],
     isHelpPageDrawerShown: false,
     isTableZebraLineShown: true,
     // 表格相关数据

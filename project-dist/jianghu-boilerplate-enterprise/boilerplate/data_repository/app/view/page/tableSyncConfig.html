@@ -9,11 +9,16 @@
     <v-main class="mt-15">
       <!-- 头部内容 >>>>>>>>>>>>> -->
       <div class="jh-page-second-bar px-8">
-        <div class="pt-3 text-h7 font-weight-bold">数据同步表管理
-          <!-- 帮助页按钮 -->
-          <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-        </div>
-        <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+        <v-row class="align-center">
+          <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+            <div class="py-4 text-body-1 font-weight-bold">数据同步表管理
+              <!-- 帮助页按钮 -->
+              <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+                <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+              </span>
+            </div>
+          </v-col>
+        </v-row>
       </div>
       <!-- <<<<<<<<<<<<< 头部内容 -->
 
@@ -22,10 +27,10 @@
         <v-card class="rounded-lg">
           <v-row class="ma-0 pa-4 align-center">
             <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)" small>新增同步表</v-btn>
-            <v-btn color="primary" dark class="elevation-0 mr-2" @click="doUiAction('manualSyncAll', null)" small>全部-手动同步</v-btn>
+            <v-btn color="primary" dark class="elevation-0 mr-2" @click="doUiAction('manualSyncAll', null)" small>全部同步</v-btn>
             <v-chip small color="default">定时同步: {{ dataSyncStatus }}</v-chip>
             <v-spacer></v-spacer>
-            <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0 pt-xs-2">
+            <v-col cols="12" xs="12" sm="4" md="3" xl="2" class="pa-0 pt-xs-2">
               <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
             </v-col>
           </v-row>
@@ -41,22 +46,44 @@
             checkbox-color="success"
             fixed-header
             class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <!-- 表格行操作按钮 -->
             <template v-slot:item.action="{ item }">
-              <span
-                role="button" class="success--text font-weight-medium font-size-2 mr-2"
-                @click="doUiAction('startUpdateItem', item)">
-                <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
-              </span>
-              <span
-                role="button" class="success--text font-weight-medium font-size-2 mr-2"
-                @click="doUiAction('deleteItem', item)">
-                <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
-              </span>
-              <span
-                role="button" class="success--text font-weight-medium font-size-2"
-                @click="doUiAction('manualSyncOneTable', item)">
-                <v-icon size="16" class="success--text">mdi-sync</v-icon>同步
-              </span>
+              <template>
+                <!-- pc端 -->
+                <template v-if="!isMobile">
+                  <span
+                    role="button" class="success--text font-weight-medium font-size-2 mr-2"
+                    @click="doUiAction('manualSyncOneTable', item)">
+                    <v-icon size="16" class="success--text">mdi-sync</v-icon>同步
+                  </span>
+                  <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+                    <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
+                  </span>
+                  <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                    <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>删除
+                  </span>
+                </template>
+                <!-- 手机端 -->
+                <v-menu offset-y v-if="isMobile">
+                  <template v-slot:activator="{ on, attrs }">
+                    <span role="button" class="success--text font-weight-medium font-size-2"
+                      v-bind="attrs" v-on="on">
+                      操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                    </span>
+                  </template>
+                  <v-list dense>
+                    <v-list-item @click="doUiAction('manualSyncOneTable', item)">
+                      <v-list-item-title>同步</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('startUpdateItem', item)">
+                      <v-list-item-title>修改</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('deleteItem', item)">
+                      <v-list-item-title>删除</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </template>
             </template>
             <!--没有数据-->
             <template v-slot:loading>
@@ -86,20 +113,21 @@
         <!-- 新增抽屉 -->
         <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
           <v-form ref="createForm" lazy-validation>
-            <!--抽屉标题-->
-            <v-row>
-              <span class="text-subtitle-1 font-weight-medium pa-6 pl-8">添加信息</span>
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+              <span class="text-h7 font-weight-bold pa-4">添加信息</span>
             </v-row>
+            <v-divider class="jh-divider"></v-divider>
             <!--抽屉表单主体-->
-            <v-row class="ma-0 px-2">
+            <v-row class="mt-0 px-4">
               <v-col cols="12" sm="12" md="4">
-                <span class="jh-input-label">数据库</span>
+                <span class="jh-input-label">数据库<span class="red--text text--accent-2 ml-1">*必填</span></span>
                 <v-select
                   class="jh-v-input" dense filled single-line clearable label="数据库" :rules="validationRules.requireRules" v-model="createItem.sourceDatabase"
                   :items="constantObj.sourceDatabase"></v-select>
               </v-col>
               <v-col cols="12" sm="12" md="4">
-                <span class="jh-input-label">表格</span>
+                <span class="jh-input-label">表格<span class="red--text text--accent-2 ml-1">*必填</span></span>
                 <v-select
                   class="jh-v-input" dense filled single-line clearable label="表格" :rules="validationRules.requireRules" v-model="createItem.sourceTable"
                   :items="constantObj.sourceTable"></v-select>
@@ -110,7 +138,7 @@
               </v-col>
             </v-row>
             <!--抽屉操作按钮-->
-            <v-row class="justify-end mx-0 mt-8 px-6">
+            <v-row class="justify-end mx-0 my-8 px-4">
               <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
               <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
             </v-row>
@@ -121,23 +149,25 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-navigation-drawer>
+
         <!-- 编辑抽屉 -->
         <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
           <v-form ref="updateForm" lazy-validation>
-            <!--抽屉标题-->
-            <v-row>
-              <span class="text-subtitle-1 font-weight-medium pa-6 pl-8">编辑信息</span>
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+              <span class="text-h7 font-weight-bold pa-4">修改信息</span>
             </v-row>
+            <v-divider class="jh-divider"></v-divider>
             <!--抽屉表单主体-->
-            <v-row class="ma-0 px-2">
+            <v-row class="mt-0 px-4">
               <v-col cols="12" sm="12" md="4">
-                <span class="jh-input-label">数据库</span>
+                <span class="jh-input-label">数据库<span class="red--text text--accent-2 ml-1">*必填</span></span>
                 <v-select
                   class="jh-v-input" dense filled single-line clearable label="数据库" :rules="validationRules.requireRules" v-model="updateItem.sourceDatabase"
                   :items="constantObj.sourceDatabase"></v-select>
               </v-col>
               <v-col cols="12" sm="12" md="4">
-                <span class="jh-input-label">表格</span>
+                <span class="jh-input-label">表格<span class="red--text text--accent-2 ml-1">*必填</span></span>
                 <v-select
                   class="jh-v-input" dense filled single-line clearable label="表格" :rules="validationRules.requireRules" v-model="updateItem.sourceTable"
                   :items="constantObj.sourceTable"></v-select>
@@ -148,7 +178,7 @@
               </v-col>
             </v-row>
             <!--抽屉操作按钮-->
-            <v-row class="justify-end mx-0 mt-8 px-6">
+            <v-row class="justify-end mx-0 my-8 px-4">
               <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
               <v-btn class="ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
             </v-row>
@@ -198,10 +228,6 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: {
-    breadcrumbs: [
-      {text: '首页', disabled: true,},
-      {text: '数据同步表管理', disabled: true,}
-    ],
     isHelpPageDrawerShown: false,
     isTableZebraLineShown: true,
     isMobile: window.innerWidth < 500,
@@ -221,7 +247,6 @@ new Vue({
     isTableLoading: true,
     tableData: [],
     headers: [
-      {text: '操作', value: 'action', sortable: false, width: 180, class: 'fixed', cellClass: 'fixed'},
       {text: "数据库", value: "sourceDatabaseShowName", width: 140},
       {text: "表格", value: "sourceTable", width: 140},
       {text: "同步间隔/同步检查间隔（分）", value: "syncTimeSlot", width: 140},
@@ -229,6 +254,7 @@ new Vue({
       {text: "最后一次触发同步的时间", value: "lastSyncTime", width: 140},
       {text: '操作时间', value: 'operationAt', width: 200},
       {text: "操作人", value: "operationByUser", width: 140},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 80 : 180, class: 'fixed', cellClass: 'fixed'},
     ],
     // 新增数据
     isCreateDrawerShown: false,

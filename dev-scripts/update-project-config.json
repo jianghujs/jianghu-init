@@ -96,7 +96,7 @@
         "to": "__database__"
       }
     ],
-    "repositoryUrl": "https://github.com/jianghujs/jianghujs-workflow.git"
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-workflow.git"
   },
 
   {

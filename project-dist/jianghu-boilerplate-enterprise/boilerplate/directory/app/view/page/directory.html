@@ -9,32 +9,35 @@
     <v-main class="mt-15">
       <!-- 头部内容 >>>>>>>>>>>>> -->
       <div class="jh-page-second-bar px-8">
-        <div class="pt-3 text-h7 font-weight-bold">目录管理
-          <!-- 帮助页按钮 -->
-          <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-        </div>
-        <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+        <v-row class="align-center">
+          <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+            <div class="py-4 text-body-1 font-weight-bold">目录管理
+              <!-- 帮助页按钮 -->
+              <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+                <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+              </span>
+            </div>
+          </v-col>
+        </v-row>
       </div>
       <!-- <<<<<<<<<<<<< 头部内容 -->
-      <div class="jh-page-body-container px-8 pt-4">
+
+      <div class="jh-page-body-container px-8">
         <!-- 页面内容 >>>>>>>>>>>>> -->
-        <v-card class="rounded-lg">
+        <v-card class="rounded-lg jh-fixed-table-height">
+          <div class="text-center text-body-2 ma-16" v-if="!directoryList">
+            加载中~
+          </div>
+          <div class="text-center text-body-2 ma-16" v-else-if="!Object.keys(directoryList).length">
+            暂无目录~
+          </div>
           <v-list-item-group
             v-model="selectedUrlItem"
             color="primary"
+            v-else
           >
             <v-row class="pt-2">
-              <template v-if="!directoryList">
-                <div class="text-center jh-empty-div">
-                  加载中
-                </div>
-              </template>
-              <template v-else-if="!Object.keys(directoryList).length">
-                <div class="text-center jh-empty-div">
-                  暂无目录
-                </div>
-              </template>
-              <template v-else v-for="(value, key) in directoryList">
+              <template  v-for="(value, key) in directoryList">
                 <v-col cols="12" sm="6" md="4" lg="3" xl="2">
                   <v-list dense :key="key">
                     <template v-for="(item, i) in value">
@@ -56,7 +59,6 @@
                   </v-list>
                 </v-col>
               </template>
-
             </v-row>
           </v-list-item-group>
         </v-card>
@@ -88,6 +90,9 @@
 {% endblock %}
 
 {% block vueScript %}
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
 <script type="module">
 
 new Vue({
@@ -98,10 +103,6 @@ new Vue({
     isMobile: window.innerWidth < 500,
     selectedUrlItem: null,
     directoryList: null,
-    breadcrumbs: [
-      {text: '首页', disabled: true,},
-      {text: '目录管理', disabled: true,}
-    ],
     isHelpPageDrawerShown: false,
   },
   watch: {},
@@ -152,9 +153,4 @@ new Vue({
   }
 })
 </script>
-<style>
- .jh-empty-div {
-   line-height: 100px; width: 100%; color: #999999; font-size: 1.25rem;
- }
-</style>
 {% endblock %}

@@ -11,31 +11,36 @@
       <v-main class="mt-15">
         <!-- 头部内容 >>>>>>>>>>>>> -->
         <div class="jh-page-second-bar px-8">
-          <v-row>
+          <v-row class="align-center">
             <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-              <div class="pt-3 text-h7 font-weight-bold">Ui配置编辑
+              <div class="py-4 text-body-1 font-weight-bold">Ui配置编辑
                 <!-- 帮助页按钮 -->
-                <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline
-                </v-icon>
+                <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+                  <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+                </span>
+                <!-- 返回按钮 -->
+                <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-1" @click="doUiAction('redirect')">
+                  <v-icon size="13" class="success--text">mdi-arrow-left-top-bold</v-icon>返回
+                </span>
               </div>
-              <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
             </v-col>
-            <!-- 操作按钮 -->
+            <!-- pc端的搜索条件表单 >>>>>>>> -->
             <v-col cols="12" xs="12" sm="12" md="8" xl="9">
-              <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2 mt-3">
+              <v-row class="jh-backend-form-container justify-end ma-0 py-3">
                 <v-btn @click="doUiAction('save') " color="success" depressed small>
                   <v-icon class="mr-1" small>mdi-content-save-all</v-icon>
                   保存
                 </v-btn>
               </v-row>
             </v-col>
+            <!-- <<<<<<<< pc端的搜索条件表单 -->
           </v-row>
         </div>
         <!-- <<<<<<<<<<<<< 头部内容 -->
   
         <div class="jh-page-body-container px-8">
           <!-- 页面内容 >>>>>>>>>>>>> -->
-          <v-card class="rounded-lg form-wrapper">
+          <v-card class="rounded-lg jh-fixed-table-height">
             <!--表单-->
             <v-form ref="editForm" lazy-validation>
               <!--标题-->
@@ -45,7 +50,7 @@
               <!--内容-->
               <v-row class="mt-0 px-4">
                 <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">constantKey</span>
+                  <span class="jh-input-label">constantKey<span class="red--text text--accent-2 ml-1">*必填</span></span>
                   <v-text-field class="jh-v-input" dense single-line filled label="constantKey"
                     v-model="editItem.constantKey" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
@@ -77,7 +82,7 @@
             </v-form>
 
             <!-- 遮罩层 -->
-            <v-overlay :value="isFormLoading" absolute opacity="0.1">
+            <v-overlay :value="isFormLoading" absolute opacity="0.03">
               <v-progress-circular indeterminate size="64"></v-progress-circular>
             </v-overlay>
           </v-card>
@@ -116,6 +121,7 @@
 {% block vueScript %}
 
 <!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 {% include 'component/vueJsonEditor.html' %}
 <!-- <<<<<<<<<<<<< 加载页面组件 -->
 
@@ -127,18 +133,6 @@
     vuetify: new Vuetify(),
     data: {
       language: '<$ language $>',
-
-      // 面包屑
-      breadcrumbs: [
-        {
-          text: '首页',
-          disabled: true,
-        },
-        {
-          text: 'Ui配置编辑',
-          disabled: true,
-        }
-      ],
       isHelpPageDrawerShown: false,
 
       // 表单相关数据
@@ -180,6 +174,9 @@
             await this.prepareDoSaveItem();
             await this.doSaveItem();
             await this.clearSave();
+            break;
+          case 'redirect':
+            await this.redirectToConstantUiList();
             break;
           default:
             console.error("[doUiAction] uiActionId not find", { uiActionId });
@@ -298,18 +295,16 @@
         this.saveActionData = {};
       },
       // ---------- <<<<<<<<<<< 保存数据 uiAction  --------
+
+      // ---------- Ui配置 uiAction >>>>>>>>>>>> --------
+      async redirectToConstantUiList(funObj) {
+        window.location.href = `/${window.appInfo.appId}/page/constantUiList`
+      },
+      // ---------- <<<<<<<<<<< Ui配置 uiAction  --------
     }
   })
 </script>
 
 <style scoped>
-  .form-wrapper{
-    min-height: calc(100vh - 130px);
-  }
-  @media screen and (max-width: 500px) {
-    .form-wrapper{
-      min-height: calc(100vh - 180px);
-    }
-  }
 </style>
 {% endblock %}

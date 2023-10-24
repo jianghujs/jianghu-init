@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "egg": "^2.15.1",
-    "@jianghujs/jianghu": "4.0.3",
+    "@jianghujs/jianghu": "4.1.4",
     "egg-scripts": "^2.11.0"
   },
   "devDependencies": {
@@ -25,9 +25,9 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --port=7006 --title={{name}}",
+    "start": "egg-scripts start --workers=2 --daemon --port=7202 --title={{name}}",
     "stop": "egg-scripts stop --title={{name}}",
-    "dev": "egg-bin dev --port=7006",
+    "dev": "egg-bin dev --port=7202",
     "debug": "egg-bin debug",
     "test": "npm run lint -- --fix && npm run test-local",
     "test-local": "egg-bin test",

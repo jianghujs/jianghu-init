@@ -8,32 +8,36 @@
   <v-main class="mt-15">
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
-      <v-row>
+      <v-row class="align-center">
         <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-          <div class="pt-3 text-h7 font-weight-bold">数据历史
+          <div class="py-4 text-body-1 font-weight-bold">数据历史
             <!-- 帮助页按钮 -->
-            <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
+            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+            </span>
           </div>
-          <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
         </v-col>
-        <!--pc端的搜索条件表单 >>>>>>>> -->
-        <v-col cols="12" xs="12" sm="12" md="8" xl="9">
-          <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
-            <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pr-1 pr-xs-1">
-              <v-select v-model="serverSearchInput.table" color="success" prefix="数据表：" class="jh-v-input bg-white" :items="constantObj.table" dense filled single-line></v-select>
+         <!-- pc端的搜索条件表单 >>>>>>>> -->
+         <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+          <v-row class="jh-backend-form-container justify-end ma-0 py-3">
+            <v-col cols="12" xs="12" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-sm-2">
+              <v-select v-model="serverSearchInput.table" color="success" prefix="数据表：" class="jh-v-input bg-white" :items="constantObj.table" dense filled single-line hide-details></v-select>
             </v-col>
-            <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
-              <v-select v-model="serverSearchInput.dataType" color="success" prefix="数据类型：" class="jh-v-input bg-white" :items="constantObj.dataType" dense filled single-line></v-select>
+            <v-col cols="12" xs="12" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
+              <v-select v-model="serverSearchInput.dataType" color="success" prefix="数据类型：" class="jh-v-input bg-white" :items="constantObj.dataType" dense filled single-line hide-details></v-select>
             </v-col>
-            <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">
-              查询
-            </v-btn>
+            <div class="jh-backend-search-btn">
+              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </div>
           </v-row>
         </v-col>
         <!-- <<<<<<<< pc端的搜索条件表单 -->
       </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
+
     <div class="jh-page-body-container px-8">
       <!-- 页面主要内容 -->
       <v-card :class="{'px-2': isMobile}">
@@ -59,7 +63,7 @@
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
             <span role="button" class="success--text font-weight-medium font-size-2 text-no-wrap" @click="doUiAction('viewRecordHistory', item)">
-              <v-icon size="16" class="success--text">mdi-eye-outline</v-icon>查看数据版本<span v-if="item.count > 0" style="color: red">({{item.count}})</span>
+              <v-icon size="16" class="success--text">mdi-eye-outline</v-icon>查看数据版本<span v-if="item.count > 0" class="success--text">({{item.count}})</span>
             </span>
           </template>
           <!-- 操作时间 -->
@@ -76,6 +80,10 @@
           <template v-slot:no-results>
             <div class="jh-no-data">暂无数据</div>
           </template>
+          <!-- 查询条件 -->
+          <template v-slot:footer.prepend>
+            <div style="flex: auto;">{{searchSummary}}</div>
+          </template>
           <!-- 表格分页 -->
           <template v-slot:footer.page-text="pagination">
             <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
@@ -86,10 +94,25 @@
       </v-card>
 
       <v-navigation-drawer v-model="isHistoryDetailDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-        <!-- 抽屉的头部标题 -->
-        <div class="text-h7 pa-4">数据版本</div>
+        <!-- 抽屉标题 -->
+        <v-row no-gutters>
+          <span class="text-h7 font-weight-bold pa-4">数据版本</span>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+
+        <!-- 表格操作 -->
+        <v-row class="ma-0 mt-4 px-4">
+          <v-spacer></v-spacer>
+          <!-- 搜索过滤 -->
+          <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+            <v-text-field color="success" v-model="searchInputDrawer" prefix="搜索：" class="jh-v-input" dense
+                filled single-line></v-text-field>
+          </v-col>
+        </v-row>
+
         <!-- 抽屉的表格主体 >>>>>>>>>>>>> -->
         <v-data-table
+          :search="searchInputDrawer"
           fixed-header
           checkbox-color="success"
           :headers="headers"
@@ -166,11 +189,6 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: {
-
-    breadcrumbs: [
-      {text: '首页', disabled: true,},
-      {text: '用户管理', disabled: true,}
-    ],
     isHelpPageDrawerShown: false,
     // 页面变量
     isMobile: window.innerWidth < 500,
@@ -197,6 +215,8 @@ new Vue({
     currentTable: null,
 
     searchInput: null,
+    searchInputDrawer: null,
+    searchSummary: '',
     isTableLoading: false,
     tableData: [],
     defaultHeaders: [
@@ -216,7 +236,7 @@ new Vue({
   },
   watch: {},
   async created() {
-    this.doUiAction('getTableData')
+    this.doUiAction('getTableData');
   },
   methods: {
     async doUiAction(uiActionId, uiActionData) {
@@ -224,6 +244,7 @@ new Vue({
         case 'getTableData':
           await this.prepareGetTableData();
           await this.getTableData();
+          await this.setSearchSummary();
           await this.computeHeader();
           break;
         case 'viewRecordHistory':
@@ -239,7 +260,7 @@ new Vue({
           await this.decodeRecordHistoryDetail();
 
           await this.prepareGetTableData();
-          await this.getTableData();
+          await this.doUiAction('getTableData');
           await this.computeHeader();
           break;
         default:
@@ -248,8 +269,6 @@ new Vue({
       }
     },
     //   --------------- 获取数据 uiAction >>>>>>>>>>  ---------------
-    async openTableLoading() {
-    },
     async prepareGetTableData() {
       const backendSearchData = _.pickBy(this.serverSearchInput, value => !!value && value !== '全部');
       if (backendSearchData.dataType === 'onUse') {
@@ -276,6 +295,16 @@ new Vue({
       this.tableData = result.data.appData.resultData.rows;
       this.isTableLoading = false;
     },
+    setSearchSummary(){
+      const conditions = [];
+      if (this.serverSearchInput.table) {
+        conditions.push(`数据表为【${getDisplayText({displayObj: this.constantObj.table, displayValue: this.serverSearchInput.table})}】`);
+      }
+      if (this.serverSearchInput.dataType) {
+        conditions.push(`数据类型为【${getDisplayText({displayObj: this.constantObj.dataType, displayValue: this.serverSearchInput.dataType})}】`);
+      }
+      this.searchSummary = conditions.length > 0  ? `${conditions.join('，')}，共${this.tableData.length}条记录` : `共${this.tableData.length}条记录`;
+    },
     computeHeader() {
       if (this.tableData.length > 0) {
         const headers = this.defaultHeaders.slice();
@@ -286,7 +315,7 @@ new Vue({
           }
           headers.push({text: key, value: key, width: 120});
         }
-        headers.unshift({text: '操作', value: 'action', align: 'left', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'});
+        headers.push({text: '操作', value: 'action', align: 'left', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'});
         this.headers = headers;
       }
     },

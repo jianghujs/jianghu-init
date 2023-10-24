@@ -9,24 +9,20 @@
       <v-main class="mt-15">
         <!-- 头部内容 >>>>>>>>>>>>> -->
         <div class="jh-page-second-bar px-8">
-          <div class="pt-3 text-h7 font-weight-bold">{{ title }} - 班级列表
-            <!-- 帮助页按钮 -->
-            <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-          </div>
-          <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-">
-            <template v-slot:item="{ item }">
-              <v-breadcrumbs-item :disabled="item.disabled" v-if="item.text === '首页'">
-                {{ item.text }}
-              </v-breadcrumbs-item>
-              <v-breadcrumbs-item :disabled="item.disabled" v-else>
-                {{ item.text }}（ID:{{ studentId }}）
-                <span role="button" class="success--text font-weight-medium font-size-2 back-btn"
-                  @click="doUiAction('redirect')">
-                  <v-icon size="14" class="success--text">mdi-arrow-left-top-bold</v-icon>返回
+          <v-row class="align-center">
+            <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+              <div class="py-4 text-body-1 font-weight-bold">学生的班级列表&nbsp;&nbsp;|&nbsp;&nbsp;{{ studentId }}-{{ title }}
+                <!-- 帮助页按钮 -->
+                <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+                  <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
                 </span>
-              </v-breadcrumbs-item>
-            </template>
-          </v-breadcrumbs>
+                <!-- 返回按钮 -->
+                <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-1" @click="doUiAction('redirect')">
+                  <v-icon size="13" class="success--text">mdi-arrow-left-top-bold</v-icon>返回
+                </span>
+              </div>
+            </v-col>
+          </v-row>
         </div>
         <!-- <<<<<<<<<<<<< 头部内容 -->
   
@@ -50,14 +46,15 @@
               :items-per-page="-1" mobile-breakpoint="0" :loading="isTableLoading"
               checkbox-color="success" fixed-header :class="{'zebraLine': isTableZebraLineShown }"
               class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+              <!-- 操作时间 -->
               <template v-slot:item.operationAt="{ item }">
                 {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
               </template>
               <!-- 表格行操作按钮 -->
               <template v-slot:item.action="{ item }">
-                <span role="button" class="success--text font-weight-medium font-size-2"
+                <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2"
                   @click="doUiAction('deleteItem', item)">
-                  <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
+                  <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>删除
                 </span>
               </template>
               <!-- 没有数据 -->
@@ -82,39 +79,54 @@
           <!-- 分配班级抽屉 -->
           <v-navigation-drawer v-model="isAllotDrawerShown" v-click-outside="drawerClickOutside" fixed temporary
             right width="80%" class="elevation-24">
-            <v-card flat>
-              <v-row class="ma-0 pa-4">
-                <v-btn color="success" class="elevation-0" @click="doUiAction('allotItem')" small>批量新增</v-btn>
-              </v-row>
-              <v-data-table fixed-header show-select checkbox-color="success" :headers="allotHeaders"
-                :loading="isAllotTableLoading" :items="allotTableData" item-key="classId"
-                :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-                :items-per-page="-1" mobile-breakpoint="0" @item-selected="tableItemSelected" v-model="allotTableSelected"
-                @toggle-select-all="tableToggleSelectAll" :class="{'zebraLine': isTableZebraLineShown }"
-                class="fixed-first-column jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
-                <template v-slot:item.action="{ item }">
-                  <span role="button" class="success--text font-weight-medium font-size-2"
-                    @click="doUiAction('buildRelation', item)">
-                    <v-icon size="16" class="success--text">mdi-plus-box-outline</v-icon>新增
-                  </span>
-                </template>
-                <!-- 没有数据 -->
-                <template v-slot:loading>
-                  <div class="jh-no-data">数据加载中</div>
-                </template>
-                <template v-slot:no-data>
-                  <div class="jh-no-data">暂无数据</div>
-                </template>
-                <template v-slot:no-results>
-                  <div class="jh-no-data">暂无数据</div>
-                </template>
-                <!-- 表格分页 -->
-                <template v-slot:footer.page-text="pagination">
-                  <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-                  <span class="ml-1">共{{pagination.itemsLength}}条</span>
-                </template>
-              </v-data-table>
-            </v-card>
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+              <span class="text-h7 font-weight-bold pa-4">分配班级</span>
+            </v-row>
+            <v-divider class="jh-divider"></v-divider>
+
+            <!-- 表格操作 -->
+            <v-row class="ma-0 mt-4 px-4">
+              <!-- 新增按钮 -->
+              <v-btn class="success elevation-0 mr-2" small :disabled="allotTableSelected.length === 0" @click="doUiAction('allotItem')">批量新增</v-btn>
+              <v-spacer></v-spacer>
+              <!-- 搜索过滤 -->
+              <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+                <v-text-field color="success" v-model="searchInputDrawer" prefix="搜索：" class="jh-v-input" dense
+                    filled single-line></v-text-field>
+              </v-col>
+            </v-row>
+
+            <!-- 表格 -->
+            <v-data-table fixed-header show-select checkbox-color="success" :headers="allotHeaders" :search="searchInputDrawer"
+              :loading="isAllotTableLoading" :items="allotTableData" item-key="classId"
+              :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+              :items-per-page="-1" mobile-breakpoint="0" @item-selected="tableItemSelected" v-model="allotTableSelected"
+              @toggle-select-all="tableToggleSelectAll" :class="{'zebraLine': isTableZebraLineShown }"
+              class="fixed-first-column jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+              <template v-slot:item.action="{ item }">
+                <span role="button" class="success--text font-weight-medium font-size-2"
+                  @click="doUiAction('buildRelation', item)">
+                  <v-icon size="16" class="success--text">mdi-plus-box-outline</v-icon>新增
+                </span>
+              </template>
+              <!-- 没有数据 -->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <!-- 表格分页 -->
+              <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
+              </template>
+            </v-data-table>
+
             <!-- 抽屉关闭按钮 -->
             <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
               @click="isAllotDrawerShown = false">
@@ -166,17 +178,6 @@
     vueComponent: 'page',
     vuetify: new Vuetify(),
     data: {
-      // 面包屑
-      breadcrumbs: [
-        {
-          text: '首页',
-          disabled: true,
-        },
-        {
-          text: '学生的班级列表',
-          disabled: true,
-        }
-      ],
       isHelpPageDrawerShown: false,
 
       // url传递的参数
@@ -191,27 +192,28 @@
         ],
       },
       searchInput: null,
+      searchInputDrawer: null,
       isTableLoading: true,
       tableData: [],
       headers: [
-        { text: '操作', value: 'action', sortable: false, width: 70, class: 'fixed', cellClass: 'fixed' },
         { text: '学生ID', value: 'studentId', width: 120 },
         { text: '班级ID', value: 'classId', width: 120 },
         { text: '备注', value: 'remark', width: 120 },
         { text: "操作者", value: "operationByUser", width: 120 },
         { text: "操作时间", value: "operationAt", width: 250 },
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'},
       ],
 
       // 分配班级表格相关数据
       isAllotTableLoading: true,
       allotHeaders: [
-        { text: '操作', value: 'action', sortable: false, width: 70 },
         { text: '班级ID', value: 'classId', width: 120 },
         { text: '班级名称', value: 'className', width: 120 },
         { text: '班级状态', value: 'classStatus', width: 120 },
         { text: '备注', value: 'remark', width: 120 },
         { text: "操作者", value: "operationByUser", width: 120 },
         { text: "操作时间", value: "operationAt", width: 250 },
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'},
       ],
       allotTableData: [],
       allotTableDataFromBackend: [],

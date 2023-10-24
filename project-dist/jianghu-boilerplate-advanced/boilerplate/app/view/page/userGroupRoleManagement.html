@@ -55,13 +55,19 @@
       </v-list-item-group>
     </v-navigation-drawer>
     <!-- <<<<<<<<<<<<< 组织、角色、用户 切换抽屉 -->
+
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
-      <div class="pt-3 text-h7 font-weight-bold">用户、组织、角色
-        <!-- 帮助页按钮 -->
-        <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-      </div>
-      <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+      <v-row class="align-center">
+        <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+          <div class="py-4 text-body-1 font-weight-bold">用户、组织、角色
+            <!-- 帮助页按钮 -->
+            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+            </span>
+          </div>
+        </v-col>
+      </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
 
@@ -122,14 +128,36 @@
               <template v-slot:item.roleId="{ item }">
                 {{ (constantObj.userType.find(({value}) => value === item.roleId) || roleListFromBackend.find(({value}) => value === item.roleId) || {}).text }}
               </template>
-              <!-- 表格操作按钮 -->
+              <!-- 表格行操作按钮 -->
               <template v-slot:item.action="{ item }">
-                <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateRelationDataItem', item)">
-                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
-                </span>
-                <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteRelationDataItem', item)">
-                  <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
-                </span>
+                <template>
+                  <!-- pc端 -->
+                  <template v-if="!isMobile">
+                    <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateRelationDataItem', item)">
+                      <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
+                    </span>
+                    <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('deleteRelationDataItem', item)">
+                      <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>删除
+                    </span>
+                  </template>
+                  <!-- 手机端 -->
+                  <v-menu offset-y v-if="isMobile">
+                    <template v-slot:activator="{ on, attrs }">
+                      <span role="button" class="success--text font-weight-medium font-size-2"
+                        v-bind="attrs" v-on="on">
+                        操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                      </span>
+                    </template>
+                    <v-list dense>
+                      <v-list-item @click="doUiAction('startUpdateRelationDataItem', item)">
+                        <v-list-item-title>修改</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item @click="doUiAction('deleteRelationDataItem', item)">
+                        <v-list-item-title>删除</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </template>
               </template>
               <!--没有数据-->
               <template v-slot:loading>
@@ -220,32 +248,31 @@
       <!-- 新增relationData抽屉 >>>>>>>>>>>>> -->
       <v-navigation-drawer v-model="isRelationDataCreateDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="createRelationDataForm" lazy-validation>
-          <!-- 抽屉的头部标题 -->
-          <v-row class="ma-0 px-6">
-            <span class="text-h7 pt-6">{{ currentOperation.title }}信息</span>
+          <!-- 抽屉标题 -->
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">{{ currentOperation.title }}信息</span>
           </v-row>
-          <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-6">
+          <v-divider class="jh-divider"></v-divider>
+          <!-- 抽屉表单主体 -->
+          <v-row class="mt-0 px-4">
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">UserID</span>
+              <span class="jh-input-label">UserID<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.userId" :items="userListFromBackend"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">GroupID</span>
+              <span class="jh-input-label">GroupID<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.groupId" :items="groupListFromBackend"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">RoleId</span>
+              <span class="jh-input-label">RoleId<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.roleId" :items="roleListFromBackend"></v-select>
             </v-col>
           </v-row>
-          <!-- <<<<<<<<<<< 抽屉的主体 -->
-          <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
-          <v-row class="justify-end mx-0 mt-8 px-6">
+          <!-- 抽屉操作按钮 -->
+          <v-row class="justify-end mx-0 my-8 px-4">
             <v-btn color="success" @click="doUiAction('createRelationDataItem')" small>保存</v-btn>
             <v-btn color="color" class="ml-2" @click="isRelationDataCreateDrawerShow = false" small>取消</v-btn>
           </v-row>
-          <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
         </v-form>
         <!-- 抽屉的关闭按钮 -->
         <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isRelationDataCreateDrawerShow = false">
@@ -253,35 +280,35 @@
         </v-btn>
       </v-navigation-drawer>
       <!-- <<<<<<<<<<< 新增relationData抽屉 -->
+
       <!-- 编辑relationData抽屉 >>>>>>>>>>>>> -->
       <v-navigation-drawer v-model="isRelationDataUpdateDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateRelationDataForm" lazy-validation>
-          <!-- 抽屉的头部标题 -->
-          <v-row class="ma-0 px-6">
-            <span class="text-h7 pt-6">{{ currentOperation.title }}信息</span>
+          <!-- 抽屉标题 -->
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">{{ currentOperation.title }}信息</span>
           </v-row>
-          <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-6">
+          <v-divider class="jh-divider"></v-divider>
+          <!-- 抽屉表单主体 -->
+          <v-row class="mt-0 px-4">
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">UserID</span>
+              <span class="jh-input-label">UserID<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.userId" :items="userListFromBackend"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">GroupID</span>
+              <span class="jh-input-label">GroupID<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.groupId" :items="groupListFromBackend"></v-select>
             </v-col>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">RoleId</span>
+              <span class="jh-input-label">RoleId<span class="red--text text--accent-2 ml-1">*必填</span></span>
               <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.roleId" :items="roleListFromBackend"></v-select>
             </v-col>
           </v-row>
-          <!-- <<<<<<<<<<< 抽屉的主体 -->
-          <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
-          <v-row class="justify-end mx-0 mt-8 px-6">
+          <!-- 抽屉操作按钮 -->
+          <v-row class="justify-end mx-0 my-8 px-4">
             <v-btn color="success" @click="doUiAction('updateRelationDataItem')" small>保存</v-btn>
             <v-btn color="color" class="ml-2" @click="isRelationDataUpdateDrawerShow = false" small>取消</v-btn>
           </v-row>
-          <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
         </v-form>
         <!-- 抽屉的关闭按钮 -->
         <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isRelationDataUpdateDrawerShow = false">
@@ -289,6 +316,7 @@
         </v-btn>
       </v-navigation-drawer>
       <!-- <<<<<<<<<<< 编辑relationData抽屉 -->
+
       <!--添加新用户弹窗 >>>>>>>>>>>>> -->
       <v-dialog v-model="isCreateUserDialogShow" width="800px">
         <v-card>
@@ -300,11 +328,11 @@
               <!--新增用户表单 >>>>>>>>>>>>> -->
               <v-row v-if="dataType === 0">
                 <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">用户ID</span>
+                  <span class="jh-input-label">用户ID<span class="red--text text--accent-2 ml-1">*必填</span></span>
                   <v-text-field class="jh-v-input" dense filled single-line label="用户ID" v-model="createUserData.userId" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">用户名</span>
+                  <span class="jh-input-label">用户名<span class="red--text text--accent-2 ml-1">*必填</span></span>
                   <v-text-field class="jh-v-input" dense filled single-line label="用户名" v-model="createUserData.username" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
@@ -316,7 +344,7 @@
                   <v-select class="jh-v-input" dense filled single-line clearable label="用户类型" v-model="createUserData.userType" :items="constantObj.userType"></v-select>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">初始密码</span>
+                  <span class="jh-input-label">初始密码<span class="red--text text--accent-2 ml-1">*必填</span></span>
                   <v-text-field class="jh-v-input" dense filled single-line label="初始密码" v-model="createUserData.clearTextPassword" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
               </v-row>
@@ -331,6 +359,7 @@
           <!-- <<<<<<<<<<< 弹窗操作按钮 -->
         </v-card>
       </v-dialog>
+
       <!--添加新组织弹窗 >>>>>>>>>>>>> -->
       <v-dialog v-model="isCreateGroupDialogShown" width="800px">
         <v-card>
@@ -343,11 +372,11 @@
               <!--新增组织表单 >>>>>>>>>>>>> -->
               <v-row v-if="dataType === 1">
                 <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">组织ID</span>
+                  <span class="jh-input-label">组织ID<span class="red--text text--accent-2 ml-1">*必填</span></span>
                   <v-text-field class="jh-v-input" dense filled single-line label="组织ID" v-model="createGroupData.groupId" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">组织名</span>
+                  <span class="jh-input-label">组织名<span class="red--text text--accent-2 ml-1">*必填</span></span>
                   <v-text-field class="jh-v-input" dense filled single-line label="组织名" v-model="createGroupData.groupName" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
@@ -374,11 +403,12 @@
           <!-- <<<<<<<<<<< 弹窗操作按钮 -->
         </v-card>
       </v-dialog>
+
       <!--添加新角色弹窗 >>>>>>>>>>>>> -->
       <v-dialog v-model="isCreateRoleDialogShown" width="800px">
         <v-card>
           <v-card-title class="text-h5  lighten-2  pt-6">
-            添加新组织
+            添加新角色
           </v-card-title>
 
           <v-card-text>
@@ -386,11 +416,11 @@
               <!--新增角色表单 >>>>>>>>>>>>> -->
               <v-row v-if="dataType === 2">
                 <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">角色ID</span>
+                  <span class="jh-input-label">角色ID<span class="red--text text--accent-2 ml-1">*必填</span></span>
                   <v-text-field class="jh-v-input" dense filled single-line label="角色ID" v-model="createRoleData.roleId" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">角色名</span>
+                  <span class="jh-input-label">角色名<span class="red--text text--accent-2 ml-1">*必填</span></span>
                   <v-text-field class="jh-v-input" dense filled single-line label="角色名" v-model="createRoleData.roleName" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12" md="4">
@@ -441,10 +471,6 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: {
-    breadcrumbs: [
-      {text: '首页', disabled: true,},
-      {text: '用户管理', disabled: true,}
-    ],
     isHelpPageDrawerShown: false,
     isMobile: window.innerWidth < 500,
     isTableZebraLineShown: true,
@@ -458,7 +484,7 @@ new Vue({
     currentItemIndex: 0,
     showLeftMenu: window.innerWidth > 600,
     validationRules: {
-      requireRules: [v => !!v],
+      requireRules: [v => !!v || 'This is required'],
       nullRules: [v => true],
     },
     tabsSearchKeyword: null,
@@ -487,12 +513,12 @@ new Vue({
     isUpdateCurrentDataTypeDialog: false,
 
     relationDataTableHeader: [
-      {text: '操作', value: 'action', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'},
       {text: "用户Id", value: "userId", width: 120},
       {text: "组织ID", value: "groupId", width: 120},
       {text: "角色ID", value: "roleId", width: 120},
       {text: "操作人", value: "operationByUser", width: 120},
       {text: "操作时间", value: "operationAt", width: 250},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 80 : 120, class: 'fixed', cellClass: 'fixed'},
     ],
 
     userKeys: [

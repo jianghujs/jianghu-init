@@ -9,11 +9,16 @@
       <v-main class="mt-15">
         <!-- 头部内容 >>>>>>>>>>>>> -->
         <div class="jh-page-second-bar px-8">
-          <div class="pt-3 text-h7 font-weight-bold">学生列表-高级
-            <!-- 帮助页按钮 -->
-            <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-          </div>
-          <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          <v-row class="align-center">
+            <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+              <div class="py-4 text-body-1 font-weight-bold">学生列表-高级
+                <!-- 帮助页按钮 -->
+                <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+                  <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+                </span>
+              </div>
+            </v-col>
+          </v-row>
         </div>
         <!-- <<<<<<<<<<<<< 头部内容 -->
   
@@ -39,20 +44,18 @@
               class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
               <!-- 表格行操作按钮 -->
               <template v-slot:item.action="{ item }">
-                <span role="button" class="success--text font-weight-medium font-size-2 mr-1 mr-sm-2"
-                  @click="doUiAction('classList', item)">
-                  <v-icon size="16" class="success--text">mdi-school-outline</v-icon>班级列表
-                </span>
                 <template>
                   <!-- pc端 -->
                   <template v-if="!isMobile">
-                    <span role="button" class="success--text font-weight-medium font-size-2 mr-1 mr-sm-2"
-                      @click="doUiAction('startUpdateItem', item)">
+                    <span role="button" class="success--text font-weight-medium font-size-2 mr-2"
+                      @click="doUiAction('classList', item)">
+                      <v-icon size="16" class="success--text">mdi-account-school-outline</v-icon>班级列表
+                    </span>
+                    <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
                       <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
                     </span>
-                    <span role="button" class="success--text font-weight-medium font-size-2"
-                      @click="doUiAction('deleteItem', item)">
-                      <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
+                    <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                      <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>删除
                     </span>
                   </template>
                   <!-- 手机端 -->
@@ -64,6 +67,9 @@
                       </span>
                     </template>
                     <v-list dense>
+                      <v-list-item @click="doUiAction('classList', item)">
+                        <v-list-item-title>班级列表</v-list-item-title>
+                      </v-list-item>
                       <v-list-item @click="doUiAction('startUpdateItem', item)">
                         <v-list-item-title>修改</v-list-item-title>
                       </v-list-item>
@@ -97,14 +103,15 @@
           <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary
             right width="80%" class="elevation-24">
             <v-form ref="createForm" lazy-validation>
-              <!-- 抽屉标题 -->
-              <v-row class="ma-0">
-                <span class="text-subtitle-1 font-weight-medium px-4 pt-2">添加信息</span>
+               <!-- 抽屉标题 -->
+               <v-row no-gutters>
+                <span class="text-h7 font-weight-bold pa-4">添加信息</span>
               </v-row>
+              <v-divider class="jh-divider"></v-divider>
               <!-- 抽屉表单主体 -->
               <v-row class="mt-0 px-4">
                 <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">学生ID</span>
+                  <span class="jh-input-label">学生ID<span class="red--text text--accent-2 ml-1">*必填</span></span>
                   <v-text-field class="jh-v-input" dense filled single-line label="学生ID"
                     v-model="createItem['studentId']" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
@@ -150,7 +157,7 @@
                 </v-col>
               </v-row>
               <!-- 抽屉操作按钮 -->
-              <v-row class="justify-end mx-0 mt-8 px-4">
+              <v-row class="justify-end mx-0 my-8 px-4">
                 <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
                 <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
               </v-row>
@@ -167,13 +174,14 @@
             right width="80%" class="elevation-24">
             <v-form ref="updateForm" lazy-validation>
               <!-- 抽屉标题 -->
-              <v-row class="ma-0">
-                <span class="text-subtitle-1 font-weight-medium px-4 pt-2">修改信息</span>
+              <v-row no-gutters>
+                <span class="text-h7 font-weight-bold pa-4">修改信息</span>
               </v-row>
+              <v-divider class="jh-divider"></v-divider>
               <!-- 抽屉表单 -->
               <v-row class="mt-0 px-4">
                 <v-col cols="12" sm="12" md="4">
-                  <span class="jh-input-label">学生ID</span>
+                  <span class="jh-input-label">学生ID<span class="red--text text--accent-2 ml-1">*必填</span></span>
                   <v-text-field class="jh-v-input" dense filled single-line label="学生ID"
                     v-model="updateItem['studentId']" :rules="validationRules.requireRules"></v-text-field>
                 </v-col>
@@ -219,7 +227,7 @@
                 </v-col>
               </v-row>
               <!-- 抽屉操作按钮 -->
-              <v-row class="justify-end mx-0 mt-8 px-4">
+              <v-row class="justify-end mx-0 my-8 px-4">
                 <v-btn color="success" small @click="doUiAction('updateItem')">保存</v-btn>
                 <v-btn class="ml-2" small @click="isUpdateDrawerShown = false">取消
                 </v-btn>
@@ -232,25 +240,10 @@
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-navigation-drawer>
-  
+
           <!-- 学生的班级列表抽屉 -->
-          <v-navigation-drawer v-model="isClassListShown" stateless fixed temporary right width="80%"
-            class="elevation-24">
-            <v-container class="pa-0">
-              <v-row class="ma-0">
-                <span class="text-subtitle-1 font-weight-medium px-4 py-2">{{ classListItem['name'] }} - 班级列表</span>
-              </v-row>
-              <v-row class="ma-0">
-                <class-list-of-one-student :student-id="classListItem['studentId']" v-if="isClassListShown">
-                </class-list-of-one-student>
-              </v-row>
-            </v-container>
-  
-            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
-              @click="isClassListShown = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-navigation-drawer>
+          <class-list-of-one-student :student-data="classListItem" ref="classListOfOneStudent">
+          </class-list-of-one-student>
         </div>
   
         <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
@@ -298,18 +291,6 @@ new Vue({
   vuetify: new Vuetify(),
   data: {
     isMobile: window.innerWidth < 500,
-    
-    // 面包屑
-    breadcrumbs: [
-      {
-        text: '首页',
-        disabled: true,
-      },
-      {
-        text: '学生列表-高级',
-        disabled: true,
-      }
-    ],
     isHelpPageDrawerShown: false,
 
     // 表格相关数据
@@ -323,7 +304,6 @@ new Vue({
     isTableLoading: true,
     tableData: [],
     headers: [
-      {text: '操作', value: 'action', sortable: false, width: window.innerWidth < 500 ? 140 : 200, class: 'fixed', cellClass: 'fixed'},
       {text: "ID", value: "id", width: 80},
       {text: "学生ID", value: "studentId", width: 120}, 
       {text: "学生名字", value: "name", width: 120}, 
@@ -335,6 +315,7 @@ new Vue({
       {text: "备注", value: "remark", width: 120}, 
       {text: "操作者", value: "operationByUser", width: 120},
       {text: "操作时间", value: "operationAt", width: 250},
+      { text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 80 : 200, class: 'fixed', cellClass: 'fixed'},
     ],
 
     // 操作相关
@@ -348,7 +329,6 @@ new Vue({
     deleteItem: {},
     deleteItemId: null,
     deleteItemStudentId: null,
-    isClassListShown: false,
     classListItem: {},
   },
   watch: {},
@@ -570,7 +550,7 @@ new Vue({
       this.classListItem = _.cloneDeep(funObj);
     },
     async openClassListDrawer() {
-      this.isClassListShown = true;
+      this.$refs.classListOfOneStudent.doUiAction('open')
     },
     // ---------- <<<<<<<<<<< 学生的班级列表 uiAction  --------
   }

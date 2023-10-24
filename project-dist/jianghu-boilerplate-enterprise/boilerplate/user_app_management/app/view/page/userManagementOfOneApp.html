@@ -9,13 +9,23 @@
     <v-main class="mt-15">
       <!-- 头部内容 >>>>>>>>>>>>> -->
       <div class="jh-page-second-bar px-8">
-        <div class="pt-3 text-h7 font-weight-bold">App【{{ title }}】的用户权限管理
-          <!-- 帮助页按钮 -->
-          <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-        </div>
-        <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+        <v-row class="align-center">
+          <v-col cols="12" xs="12" sm="12" md="6" xl="6">
+            <div class="py-4 text-body-1 font-weight-bold">App的用户权限管理&nbsp;&nbsp;|&nbsp;&nbsp;{{ title }}-{{ appId }}
+              <!-- 帮助页按钮 -->
+              <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+                <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+              </span>
+              <!-- 返回按钮 -->
+              <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-1" @click="doUiAction('redirect')">
+                <v-icon size="13" class="success--text">mdi-arrow-left-top-bold</v-icon>返回
+              </span>
+            </div>
+          </v-col>
+        </v-row>
       </div>
       <!-- <<<<<<<<<<<<< 头部内容 -->
+
       <div class="jh-page-body-container px-8">
         <!-- 页面内容 >>>>>>>>>>>>> -->
         <v-card class="rounded-lg">
@@ -43,9 +53,9 @@
             class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
             <template v-slot:item.action="{ item }">
               <span
-                role="button" class="success--text font-weight-medium font-size-2"
+                role="button" class="red--text text--accent-2 font-weight-medium font-size-2"
                 @click="doUiAction('deleteRelation', item)">
-                <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
+                <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>删除
               </span>
             </template>
             <!--没有数据-->
@@ -74,14 +84,32 @@
             </template>
           </v-data-table>
         </v-card>
+
+        <!-- 分配用户抽屉 -->
         <v-navigation-drawer v-model="isUserListDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-          <!--抽屉标题-->
-          <v-row class="ma-4 pa-0">
-            <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('buildMultipleRelation')" small>保存选中</v-btn>
+          <!-- 抽屉标题 -->
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">分配用户</span>
           </v-row>
+          <v-divider class="jh-divider"></v-divider>
+
+          <!-- 表格操作 -->
+          <v-row class="ma-0 mt-4 px-4">
+            <!-- 新增按钮 -->
+            <v-btn color="success" class="elevation-0 mr-2" :disabled="drawerSelectedItem.length === 0"  @click="doUiAction('buildMultipleRelation')"
+              small>批量分配</v-btn>
+            <v-spacer></v-spacer>
+            <!-- 搜索过滤 -->
+            <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+              <v-text-field color="success" v-model="searchInputDrawer" prefix="搜索：" class="jh-v-input" dense
+                  filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+
           <!--抽屉表单主体-->
           <v-row class="ma-0">
             <v-data-table
+              :search="searchInputDrawer"
               :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
               :items-per-page="-1"
               :class="{'zebraLine': isTableZebraLineShown }"
@@ -97,10 +125,6 @@
               style="min-width: 100%"
               class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
             >
-              <template v-slot:footer.page-text="pagination">
-                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-                <span class="ml-1">共{{pagination.itemsLength}}条</span>
-              </template>
               <template v-slot:item.userType="{ item }">
                 {{ getDisplayText({displayObj: constantObj.userType, displayValue: item.userType}) }}
               </template>
@@ -116,6 +140,21 @@
                   @click="doUiAction('buildRelation', item)">
                   <v-icon size="16" class="success--text">mdi-plus-box</v-icon>新增
                 </span>
+              </template>
+              <!-- 没有数据 -->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <!-- 表格分页 -->
+              <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
               </template>
             </v-data-table>
           </v-row>
@@ -177,28 +216,29 @@ new Vue({
     appId: null,
     title: null,
     searchInput: null,
+    searchInputDrawer: null,
     isTableLoading: true,
     constantObj: {
       userStatus: [{"value": "active", "text": "正常"}, {"value": "banned", "text": "禁用"}],
       userType: [{"value": "common", "text": "普通用户"}],
     },
     headers: [
-      {text: '操作', value: 'action', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'},
       {text: "用户ID[登陆]", value: "userId", width: 120},
       {text: "用户名", value: "username", align: "start", width: 120},
       {text: "用户类型", value: "userType", width: 120},
       {text: "用户状态", value: "userStatus"},
       {text: "操作人", value: "operationByUser", width: 120},
       {text: "操作时间", value: "operationAt", width: 160},
+      { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'},
     ],
     drawerHeaders: [
-      {text: '操作', value: 'action', sortable: false, width: 60, class: 'fixed', cellClass: 'fixed'},
       {text: "用户ID[登陆]", value: "userId", width: 120},
       {text: "用户名", value: "username", align: "start", sortable: true, width: 120},
       {text: "用户类型", value: "userType", width: 120},
       {text: "用户状态", value: "userStatus", width: 120},
       {text: "操作人", value: "operationByUser", width: 120},
       {text: "操作时间", value: "operationAt", width: 160},
+      { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'},
     ],
 
     isDrawerTableLoading: true,
@@ -247,6 +287,9 @@ new Vue({
           break;
         case 'selectDrawerListAllItem':
           await this.selectDrawerListAllItem(uiActionData);
+          break;
+        case 'redirect':
+          await this.redirectToAPPManagement();
           break;
         default:
           console.error("[doUiAction] uiActionId not find", {uiActionId});
@@ -374,7 +417,7 @@ new Vue({
             pageId: 'userManagementOfOneApp',
             actionId: 'deleteItem',
             actionData: {},
-            where: {userId: this.deleteItemId}
+            where: {userId: this.deleteItemId, appId: this.appId}
           }
         }
       });
@@ -403,6 +446,13 @@ new Vue({
       }
     },
     // ---------- <<<<<<<<<<< 抽屉项目选中 uiAction --------
+
+    // ---------- APP列表 uiAction >>>>>>>>>>>> --------
+    async redirectToAPPManagement(funObj) {
+      window.location.href = `/${window.appInfo.appId}/page/appManagement`
+    },
+    // ---------- <<<<<<<<<<< APP列表 uiAction  --------
+
     dayjs: dayjs,
   }
 })
