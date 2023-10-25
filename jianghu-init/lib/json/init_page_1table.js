@@ -28,7 +28,6 @@ module.exports = class InitPage1Table extends CommandBase {
     this.success('初始化数据库连接成功');
     // generate crud
     await this.generateCrud(finalJsonConfig);
-    this.success('初始化数据库成功');
   }
 
   /** 
@@ -73,7 +72,7 @@ module.exports = class InitPage1Table extends CommandBase {
     }
     this.info(`开始生成 ${table} 的 CRUD`);
     // 生成 vue
-    const renderResult = await this.renderVue(table, pageId, pageType, columns);
+    const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
       this.success(`生成 ${table} 的 vue 文件完成`);
       // 数据库
@@ -122,15 +121,17 @@ module.exports = class InitPage1Table extends CommandBase {
   /**
    * 生成 vue
    */
-  async renderVue(table, pageId, pageType, columns) {
+  async renderVue(jsonConfig) {
+    const { table, pageId, pageType, columns } = jsonConfig;
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
+    // TODO: 若文件没有改动 则 删除backup文件
     await this.handleViewBackUp(pageId, filepath);
 
     // 设置njk渲染模板
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
-    const templateTargetPath = `${templatePath}/${pageType}.html.njk`;
+    const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath).toString();
     const nunjucksEnv = nunjucks.configure(templateTargetPath, {
       autoescape: false,
@@ -143,12 +144,12 @@ module.exports = class InitPage1Table extends CommandBase {
     });
 
     //获取数据库表所有原生字段
-    const allFields = await this.getTableFields(table);
+    // const allFields = await this.getTableFields(table);
     //获取enableInsertFields、enableUpdateFields
-    const enableCreateColumns = await this.getFormCreateColumns(allFields, columns);
-    const enableUpdateColumns = await this.getFormUpdateColumns(allFields, columns);
+    // const enableCreateColumns = await this.getFormCreateColumns(allFields, columns);
+    // const enableUpdateColumns = await this.getFormUpdateColumns(allFields, columns);
     //获取tableHeaders
-    const tableHeaders = await this.getTableHeaders(allFields, columns);
+    // const tableHeaders = await this.getTableHeaders(allFields, columns);
    
     nunjucksEnv.addFilter('toArrayString', function(array) {
       return JSON.stringify(array);
@@ -158,9 +159,9 @@ module.exports = class InitPage1Table extends CommandBase {
       table,
       tableCamelCase,
       pageId,
-      enableCreateColumns,
-      enableUpdateColumns,
-      tableHeaders
+      enableCreateColumns: columns,
+      enableUpdateColumns: columns,
+      tableHeaders: columns,
     });
 
     fs.writeFileSync(filepath, result);
