@@ -242,16 +242,41 @@ new Vue({
     isHelpPageDrawerShown: false,
     isHelpPageDrawerLoaded: false,
     isMobile: window.innerWidth < 500,
+    // 表格相关数据
     isTableZebraLineShown: true,
-
-    // TODO: 待支持
-    validationRules: {},
-    constantObj: {},
-    serverSearchInput: <=$ serverSearchInputStr $=>,
+    validationRules: {
+      <=%- for column in tableHeaders %=>
+      <=%- if th.rules %=> 
+      <=$ th.name $=>Rules: [
+        <=%- if th.required %=>
+        v => !!v || 'This is required',
+        <=%- endif %=>
+        <=$ th.rules | join(',\n') | indent(8) $=>
+      ],
+      <=%- endif %=>
+      <=%- endfor %=>
+    },
+    // 下拉选项
+    constantObj: {
+      <=%- for column in tableHeaders %=>
+      <=%- if th.items %=> 
+      <=$ th.name $=>Items: <=$ th.items | toArrayString $=>,
+      <=%- endif %=>
+      <=%- endfor %=>
+    },
+    // serverSearchInput: {
+    //   gender: null
+    // },
+    serverSearchInput: <=$ serverSearchInput $=>,
     searchInput: null,
     isTableLoading: true,
     tableData: [],
-    headers: <=$ tableHeadersStr $=>,
+    headers: [
+      <=%- for th in tableHeaders %=>
+      {text: "<=$ th.text $=>", value: "<=$ th.value $=>", <=% if th.align %=>align: "<=$ th.align $=>",<=% endif %=><=% if th.sortable %=>sortable: "<=$ th.sortable $=>",<=% endif %=><=% if th.width %=>width: <=$ th.width $=>,<=% endif %=><=% if th.class %=>class: "<=$ th.class $=>",<=% endif %=><=% if th.cellClass %=>cellClass: "<=$ th.cellClass $=>",<=% endif %=>},
+      <=%- endfor %=>
+    ],
+
     isCreateDrawerShown: false,
     createItem: {},
     createActionData: {},
