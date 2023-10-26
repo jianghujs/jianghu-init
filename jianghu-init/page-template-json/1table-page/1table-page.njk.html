@@ -27,7 +27,18 @@
             </v-col>
             <=%- elif ss.tag == "v-select" %=>
             <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
-              <v-select v-model="serverSearchInput.<=$ ss.column $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" :items='<=$ ss.props.items | dump $=>' dense filled single-line></v-select>
+              <v-select v-model="serverSearchInput.<=$ ss.column $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" :items='<=$ ss.attrs.items | dump $=>' dense filled single-line></v-select>
+            </v-col>
+            <=%- elif ss.tag == "v-date-picker" %=> 
+            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+              <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
+                <template v-slot:activator="{on, attrs}">
+                  <v-text-field v-bind="attrs" v-on="on"  
+                    v-model="serverSearchInput.<=$ ss.column $=>" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense single-line filled clearable></v-text-field>
+                </template>
+                <v-date-picker color="success" elevation="20" v-model="serverSearchInput.<=$ ss.column $=>"
+                    type='<=$ ss.attrs.type $=>'></v-date-picker>
+              </v-menu>
             </v-col>
             <=%- endif %=>
           <=%- endfor %=>  
@@ -111,21 +122,21 @@
           <!-- 抽屉表单 -->
           <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
           <v-row class="mt-0 px-4">
-            <=%- for f in columns %=>
+            <=%- for column in columns %=>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label"><=$ f.text $=></span>
-              <=%- if f.type == "v-text-field" %=> 
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ f.value $=>" :rules="validationRules.<=$ f.value $=>Rules" <=% for prop, value in f.props %=> <=$ prop $=>="<=$ value $=>"<=%- endfor %=>></v-text-field> 
-
-              <=%- elif f.type == "v-select" %=>
-              <v-select class="cus-v-input mr-2" dense filled single-line v-model="createItem.<=$ f.value $=>" :items='constantObj.<=$ f.value $=>Items' :rules="validationRules.<=$ f.value $=>Rules"></v-select> 
-
-              <=%- elif f.type == "v-date-picker" %=> 
+              <=%- if column.tag == "v-text-field" %=> 
+              <span class="jh-input-label"><=$ column.text $=></span>
+              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ column.value $=>"></v-text-field> 
+              <=%- elif column.tag == "v-select" %=>
+              <span class="jh-input-label"><=$ column.text $=></span>
+              <v-select class="cus-v-input mr-2" dense filled single-line v-model="createItem.<=$ column.value $=>" :items='<=$ column.attrs.items | dump $=>'></v-select> 
+              <=%- elif column.tag == "v-date-picker" %=> 
+              <span class="jh-input-label"><=$ column.text $=></span>
               <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
-                  <v-text-field v-bind="attrs" v-on="on" v-model="createItem.<=$ f.value $=>" class="cus-v-input" dense single-line filled readonly label="<=$ f.text $=>"></v-text-field>
+                  <v-text-field v-bind="attrs" v-on="on" v-model="createItem.<=$ column.value $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
                 </template>
-                <v-date-picker color="success" elevation="20" v-model="createItem.<=$ f.value $=>"></v-date-picker>
+                <v-date-picker color="success" elevation="20" v-model="createItem.<=$ column.value $=>"></v-date-picker>
               </v-menu>
               <=%- endif %=>
             </v-col>
@@ -151,21 +162,21 @@
           </v-row>
           <!-- 抽屉表单 -->
           <v-row class="mt-0 px-4">
-            <=%- for f in columns %=>
+            <=%- for column in columns %=>
             <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label"><=$ f.text $=></span>
-              <=%- if f.type == "v-text-field" %=> 
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ f.value $=>" :rules="validationRules.<=$ f.value $=>Rules"></v-text-field> 
-
-              <=%- elif f.type == "v-select" %=>
-              <v-select class="cus-v-input mr-2" dense filled single-line v-model="updateItem.<=$ f.value $=>" :items='constantObj.<=$ f.value $=>Items' :rules="validationRules.<=$ f.value $=>Rules"></v-select> 
-
-              <=%- elif f.type == "v-date-picker" %=> 
+              <=%- if column.tag == "v-text-field" %=> 
+              <span class="jh-input-label"><=$ column.text $=></span>
+              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ column.value $=>"></v-text-field> 
+              <=%- elif column.tag == "v-select" %=>
+              <span class="jh-input-label"><=$ column.text $=></span>
+              <v-select class="cus-v-input mr-2" dense filled single-line v-model="updateItem.<=$ column.value $=>" :items='<=$ column.attrs.items | dump $=>'></v-select> 
+              <=%- elif column.tag == "v-date-picker" %=> 
+              <span class="jh-input-label"><=$ column.text $=></span>
               <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
-                  <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.<=$ f.value $=>" class="cus-v-input" dense single-line filled readonly label="<=$ f.text $=>"></v-text-field>
+                  <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.<=$ column.value $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
                 </template>
-                <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ f.value $=>"></v-date-picker>
+                <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ column.value $=>"></v-date-picker>
               </v-menu>
               <=%- endif %=>
             </v-col>
