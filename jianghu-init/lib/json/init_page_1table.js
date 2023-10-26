@@ -142,13 +142,18 @@ module.exports = class InitPage1Table extends CommandBase {
         variableEnd: '$=>',
       },
     });
-
+    
+    // nunjucksEnv.addFilter('dump2', function(obj) {
+    //   const jsonString = JSON.stringify(obj);
+    //   const withoutQuotes = jsonString.replace(/"([^"]+)":/g, '$1:');
+    //   return withoutQuotes;
+    // });
     //获取数据库表所有原生字段
     // const allFields = await this.getTableFields(table);
-    //获取enableInsertFields、enableUpdateFields
+    // 获取enableInsertFields、enableUpdateFields
     // const enableCreateColumns = await this.getFormCreateColumns(allFields, columns);
     // const enableUpdateColumns = await this.getFormUpdateColumns(allFields, columns);
-    //获取tableHeaders
+    // 获取tableHeaders
     // const tableHeaders = await this.getTableHeaders(allFields, columns);
    
     nunjucksEnv.addFilter('toArrayString', function(array) {
@@ -156,12 +161,8 @@ module.exports = class InitPage1Table extends CommandBase {
     });
     
     const result = nunjucks.renderString(listTemplate, {
-      table,
       tableCamelCase,
-      pageId,
-      enableCreateColumns: columns,
-      enableUpdateColumns: columns,
-      tableHeaders: columns,
+      ...jsonConfig,
     });
 
     fs.writeFileSync(filepath, result);

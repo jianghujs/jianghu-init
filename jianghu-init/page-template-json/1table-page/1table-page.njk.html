@@ -18,6 +18,22 @@
           <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
         </v-col>
         <!-- 搜索条件表单 >>>>>>>> -->
+        <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+          <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
+          <=%- for ss in serverSearchList %=>
+            <=%- if ss.tag == "v-text-field" %=> 
+            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+              <v-text-field v-model="serverSearchInput.<=$ ss.column $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense filled single-line></v-text-field>
+            </v-col>
+            <=%- elif ss.tag == "v-select" %=>
+            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+              <v-select v-model="serverSearchInput.<=$ ss.column $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" :items='<=$ ss.props.items | dump $=>' dense filled single-line></v-select>
+            </v-col>
+            <=%- endif %=>
+          <=%- endfor %=>  
+            <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">查询</v-btn>
+          </v-row>
+        </v-col>
         <!-- <v-col cols="12" xs="12" sm="12" md="8" xl="9">
           <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
             <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
@@ -95,7 +111,7 @@
           <!-- 抽屉表单 -->
           <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
           <v-row class="mt-0 px-4">
-            <=%- for f in enableCreateColumns %=>
+            <=%- for f in columns %=>
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label"><=$ f.text $=></span>
               <=%- if f.type == "v-text-field" %=> 
@@ -135,7 +151,7 @@
           </v-row>
           <!-- 抽屉表单 -->
           <v-row class="mt-0 px-4">
-            <=%- for f in enableUpdateColumns %=>
+            <=%- for f in columns %=>
             <v-col cols="12" sm="12" md="4">
               <span class="jh-input-label"><=$ f.text $=></span>
               <=%- if f.type == "v-text-field" %=> 
@@ -218,7 +234,7 @@ new Vue({
     // 表格相关数据
     isTableZebraLineShown: true,
     validationRules: {
-      <=%- for column in enableCreateColumns %=>
+      <=%- for column in columns %=>
       <=%- if column.rules %=> 
       <=$ column.name $=>Rules: [
         <=%- if column.required %=>
@@ -231,20 +247,21 @@ new Vue({
     },
     // 下拉选项
     constantObj: {
-      <=%- for column in enableCreateColumns %=>
+      <=%- for column in columns %=>
       <=%- if column.items %=> 
       <=$ column.name $=>Items: <=$ column.items | toArrayString $=>,
       <=%- endif %=>
       <=%- endfor %=>
     },
-    serverSearchInput: {
-      gender: null
-    },
+    // serverSearchInput: {
+    //   gender: null
+    // },
+    serverSearchInput: <=$ serverSearchInput $=>,
     searchInput: null,
     isTableLoading: true,
     tableData: [],
     headers: [
-      <=%- for header in tableHeaders %=>
+      <=%- for header in columns %=>
       {text: "<=$ header.text $=>", value: "<=$ header.value $=>", <=% if header.align %=>align: "<=$ header.align $=>",<=% endif %=><=% if header.sortable %=>sortable: "<=$ header.sortable $=>",<=% endif %=><=% if header.width %=>width: <=$ header.width $=>,<=% endif %=><=% if header.class %=>class: "<=$ header.class $=>",<=% endif %=><=% if header.cellClass %=>cellClass: "<=$ header.cellClass $=>",<=% endif %=>},
       <=%- endfor %=>
     ],
@@ -320,8 +337,8 @@ new Vue({
      */
     async getTableData() {
       this.isTableLoading = true;
-      const backendSearchData = _.pickBy(this.serverSearchInput, ( fieldValue, fieldKey ) => {
-        if(fieldValue !== null && fieldValue !== '') {
+      const serverSearchInput = _.pickBy(this.serverSearchInput, ( fieldValue, fieldKey ) => {
+        if(fieldValue !== null && fieldValue !== '' && fieldValue !== '全部') {
           return true;
         }
       });
@@ -331,7 +348,7 @@ new Vue({
             pageId: 'studentManagement',
             actionId: 'selectItemList',
             actionData: {},
-            where: backendSearchData,
+            whereLike: serverSearchInput,
             orderBy: [{column: 'operationAt', order: 'desc'}]
           }
         }
