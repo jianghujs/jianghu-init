@@ -45,16 +45,16 @@ module.exports = class InitPage1Table extends CommandBase {
       return;
     }
     // 2: 生成缺省配置
-    for (const tableHeader of jsonConfig.tableHeaders) {
-      // TODO: 检查 tableHeader 组件type
+    for (const column of jsonConfig.columns) {
+      // TODO: 检查 column 组件type
       const supportType = ["v-text-field", "v-textarea", "v-select", "v-date-picker", "v-checkbox"]
-      if (!supportType.includes(tableHeader.type)) tableHeader.type = "v-text-field";
-      if (!_.isBoolean(tableHeader.sortable)) tableHeader.sortable = true;
-      if (!_.isBoolean(tableHeader.createEnable)) tableHeader.createEnable = true;
-      if (!_.isBoolean(tableHeader.updateEnable)) tableHeader.updateEnable = true;
-      if (!_.isBoolean(tableHeader.fixed)) tableHeader.fixed = false;
-      if (!tableHeader.width) tableHeader.width = 80;
-      if (!tableHeader.align) tableHeader.align = "left";
+      if (!supportType.includes(column.type)) column.type = "v-text-field";
+      if (!_.isBoolean(column.sortable)) column.sortable = true;
+      if (!_.isBoolean(column.createEnable)) column.createEnable = true;
+      if (!_.isBoolean(column.updateEnable)) column.updateEnable = true;
+      if (!_.isBoolean(column.fixed)) column.fixed = false;
+      if (!column.width) column.width = 80;
+      if (!column.align) column.align = "left";
     }
     
     return jsonConfig;
@@ -64,7 +64,7 @@ module.exports = class InitPage1Table extends CommandBase {
    * 生成 crud
    */
   async generateCrud(jsonConfig) {
-    const { pageType, pageId, table } = jsonConfig;
+    const { pageType, pageId, table, columns } = jsonConfig;
     this.info('开始生成 CRUD');
     if (!table) {
       this.info('未配置table，流程结束');
@@ -122,7 +122,7 @@ module.exports = class InitPage1Table extends CommandBase {
    * 生成 vue
    */
   async renderVue(jsonConfig) {
-    const { table, pageId, pageType } = jsonConfig;
+    const { table, pageId, pageType, columns } = jsonConfig;
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
@@ -142,12 +142,19 @@ module.exports = class InitPage1Table extends CommandBase {
         variableEnd: '$=>',
       },
     });
-
+    
     // nunjucksEnv.addFilter('dump2', function(obj) {
     //   const jsonString = JSON.stringify(obj);
     //   const withoutQuotes = jsonString.replace(/"([^"]+)":/g, '$1:');
     //   return withoutQuotes;
     // });
+    //获取数据库表所有原生字段
+    // const allFields = await this.getTableFields(table);
+    // 获取enableInsertFields、enableUpdateFields
+    // const enableCreateColumns = await this.getFormCreateColumns(allFields, columns);
+    // const enableUpdateColumns = await this.getFormUpdateColumns(allFields, columns);
+    // 获取tableHeaders
+    // const tableHeaders = await this.getTableHeaders(allFields, columns);
    
     nunjucksEnv.addFilter('toArrayString', function(array) {
       return JSON.stringify(array);
@@ -180,4 +187,86 @@ module.exports = class InitPage1Table extends CommandBase {
     }
   }
 
+  /**
+   * 获取可以创建的表单字段信息
+   * @param {Array} fields 
+   * @param {Array} columns 
+   * @returns 
+   */
+  async getFormCreateColumns(fields, columns){
+    const enableInsertFieldNames = fields.map(field => field.COLUMN_NAME);
+    const enableCreateColumns = columns.filter(column => column.createEnable !== false && enableInsertFieldNames.includes(column.name));
+    return enableCreateColumns;
+  }
+
+  /**
+   * 获取可以更新的表单字段信息
+   * @param {Array} fields 
+   * @param {Array} columns 
+   * @returns 
+   */
+  async getFormUpdateColumns(fields, columns){
+    const enableUpdateFieldNames = fields.map(field => field.COLUMN_NAME);
+    const enableUpdateColumns = columns.filter(column => column.updateEnable !== false && enableUpdateFieldNames.includes(column.name));
+    return enableUpdateColumns;
+  }
+
+  /**
+   * 获取tableHeaders
+   * @param {Array} fields 
+   * @param {Array} columns 
+   * @returns 
+   */
+  async getTableHeaders(fields, columns){
+    const tableHeaders = [];
+    // TODO 根据配置动态获取
+    tableHeaders.push({text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed'});
+
+    for (const column of columns) {
+      const fieldInfo = fields.find(x => x.COLUMN_NAME === column.name) || {};
+      if (!_.isEmpty(fieldInfo)) {
+        tableHeaders.push({
+          text: fieldInfo.COLUMN_COMMENT, 
+          value: fieldInfo.COLUMN_NAME, 
+          width: column.width
+        })
+      }
+    }
+    
+    return tableHeaders;
+  }
+
+  /**
+   * 获取数据库表所有原生字段
+   * @param {String} table
+   * @returns
+   */
+  async getTableFields(table) {
+    const knex = await this.getKnex();
+    const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT').from('INFORMATION_SCHEMA.COLUMNS').where({
+      TABLE_SCHEMA: this.dbSetting.database,
+      TABLE_NAME: table,
+    });
+
+    const defaultColumn = [ 'operation', 'operationByUserId', 'operationByUser', 'operationAt' ];
+    for (const column of defaultColumn) {
+      await knex.schema.hasColumn(table, column).then(exists => {
+        if (!exists) {
+          return knex.schema.table(table, t => {
+            this.info(`创建依赖字段：${column}`);
+            t.string(column);
+          });
+        }
+      });
+    }
+
+    const columns = result.map(column => {
+      return {
+        COLUMN_NAME: column.COLUMN_NAME,
+        COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '').split(';')[0].split('；')[0].split(':')[0],
+      };
+    });
+
+    return columns;
+  }
 };

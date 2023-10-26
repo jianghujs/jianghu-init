@@ -122,21 +122,21 @@
           <!-- 抽屉表单 -->
           <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
           <v-row class="mt-0 px-4">
-            <=%- for column in columns %=>
+            <=%- for th in tableHeaders %=>
             <v-col cols="12" sm="12" md="4">
-              <=%- if column.tag == "v-text-field" %=> 
-              <span class="jh-input-label"><=$ column.text $=></span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ column.value $=>"></v-text-field> 
-              <=%- elif column.tag == "v-select" %=>
-              <span class="jh-input-label"><=$ column.text $=></span>
-              <v-select class="cus-v-input mr-2" dense filled single-line v-model="createItem.<=$ column.value $=>" :items='<=$ column.attrs.items | dump $=>'></v-select> 
-              <=%- elif column.tag == "v-date-picker" %=> 
-              <span class="jh-input-label"><=$ column.text $=></span>
+              <=%- if th.tag == "v-text-field" %=> 
+              <span class="jh-input-label"><=$ th.text $=></span>
+              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ th.value $=>"></v-text-field> 
+              <=%- elif th.tag == "v-select" %=>
+              <span class="jh-input-label"><=$ th.text $=></span>
+              <v-select class="cus-v-input mr-2" dense filled single-line v-model="createItem.<=$ th.value $=>" :items='<=$ th.attrs.items | dump $=>'></v-select> 
+              <=%- elif th.tag == "v-date-picker" %=> 
+              <span class="jh-input-label"><=$ th.text $=></span>
               <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
-                  <v-text-field v-bind="attrs" v-on="on" v-model="createItem.<=$ column.value $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
+                  <v-text-field v-bind="attrs" v-on="on" v-model="createItem.<=$ th.value $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
                 </template>
-                <v-date-picker color="success" elevation="20" v-model="createItem.<=$ column.value $=>"></v-date-picker>
+                <v-date-picker color="success" elevation="20" v-model="createItem.<=$ th.value $=>"></v-date-picker>
               </v-menu>
               <=%- endif %=>
             </v-col>
@@ -162,21 +162,21 @@
           </v-row>
           <!-- 抽屉表单 -->
           <v-row class="mt-0 px-4">
-            <=%- for column in columns %=>
+            <=%- for th in tableHeaders %=>
             <v-col cols="12" sm="12" md="4">
-              <=%- if column.tag == "v-text-field" %=> 
-              <span class="jh-input-label"><=$ column.text $=></span>
-              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ column.value $=>"></v-text-field> 
-              <=%- elif column.tag == "v-select" %=>
-              <span class="jh-input-label"><=$ column.text $=></span>
-              <v-select class="cus-v-input mr-2" dense filled single-line v-model="updateItem.<=$ column.value $=>" :items='<=$ column.attrs.items | dump $=>'></v-select> 
-              <=%- elif column.tag == "v-date-picker" %=> 
-              <span class="jh-input-label"><=$ column.text $=></span>
+              <=%- if th.tag == "v-text-field" %=> 
+              <span class="jh-input-label"><=$ th.text $=></span>
+              <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ th.value $=>"></v-text-field> 
+              <=%- elif th.tag == "v-select" %=>
+              <span class="jh-input-label"><=$ th.text $=></span>
+              <v-select class="cus-v-input mr-2" dense filled single-line v-model="updateItem.<=$ th.value $=>" :items='<=$ th.attrs.items | dump $=>'></v-select> 
+              <=%- elif th.tag == "v-date-picker" %=> 
+              <span class="jh-input-label"><=$ th.text $=></span>
               <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
-                  <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.<=$ column.value $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
+                  <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.<=$ th.value $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
                 </template>
-                <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ column.value $=>"></v-date-picker>
+                <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ th.value $=>"></v-date-picker>
               </v-menu>
               <=%- endif %=>
             </v-col>
@@ -245,22 +245,22 @@ new Vue({
     // 表格相关数据
     isTableZebraLineShown: true,
     validationRules: {
-      <=%- for column in columns %=>
-      <=%- if column.rules %=> 
-      <=$ column.name $=>Rules: [
-        <=%- if column.required %=>
+      <=%- for column in tableHeaders %=>
+      <=%- if th.rules %=> 
+      <=$ th.name $=>Rules: [
+        <=%- if th.required %=>
         v => !!v || 'This is required',
         <=%- endif %=>
-        <=$ column.rules | join(',\n') | indent(8) $=>
+        <=$ th.rules | join(',\n') | indent(8) $=>
       ],
       <=%- endif %=>
       <=%- endfor %=>
     },
     // 下拉选项
     constantObj: {
-      <=%- for column in columns %=>
-      <=%- if column.items %=> 
-      <=$ column.name $=>Items: <=$ column.items | toArrayString $=>,
+      <=%- for column in tableHeaders %=>
+      <=%- if th.items %=> 
+      <=$ th.name $=>Items: <=$ th.items | toArrayString $=>,
       <=%- endif %=>
       <=%- endfor %=>
     },
@@ -272,8 +272,8 @@ new Vue({
     isTableLoading: true,
     tableData: [],
     headers: [
-      <=%- for header in columns %=>
-      {text: "<=$ header.text $=>", value: "<=$ header.value $=>", <=% if header.align %=>align: "<=$ header.align $=>",<=% endif %=><=% if header.sortable %=>sortable: "<=$ header.sortable $=>",<=% endif %=><=% if header.width %=>width: <=$ header.width $=>,<=% endif %=><=% if header.class %=>class: "<=$ header.class $=>",<=% endif %=><=% if header.cellClass %=>cellClass: "<=$ header.cellClass $=>",<=% endif %=>},
+      <=%- for th in tableHeaders %=>
+      {text: "<=$ th.text $=>", value: "<=$ th.value $=>", <=% if th.align %=>align: "<=$ th.align $=>",<=% endif %=><=% if th.sortable %=>sortable: "<=$ th.sortable $=>",<=% endif %=><=% if th.width %=>width: <=$ th.width $=>,<=% endif %=><=% if th.class %=>class: "<=$ th.class $=>",<=% endif %=><=% if th.cellClass %=>cellClass: "<=$ th.cellClass $=>",<=% endif %=>},
       <=%- endfor %=>
     ],
 
