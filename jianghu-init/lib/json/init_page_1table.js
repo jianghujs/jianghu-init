@@ -142,15 +142,15 @@ module.exports = class InitPage1Table extends CommandBase {
         variableEnd: '$=>',
       },
     });
-
-    // nunjucksEnv.addFilter('dump2', function(obj) {
-    //   const jsonString = JSON.stringify(obj);
-    //   const withoutQuotes = jsonString.replace(/"([^"]+)":/g, '$1:');
-    //   return withoutQuotes;
-    // });
-   
-    nunjucksEnv.addFilter('toArrayString', function(array) {
-      return JSON.stringify(array);
+    nunjucksEnv.addFilter('jsonToStr', function(obj, spaceCount=4) {
+      let spaceStr = '';
+      for (let i = 0; i < spaceCount; i++) { spaceStr += ' '; }
+      if (Array.isArray(obj)) {
+        const arrayStr = `[\n${obj.map(item => "  " + spaceStr + JSON.stringify(item).replace(/"([^"]+)":/g, '$1:') + ",\n").join("")}${spaceStr}]`;
+        return arrayStr;
+      }
+      const objStr = JSON.stringify(obj, null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, `\n${spaceStr}`);;
+      return objStr;
     });
     
     const result = nunjucks.renderString(listTemplate, {

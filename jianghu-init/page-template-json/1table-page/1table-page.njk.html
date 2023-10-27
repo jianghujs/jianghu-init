@@ -45,17 +45,6 @@
             <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">查询</v-btn>
           </v-row>
         </v-col>
-        <!-- <v-col cols="12" xs="12" sm="12" md="8" xl="9">
-          <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
-            <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
-              <v-select v-model="serverSearchInput.gender" color="success" prefix="性别：" class="jh-v-input bg-white" :items="constantObj.gender" dense filled single-line></v-select>
-            </v-col>
-            <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">
-              查询
-            </v-btn>
-          </v-row>
-        </v-col> -->
-        <!-- <<<<<<<< 搜索条件表单 -->
       </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
@@ -247,11 +236,11 @@ new Vue({
     // TODO: 待支持
     validationRules: {},
     constantObj: {},
-    serverSearchInput: <=$ serverSearchInputStr $=>,
+    serverSearchInput: <=$ serverSearchInput | jsonToStr $=>,
     searchInput: null,
     isTableLoading: true,
     tableData: [],
-    headers: <=$ tableHeadersStr $=>,
+    headers: <=$ tableHeaders | jsonToStr $=>,
     isCreateDrawerShown: false,
     createItem: {},
     createActionData: {},
