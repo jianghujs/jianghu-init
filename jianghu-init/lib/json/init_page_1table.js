@@ -127,7 +127,7 @@ module.exports = class InitPage1Table extends CommandBase {
     // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
     // TODO: 若文件没有改动 则 删除backup文件
-    await this.handleViewBackUp(pageId, filepath);
+    // await this.handleViewBackUp(pageId, filepath);
 
     // 设置njk渲染模板
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
@@ -153,12 +153,14 @@ module.exports = class InitPage1Table extends CommandBase {
       return objStr;
     });
     
-    const result = nunjucks.renderString(listTemplate, {
-      tableCamelCase,
-      ...jsonConfig,
-    });
+    const htmlOld = fs.existsSync(filepath) ? fs.readFileSync(filepath) : '';
+    const htmlNew = nunjucks.renderString(listTemplate, { tableCamelCase, ...jsonConfig });
+    // fs.writeFileSync(`./app/view/page/${pageId}.old.html`, htmlOld);
+    fs.writeFileSync(`./app/view/page/${pageId}.new.html`, htmlNew);
 
-    fs.writeFileSync(filepath, result);
+    // TODO: 使用js diff 合并代码
+    //  - 关键部分用模版(打标记的位置)
+    //  - 其他部分直接保留原有
     return true;
   }
 
