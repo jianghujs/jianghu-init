@@ -132,7 +132,10 @@ module.exports = class InitPage1Table extends CommandBase {
     // 设置njk渲染模板
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
     const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
-    const listTemplate = fs.readFileSync(templateTargetPath).toString();
+    const listTemplate = fs.readFileSync(templateTargetPath)
+      .toString()
+      .replace(/`<=\$/g, "<=$")
+      .replace(/\$=>`/g, "$=>");
     const nunjucksEnv = nunjucks.configure(templateTargetPath, {
       autoescape: false,
       tags: {
@@ -142,7 +145,7 @@ module.exports = class InitPage1Table extends CommandBase {
         variableEnd: '$=>',
       },
     });
-    nunjucksEnv.addFilter('jsonToStr', function(obj, spaceCount=4) {
+    nunjucksEnv.addFilter('jsonToVar', function(obj, spaceCount=4) {
       let spaceStr = '';
       for (let i = 0; i < spaceCount; i++) { spaceStr += ' '; }
       if (Array.isArray(obj)) {
@@ -152,7 +155,6 @@ module.exports = class InitPage1Table extends CommandBase {
       const objStr = JSON.stringify(obj, null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, `\n${spaceStr}`);;
       return objStr;
     });
-    
     const htmlOld = fs.existsSync(filepath) ? fs.readFileSync(filepath) : '';
     const htmlNew = nunjucks.renderString(listTemplate, { tableCamelCase, ...jsonConfig });
     // fs.writeFileSync(`./app/view/page/${pageId}.old.html`, htmlOld);
