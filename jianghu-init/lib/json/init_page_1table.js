@@ -1,6 +1,7 @@
 'use strict';
 const yargs = require('yargs');
 const CommandBase = require('../command_base');
+const { exec } = require('child_process');
 
 require('colors');
 const inquirer = require('inquirer');
@@ -122,14 +123,13 @@ module.exports = class InitPage1Table extends CommandBase {
    * 生成 vue
    */
   async renderVue(jsonConfig) {
+    const pageBakDir = `./app/view/pageBak`;
+    if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
+
     const { table, pageId, pageType } = jsonConfig;
     const tableCamelCase = _.camelCase(table);
-    // 写文件前确认是否覆盖
     const filepath = `./app/view/page/${pageId}.html`;
-    // TODO: 若文件没有改动 则 删除backup文件
-    // await this.handleViewBackUp(pageId, filepath);
-
-    // 设置njk渲染模板
+    const htmlBasePath = `${path.join(__dirname, '../../')}page-template-json/base.njk.html`;
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
     const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath)
@@ -155,14 +155,23 @@ module.exports = class InitPage1Table extends CommandBase {
       const objStr = JSON.stringify(obj, null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, `\n${spaceStr}`);;
       return objStr;
     });
-    const htmlOld = fs.existsSync(filepath) ? fs.readFileSync(filepath) : '';
-    const htmlNew = nunjucks.renderString(listTemplate, { tableCamelCase, ...jsonConfig });
-    // fs.writeFileSync(`./app/view/page/${pageId}.old.html`, htmlOld);
-    fs.writeFileSync(`./app/view/page/${pageId}.new.html`, htmlNew);
-
-    // TODO: 使用js diff 合并代码
-    //  - 关键部分用模版(打标记的位置)
-    //  - 其他部分直接保留原有
+    const htmlBase = fs.readFileSync(htmlBasePath);
+    let htmlUser = fs.existsSync(filepath) ? fs.readFileSync(filepath) : htmlBase;
+    const htmlGenerate = nunjucks.renderString(listTemplate, { tableCamelCase, ...jsonConfig });
+    const bakFilePath = await this.handleViewBak(pageId, filepath);
+    fs.writeFileSync(filepath, htmlUser);
+    fs.writeFileSync(`./app/view/pageBak/${pageId}.base.html`, htmlBase);
+    fs.writeFileSync(`./app/view/pageBak/${pageId}.generate.html`, htmlGenerate);
+    await this.executeCommand(`git merge-file ./app/view/page/${pageId}.html ./app/view/pageBak/${pageId}.base.html ./app/view/pageBak/${pageId}.generate.html`, );
+    
+    htmlUser = fs.readFileSync(filepath).toString();
+    const diffCount = (htmlUser.match(new RegExp(`<<<<<<< ${filepath}`, 'g')) || []).length;
+    if (diffCount > 0) {
+      this.warning(`生成的文件有 ${diffCount}处 冲突, 请手动解决! 或者接受改动 git checkout --theirs ./app/view/page/${pageId}.html`);
+    }
+    if (diffCount == 0 && bakFilePath) {
+      fs.unlinkSync(bakFilePath);
+    }
     return true;
   }
 
@@ -172,16 +181,30 @@ module.exports = class InitPage1Table extends CommandBase {
    * @param {String} filepath
    * @returns 
    */
-  async handleViewBackUp(pageId, filepath){
-    // 写文件前确认是否覆盖
+  async handleViewBak(pageId, filepath){
     if (fs.existsSync(filepath)) {
       const pageBakDir = `./app/view/pageBak`;
-      if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
       const pageBakPath = `${pageBakDir}/${pageId}`;
       if (!fs.existsSync(pageBakPath)) fs.mkdirSync(pageBakPath);
-      const backFilePath = `${pageBakPath}/${pageId}.${moment().format('YYYYMMDD_HHmmss')}.html`;
-      fs.copyFileSync(filepath, backFilePath);
+      const bakFilePath = `${pageBakPath}/${pageId}.${moment().format('YYYYMMDD_HHmmss')}.html`;
+      fs.copyFileSync(filepath, bakFilePath);
+      return bakFilePath;
     }
+    return null;
   }
+
+
+  async executeCommand(command) {
+    return new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+            if (error) {
+                // console.error(`执行${command}出错: ${error.message}`, { error, stdout, stderr });
+                // reject();
+                resolve(stdout);
+            }
+            resolve(stdout);
+        });
+    });
+}
 
 };
