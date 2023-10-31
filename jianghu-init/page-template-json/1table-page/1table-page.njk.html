@@ -12,6 +12,7 @@
       <jh-menu />
       <v-main class="mt-15">
           <!-- 头部内容 >>>>>>>>>>>>> -->
+          <=%- if headContent %=> 
           <div class="jh-page-second-bar px-8">
               <v-row>
                   <v-col cols="12" xs="12" sm="12" md="4" xl="3">
@@ -54,6 +55,7 @@
                   </v-col>
               </v-row>
           </div>
+          <=%- endif %=>
           <!-- <<<<<<<<<<<<< 头部内容 -->
 
           <!-- 页面内容 >>>>>>>>>>>>> -->
@@ -223,9 +225,11 @@ new Vue({
   vuetify: new Vuetify(),
   data: () => ({
     // ================================ headContent ================================
+    //===// <=%- if headContent %=>
     //===// <=$ headContent.breadcrumbList | listToVar('breadcrumbList') $=>,
     //===// <=$ headContent.serverSearchWhere | objToVar('serverSearchWhere') $=>,
     //===// <=$ headContent.serverSearchWhereLike | objToVar('serverSearchWhereLike') $=>,
+    //===// <=%- endif %=>
 
     // ================================ pageContent ================================
     //===// <=%- if pageContent.tableHeaderList %=>

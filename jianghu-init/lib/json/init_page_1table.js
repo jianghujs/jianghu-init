@@ -124,7 +124,7 @@ module.exports = class InitPage1Table extends CommandBase {
       return `${key}: ${objStr}`;
     });
     nunjucksEnv.addFilter('listToVar', function(arr, key, spaceCount=4) {
-      if (!arr) { arr = []; };
+      if (!arr) { return `${key}: []`; };
       let spaceStr = '';
       for (let i = 0; i < spaceCount; i++) { spaceStr += ' '; }
       const arrayStr = `[\n${arr.map(item => "  " + spaceStr + JSON.stringify(item).replace(/"([^"]+)":/g, '$1:') + ",\n").join("")}${spaceStr}]`;
