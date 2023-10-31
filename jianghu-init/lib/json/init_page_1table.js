@@ -17,8 +17,9 @@ const path = require('path');
 module.exports = class InitPage1Table extends CommandBase {
   async run(cwd, jsonArgv) {
     this.cwd = cwd;
+    // TODO: ajv库检查 jsonArgv
     // 检查配置 && 生成json配置中缺省的默认配置
-    const finalJsonConfig = this.checkAndGenerateDefaultConfig(jsonArgv);
+    // const finalJsonConfig = this.checkAndGenerateDefaultConfig(jsonArgv);
     // 检查当前目录是否是在项目中
     await this.checkPath();
     // 初始化数据库连接
@@ -28,37 +29,7 @@ module.exports = class InitPage1Table extends CommandBase {
     await this.getKnex(this.dbSetting);
     this.success('初始化数据库连接成功');
     // generate crud
-    await this.generateCrud(finalJsonConfig);
-  }
-
-  /** 
-   * 检查配置 && 生成json配置中缺省的默认配置
-   */
-  checkAndGenerateDefaultConfig(originJsonConfig) {
-    const jsonConfig = _.cloneDeep(originJsonConfig);
-    // 1: 检查配置
-    if (!jsonConfig.pageId) {
-      this.info('未配置pageId，流程结束');
-      return;
-    }
-    if (!jsonConfig.table) {
-      this.info('未配置数据库table，流程结束');
-      return;
-    }
-    // 2: 生成缺省配置
-    for (const tableHeader of jsonConfig.tableHeaders) {
-      // TODO: 检查 tableHeader 组件type
-      const supportType = ["v-text-field", "v-textarea", "v-select", "v-date-picker", "v-checkbox"]
-      if (!supportType.includes(tableHeader.type)) tableHeader.type = "v-text-field";
-      if (!_.isBoolean(tableHeader.sortable)) tableHeader.sortable = true;
-      if (!_.isBoolean(tableHeader.createEnable)) tableHeader.createEnable = true;
-      if (!_.isBoolean(tableHeader.updateEnable)) tableHeader.updateEnable = true;
-      if (!_.isBoolean(tableHeader.fixed)) tableHeader.fixed = false;
-      if (!tableHeader.width) tableHeader.width = 80;
-      if (!tableHeader.align) tableHeader.align = "left";
-    }
-    
-    return jsonConfig;
+    await this.generateCrud(jsonArgv);
   }
 
   /**
@@ -134,8 +105,8 @@ module.exports = class InitPage1Table extends CommandBase {
     const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath)
       .toString()
-      .replace(/`<=\$/g, "<=$")
-      .replace(/\$=>`/g, "$=>");
+      .replace(/\/\/===\/\/ /g, '')
+      .replace(/\/\/===\/\//g, '');
     const nunjucksEnv = nunjucks.configure(templateTargetPath, {
       autoescape: false,
       tags: {
@@ -145,29 +116,35 @@ module.exports = class InitPage1Table extends CommandBase {
         variableEnd: '$=>',
       },
     });
-    nunjucksEnv.addFilter('jsonToVar', function(obj, spaceCount=4) {
+    nunjucksEnv.addFilter('objToVar', function(obj, key, spaceCount=4) {
+      if (!obj) { obj = {}; };
       let spaceStr = '';
       for (let i = 0; i < spaceCount; i++) { spaceStr += ' '; }
-      if (Array.isArray(obj)) {
-        const arrayStr = `[\n${obj.map(item => "  " + spaceStr + JSON.stringify(item).replace(/"([^"]+)":/g, '$1:') + ",\n").join("")}${spaceStr}]`;
-        return arrayStr;
-      }
       const objStr = JSON.stringify(obj, null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, `\n${spaceStr}`);;
-      return objStr;
+      return `${key}: ${objStr}`;
     });
+    nunjucksEnv.addFilter('listToVar', function(arr, key, spaceCount=4) {
+      if (!arr) { arr = []; };
+      let spaceStr = '';
+      for (let i = 0; i < spaceCount; i++) { spaceStr += ' '; }
+      const arrayStr = `[\n${arr.map(item => "  " + spaceStr + JSON.stringify(item).replace(/"([^"]+)":/g, '$1:') + ",\n").join("")}${spaceStr}]`;
+      return `${key}: ${arrayStr}`;
+    });
+
     const htmlBase = fs.readFileSync(htmlBasePath);
     let htmlUser = fs.existsSync(filepath) ? fs.readFileSync(filepath) : htmlBase;
     const htmlGenerate = nunjucks.renderString(listTemplate, { tableCamelCase, ...jsonConfig });
     const bakFilePath = await this.handleViewBak(pageId, filepath);
-    fs.writeFileSync(filepath, htmlUser);
+    fs.writeFileSync(filepath, htmlGenerate); // Tip: 测试
     fs.writeFileSync(`./app/view/pageBak/${pageId}.base.html`, htmlBase);
-    fs.writeFileSync(`./app/view/pageBak/${pageId}.generate.html`, htmlGenerate);
+    fs.writeFileSync(`./app/view/pageBak/${pageId}.generate.html`, htmlGenerate); 
     await this.executeCommand(`git merge-file ./app/view/page/${pageId}.html ./app/view/pageBak/${pageId}.base.html ./app/view/pageBak/${pageId}.generate.html`, );
     
     htmlUser = fs.readFileSync(filepath).toString();
     const diffCount = (htmlUser.match(new RegExp(`<<<<<<< ${filepath}`, 'g')) || []).length;
     if (diffCount > 0) {
-      this.warning(`生成的文件有 ${diffCount}处 冲突, 请手动解决! 或者接受改动 git checkout --theirs ./app/view/page/${pageId}.html`);
+      // git checkout --theirs ./app/view/page/${pageId}.html ===> 不好使
+      this.warning(`生成的文件有 ${diffCount}处 冲突, 请手动解决!`);
     }
     if (diffCount == 0 && bakFilePath) {
       fs.unlinkSync(bakFilePath);
@@ -205,6 +182,6 @@ module.exports = class InitPage1Table extends CommandBase {
             resolve(stdout);
         });
     });
-}
+  }
 
 };

@@ -15,33 +15,35 @@
           <div class="jh-page-second-bar px-8">
               <v-row>
                   <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-                      <div class="pt-3 text-h7 font-weight-bold">studentManagement
-                          <!-- 帮助页按钮 -->
-                          <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline
-                          </v-icon>
+                      <div class="pt-3 text-h7 font-weight-bold">
+                          <=%- if headContent.breadcrumbList %=> 
+                          <span>{{ breadcrumbList[breadcrumbList.length-1].text }}</span>
+                          <=%- endif %=>
+                          <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
                       </div>
-                      <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+                      <=%- if headContent.breadcrumbList %=> 
+                      <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbList" divider="-"></v-breadcrumbs>
+                      <=%- endif %=>
                   </v-col>
-                  <!-- 搜索条件表单 >>>>>>>> -->
                   <v-col cols="12" xs="12" sm="12" md="8" xl="9">
                       <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
-                          <=%- for ss in serverSearchList %=>
+                          <=%- for ss in headContent.serverSearchList %=>
                           <=%- if ss.tag == "v-text-field" %=> 
                           <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
-                              <v-text-field v-model="serverSearchInput.<=$ ss.column $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense filled single-line></v-text-field>
+                              <v-text-field v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense filled single-line></v-text-field>
                           </v-col>
                           <=%- elif ss.tag == "v-select" %=>
                           <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
-                              <v-select v-model="serverSearchInput.<=$ ss.column $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" :items='<=$ ss.attrs.items | dump $=>' dense filled single-line></v-select>
+                              <v-select v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" :items='<=$ ss.attrs.items | dump $=>' dense filled single-line></v-select>
                           </v-col>
                           <=%- elif ss.tag == "v-date-picker" %=> 
                           <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
                               <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                                   <template v-slot:activator="{on, attrs}">
                                   <v-text-field v-bind="attrs" v-on="on"  
-                                      v-model="serverSearchInput.<=$ ss.column $=>" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense single-line filled clearable></v-text-field>
+                                      v-model="<=$ ss.model $=>" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense single-line filled clearable></v-text-field>
                                   </template>
-                                  <v-date-picker color="success" elevation="20" v-model="serverSearchInput.<=$ ss.column $=>"
+                                  <v-date-picker color="success" elevation="20" v-model="<=$ ss.model $=>"
                                       type='<=$ ss.attrs.type $=>'></v-date-picker>
                               </v-menu>
                           </v-col>
@@ -63,20 +65,20 @@
                 <v-spacer></v-spacer>
                 <!-- 搜索过滤 -->
                 <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
-                    <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+                    <v-text-field color="success" v-model="tableSearchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
                 </v-col>
                 </v-row>
                 <!-- 表格 -->
                 <v-data-table
-                    :headers="headers"
+                    :headers="tableHeaderList"
                     :items="tableData"
-                    :search="searchInput"
+                    :search="tableSearchInput"
                     :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
                     :items-per-page="-1"
                     mobile-breakpoint="0"
-                    :loading="isTableLoading"
+                    :loading="tableLoading"
                     checkbox-color="success"
-                    :class="{'zebraLine': isTableZebraLineShown }"
+                    :class="{'zebraLine': true }"
                     fixed-header
                     class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
                 <!-- 表格操作按钮 -->
@@ -109,13 +111,14 @@
           <!-- <<<<<<<<<<<<< 页面内容 -->
 
           <!-- 新增抽屉 >>>>>>>>>>>>> -->
+          <=%- if createDrawerContent %=> 
           <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
             <v-form ref="createForm" lazy-validation>
               <v-row>
                   <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">新增信息</span>
               </v-row>
               <v-row class="mt-0 px-4">
-                  <=%- for th in tableHeaders %=>
+                  <=%- for th in pageContent.tableHeaderList %=>
                   <v-col cols="12" sm="12" md="4">
                     <=%- if th.tag == "v-text-field" %=> 
                     <span class="jh-input-label"><=$ th.text $=></span>
@@ -146,16 +149,18 @@
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-navigation-drawer>
+          <=%- endif %=>
           <!-- <<<<<<<<<<<<< 新增抽屉 -->
 
           <!-- 编辑抽屉 >>>>>>>>>>>>> -->
+          <=%- if updateDrawerContent %=> 
           <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24">
               <v-form ref="updateForm" lazy-validation>
                 <v-row>
                     <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">修改信息</span>
                 </v-row>
                 <v-row class="mt-0 px-4">
-                    <=%- for th in tableHeaders %=>
+                    <=%- for th in pageContent.tableHeaderList %=>
                     <v-col cols="12" sm="12" md="4">
                       <=%- if th.tag == "v-text-field" %=> 
                       <span class="jh-input-label"><=$ th.text $=></span>
@@ -186,15 +191,18 @@
                 <v-icon>mdi-close</v-icon>
               </v-btn>
           </v-navigation-drawer>
+          <=%- endif %=>
           <!-- <<<<<<<<<<<<< 编辑抽屉 -->
 
           <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+          <=%- if helpDrawerContent %=> 
           <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
             <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#404.md`" width="100%" height="100%"></iframe>
             <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
                 <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-navigation-drawer>
+          <=%- endif %=>
           <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
       </v-main>
     </v-app>
@@ -214,27 +222,33 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: () => ({
-    // 面包屑
-    breadcrumbs: [{text: '首页',disabled: true}, {text: 'studentManagement', disabled: true}],
-    isHelpPageDrawerShown: false,
-    isHelpPageDrawerLoaded: false,
-    isTableZebraLineShown: true,
-    validationRules: {},
-    constantObj: {},
-    serverSearchInput: `<=$ serverSearchInput | jsonToVar $=>`,
-    searchInput: null,
-    isTableLoading: true,
-    tableData: [],
-    headers: `<=$ tableHeaders | jsonToVar $=>`,
-    isCreateDrawerShown: false,
-    createItem: {},
-    createActionData: {},
-    isUpdateDrawerShown: false,
-    updateItem: {},
-    updateItemId: null,
-    updateActionData: {},
-    deleteItem: {},
-    deleteItemId: null,
+    // ================================ headContent ================================
+    //===// <=$ headContent.breadcrumbList | listToVar('breadcrumbList') $=>,
+    //===// <=$ headContent.serverSearchWhere | objToVar('serverSearchWhere') $=>,
+    //===// <=$ headContent.serverSearchWhereLike | objToVar('serverSearchWhereLike') $=>,
+
+    // ================================ pageContent ================================
+    //===// <=%- if pageContent.tableHeaderList %=>
+    //===// <=$ pageContent.tableHeaderList | listToVar('tableHeaderList') $=>,
+    //===// tableData: [],
+    //===// tableLoading: true,
+    //===// tableSearchInput: null,
+    //===// <=%- endif %=>
+
+    // ================================ createDrawerContent ================================
+    // constantObj: {},
+    // validationRules: {},
+    // isHelpPageDrawerShown: false,
+    // isHelpPageDrawerLoaded: false,
+    // isCreateDrawerShown: false,
+    // createItem: {},
+    // createActionData: {},
+    // isUpdateDrawerShown: false,
+    // updateItem: {},
+    // updateItemId: null,
+    // updateActionData: {},
+    // deleteItem: {},
+    // deleteItemId: null,
   }),
   watch: {
     isHelpPageDrawerShown(val) {
@@ -293,25 +307,40 @@ new Vue({
     },
     // ---------- 获取表格数据 uiAction >>>>>>>>>> --------
     async getTableData() {
-      this.isTableLoading = true;
-      const serverSearchInput = _.pickBy(this.serverSearchInput, ( fieldValue, fieldKey ) => {
-        if(fieldValue !== null && fieldValue !== '' && fieldValue !== '全部') {
-          return true;
-        }
-      });
+      this.tableLoading = true;
+      const where = {};
+      const whereLike = {};
+      //===// <=%- if headContent.serverSearchWhere %=>
+      //===// for (const fieldKey in this.serverSearchWhere) {
+      //===//   const fieldValue = this.serverSearchWhere[fieldKey];
+      //===//   if(!!fieldValue && fieldValue != '全部') {
+      //===//     where[fieldKey] = fieldValue;
+      //===//   }
+      //===// }
+      //===// <=%- endif %=>
+      //===// <=%- if headContent.serverSearchWhereLike %=>
+      //===// for (const fieldKey in this.serverSearchWhereLike) {
+      //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
+      //===//   if(!!fieldValue && fieldValue != '全部') {
+      //===//     whereLike[fieldKey] = fieldValue;
+      //===//   }
+      //===// }
+      //===// <=%- endif %=>
+
       const rows = (await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'studentManagement',
             actionId: 'selectItemList',
             actionData: {},
-            whereLike: serverSearchInput,
+            where,
+            whereLike,
             orderBy: [{column: 'operationAt', order: 'desc'}]
           }
         }
       })).data.appData.resultData.rows;
       this.tableData = rows;
-      this.isTableLoading = false;
+      this.tableLoading = false;
     },
     // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
 
