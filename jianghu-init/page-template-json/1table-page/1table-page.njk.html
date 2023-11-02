@@ -20,7 +20,9 @@
                           <=%- if headContent.breadcrumbList %=> 
                           <span>{{ breadcrumbList[breadcrumbList.length-1].text }}</span>
                           <=%- endif %=>
-                          <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
+                          <=%- if headContent.helpDrawer %=> 
+                          <v-icon @click="isHelpPageDrawerShown = true; isHelpPageDrawerLoaded = true;" color="success" small>mdi-help-circle-outline</v-icon>
+                          <=%- endif %=>
                       </div>
                       <=%- if headContent.breadcrumbList %=> 
                       <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbList" divider="-"></v-breadcrumbs>
@@ -197,7 +199,7 @@
           <!-- <<<<<<<<<<<<< 编辑抽屉 -->
 
           <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-          <=%- if helpDrawerContent %=> 
+          <=%- if headContent.helpDrawer %=> 
           <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
             <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#404.md`" width="100%" height="100%"></iframe>
             <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
@@ -224,11 +226,19 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: () => ({
+    // ================================ common ================================
+    // constantObj: {},
+    // validationRules: {},
+
     // ================================ headContent ================================
     //===// <=%- if headContent %=>
     //===// <=$ headContent.breadcrumbList | listToVar('breadcrumbList') $=>,
     //===// <=$ headContent.serverSearchWhere | objToVar('serverSearchWhere') $=>,
     //===// <=$ headContent.serverSearchWhereLike | objToVar('serverSearchWhereLike') $=>,
+    //===// <=%- endif %=>
+    //===// <=%- if headContent and headContent.helpDrawer %=>
+    //===// isHelpPageDrawerShown: false,
+    //===// isHelpPageDrawerLoaded: false,
     //===// <=%- endif %=>
 
     // ================================ pageContent ================================
@@ -240,26 +250,27 @@ new Vue({
     //===// <=%- endif %=>
 
     // ================================ createDrawerContent ================================
-    // constantObj: {},
-    // validationRules: {},
-    // isHelpPageDrawerShown: false,
-    // isHelpPageDrawerLoaded: false,
-    // isCreateDrawerShown: false,
-    // createItem: {},
-    // createActionData: {},
-    // isUpdateDrawerShown: false,
-    // updateItem: {},
-    // updateItemId: null,
-    // updateActionData: {},
-    // deleteItem: {},
-    // deleteItemId: null,
+    //===// <=%- if createDrawerContent %=>
+    //===// isCreateDrawerShown: false,
+    //===// createItem: {},
+    //===// createActionData: {},
+    //===// <=%- endif %=>
+
+    // ================================ updateDrawerContent ================================
+    //===// <=%- if updateDrawerContent %=>
+    //===// isUpdateDrawerShown: false,
+    //===// updateItem: {},
+    //===// updateItemId: null,
+    //===// updateActionData: {},
+    //===// <=%- endif %=>
+
+    // ================================ deleteContent ================================
+    //===// <=%- if deleteContent %=>
+    //===// deleteItem: {},
+    //===// deleteItemId: null,
+    //===// <=%- endif %=>
   }),
   watch: {
-    isHelpPageDrawerShown(val) {
-      if (val && !this.isHelpPageDrawerLoaded) {
-        this.isHelpPageDrawerLoaded = true;
-      }
-    },
   },
   async created() {
   },
@@ -272,38 +283,48 @@ new Vue({
         case 'getTableData':
           await this.getTableData();
           break;
-        case 'startCreateItem':
-          await this.prepareCreateFormData();
-          await this.openCreateDrawer();
-          break;
-        case 'createItem':
-          await this.prepareCreateValidate();
-          await this.confirmCreateItemDialog();
-          await this.prepareDoCreateItem();
-          await this.doCreateItem();
-          await this.closeCreateDrawer();
-          await this.getTableData();
-          break;
-        case 'startUpdateItem':
-          await this.prepareUpdateFormData(uiActionData);
-          await this.openUpdateDrawer();
-          break;
-        case 'updateItem':
-          await this.prepareUpdateValidate();
-          await this.confirmUpdateItemDialog();
-          await this.prepareDoUpdateItem();
-          await this.doUpdateItem();
-          await this.closeUpdateDrawer();
-          await this.getTableData();
-          break;
-        case 'deleteItem':
-          await this.prepareDeleteFormData(uiActionData);
-          await this.confirmDeleteItemDialog();
-          await this.prepareDoDeleteItem();
-          await this.doDeleteItem();
-          await this.clearDeleteItem();
-          await this.getTableData();
-          break;
+        
+        //===// <=%- if createDrawerContent %=>
+        //===// case 'startCreateItem':
+        //===//   await this.prepareCreateFormData();
+        //===//   await this.openCreateDrawer();
+        //===//   break;
+        //===// case 'createItem':
+        //===//   await this.prepareCreateValidate();
+        //===//   await this.confirmCreateItemDialog();
+        //===//   await this.prepareDoCreateItem();
+        //===//   await this.doCreateItem();
+        //===//   await this.closeCreateDrawer();
+        //===//   await this.getTableData();
+        //===//   break;
+        //===// <=%- endif %=>
+
+        //===// <=%- if createDrawerContent %=>
+        //===// case 'startUpdateItem':
+        //===//   await this.prepareUpdateFormData(uiActionData);
+        //===//   await this.openUpdateDrawer();
+        //===//   break;
+        //===// case 'updateItem':
+        //===//   await this.prepareUpdateValidate();
+        //===//   await this.confirmUpdateItemDialog();
+        //===//   await this.prepareDoUpdateItem();
+        //===//   await this.doUpdateItem();
+        //===//   await this.closeUpdateDrawer();
+        //===//   await this.getTableData();
+        //===//   break;
+        //===// <=%- endif %=>
+
+        //===// <=%- if deleteContent %=>
+        //===// case 'deleteItem':
+        //===//   await this.prepareDeleteFormData(uiActionData);
+        //===//   await this.confirmDeleteItemDialog();
+        //===//   await this.prepareDoDeleteItem();
+        //===//   await this.doDeleteItem();
+        //===//   await this.clearDeleteItem();
+        //===//   await this.getTableData();
+        //===//   break;
+        //===// <=%- endif %=>
+
         default:
           console.error("[doUiAction] uiActionId not find", {uiActionId});
           break;
@@ -349,139 +370,133 @@ new Vue({
     // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
 
     // ---------- 新增数据 uiAction >>>>>>>>>> --------
-    async prepareCreateFormData() {
-      this.createItem = {};
-    },
-
-    async openCreateDrawer() {
-      this.isCreateDrawerShown = true;
-    },
-
-    async prepareCreateValidate() {
-      if (await this.$refs.createForm.validate()) {
-        return true;
-      }
-      throw new Error("请完善表单信息")
-    },
-
-    async confirmCreateItemDialog() {
-      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
-        throw new Error("[confirmCreateFormDialog] 否");
-      }
-    },
-
-    prepareDoCreateItem() {
-      const {id, ...data} = this.createItem;
-      this.createActionData = data;
-    },
-
-    async doCreateItem() {
-      await window.jhMask.show();
-      await window.vtoast.loading("新增数据");
-      await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: 'studentManagement',
-            actionId: 'insertItem',
-            actionData: this.createActionData
-          }
-        }
-      })
-      await window.jhMask.hide();
-      await window.vtoast.success("新增数据成功");
-    },
-    async closeCreateDrawer() {
-      this.isCreateDrawerShown = false;
-      this.createItem = {};
-      this.createActionData = null;
-    },
+    //===// <=%- if createDrawerContent %=>
+    //===// async prepareCreateFormData() {
+    //===//   this.createItem = {};
+    //===// },
+    //===// async openCreateDrawer() {
+    //===//   this.isCreateDrawerShown = true;
+    //===// },
+    //===// async prepareCreateValidate() {
+    //===//   if (await this.$refs.createForm.validate()) {
+    //===//     return true;
+    //===//   }
+    //===//   throw new Error("请完善表单信息")
+    //===// },
+    //===// async confirmCreateItemDialog() {
+    //===//   if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+    //===//     throw new Error("[confirmCreateFormDialog] 否");
+    //===//   }
+    //===// },
+    //===// prepareDoCreateItem() {
+    //===//   const {id, ...data} = this.createItem;
+    //===//   this.createActionData = data;
+    //===// },
+    //===// async doCreateItem() {
+    //===//   await window.jhMask.show();
+    //===//   await window.vtoast.loading("新增数据");
+    //===//   await window.jianghuAxios({
+    //===//     data: {
+    //===//       appData: {
+    //===//         pageId: 'studentManagement',
+    //===//         actionId: 'insertItem',
+    //===//         actionData: this.createActionData
+    //===//       }
+    //===//     }
+    //===//   })
+    //===//   await window.jhMask.hide();
+    //===//   await window.vtoast.success("新增数据成功");
+    //===// },
+    //===// async closeCreateDrawer() {
+    //===//   this.isCreateDrawerShown = false;
+    //===//   this.createItem = {};
+    //===//   this.createActionData = null;
+    //===// },
+    //===// <=%- endif %=>
     // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
 
     // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
-    async prepareUpdateFormData(funObj) {
-      this.updateItem = _.cloneDeep(funObj);
-    },
-
-    async openUpdateDrawer() {
-      this.isUpdateDrawerShown = true;
-    },
-
-    async prepareUpdateValidate() {
-      if (await this.$refs.updateForm.validate()) {
-        return true;
-      }
-      throw new Error("请完善表单信息")
-    },
-
-    async confirmUpdateItemDialog() {
-      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
-        throw new Error("[confirmUpdateItemDialog] 否");
-      }
-    },
-
-    async prepareDoUpdateItem() {
-      const {id, ...data} = this.updateItem;
-      this.updateItemId = id;
-      this.updateActionData = data;
-    },
-
-    async doUpdateItem() {
-      await window.jhMask.show();
-      await window.vtoast.loading("修改数据");
-      await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: 'studentManagement',
-            actionId: 'updateItem',
-            actionData: this.updateActionData,
-            where: {id: this.updateItemId}
-          }
-        }
-      })
-
-      await window.jhMask.hide();
-      await window.vtoast.success("修改数据成功");
-    },
-
-    async closeUpdateDrawer() {
-      this.isUpdateDrawerShown = false;
-      this.updateItem = {};
-      this.updateActionData = null;
-      this.updateItemId = null;
-    },
+    //===// <=%- if updateDrawerContent %=>
+    //===// async prepareUpdateFormData(funObj) {
+    //===//   this.updateItem = _.cloneDeep(funObj);
+    //===// },
+    //===// async openUpdateDrawer() {
+    //===//   this.isUpdateDrawerShown = true;
+    //===// },
+    //===// async prepareUpdateValidate() {
+    //===//   if (await this.$refs.updateForm.validate()) {
+    //===//     return true;
+    //===//   }
+    //===//   throw new Error("请完善表单信息")
+    //===// },
+    //===// async confirmUpdateItemDialog() {
+    //===//   if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+    //===//     throw new Error("[confirmUpdateItemDialog] 否");
+    //===//   }
+    //===// },
+    //===// async prepareDoUpdateItem() {
+    //===//   const {id, ...data} = this.updateItem;
+    //===//   this.updateItemId = id;
+    //===//   this.updateActionData = data;
+    //===// },
+    //===// async doUpdateItem() {
+    //===//   await window.jhMask.show();
+    //===//   await window.vtoast.loading("修改数据");
+    //===//   await window.jianghuAxios({
+    //===//     data: {
+    //===//       appData: {
+    //===//         pageId: 'studentManagement',
+    //===//         actionId: 'updateItem',
+    //===//         actionData: this.updateActionData,
+    //===//         where: {id: this.updateItemId}
+    //===//       }
+    //===//     }
+    //===//   })
+    //===//   await window.jhMask.hide();
+    //===//   await window.vtoast.success("修改数据成功");
+    //===// },
+    //===// async closeUpdateDrawer() {
+    //===//   this.isUpdateDrawerShown = false;
+    //===//   this.updateItem = {};
+    //===//   this.updateActionData = null;
+    //===//   this.updateItemId = null;
+    //===// },
+    //===// <=%- endif %=>
     // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
     
     // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
-    async prepareDeleteFormData(funObj) {
-      this.deleteItem = _.cloneDeep(funObj);
-    },
-    async confirmDeleteItemDialog() {
-      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
-        throw new Error("[confirmDeleteItemDialog] 否");
-      }
-    },
-    async prepareDoDeleteItem() {
-      const {id} = this.deleteItem;
-      this.deleteItemId = id;
-    },
-    async doDeleteItem() {
-      await window.vtoast.loading("删除数据");
-      await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: 'studentManagement',
-            actionId: 'deleteItem',
-            actionData: {},
-            where: {id: this.deleteItemId}
-          }
-        }
-      });
-      await window.vtoast.success("删除数据成功");
-    },
-    async clearDeleteItem() {
-      this.deleteItem = {};
-      this.deleteItemId = null;
-    },
+    //===// <=%- if deleteContent %=>
+    //===// async prepareDeleteFormData(funObj) {
+    //===//   this.deleteItem = _.cloneDeep(funObj);
+    //===// },
+    //===// async confirmDeleteItemDialog() {
+    //===//   if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+    //===//     throw new Error("[confirmDeleteItemDialog] 否");
+    //===//   }
+    //===// },
+    //===// async prepareDoDeleteItem() {
+    //===//   const {id} = this.deleteItem;
+    //===//   this.deleteItemId = id;
+    //===// },
+    //===// async doDeleteItem() {
+    //===//   await window.vtoast.loading("删除数据");
+    //===//   await window.jianghuAxios({
+    //===//     data: {
+    //===//       appData: {
+    //===//         pageId: 'studentManagement',
+    //===//         actionId: 'deleteItem',
+    //===//         actionData: {},
+    //===//         where: {id: this.deleteItemId}
+    //===//       }
+    //===//     }
+    //===//   });
+    //===//   await window.vtoast.success("删除数据成功");
+    //===// },
+    //===// async clearDeleteItem() {
+    //===//   this.deleteItem = {};
+    //===//   this.deleteItemId = null;
+    //===// },
+    //===// <=%- endif %=>
     // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
   }
 })
