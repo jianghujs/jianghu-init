@@ -65,7 +65,9 @@
             <v-card class="rounded-lg">
                 <v-row class="ma-0 pa-4">
                 <!-- 新增按钮 -->
+                <=%- if createDrawerContent %=>
                 <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
+                <=%- endif %=>
                 <v-spacer></v-spacer>
                 <!-- 搜索过滤 -->
                 <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
@@ -87,12 +89,16 @@
                     class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
                 <!-- 表格操作按钮 -->
                 <template v-slot:item.action="{ item }">
+                    <=%- if updateDrawerContent %=>
                     <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
                         <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
                     </span>
-                    <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-                        <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
+                    <=%- endif %=>
+                    <=%- if deleteContent %=>
+                    <span role="button" class="error--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                        <v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除
                     </span>
+                    <=%- endif %=>
                 </template>
                 <!-- 没有数据 -->
                 <template v-slot:loading>
@@ -122,25 +128,25 @@
                   <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">新增信息</span>
               </v-row>
               <v-row class="mt-0 px-4">
-                  <=%- for th in pageContent.tableHeaderList %=>
-                  <v-col cols="12" sm="12" md="4">
-                    <=%- if th.tag == "v-text-field" %=> 
-                    <span class="jh-input-label"><=$ th.text $=></span>
-                    <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ th.value $=>"></v-text-field> 
-                    <=%- elif th.tag == "v-select" %=>
-                    <span class="jh-input-label"><=$ th.text $=></span>
-                    <v-select class="cus-v-input mr-2" dense filled single-line v-model="createItem.<=$ th.value $=>" :items='<=$ th.attrs.items | dump $=>'></v-select> 
-                    <=%- elif th.tag == "v-date-picker" %=> 
-                    <span class="jh-input-label"><=$ th.text $=></span>
-                    <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
-                        <template v-slot:activator="{on, attrs}">
-                        <v-text-field v-bind="attrs" v-on="on" v-model="createItem.<=$ th.value $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
-                        </template>
-                        <v-date-picker color="success" elevation="20" v-model="createItem.<=$ th.value $=>"></v-date-picker>
-                    </v-menu>
-                    <=%- endif %=>
-                  </v-col>
-                  <=%- endfor %=>
+                <=%- for formItem in createDrawerContent.formItemList %=>
+                <v-col cols="12" sm="12" md="4">
+                  <=%- if formItem.tag == "v-text-field" %=> 
+                  <span class="jh-input-label"><=$ formItem.label $=></span>
+                  <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>"></v-text-field> 
+                  <=%- elif formItem.tag == "v-select" %=>
+                  <span class="jh-input-label"><=$ formItem.label $=></span>
+                  <v-select class="cus-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" :items='<=$ formItem.attrs.items | dump $=>'></v-select> 
+                  <=%- elif formItem.tag == "v-date-picker" %=> 
+                  <span class="jh-input-label"><=$ formItem.label $=></span>
+                  <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
+                      <template v-slot:activator="{on, attrs}">
+                      <v-text-field v-bind="attrs" v-on="on" v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
+                      </template>
+                      <v-date-picker color="success" elevation="20" v-model="createItem.<=$ formItem.model $=>"></v-date-picker>
+                  </v-menu>
+                  <=%- endif %=>
+                </v-col>
+                <=%- endfor %=>
               </v-row>
               <!-- 抽屉操作按钮 -->
               <v-row class="justify-end mx-0 mt-8 px-6">
@@ -164,25 +170,25 @@
                     <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">修改信息</span>
                 </v-row>
                 <v-row class="mt-0 px-4">
-                    <=%- for th in pageContent.tableHeaderList %=>
-                    <v-col cols="12" sm="12" md="4">
-                      <=%- if th.tag == "v-text-field" %=> 
-                      <span class="jh-input-label"><=$ th.text $=></span>
-                      <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ th.value $=>"></v-text-field> 
-                      <=%- elif th.tag == "v-select" %=>
-                      <span class="jh-input-label"><=$ th.text $=></span>
-                      <v-select class="cus-v-input mr-2" dense filled single-line v-model="updateItem.<=$ th.value $=>" :items='<=$ th.attrs.items | dump $=>'></v-select> 
-                      <=%- elif th.tag == "v-date-picker" %=> 
-                      <span class="jh-input-label"><=$ th.text $=></span>
-                      <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
-                          <template v-slot:activator="{on, attrs}">
-                          <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.<=$ th.value $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
-                          </template>
-                          <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ th.value $=>"></v-date-picker>
-                      </v-menu>
-                      <=%- endif %=>
-                    </v-col>
-                    <=%- endfor %=>  
+                  <=%- for formItem in updateDrawerContent.formItemList %=>
+                  <v-col cols="12" sm="12" md="4">
+                    <=%- if formItem.tag == "v-text-field" %=> 
+                    <span class="jh-input-label"><=$ formItem.label $=></span>
+                    <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>"></v-text-field> 
+                    <=%- elif formItem.tag == "v-select" %=>
+                    <span class="jh-input-label"><=$ formItem.label $=></span>
+                    <v-select class="cus-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" :items='<=$ formItem.attrs.items | dump $=>'></v-select> 
+                    <=%- elif formItem.tag == "v-date-picker" %=> 
+                    <span class="jh-input-label"><=$ formItem.label $=></span>
+                    <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
+                        <template v-slot:activator="{on, attrs}">
+                        <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
+                        </template>
+                        <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ formItem.model $=>"></v-date-picker>
+                    </v-menu>
+                    <=%- endif %=>
+                  </v-col>
+                  <=%- endfor %=> 
                 </v-row>
                 <!-- 抽屉操作按钮 -->
                 <v-row class="justify-end mx-0 mt-8 px-6">
@@ -299,7 +305,7 @@ new Vue({
         //===//   break;
         //===// <=%- endif %=>
 
-        //===// <=%- if createDrawerContent %=>
+        //===// <=%- if updateDrawerContent %=>
         //===// case 'startUpdateItem':
         //===//   await this.prepareUpdateFormData(uiActionData);
         //===//   await this.openUpdateDrawer();
