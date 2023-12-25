@@ -135,7 +135,7 @@ module.exports = class InitPage1Table extends CommandBase {
     let htmlUser = fs.existsSync(filepath) ? fs.readFileSync(filepath) : htmlBase;
     const htmlGenerate = nunjucks.renderString(listTemplate, { tableCamelCase, ...jsonConfig });
     const bakFilePath = await this.handleViewBak(pageId, filepath);
-    fs.writeFileSync(filepath, htmlGenerate); // Tip: 测试
+    fs.writeFileSync(filepath, htmlUser);
     fs.writeFileSync(`./app/view/pageBak/${pageId}.base.html`, htmlBase);
     fs.writeFileSync(`./app/view/pageBak/${pageId}.generate.html`, htmlGenerate); 
     await this.executeCommand(`git merge-file ./app/view/page/${pageId}.html ./app/view/pageBak/${pageId}.base.html ./app/view/pageBak/${pageId}.generate.html`, );
