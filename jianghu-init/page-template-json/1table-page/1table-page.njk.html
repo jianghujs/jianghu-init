@@ -10,13 +10,14 @@
 <div>
     <v-app mobile-breakpoint="sm">
       <jh-menu />
-      <v-main class="mt-15">
+      <v-main class="mt-13">
           <!-- 头部内容 >>>>>>>>>>>>> -->
           <=%- if headContent %=> 
           <div class="jh-page-second-bar px-8">
               <v-row>
                   <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-                      <div class="pt-3 text-h7 font-weight-bold">
+                      <div class="py-4 text-body-1 font-weight-bold d-flex align-center">
+                          <=$ pageId $=>
                           <=%- if headContent.breadcrumbList %=> 
                           <span>{{ breadcrumbList[breadcrumbList.length-1].text }}</span>
                           <=%- endif %=>
@@ -29,18 +30,18 @@
                       <=%- endif %=>
                   </v-col>
                   <v-col cols="12" xs="12" sm="12" md="8" xl="9">
-                      <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
+                      <v-row class="jh-backend-form-container justify-end ma-0 py-3">
                           <=%- for ss in headContent.serverSearchList %=>
                           <=%- if ss.tag == "v-text-field" %=> 
-                          <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+                          <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2">
                               <v-text-field v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense filled single-line></v-text-field>
                           </v-col>
                           <=%- elif ss.tag == "v-select" %=>
-                          <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+                          <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
                               <v-select v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" :items='<=$ ss.attrs.items | dump $=>' dense filled single-line></v-select>
                           </v-col>
                           <=%- elif ss.tag == "v-date-picker" %=> 
-                          <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+                          <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
                               <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                                   <template v-slot:activator="{on, attrs}">
                                   <v-text-field v-bind="attrs" v-on="on"  
@@ -52,7 +53,11 @@
                           </v-col>
                           <=%- endif %=>
                           <=%- endfor %=>  
-                          <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">查询</v-btn>
+                          <div class="jh-backend-search-btn">
+                            <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
+                              查询
+                            </v-btn>
+                          </div>
                       </v-row>
                   </v-col>
               </v-row>
@@ -129,7 +134,7 @@
               </v-row>
               <v-row class="mt-0 px-4">
                 <=%- for formItem in createDrawerContent.formItemList %=>
-                <v-col cols="12" sm="12" md="4">
+                <v-col cols="<=$ formItem.clos | default('12') $=>" sm="<=$ formItem.clos | default('12') $=>" md="<=$ formItem.clos | default('4') $=>">
                   <=%- if formItem.tag == "v-text-field" %=> 
                   <span class="jh-input-label"><=$ formItem.label $=></span>
                   <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>"></v-text-field> 
@@ -169,32 +174,59 @@
                 <v-row>
                     <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">修改信息</span>
                 </v-row>
-                <v-row class="mt-0 px-4">
-                  <=%- for formItem in updateDrawerContent.formItemList %=>
-                  <v-col cols="12" sm="12" md="4">
-                    <=%- if formItem.tag == "v-text-field" %=> 
-                    <span class="jh-input-label"><=$ formItem.label $=></span>
-                    <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>"></v-text-field> 
-                    <=%- elif formItem.tag == "v-select" %=>
-                    <span class="jh-input-label"><=$ formItem.label $=></span>
-                    <v-select class="cus-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" :items='<=$ formItem.attrs.items | dump $=>'></v-select> 
-                    <=%- elif formItem.tag == "v-date-picker" %=> 
-                    <span class="jh-input-label"><=$ formItem.label $=></span>
-                    <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
-                        <template v-slot:activator="{on, attrs}">
-                        <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
-                        </template>
-                        <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ formItem.model $=>"></v-date-picker>
-                    </v-menu>
+                <div class="px-4">
+                  <v-tabs
+                    v-model="updateDrawerTab"
+                    color="success"
+                  >
+                    <=%- for content in updateDrawerContent.contentList %=>
+                    <v-tab key="<=$ content.label $=>">
+                      <=$ content.label $=>
+                    </v-tab>
+                    <=%- endfor %=>
+                  </v-tabs>
+                </div>
+                <v-tabs-items v-model="updateDrawerTab">
+                  <=%- for content in updateDrawerContent.contentList %=>
+                  <v-tab-item
+                    key="<=$ content.label $=>"
+                  >
+                    <=%- if content.type == "updateForm" %=> 
+                    <v-row class="mt-0 px-4">
+                      <=%- for formItem in updateDrawerContent.contentList[loop.index0].formItemList %=>
+                      <v-col cols="<=$ formItem.clos | default('12') $=>" sm="<=$ formItem.clos | default('12') $=>" md="<=$ formItem.clos | default('4') $=>">
+                        <=%- if formItem.tag == "v-text-field" %=> 
+                        <span class="jh-input-label"><=$ formItem.label $=></span>
+                        <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>"></v-text-field> 
+                        <=%- elif formItem.tag == "v-select" %=>
+                        <span class="jh-input-label"><=$ formItem.label $=></span>
+                        <v-select class="cus-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" :items='<=$ formItem.attrs.items | dump $=>'></v-select> 
+                        <=%- elif formItem.tag == "v-date-picker" %=> 
+                        <span class="jh-input-label"><=$ formItem.label $=></span>
+                        <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
+                            <template v-slot:activator="{on, attrs}">
+                            <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="cus-v-input" dense single-line filled readonly></v-text-field>
+                            </template>
+                            <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ formItem.model $=>"></v-date-picker>
+                        </v-menu>
+                        <=%- endif %=>
+                      </v-col>
+                      <=%- endfor %=> 
+                    </v-row>
+
+                    <!-- 抽屉操作按钮 -->
+                    <v-row class="justify-end px-6 pt-6" no-gutters>
+                        <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+                        <v-btn class="elevation-0 ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+                    </v-row>
+                    <=%- elif content.type == "attachment" %=>
+                    attachment
+                    <=%- elif content.type == "recordHistry" %=>
+                    recordHistry
                     <=%- endif %=>
-                  </v-col>
-                  <=%- endfor %=> 
-                </v-row>
-                <!-- 抽屉操作按钮 -->
-                <v-row class="justify-end mx-0 mt-8 px-6">
-                    <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
-                    <v-btn class="elevation-0 ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
-                </v-row>
+                  </v-tab-item>
+                  <=%- endfor %=>
+                </v-tabs-items>
               </v-form>
               <!-- 抽屉关闭按钮 -->
               <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShown = false">
@@ -226,6 +258,9 @@
 {% endblock %}
 
 {% block vueScript %}
+
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+
 <script type="module">
 new Vue({
   el: '#app',
@@ -233,8 +268,11 @@ new Vue({
   vuetify: new Vuetify(),
   data: () => ({
     // ================================ common ================================
-    // constantObj: {},
-    // validationRules: {},
+    //===// <=%- if common and common.data %=> 
+    //===// <=%- for key, value in common.data %=> 
+    //===// <=$ key $=>: <=$ value | safe $=>,
+    //===// <=%- endfor %=>
+    //===// <=%- endif %=>
 
     // ================================ headContent ================================
     //===// <=%- if headContent %=>
@@ -268,7 +306,10 @@ new Vue({
     //===// updateItem: {},
     //===// updateItemId: null,
     //===// updateActionData: {},
+    //===// updateDrawerContentList: [
+    //===//   <=%- for value in updateDrawerContent.contentList %=> {label: '<=$ value.label $=>', type: '<=$ value.type $=>'}, <=%- endfor %=> ],
     //===// <=%- endif %=>
+    //===// updateDrawerTab: 0,
 
     // ================================ deleteContent ================================
     //===// <=%- if deleteContent %=>

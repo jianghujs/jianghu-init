@@ -90,6 +90,15 @@ module.exports = class InitPage1Table extends CommandBase {
     }
   }
 
+  functionToStr(obj) {
+    return JSON.stringify(obj, function(key, value) {
+      if (typeof value === 'function') {
+        return `__FUNC_START__${value.toString()}__FUNC_END__`;
+      }
+      return value;
+    });
+  }
+
   /**
    * 生成 vue
    */
@@ -98,6 +107,12 @@ module.exports = class InitPage1Table extends CommandBase {
     if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
 
     const { table, pageId, pageType } = jsonConfig;
+    // 原样输出渲染data
+    if (jsonConfig.common && jsonConfig.common.data) {
+      _.forEach(jsonConfig.common.data, (value, key) => {
+        jsonConfig.common.data[key] = (this.functionToStr(value)).replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '');
+      });
+    }
     const tableCamelCase = _.camelCase(table);
     const filepath = `./app/view/page/${pageId}.html`;
     const htmlBasePath = `${path.join(__dirname, '../../')}page-template-json/base.njk.html`;
