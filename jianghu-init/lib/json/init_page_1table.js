@@ -50,6 +50,7 @@ module.exports = class InitPage1Table extends CommandBase {
       // 数据库
       this.info(`开始生成 ${table} 的相关数据`);
       await this.modifyTable(table, pageId);
+      await this.modifyComponentResource(table, pageId, jsonConfig);
       this.success(`生成 ${table} 的相关数据完成`);
     } else {
       this.error(`生成 ${table} 的 vue 文件失败`);
@@ -90,13 +91,53 @@ module.exports = class InitPage1Table extends CommandBase {
     }
   }
 
+  async modifyComponentResource(table, pageId, jsonConfig) {
+    const knex = await this.getKnex();
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json/component`;
+    const componentList = this.getUpdateDrawerComponentList(jsonConfig);
+
+    // 循环 componentList 运行 sql
+    for (const component of componentList) {
+      let resourceSql = fs.readFileSync(`${templatePath}/${component.replace('.html', '.sql')}`).toString();
+      resourceSql = resourceSql.replace(/\{\{pageId}}/g, pageId);
+      resourceSql = resourceSql.replace(/\{\{table}}/g, table);
+      
+      // 插入数据
+      for (const line of resourceSql.split('\n')) {
+        if (!line) continue;
+        if (line.startsWith('--')) {
+          this.info(`正在执行插入/更新 ${line}`);
+        } else {
+          await knex.raw(line);
+        }
+      }
+
+    }
+
+  }
+
   functionToStr(obj) {
     return JSON.stringify(obj, function(key, value) {
       if (typeof value === 'function') {
         return `__FUNC_START__${value.toString()}__FUNC_END__`;
       }
       return value;
-    });
+    }).replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '');
+  }
+
+  getUpdateDrawerComponentList(jsonConfig) {
+    const componentList = [];
+    const componentMap = {
+      'recordHistory': 'tableRecordHistory.html',
+    };
+    if (jsonConfig.updateDrawerContent && jsonConfig.updateDrawerContent.contentList) {
+      jsonConfig.updateDrawerContent.contentList.forEach(item => {
+        if (item.type != 'updateForm' && componentMap[item.type]) {
+          componentList.push(componentMap[item.type]);
+        }
+      });
+    }
+    return componentList;
   }
 
   /**
@@ -110,13 +151,14 @@ module.exports = class InitPage1Table extends CommandBase {
     // 原样输出渲染data
     if (jsonConfig.common && jsonConfig.common.data) {
       _.forEach(jsonConfig.common.data, (value, key) => {
-        jsonConfig.common.data[key] = (this.functionToStr(value)).replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '');
+        jsonConfig.common.data[key] = this.functionToStr(value);
       });
     }
     const tableCamelCase = _.camelCase(table);
     const filepath = `./app/view/page/${pageId}.html`;
     const htmlBasePath = `${path.join(__dirname, '../../')}page-template-json/base.njk.html`;
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
+    const componentPath = `${path.join(__dirname, '../../')}page-template-json/component`;
     const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath)
       .toString()
@@ -146,10 +188,20 @@ module.exports = class InitPage1Table extends CommandBase {
       return `${key}: ${arrayStr}`;
     });
 
+    const componentList = this.getUpdateDrawerComponentList(jsonConfig);
     const htmlBase = fs.readFileSync(htmlBasePath);
     let htmlUser = fs.existsSync(filepath) ? fs.readFileSync(filepath) : htmlBase;
-    const htmlGenerate = nunjucks.renderString(listTemplate, { tableCamelCase, ...jsonConfig });
+    const htmlGenerate = nunjucks.renderString(listTemplate, { tableCamelCase, ...jsonConfig, componentList });
     const bakFilePath = await this.handleViewBak(pageId, filepath);
+
+    // 组件添加文件夹、文件
+    if (componentList.length) {
+      if (!fs.existsSync(`./app/view/component`)) fs.mkdirSync(`./app/view/component`);
+    }
+    componentList.forEach(item => {
+      fs.writeFileSync(`./app/view/component/${item}`, fs.readFileSync(componentPath + '/' + item));
+    });
+
     // fs.writeFileSync(filepath, htmlUser);
     fs.writeFileSync(filepath, htmlGenerate); // 测试  
     fs.writeFileSync(`./app/view/pageBak/${pageId}.base.html`, htmlBase);
