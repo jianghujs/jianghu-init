@@ -25,9 +25,6 @@
                           <v-icon @click="isHelpPageDrawerShown = true; isHelpPageDrawerLoaded = true;" color="success" small>mdi-help-circle-outline</v-icon>
                           <=%- endif %=>
                       </div>
-                      <=%- if headContent.breadcrumbList %=> 
-                      <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbList" divider="-"></v-breadcrumbs>
-                      <=%- endif %=>
                   </v-col>
                   <v-col cols="12" xs="12" sm="12" md="8" xl="9">
                       <v-row class="jh-backend-form-container justify-end ma-0 py-3">
@@ -68,7 +65,7 @@
           <!-- 页面内容 >>>>>>>>>>>>> -->
           <div class="jh-page-body-container px-8">
             <v-card class="rounded-lg">
-                <v-row class="ma-0 pa-4">
+              <v-row class="ma-0 pa-4">
                 <!-- 新增按钮 -->
                 <=%- if createDrawerContent %=>
                 <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
@@ -120,7 +117,7 @@
                     <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
                     <span class="ml-1">共{{pagination.itemsLength}}条</span>
                 </template>
-                </v-data-table>
+              </v-data-table>
             </v-card>
           </div>
           <!-- <<<<<<<<<<<<< 页面内容 -->
@@ -220,7 +217,7 @@
                     <=%- elif content.type == "recordHistory" %=>
                     <table-record-histry table="<=$ table $=>" page-id="<=$ pageId $=>"></table-record-histry>
                     <=%- elif content.type == "2table" %=>
-                    <<=$ content.templateName | camelToKebab $=> table="<=$ table $=>" page-id="<=$ pageId $=>"/>
+                    <<=$ content.templateName | camelToKebab $=> :<=$ primaryField | camelToKebab $=>="updateItem.<=$ primaryField $=>"/>
                     <=%- endif %=>
                   </v-tab-item>
                   <=%- endfor %=>

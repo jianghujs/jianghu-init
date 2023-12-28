@@ -1,17 +1,16 @@
-
 <script type="text/html" id="<=$ templateName | camelToKebab $=>">
   <div>
     <div class="pageBodyContainer px-4" style="flex: 1;">
       <!-- 页面内容 >>>>>>>>>>>>> -->
-      <v-card>
-        <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+      <v-card class="rounded-lg">
+        <v-row class="ma-0 pa-4">
     
-          <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+          <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pa-0">
             <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
           </v-col>
     
           <v-spacer></v-spacer>
-          <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+          <v-col cols="12" xs="3" sm="3" md="3" class="pa-0">
             <v-text-field v-model="searchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
           </v-col>
         </v-row>
@@ -27,30 +26,31 @@
             checkbox-color="success" 
             :class="{'zebraLine': showTableZebraLine }"
             class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-          <template v-slot:footer.prepend>
-            <span class="ml-2 table-search-hint-text">共{{ tableData.length }}条记录</span>
-            <v-menu top offset-y :close-on-content-click="false">
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn v-bind="attrs" v-on="on" icon>
-                  <v-icon>mdi-menu</v-icon>
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item>
-                  <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </template>
-          <template v-slot:footer.page-text="pagination">
-            <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-            <span class="ml-1">共{{pagination.itemsLength}}条</span>
-          </template>
           <template v-slot:item.operationAt="{ item }">
             {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
           </template>
           <template v-slot:item.action="{ item }">
-            <v-btn v-for="tableButton of tableButtonList" :color="tableButton.color" outlined x-small class="elevation-0 mr-2" @click="doUiAction(tableButton.action, {item, button: tableButton})">{{ tableButton.text }}</v-btn>
+            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+                <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>详情
+            </span>
+            <span role="button" class="error--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                <v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除
+            </span>
+          </template>
+          <!-- 没有数据 -->
+          <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+          </template>
+          <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+          </template>
+          <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+          </template>
+          <!-- 表格分页 -->
+          <template v-slot:footer.page-text="pagination">
+              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+              <span class="ml-1">共{{pagination.itemsLength}}条</span>
           </template>
         </v-data-table>
       </v-card>
@@ -59,14 +59,14 @@
         <v-form v-model="isFormValid" v-if="isAddDrawerShow" ref="createForm" lazy-validation>
           <!--抽屉标题-->
           <v-row>
-            <span class="title pa-6" :class="{'pl-8': !isMobile, 'pl-6': isMobile}">新增信息</span>
+              <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">新增信息</span>
           </v-row>
           <!--抽屉表单-->
-          <v-row class="ma-0" :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+          <v-row class="mt-0 px-4">
             //===// <=% for f in tableBFields %=>
-            <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+            <v-col cols="12" sm="12" md="4">
               <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
-              <v-text-field class="jh-v-input " dense filled single-line v-model="addItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
+              <v-text-field class="jh-v-input " dense filled single-line v-model="addItem.<=$ f.COLUMN_NAME $=>" <=% if f.COLUMN_NAME == primaryFieldA %=>disabled <=% endif %=>></v-text-field>
             </v-col>
             //===// <=% endfor %=>
           </v-row>
@@ -88,14 +88,14 @@
         <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="editForm" lazy-validation>
           <!--抽屉标题-->
           <v-row>
-            <span class="title pa-6" :class="{'pl-8': !isMobile, 'pl-6': isMobile}">编辑信息</span>
+              <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">编辑信息</span>
           </v-row>
           <!--抽屉表单-->
-          <v-row class="ma-0" :class="{'px-6': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
+          <v-row class="mt-0 px-4">
             //===// <=% for f in tableBFields %=>
-            <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+            <v-col cols="12" sm="12" md="4">
               <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
-              <v-text-field class="jh-v-input " dense filled single-line v-model="editItem.<=$ f.COLUMN_NAME $=>"></v-text-field>
+              <v-text-field class="jh-v-input " dense filled single-line v-model="editItem.<=$ f.COLUMN_NAME $=>" <=% if f.COLUMN_NAME == primaryFieldA %=>disabled <=% endif %=>></v-text-field>
             </v-col>
             //===// <=% endfor %=>
           </v-row>
@@ -124,31 +124,22 @@ Vue.component("<=$ templateName | camelToKebab $=>", {
       //===// <=$ primaryFieldA $=>: { type: String, default: '' },
     },
     data: () => ({
-      breadcrumbs: [
-        {
-          text: '<=$ pageId $=>',
-          disabled: true,
-        }
-      ],
       showTableZebraLine: true,
       isHelpPageDrawerShow: false,
       title: null,
       searchInput: null,
       isTableLoading: true,
       headers: [
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed' },
-        //===// <=% for f in tableMiddleFields %=>
-        { text: '<=$ f.COLUMN_COMMENT.split(\';\')[0] $=>', value: '<=$ f.COLUMN_NAME $=>', width: 120 },//===// <=% endfor %=>
+        //===// <=% for f in tableBFields %=>
+        { text: '<=$ f.COLUMN_COMMENT $=>', value: '<=$ f.COLUMN_NAME $=>', width: 120 },//===// <=% endfor %=>
         { text: "操作者", value: "operationByUser", width: 120 },
         { text: "操作时间", value: "operationAt", width: 250 },
-      ],
-      tableButtonList: [
-        {text: '编辑', buttonType: 'edit', color: 'success', action: 'startUpdateItem'},
-        {text: '删除', buttonType: 'delete', color: 'error', action: 'deleteItem'},
+
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 120, class: 'fixed', cellClass: 'fixed' },
       ],
       drawerHeaders: [
         //===// <=% for f in tableBFields %=>
-        { text: '<=$ f.COLUMN_COMMENT.split(\';\')[0] $=>', value: '<=$ f.COLUMN_NAME $=>', width: 120 },//===// <=% endfor %=>
+        { text: '<=$ f.COLUMN_COMMENT $=>', value: '<=$ f.COLUMN_NAME $=>', width: 120 },//===// <=% endfor %=>
         { text: "操作者", value: "operationByUser", width: 120 },
       ],
       tableDataFromBackend: [],
@@ -226,9 +217,9 @@ Vue.component("<=$ templateName | camelToKebab $=>", {
         const result = await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: '<=$ pageId $=>-<=$ templateName $=>',
               actionId: 'selectItemList',
-              //===// where: { <=$ primaryFieldA $=>: this.<=$ primaryFieldA $=> },
+             //===//  where: { <=$ primaryFieldA $=>: this.<=$ primaryFieldA $=> },
               orderBy: [{ column: 'operationAt', order: 'desc' }]
             }
           }
@@ -269,7 +260,7 @@ Vue.component("<=$ templateName | camelToKebab $=>", {
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: '<=$ pageId $=>-<=$ templateName $=>',
               actionId: 'insertItem',
               //===// actionData: {...data, <=$ primaryFieldA $=>: this.<=$ primaryFieldA $=>}
             }
@@ -312,7 +303,7 @@ Vue.component("<=$ templateName | camelToKebab $=>", {
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: '<=$ pageId $=>-<=$ templateName $=>',
               actionId: 'updateItem',
               actionData: data,
               where: {id: id}
@@ -336,7 +327,7 @@ Vue.component("<=$ templateName | camelToKebab $=>", {
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: '<=$ pageId $=>-<=$ templateName $=>',
               actionId: 'deleteItem',
               where: { id: item.id }
             }

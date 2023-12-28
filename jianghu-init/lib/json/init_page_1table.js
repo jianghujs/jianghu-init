@@ -249,7 +249,8 @@ module.exports = class InitPage1Table extends CommandBase {
         .replace(/\/\/===\/\/ /g, '')
         .replace(/\/\/===\/\//g, '');
       if (item.type == '2table' && item.table) {
-        const tableBFields = await this.getTableFields(item.table);
+        const allFields = await this.getTableFields(item.table);
+        const tableBFields = allFields.filter(field => !['id', 'operation', 'operationByUserId', 'operationByUser', 'operationAt'].includes(field.COLUMN_NAME));
         componentHtml = nunjucks.renderString(componentHtml, {...item.njkObj, tableBFields});
       }
 
