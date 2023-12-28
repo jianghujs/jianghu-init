@@ -96,7 +96,7 @@
                 <template v-slot:item.action="{ item }">
                     <=%- if updateDrawerContent %=>
                     <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
-                        <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
+                        <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>详情
                     </span>
                     <=%- endif %=>
                     <=%- if deleteContent %=>
@@ -139,7 +139,7 @@
                   <=%- if formItem.tag == "v-text-field" %=> 
                   <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>"></v-text-field> 
                   <=%- elif formItem.tag == "v-select" %=>
-                  <v-select class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" :items=<=%- if formItem.attrs.items is not string %=>'<=$ formItem.attrs.items | dump $=>'><=%- else %=><=$ formItem.attrs.items | dump $=><=%- endif %=>></v-select> 
+                  <v-select class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" :items=<=%- if formItem.attrs.items is not string %=>"<=$ formItem.attrs.items | dump $=>"><=%- else %=><=$ formItem.attrs.items | dump $=><=%- endif %=>></v-select> 
                   <=%- elif formItem.tag == "v-date-picker" %=> 
                   <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                       <template v-slot:activator="{on, attrs}">
@@ -219,6 +219,8 @@
                     attachment
                     <=%- elif content.type == "recordHistory" %=>
                     <table-record-histry table="<=$ table $=>" page-id="<=$ pageId $=>"></table-record-histry>
+                    <=%- elif content.type == "2table" %=>
+                    <<=$ content.templateName | camelToKebab $=> table="<=$ table $=>" page-id="<=$ pageId $=>"/>
                     <=%- endif %=>
                   </v-tab-item>
                   <=%- endfor %=>
@@ -257,7 +259,7 @@
 
 {% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 <=%- for component in componentList %=>
-{% include 'component/<=$ component $=>' %}
+{% include 'component/<=$ component.templateName $=>.html' %}
 <=%- endfor %=>
 
 <script type="module">
@@ -269,7 +271,7 @@ new Vue({
     // ================================ common ================================
     //===// <=%- if common and common.data %=> 
     //===// <=%- for key, value in common.data %=> 
-    //===// <=$ key $=>: <=$ value | safe $=>,
+    //===// <=$ key $=>: <=$ value | variableToVar(key) $=>,
     //===// <=%- endfor %=>
     //===// <=%- endif %=>
 
@@ -305,8 +307,6 @@ new Vue({
     //===// updateItem: {},
     //===// updateItemId: null,
     //===// updateActionData: {},
-    //===// updateDrawerContentList: [
-    //===//   <=%- for value in updateDrawerContent.contentList %=> {label: '<=$ value.label $=>', type: '<=$ value.type $=>'}, <=%- endfor %=> ],
     //===// <=%- endif %=>
     //===// updateDrawerTab: 0,
 
@@ -550,6 +550,12 @@ new Vue({
     //===// },
     //===// <=%- endif %=>
     // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
+
+    //===// <=%- if common and common.methods %=> 
+    //===// <=%- for key, value in common.methods %=> 
+    //===// <=$ value | variableToVar(key) $=>,
+    //===// <=%- endfor %=>
+    //===// <=%- endif %=>
   }
 })
 </script>
