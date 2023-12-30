@@ -1,5 +1,5 @@
 <!--drawerForm.html start-->
-<template id="tableRecordHistry">
+<template id="tableRecordHistory">
   <div>
       
     <v-timeline dense clipped :loading="isRecordHistoryLoading">
@@ -27,14 +27,15 @@
       </v-timeline-item>
     </v-timeline>
 
+
   </div>
 </template>
 <script>
   // type：字段类型[textarea: 多行文本框，select：下拉框，input：输入框，date：时间选择, searchMultiple: 多选，searchOne: 单选]
-  Vue.component("table-record-histry", {
-    template: '#tableRecordHistry',
+  Vue.component("table-record-history", {
+    template: '#tableRecordHistory',
     vuetify: new Vuetify(),
-    name: 'table-record-histry',
+    name: 'table-record-history',
     data: () => ({
       requireRules: [v => !!v || 'This is required'],
       constantObj: {
@@ -52,13 +53,19 @@
       isRecordHistoryLoading: false,
     }),
     props: {
-      table: { type: String, default: '' },
-      pageId: { type: String, default: '' },
+      ctx: { 
+        type: Object, 
+        default: () => {
+          return {
+            table: '',
+          };
+        },
+      }
     },
     computed: {
     },
     watch: {
-      table: {
+      'ctx.table': {
         handler: function (val, oldVal) {
           this.getRecordHistoryList();
         },
@@ -70,13 +77,13 @@
     },
     methods: {
       async getRecordHistoryList() {
-        const where = {table: this.table};
+        const where = {table: this.ctx.table};
         const whereLike = {};
         this.isRecordHistoryLoading = true;
         const rows = (await window.jianghuAxios({
           data: {
             appData: {
-              pageId: this.pageId,
+              pageId: this.ctx.pageId,
               actionId: 'selectRecordHistory',
               actionData: {},
               where,
