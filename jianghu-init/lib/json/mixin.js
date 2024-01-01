@@ -59,17 +59,19 @@ const mixin = {
       console.log(typeof str)
       return typeof str;
     });
-    const tagAttr = (tag, key, value) => {
+    const tagAttr = (key, value, tag = '') => {
       // vuetify 的缩略标签
       const preList = ['x-small', 'small', 'medium', 'large', 'x-large', 'disabled', 'readonly', 'active', 'fixed', 'absolute', 'top', 'bottom', 'left', 'right', 'tile', 'content', 'inset']
       if (tag.startsWith('v-') && preList.includes(key) && value === true) {
         return `${key}`;
+      } else if (!_.isString(value) && !key.startsWith(':') && !key.startsWith('@')) {
+        return `:${key}="${value.toString()}"`;
       }
 
-      return `${key}="${value.replace(/"/g, '\'')}"`;
+      return `${key}="${value.toString().replace(/"/g, '\'')}"`;
     };
-    nunjucksEnv.addFilter('tagAttr', function(tag, key, value) {
-      return tagAttr(tag, key, value);
+    nunjucksEnv.addFilter('tagAttr', function(key, value, tag) {
+      return tagAttr(key, value, tag);
     });
 
     nunjucksEnv.addFilter('tagFormat', function(result) {
@@ -77,7 +79,7 @@ const mixin = {
       const tagItemFormat = (res) => {
         let tagStr = `<${res.tag} `;
         tagStr += _.map(res.attrs, (value, key) => {
-          return tagAttr(res.tag, key, value);
+          return tagAttr(key, value, res.tag);
         }).join(' ');
         if (res.value) {
           tagStr += `>${res.value}</${res.tag}>`;
@@ -129,7 +131,11 @@ const mixin = {
   },
 
   handleJsonConfig(jsonConfig) {
-    const { pageContent } = jsonConfig;
+    const { pageContent, createDrawerContent } = jsonConfig;
+    if (createDrawerContent) {
+      const idGenerate = createDrawerContent.formItemList.find(e => !!e.idGenerate)?.idGenerate;
+      jsonConfig.idGenerate = idGenerate;
+    }
     // ... do something
     
   },
@@ -159,7 +165,12 @@ const mixin = {
           if (componentMap[item.componentPath]) {
             const { filename, ctx, sqlMap } = componentMap[item.componentPath];
             item.componentPath = filename;
-            item.ctx = ctx;
+            if (!item.ctx) {
+              item.ctx = ctx;
+            }
+            _.forEach(item.ctx, (value, key) => {
+              item.ctx[key] = value.replace(/"/g, '\'');
+            });
             item.sqlMap = sqlMap;
           } else {
             const ctx = {}
@@ -194,24 +205,13 @@ const mixin = {
    * @param {String} table
    * @returns
    */
-  async getTableFields(table) {
+  async getTableFields(jsonConfig) {
     const knex = await this.getKnex();
     const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT').from('INFORMATION_SCHEMA.COLUMNS').where({
       TABLE_SCHEMA: this.dbSetting.database,
       TABLE_NAME: table,
     });
-
-    const defaultColumn = [ 'operation', 'operationByUserId', 'operationByUser', 'operationAt' ];
-    for (const column of defaultColumn) {
-      await knex.schema.hasColumn(table, column).then(exists => {
-        if (!exists) {
-          return knex.schema.table(table, t => {
-            this.info(`创建依赖字段：${column}`);
-            t.string(column);
-          });
-        }
-      });
-    }
+    await this.initTableFields(jsonConfig);
 
     const columns = result.map(column => {
       return {
@@ -221,6 +221,31 @@ const mixin = {
     });
 
     return columns;
+  },
+
+  /**
+   * 初始化table依赖字段，检测依赖字段是否存在，不存在则创建
+   * @param {*} jsonConfig 
+   */
+  async checkTableFields(table, idGenerate) {
+    const knex = await this.getKnex();
+    const columnList = await knex(table).columnInfo();
+
+    const defaultColumn = [ 'operation', 'operationByUserId', 'operationByUser', 'operationAt' ];
+    if (idGenerate) defaultColumn.push('idSequence');
+    for (const column of defaultColumn) {
+      if (!columnList[column]) {
+        return knex.schema.table(table, t => {
+          this.info(`创建依赖字段：${column}`);
+          // idSequence 列则在 id 后添加
+          if (column == 'idSequence') {
+            t.integer(column).after('id');
+          } else {
+            t.string(column);
+          }
+        });
+      }
+    }
   },
 
   async modifyComponentResource(jsonConfig) {

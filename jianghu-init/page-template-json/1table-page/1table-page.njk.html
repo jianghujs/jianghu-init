@@ -69,9 +69,15 @@
       <v-card class="rounded-lg">
         <v-row class="ma-0 pa-4">
           <!-- 新增按钮 -->
-          <=%- if createDrawerContent %=>
-          <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
-          <=%- endif %=>
+          <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+
+            <=%- if createDrawerContent %=>
+            <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
+            <=%- endif %=>
+            <=%- for action in pageContent.headActionList %=>
+            <=$ action | tagFormat $=>
+            <=%- endfor %=>
+          </v-col>
           <v-spacer></v-spacer>
           <!-- 搜索过滤 -->
           <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
@@ -91,8 +97,7 @@
               :class="{'zebraLine': true }"
               fixed-header
               <=%- for attr, value in pageContent.tableAttrs %=>
-              <=$ attr $=>="<=$ value $=>"
-              <=%- endfor %=>
+              <=$ attr | tagAttr(value) $=><=%- endfor %=>
               class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
             >
             <=%- for header in pageContent.tableHeaderList %=>
@@ -150,9 +155,9 @@
           <v-col cols="<=$ formItem.clos | default('12') $=>" sm="<=$ formItem.clos | default('12') $=>" md="<=$ formItem.clos | default('4') $=>">
             <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
             <=%- if formItem.tag == "v-text-field" %=> 
-            <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>"></v-text-field> 
+            <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-text-field> 
             <=%- elif formItem.tag == "v-select" %=>
-            <v-select class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" :items=<=%- if formItem.attrs.items is not string %=>"<=$ formItem.attrs.items | dump $=>"><=%- else %=><=$ formItem.attrs.items | dump $=><=%- endif %=>></v-select> 
+            <v-select class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-select> 
             <=%- elif formItem.tag == "v-date-picker" %=> 
             <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
@@ -216,9 +221,9 @@
                 <v-col cols="<=$ formItem.clos | default('12') $=>" sm="<=$ formItem.clos | default('12') $=>" md="<=$ formItem.clos | default('4') $=>">
                   <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
                   <=%- if formItem.tag == "v-text-field" %=> 
-                  <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>"></v-text-field> 
+                  <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-text-field> 
                   <=%- elif formItem.tag == "v-select" %=>
-                  <v-select class="jh-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" :items=<=%- if formItem.attrs.items is not string %=>'<=$ formItem.attrs.items | dump $=>'><=%- else %=><=$ formItem.attrs.items | dump $=><=%- endif %=>></v-select> 
+                  <v-select class="jh-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-select> 
                   <=%- elif formItem.tag == "v-date-picker" %=> 
                   <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                       <template v-slot:activator="{on, attrs}">
@@ -266,7 +271,7 @@
           <=%- endif %=>
           <div class="px-4">
             <v-tabs
-              v-model="updateDrawerTab"
+              v-model="<=$ drawer.key $=>DrawerTab"
               color="success"
             >
               <=%- for content in drawer.contentList %=>
@@ -276,7 +281,7 @@
               <=%- endfor %=>
             </v-tabs>
           </div>
-          <v-tabs-items v-model="updateDrawerTab">
+          <v-tabs-items v-model="<=$ drawer.key $=>DrawerTab">
             <=%- for content in drawer.contentList %=>
             <v-tab-item
               key="<=$ content.label $=>"
@@ -287,9 +292,9 @@
                 <v-col cols="<=$ formItem.clos | default('12') $=>" sm="<=$ formItem.clos | default('12') $=>" md="<=$ formItem.clos | default('4') $=>">
                   <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
                   <=%- if formItem.tag == "v-text-field" %=> 
-                  <v-text-field class="jh-v-input" dense single-line filled v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>"></v-text-field> 
+                  <v-text-field class="jh-v-input" dense single-line filled v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-text-field> 
                   <=%- elif formItem.tag == "v-select" %=>
-                  <v-select class="jh-v-input mr-2" dense filled single-line v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" :items=<=%- if formItem.attrs.items is not string %=>'<=$ formItem.attrs.items | dump $=>'><=%- else %=><=$ formItem.attrs.items | dump $=><=%- endif %=>></v-select> 
+                  <v-select class="jh-v-input mr-2" dense filled single-line v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-select> 
                   <=%- elif formItem.tag == "v-date-picker" %=> 
                   <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                       <template v-slot:activator="{on, attrs}">
@@ -325,7 +330,7 @@
     <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
     <=%- if headContent.helpDrawer %=> 
     <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
-      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#404.md`" width="100%" height="100%"></iframe>
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#<=$ pageId $=>.md`" width="100%" height="100%"></iframe>
       <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
           <v-icon>mdi-close</v-icon>
       </v-btn>
@@ -408,9 +413,15 @@ new Vue({
     //===// <=%- for drawer in drawerList %=>
     //===// is<=$ drawer.key | ucfirst $=>DrawerShown: false,
     //===// <=$ drawer.key | lcfirst $=>: {},
+    //===// <=$ drawer.key | lcfirst $=>DrawerTab: 0,
     //===// <=%- endfor %=>
   }),
   watch: {
+    isHelpPageDrawerShown(val) {
+      if (val && !this.isHelpPageDrawerLoaded) {
+        this.isHelpPageDrawerLoaded = true;
+      }
+    },
   },
   async created() {
   },
@@ -554,6 +565,15 @@ new Vue({
     //===//       appData: {
     //===//         pageId: '<=$ pageId $=>',
     //===//         actionId: 'insertItem',
+    //===//         <=%- if idGenerate %=>
+    //===//         bizIdGenerate: {
+    //===//           type: "idSequence",
+    //===//           prefix: "<=$ idGenerate.prefix $=>",
+    //===//           bizId: "<=$ idGenerate.bizId $=>",
+    //===//           tableName: "<=$ table $=>",
+    //===//           startValue: <=$ idGenerate.startValue $=>,
+    //===//         },
+    //===//         <=%- endif %=>
     //===//         actionData: this.createActionData
     //===//       }
     //===//     }
