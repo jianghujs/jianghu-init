@@ -53,23 +53,23 @@
       isRecordHistoryLoading: false,
     }),
     props: {
-      ctx: { 
-        type: Object, 
-        default: () => {
-          return {
-            table: '',
-          };
-        },
-      }
+      table: {
+        type: String,
+        default: ''
+      },
+      pageId: {
+        type: String,
+        default: ''
+      },
     },
     computed: {
     },
     watch: {
-      'ctx.table': {
+      table: {
         handler: function (val, oldVal) {
+          if (!val) return;
           this.getRecordHistoryList();
         },
-        deep: true,
         immediate: true
       },
     },
@@ -77,13 +77,13 @@
     },
     methods: {
       async getRecordHistoryList() {
-        const where = {table: this.ctx.table};
+        const where = {table: this.table};
         const whereLike = {};
         this.isRecordHistoryLoading = true;
         const rows = (await window.jianghuAxios({
           data: {
             appData: {
-              pageId: this.ctx.pageId,
+              pageId: this.pageId,
               actionId: 'selectRecordHistory',
               actionData: {},
               where,

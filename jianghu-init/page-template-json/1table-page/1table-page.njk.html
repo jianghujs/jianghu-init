@@ -147,9 +147,11 @@
     <=%- if createDrawerContent %=> 
     <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
       <v-form ref="createForm" lazy-validation>
-        <v-row>
-            <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">新增信息</span>
+        <!-- 抽屉标题 -->
+        <v-row no-gutters>
+          <span class="text-h7 font-weight-bold pa-4">新增信息</span>
         </v-row>
+        <v-divider class="jh-divider"></v-divider>
         <v-row class="mt-0 px-4">
           <=%- for formItem in createDrawerContent.formItemList %=>
           <v-col cols="<=$ formItem.clos | default('12') $=>" sm="<=$ formItem.clos | default('12') $=>" md="<=$ formItem.clos | default('4') $=>">
@@ -170,7 +172,7 @@
           <=%- endfor %=>
         </v-row>
         <!-- 抽屉操作按钮 -->
-        <v-row class="justify-end mx-0 mt-8 px-6">
+        <v-row class="justify-end mx-0 my-8 px-4">
             <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
             <v-btn class="elevation-0 ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
         </v-row>
@@ -187,9 +189,11 @@
     <=%- if updateDrawerContent %=> 
     <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateForm" lazy-validation>
-          <v-row>
-              <span class="text-subtitle-1 font-weight-medium pa-6 pl-7">详细信息</span>
+          <!-- 抽屉标题 -->
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">详细信息</span>
           </v-row>
+          <v-divider class="jh-divider"></v-divider>
           <=%- if updateDrawerContent.otherActionList %=> 
           <v-row>
             <v-col cols="12" class="px-6 pt-0">
@@ -237,12 +241,12 @@
               </v-row>
 
               <!-- 抽屉操作按钮 -->
-              <v-row class="justify-end px-6 pt-6" no-gutters>
+              <v-row class="justify-end mx-0 my-8 px-4">
                   <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
                   <v-btn class="elevation-0 ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
               </v-row>
               <=%- elif content.type == "component" %=>
-              <<=$ content.componentPath.split('/').pop() | camelToKebab $=> :ctx="{<=% for key, value in content.ctx %=>'<=$ key $=>': <=$ value $=>, <=%- endfor %=>}"/>
+              <<=$ content.componentPath.split('/').pop() | camelToKebab $=> v-bind="{<=% for key, value in content.bind %=>'<=$ key $=>': <=$ value $=>, <=%- endfor %=>}"/>
               <=%- endif %=>
             </v-tab-item>
             <=%- endfor %=>
@@ -258,9 +262,13 @@
     <!-- <=$ drawer.title $=> >>>>>>>>>>>>> -->
     <v-navigation-drawer v-model="is<=$ drawer.key | ucfirst $=>DrawerShown" :permanent="is<=$ drawer.key | ucfirst $=>DrawerShown" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="<=$ drawer.key $=>" lazy-validation>
-          <v-row>
-              <span class="text-subtitle-1 font-weight-medium pa-6 pl-7"><=$ drawer.title $=></span>
+          <=% if drawer.title %=>
+          <!-- 抽屉标题 -->
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4"><=$ drawer.title $=></span>
           </v-row>
+          <v-divider class="jh-divider"></v-divider>
+          <=% endif %=>
           <=%- if drawer.otherActionList %=> 
           <v-row>
             <v-col cols="12" class="px-6 pt-0">
@@ -269,6 +277,7 @@
             </v-col>
           </v-row>
           <=%- endif %=>
+          <=% if drawer.contentList.length > 1 %=>
           <div class="px-4">
             <v-tabs
               v-model="<=$ drawer.key $=>DrawerTab"
@@ -281,6 +290,7 @@
               <=%- endfor %=>
             </v-tabs>
           </div>
+          <=% endif %=>
           <v-tabs-items v-model="<=$ drawer.key $=>DrawerTab">
             <=%- for content in drawer.contentList %=>
             <v-tab-item
@@ -308,12 +318,12 @@
               </v-row>
 
               <!-- 抽屉操作按钮 -->
-              <v-row class="justify-end px-6 pt-6" no-gutters>
+              <v-row class="justify-end mx-0 my-8 px-4">
                 <=% if content.action %=><=$ content.action | tagFormat $=><=% endif %=>
                 <v-btn class="elevation-0 ml-2" @click="is<=$ drawer.key | ucfirst $=>DrawerShown = false" small>取消</v-btn>
               </v-row>
               <=%- elif content.type == "component" %=>
-              <<=$ content.componentPath.split('/').pop() | camelToKebab $=> :ctx="{<=% for key, value in content.ctx %=>'<=$ key $=>': <=$ value $=>, <=%- endfor %=>}"/>
+              <<=$ content.componentPath.split('/').pop() | camelToKebab $=> v-bind="{<=% for key, value in content.bind %=>'<=$ key $=>': <=$ value $=>, <=%- endfor %=>}"/>
               <=%- endif %=>
             </v-tab-item>
             <=%- endfor %=>
@@ -364,7 +374,7 @@ new Vue({
     // ================================ common ================================
     //===// <=%- if common and common.data %=> 
     //===// <=%- for key, value in common.data %=> 
-    //===// <=$ key $=>: <=$ value | variableToVar(key) $=>,
+    //===// <=$ value | variableToVar(key) $=>,
     //===// <=%- endfor %=>
     //===// <=%- endif %=>
 
@@ -422,7 +432,11 @@ new Vue({
         this.isHelpPageDrawerLoaded = true;
       }
     },
+    //===// <=%- for key, item in common.watch %=>
+    //===// <=$ item | variableToVar(key) $=>,
+    //===// <=%- endfor %=>
   },
+  //===// <=$ common.computed | variableToVar('computed') $=><=$ ',' if common.computed $=>
   async created() {
   },
   async mounted() {

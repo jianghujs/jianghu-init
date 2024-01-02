@@ -33,23 +33,43 @@ const mixin = {
     });
     // 复杂变量包含函数或函数原样渲染
     nunjucksEnv.addFilter('variableToVar', function(obj, k) {
+      if (!obj) return '';
+      const testKey = [];
       let content = JSON.stringify(obj, function(key, value) {
           if (typeof value === 'function') {
-              return `__FUNC_START__${value.toString()}__FUNC_END__`;
+            let valStr = value.toString();
+            // 匹配 String Object 等函数原样输出
+            const reg = /function ([A-Z][a-z]+)\(\) \{ \[native code\] \}/;
+            if (reg.test(valStr)) {
+              valStr = valStr.replace(reg, '$1');
+            }
+            if(key && valStr.startsWith(key)) {
+              valStr = 'replace_this_key' + valStr;
+              testKey.push(key);
+            }
+            return `__FUNC_START__${valStr}__FUNC_END__`;
           }
           return value;
-      }, 2).replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '').replace(/\\n/g, '\n').replace(/\\/g, '').replace(/\n/g, '\n    ');
-
-      if (/^function\s*?\(/.test(content)) {
+      }, 2).replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '').replace(/\\n    /g, '\n').replace(/\\/g, '').replace(/\n/g, '\n    ');
+      testKey.forEach(key => {
+        content = content.replace(new RegExp(`"${key}":\\s*?replace_this_key`, 'g'), '');
+      })
+      
+      // 匿名同步格式
+      if (k && (/^function\s*?\(/.test(content) || /^\(/.test(content))) {
         content = k + ': ' + content;
       }
-      if (/^async\s+function\s*?\(/.test(content)) {
+      // 匿名异步格式
+      if (k && (/^async\s+function\s*?\(/.test(content) || /^async\s+\(/.test(content))) {
         content = k + ': ' + content;
       }
       if (typeof obj == 'function') {
         content = content.replace(/   /g, ' ');
       }
-      return content;
+      if (typeof obj == 'object' && k) {
+        content = `"${k}": ` + content;
+      }
+      return content.replace(/"(\w+)":/g, '$1:');
     });
     nunjucksEnv.addFilter('camelToKebab', function(obj) {
       return obj.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '\$1-\$2').toLowerCase();
@@ -116,6 +136,12 @@ const mixin = {
     nunjucksEnv.addFilter('lcfirst', function(str) {
       return str.charAt(0).toLowerCase() + str.slice(1);
     });
+    nunjucksEnv.addFilter('isArray', function(val) {
+      return _.isArray(val);
+    });
+    nunjucksEnv.addFilter('isObject', function(val) {
+      return _.isObject(val);
+    });
     return nunjucksEnv;
   },
 
@@ -155,33 +181,33 @@ const mixin = {
     const { table, pageId, updateDrawerContent, drawerList = [] } = jsonConfig;
     const componentList = [];
     const componentMap = {
-      'recordHistory': {filename: 'tableRecordHistory', ctx: { table: `'${table}'`, pageId: `'${pageId}'`}, sqlMap: { table, pageId }},
-      'tableRecordHistory': {filename: 'tableRecordHistory', ctx: { table: `'${table}'`, pageId: `'${pageId}'`}, sqlMap: { table, pageId }},
+      'recordHistory': {filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`}, sqlMap: { table, pageId }},
+      'tableRecordHistory': {filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`}, sqlMap: { table, pageId }},
     };
 
-    const processContentList = (contentList) => {
+    const processContentList = (contentList, itemKey = 'updateItem') => {
       contentList.forEach(item => {
         if (item.type == 'component') {
           if (componentMap[item.componentPath]) {
-            const { filename, ctx, sqlMap } = componentMap[item.componentPath];
+            const { filename, bind, sqlMap } = componentMap[item.componentPath];
             item.componentPath = filename;
-            if (!item.ctx) {
-              item.ctx = ctx;
+            if (!item.bind) {
+              item.bind = bind;
             }
-            _.forEach(item.ctx, (value, key) => {
-              item.ctx[key] = value.replace(/"/g, '\'');
+            _.forEach(item.bind, (value, key) => {
+              item.bind[key] = value.replace(/"/g, '\'');
             });
             item.sqlMap = sqlMap;
           } else {
-            const ctx = {}
-            if (_.isArray(item.ctx)) {
-              item.ctx.forEach(ctxItem => {
-                if (_.isString(ctxItem)) {
-                  ctx[ctxItem] = `updateItem.${ctxItem}`;
+            const bind = {}
+            if (_.isArray(item.bind)) {
+              item.bind.forEach(bindItem => {
+                if (_.isString(bindItem)) {
+                  bind[bindItem] = `${itemKey}.${bindItem}`;
                 }
               })
             }
-            item.ctx = ctx;
+            item.bind = bind;
             item.componentPath = item.componentPath;
           }
           componentList.push(item);
@@ -194,7 +220,7 @@ const mixin = {
     }
 
     drawerList.forEach(drawer => {
-      processContentList(drawer.contentList);
+      processContentList(drawer.contentList, drawer.key);
     })
 
     return _.uniqBy(componentList, 'componentPath');
