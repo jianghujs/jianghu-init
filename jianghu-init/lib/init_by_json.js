@@ -3,15 +3,20 @@ const yargs = require('yargs');
 const InitPage1Table = require('./json/init_page_1table');
 const InitComponent1Table = require('./json/init_component_1table');
 const InitPage2Table = require('./json/init_page_2table');
+const InitJson = require('./json/init_json');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 const fs = require('fs');
 
-const pageTypes = [
+const jsonTypes = [
   {
-    value: '1table-page',
-    name: '1table-page - generate pages from a table',
+    value: 'init-page',
+    name: 'init page by json text',
   },
+  {
+    value: 'init-json',
+    name: 'init json by table',
+  }
 ];
 
 
@@ -37,11 +42,13 @@ module.exports = class InitByJsonCommand extends CommandBase {
     if (jsFile) {
       this.jsonArgv = require(jsFile);
     }
-    let pageType = this.jsonArgv.pageType;
-    if (!pageType) {
-      pageType = await this.askForPageType();
+    let handleType;
+    if (!jsonText && !jsonFile && !jsFile) {
+      handleType = await this.askForPageType();
     }
-    if (this.jsonArgv.pageType === '1table-page') {
+    if (handleType === 'init-json') {
+      await new InitJson().run(process.cwd());
+    } else if (this.jsonArgv.pageType === '1table-page') {
       await new InitPage1Table().run(process.cwd(), this.jsonArgv);
     } else if (this.jsonArgv.pageType === '1table-component') {
       await new InitComponent1Table().run(process.cwd(), this.jsonArgv);
