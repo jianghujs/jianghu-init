@@ -10,8 +10,8 @@ const _ = require('lodash');
 const moment = require('moment');
 const path = require('path');
 const typeList = [
-  {value: 'page', name: '生成页面js'},
-  {value: 'component', name: '生成组件js'},
+  {value: 'page', name: 'page'},
+  {value: 'component', name: 'component'},
 ]
 
 /**
@@ -57,7 +57,7 @@ module.exports = class InitJson extends CommandBase {
       name: 'pageId',
       type: 'input',
       default: table + 'Management',
-      message: `请输入 pageId，如"${table}Management"`,
+      message: `请输入文件名，如"${table}Management"`,
     });
     const { type } = await inquirer.prompt({
       name: 'type',
