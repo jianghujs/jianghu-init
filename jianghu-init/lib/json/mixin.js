@@ -273,36 +273,38 @@ const mixin = {
       }
     }
   },
-
+  // 批量添加组件 resource --- 废弃
   async modifyComponentResource(jsonConfig) {
-    const knex = await this.getKnex();
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/component`;
     const componentList = this.getUpdateDrawerComponentList(jsonConfig);
 
     // 循环 componentList 运行 sql
     for (const component of componentList) {
-      if (component.type == 'component' && component.componentPath != 'tableRecordHistory') continue;
-      let resourceSql = fs.readFileSync(`${templatePath}/${component.componentPath}.sql`).toString();
-      _.forEach(component.sqlMap, (value, key) => {
-        if (!value) return
-        resourceSql = resourceSql.replace(new RegExp(`\{\{${key}\}\}`, 'g'), value);
-      });
-      
-      // 插入数据
-      for (const line of resourceSql.split('\n')) {
-        if (!line) continue;
-        if (line.startsWith('--')) {
-          this.info(`正在执行插入/更新 ${line}`);
-        } else {
-          await knex.raw(line);
-        }
-      }
-
+      await this.modifyComponentResourceItem(templatePath, component);
     }
-
   },
 
-  async renderComonentVue(jsonConfig) {
+  async modifyComponentResourceItem(templatePath, component) {
+    const knex = await this.getKnex();
+    if (component.type == 'component' && component.componentPath != 'tableRecordHistory') return;
+    let resourceSql = fs.readFileSync(`${templatePath}/${component.componentPath}.sql`).toString();
+    _.forEach(component.sqlMap, (value, key) => {
+      if (!value) return
+      resourceSql = resourceSql.replace(new RegExp(`\{\{${key}\}\}`, 'g'), value);
+    });
+    
+    // 插入数据
+    for (const line of resourceSql.split('\n')) {
+      if (!line) continue;
+      if (line.startsWith('--')) {
+        this.info(`正在执行 ${component.componentPath} ${line}`);
+      } else {
+        await knex.raw(line);
+      }
+    }
+  },
+
+  async renderComonent(jsonConfig) {
     const componentList = this.getUpdateDrawerComponentList(jsonConfig);
     if (!componentList.length) return;
 
@@ -312,14 +314,52 @@ const mixin = {
     }
 
     for( const item of componentList) {
+      // 检查文件存在则提示是否覆盖
+      const targetFilePath = `./app/view/component/${item.componentPath}.html`;
+      if (fs.existsSync(targetFilePath)) {
+        const overwrite = await this.readlineMethod(`组件 ${item.componentPath} 已经存在，是否覆盖?(y/N)`, 'n');
+        if (overwrite !== 'y' && overwrite !== 'Y') {
+          this.warning(`跳过 ${item.componentPath} 组件的生成`);
+          continue;
+        }
+      }
       if (['tableRecordHistory'].includes(item.componentPath)) {
+        this.info(`开始生成 ${item.componentPath} 组件`);
         let componentHtml = fs.readFileSync(componentPath + '/' + item.componentPath + '.html')
           .toString()
           .replace(/\/\/===\/\/ /g, '')
           .replace(/\/\/===\/\//g, '');
   
-        fs.writeFileSync(`./app/view/component/${item.componentPath}.html`, componentHtml);
+        fs.writeFileSync(targetFilePath, componentHtml);
+        await this.modifyComponentResourceItem(componentPath, item);
       }
+    }
+  },
+
+  /**
+   * 生成 service
+   */
+  async renderService(jsonConfig) {
+    const { idGenerate = false } = jsonConfig;
+    if (idGenerate) {
+      // idGenerate 依赖 common service
+      const templatePath = `${path.join(__dirname, '../../')}page-template-json/service`;
+      const templateTargetPath = `${templatePath}/common.js`;
+      
+      const servicePath = `./app/service`;
+      if (!fs.existsSync(servicePath)) fs.mkdirSync(servicePath);
+  
+      // 检查 service 是否存在
+      const serviceFilePath = `${servicePath}/common.js`;
+      if (fs.existsSync(serviceFilePath)) {
+        const overwrite = await this.readlineMethod(`common service 已经存在，是否覆盖?(y/N)`, 'n');
+        if (overwrite !== 'y' && overwrite !== 'Y') {
+          this.warning(`跳过 common service 的生成`);
+          return false;
+        }
+      }
+      this.info(`开始生成 common service`);
+      fs.copyFileSync(templateTargetPath, serviceFilePath);
     }
   },
 

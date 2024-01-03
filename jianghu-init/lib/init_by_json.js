@@ -37,6 +37,10 @@ module.exports = class InitByJsonCommand extends CommandBase {
     if (jsFile) {
       this.jsonArgv = require(jsFile);
     }
+    let pageType = this.jsonArgv.pageType;
+    if (!pageType) {
+      pageType = await this.askForPageType();
+    }
     if (this.jsonArgv.pageType === '1table-page') {
       await new InitPage1Table().run(process.cwd(), this.jsonArgv);
     } else if (this.jsonArgv.pageType === '1table-component') {
@@ -79,5 +83,17 @@ module.exports = class InitByJsonCommand extends CommandBase {
       },
     };
   }
+
+  async askForPageType() {
+    const answer = await inquirer.prompt({
+      name: 'jsonType',
+      type: 'list',
+      message: 'Please select a json type',
+      choices: jsonTypes,
+      pageSize: jsonTypes.length + 1,
+    });
+    return answer.jsonType;
+  }
+
 
 };

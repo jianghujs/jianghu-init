@@ -48,19 +48,16 @@ module.exports = class InitPage1Table extends CommandBase {
     this.info(`开始生成 ${table} 的 CRUD`);
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
-    this.renderService(jsonConfig);
-    await this.renderComonentVue(jsonConfig);
     if (renderResult) {
-      this.success(`生成 ${table} 的 vue 文件完成`);
-      // 数据库
-      this.info(`开始生成 ${table} 的相关数据`);
       await this.modifyTable(jsonConfig);
-      await this.modifyComponentResource(jsonConfig);
-      this.success(`生成 ${table} 的相关数据完成`);
     } else {
       this.error(`生成 ${table} 的 vue 文件失败`);
       return;
     }
+    // 生成组件
+    await this.renderComonent(jsonConfig);
+    // 生成 service
+    await this.renderService(jsonConfig);
   }
 
   async modifyTable(jsonConfig) {
@@ -72,6 +69,7 @@ module.exports = class InitPage1Table extends CommandBase {
     let clearSql = fs.readFileSync(`${templatePath}/clear_crud.sql`).toString();
     clearSql = clearSql.replace(/\{\{pageId}}/g, pageId);
     clearSql = clearSql.replace(/\{\{table}}/g, table);
+    this.info(`开始生成 ${table} 的相关数据`);
     // 删除数据
     for (const line of clearSql.split('\n')) {
       if (!line) {
@@ -101,22 +99,6 @@ module.exports = class InitPage1Table extends CommandBase {
       } else {
         await knex.raw(line);
       }
-    }
-  }
-  /**
-   * 生成 service
-   */
-  renderService(jsonConfig) {
-    const { table, pageId, pageName, idGenerate = false } = jsonConfig;
-    // idGenerate 依赖 common service
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
-    const templateTargetPath = `${templatePath}/common.js`;
-    
-    const servicePath = `./app/service`;
-    if (!fs.existsSync(servicePath)) fs.mkdirSync(servicePath);
-    const serviceFilePath = `${servicePath}/common.js`;
-    if (!fs.existsSync(serviceFilePath)) {
-      fs.copyFileSync(templateTargetPath, serviceFilePath);
     }
   }
 

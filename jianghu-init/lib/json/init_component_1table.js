@@ -48,28 +48,29 @@ module.exports = class InitComponent1Table extends CommandBase {
     this.info(`开始生成 ${table} 的 CRUD`);
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
-    await this.renderComonentVue(jsonConfig);
     if (renderResult) {
-      this.success(`生成 ${table} 的 vue 文件完成`);
-      // 数据库
-      this.info(`开始生成 ${table} 的相关数据`);
-      await this.modifyTable(table, pageId, componentPath);
-      await this.modifyComponentResource(jsonConfig);
-      this.success(`生成 ${table} 的相关数据完成`);
+      await this.modifyTable(jsonConfig, pageId, componentPath);
     } else {
       this.error(`生成 ${table} 的 vue 文件失败`);
       return;
     }
+    // 生成组件
+    await this.renderComonent(jsonConfig);
+    // 生成 service
+    await this.renderService(jsonConfig);
   }
 
-  async modifyTable(table, pageId, componentPath) {
+  async modifyTable(jsonConfig) {
+    const { table, pageId, componentPath, idGenerate = false } = jsonConfig;
     const knex = await this.getKnex();
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-component`;
+    await this.checkTableFields(table, idGenerate);
 
     let clearSql = fs.readFileSync(`${templatePath}/clear_crud.sql`).toString();
     clearSql = clearSql.replace(/\{\{pageId}}/g, pageId);
     clearSql = clearSql.replace(/\{\{table}}/g, table);
     clearSql = clearSql.replace(/\{\{component}}/g, componentPath.split('/').pop());
+    this.info(`开始生成 ${table} 的相关数据`);
     // 删除数据
     for (const line of clearSql.split('\n')) {
       if (!line) {
@@ -86,6 +87,11 @@ module.exports = class InitComponent1Table extends CommandBase {
     sql = sql.replace(/\{\{pageId}}/g, pageId);
     sql = sql.replace(/\{\{table}}/g, table);
     sql = sql.replace(/\{\{component}}/g, componentPath.split('/').pop());
+    if (idGenerate) {
+      sql = sql.replace(/\{\{insertBeforeHook}}/g, '{"before": [{"service": "common", "serviceFunction": "generateBizIdOfBeforeHook"}]}');
+    } else {
+      sql = sql.replace(/\{\{insertBeforeHook}}/g, '');
+    }
     // 插入数据
     for (const line of sql.split('\n')) {
       if (!line) continue;
