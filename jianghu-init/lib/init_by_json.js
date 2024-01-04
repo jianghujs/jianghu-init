@@ -7,6 +7,7 @@ const InitJson = require('./json/init_json');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 const fs = require('fs');
+const path = require('path');
 
 const jsonTypes = [
   {
@@ -18,6 +19,10 @@ const jsonTypes = [
     name: 'init json by table',
   }
 ];
+const typeList = [
+  {value: '1table-page', name: '1table-page'},
+  {value: '1table-component', name: '1table-component'},
+]
 
 
 /**
@@ -32,30 +37,73 @@ module.exports = class InitByJsonCommand extends CommandBase {
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
     const jsFile = this.argv.jsFile;
+    let handleType = 'init-page';
     if (jsonText) {
       this.jsonArgv = JSON.parse(jsonText);
-    }
-    if (jsonFile) {
+    } else if (jsonFile) {
       const jsonFileText = fs.readFileSync(jsonFile).toString();
       this.jsonArgv = JSON.parse(jsonFileText);
-    }
-    if (jsFile) {
+    } else if (jsFile) {
       this.jsonArgv = require(jsFile);
-    }
-    let handleType;
-    if (!jsonText && !jsonFile && !jsFile) {
+    } else {
       handleType = await this.askForPageType();
     }
+
+    let pageType = this.jsonArgv?.pageType || '';
     if (handleType === 'init-json') {
       await new InitJson().run(process.cwd());
-    } else if (this.jsonArgv.pageType === '1table-page') {
+    } else if (handleType === 'init-page' && !this.jsonArgv) {
+      // 1. 选择生成页面还是组件
+      const jsonArgv = await this.promptConfig();
+      if (!jsonArgv) {
+        this.error('没有可选择的文件，流程结束');
+      } else {
+        pageType = jsonArgv.pageType;
+        if (pageType === '1table-page') {
+          await new InitPage1Table().run(process.cwd(), jsonArgv);
+        } else if (pageType === '1table-component') {
+          await new InitComponent1Table().run(process.cwd(), jsonArgv);
+        } else if(pageType === '2table-page'){
+          await new InitPage2Table().run(process.cwd(), jsonArgv);
+        }
+        this.success('jianghu init by json is success');
+      }
+      
+    } else if (pageType === '1table-page') {
       await new InitPage1Table().run(process.cwd(), this.jsonArgv);
-    } else if (this.jsonArgv.pageType === '1table-component') {
+    } else if (pageType === '1table-component') {
       await new InitComponent1Table().run(process.cwd(), this.jsonArgv);
-    } else if(this.jsonArgv.pageType === '2table-page'){
+    } else if(pageType === '2table-page'){
       await new InitPage2Table().run(process.cwd(), this.jsonArgv);
     }
-    this.success('jianghu init by json is success');
+    // this.success('jianghu init by json is success');
+  }
+
+  /**
+   * 确认生成表
+   */
+  async promptConfig() {
+    const { type } = await inquirer.prompt({
+      name: 'type',
+      type: 'list',
+      choices: typeList,
+      message: `请选择类型`,
+    });
+    const generateFileDir = type === '1table-page' ? `./app/view/init-json/page` : `./app/view/init-json/component`;
+    let file;
+    if (fs.existsSync(generateFileDir)) {
+      // 选择页面文件
+      const fileList = fs.readdirSync(generateFileDir);
+      const { fileItem } = await inquirer.prompt({
+        name: 'fileItem',
+        type: 'list',
+        choices: fileList,
+        message: `请选择页面文件`,
+      });
+      const filePath = path.resolve(`${generateFileDir}/${fileItem}`);
+      file = require(filePath);
+    }
+    return file;
   }
 
   /**

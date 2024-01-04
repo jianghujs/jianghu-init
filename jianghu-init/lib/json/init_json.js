@@ -83,11 +83,12 @@ module.exports = class InitJson extends CommandBase {
    * 生成 vue
    */
   async buildJson({table, pageId, type}) {
-    const generateFileDir = type === 'page' ? `./app/view/pageConfig` : `./app/view/componentConfig`;
+    // 检测创建文件夹
+    if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
+    const generateFileDir = type === 'page' ? `./app/view/init-json/page` : `./app/view/init-json/component`;
+    if (!fs.existsSync(generateFileDir)) fs.mkdirSync(generateFileDir);
 
-    if (!fs.existsSync(generateFileDir)) {
-      fs.mkdirSync(generateFileDir);
-    }
+    // 生成文件
     const generateFilePath = `${generateFileDir}/${pageId}.js`
     const fields = await this.getTableFields(table);
     let columnStr = '';
