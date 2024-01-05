@@ -52,8 +52,9 @@ const mixin = {
           return value;
       }, 2)
           .replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '')
-          .replace(/\\r\\n/g, '\n').replace(/\\n    /g, '\n')
-          .replace(/\\/g, '').replace(/\n/g, '\n    ');
+          .replace(/\\r\\n|\\r|\\n {4}/g, '\n')
+          .replace(/\\/g, '')
+          .replace(/\n/g, '\n    ');
       testKey.forEach(key => {
         content = content.replace(new RegExp(`"${key}":\\s*?replace_this_key`, 'g'), '');
       })
