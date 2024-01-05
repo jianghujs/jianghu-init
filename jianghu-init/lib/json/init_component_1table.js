@@ -18,7 +18,8 @@ module.exports = class InitComponent1Table extends CommandBase {
     Object.assign(this, mixin);
   }
 
-  async run(cwd, jsonArgv) {
+  async run(cwd, jsonArgv, argv) {
+    this.argv = argv;
     this.cwd = cwd;
     // TODO: ajv库检查 jsonArgv
     // 检查配置 && 生成json配置中缺省的默认配置

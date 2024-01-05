@@ -53,7 +53,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
 
     let pageType = this.jsonArgv?.pageType || '';
     if (handleType === 'json') {
-      await new InitJson().run(process.cwd());
+      await new InitJson().run(process.cwd(), this.argv);
     } else if (handleType === 'page' && !this.jsonArgv) {
       // 1. 选择生成页面还是组件
       const jsonArgv = await this.promptConfig();
@@ -62,11 +62,11 @@ module.exports = class InitByJsonCommand extends CommandBase {
       } else {
         pageType = jsonArgv.pageType;
         if (pageType === '1table-page') {
-          await new InitPage1Table().run(process.cwd(), jsonArgv);
+          await new InitPage1Table().run(process.cwd(), jsonArgv, this.argv);
         } else if (pageType === '1table-component') {
-          await new InitComponent1Table().run(process.cwd(), jsonArgv);
+          await new InitComponent1Table().run(process.cwd(), jsonArgv, this.argv);
         } else if(pageType === '2table-page'){
-          await new InitPage2Table().run(process.cwd(), jsonArgv);
+          await new InitPage2Table().run(process.cwd(), jsonArgv, this.argv);
         }
         this.success('jianghu init by json is success');
       }
@@ -159,6 +159,10 @@ module.exports = class InitByJsonCommand extends CommandBase {
         type: 'string',
         description: 'json file',
       },
+      excludeColumn: {
+        type: 'array',
+        description: 'exclude column',
+      }
     };
   }
 

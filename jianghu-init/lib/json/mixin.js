@@ -313,22 +313,27 @@ const mixin = {
     if (!componentList.length) return;
 
     const componentPath = `${path.join(__dirname, '../../')}page-template-json/component`;
-    if (componentList.length) {
-      if (!fs.existsSync(`./app/view/component`)) fs.mkdirSync(`./app/view/component`);
-    }
+    if (!fs.existsSync(`./app/view/component`)) fs.mkdirSync(`./app/view/component`);
 
+    const {y, n} = this.argv;
     for( const item of componentList) {
       // 检查文件存在则提示是否覆盖
       const targetFilePath = `./app/view/component/${item.componentPath}.html`;
-      if (fs.existsSync(targetFilePath)) {
-        const overwrite = await this.readlineMethod(`组件 ${item.componentPath} 已经存在，是否覆盖?(y/N)`, 'n');
-        if (overwrite !== 'y' && overwrite !== 'Y') {
+      if (fs.existsSync(targetFilePath) ) {
+        if (n) {
           this.warning(`跳过 ${item.componentPath} 组件的生成`);
           continue;
         }
+        if (!y) {
+          const overwrite = await this.readlineMethod(`组件 ${item.componentPath} 已经存在，是否覆盖?(y/N)`, 'n');
+          if ((overwrite !== 'y' && overwrite !== 'Y')) {
+            this.warning(`跳过 ${item.componentPath} 组件的生成`);
+            continue;
+          }
+        }
       }
       if (['tableRecordHistory'].includes(item.componentPath)) {
-        this.info(`开始生成 ${item.componentPath} 组件`);
+        this.info(`${y ? '默认' : ''}开始生成 ${item.componentPath} 组件`);
         let componentHtml = fs.readFileSync(componentPath + '/' + item.componentPath + '.html')
           .toString()
           .replace(/\/\/===\/\/ /g, '')
@@ -355,14 +360,21 @@ const mixin = {
   
       // 检查 service 是否存在
       const serviceFilePath = `${servicePath}/common.js`;
+      const {y, n} = this.argv;
       if (fs.existsSync(serviceFilePath)) {
-        const overwrite = await this.readlineMethod(`common service 已经存在，是否覆盖?(y/N)`, 'n');
-        if (overwrite !== 'y' && overwrite !== 'Y') {
+        if (n) {
           this.warning(`跳过 common service 的生成`);
           return false;
         }
+        if (!y) {
+          const overwrite = await this.readlineMethod(`common service 已经存在，是否覆盖?(y/N)`, 'n');
+          if (overwrite !== 'y' && overwrite !== 'Y') {
+            this.warning(`跳过 common service 的生成`);
+            return false;
+          }
+        }
       }
-      this.info(`开始生成 common service`);
+      this.info(`${y ? '默认' : ''}开始生成 common service`);
       fs.copyFileSync(templateTargetPath, serviceFilePath);
     }
   },
@@ -378,6 +390,38 @@ const mixin = {
             resolve(stdout);
         });
     });
+  },
+
+  async enableDevMode() {
+    if (this.argv.dev) {
+      // 监控文件变化
+      const watcher = fs.watch(filename, (eventType, changedFilename) => {
+        console.log(`File ${changedFilename} changed. Event type: ${eventType}`);
+        const currentTime = Date.now();
+        if (currentTime - lastExecutionTime >= 3000) {
+          lastExecutionTime = currentTime;
+          this.generateCrud(jsonArgv);
+        }
+      });
+    }
+    if (this.argv.dev) {
+      // 监控文件变化
+      const watcher = fs.watch(filename, (eventType, changedFilename) => {
+        console.log(`File ${changedFilename} changed. Event type: ${eventType}`);
+        // 控制频率，3秒最多执行一次
+        setTimeout(() => {
+        })
+        this.generateCrud(jsonArgv);
+        let lastExecutionTime = 0;
+        
+      });
+      
+      watcher.on('error', (error) => {
+        console.error(`Watcher error: ${error}`);
+      });
+      console.log(`Watching ${filename} for changes...`);
+
+    }
   }
   
 };

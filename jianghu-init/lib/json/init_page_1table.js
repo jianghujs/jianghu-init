@@ -18,7 +18,8 @@ module.exports = class InitPage1Table extends CommandBase {
     Object.assign(this, mixin);
   }
 
-  async run(cwd, jsonArgv) {
+  async run(cwd, jsonArgv, argv) {
+    this.argv = argv;
     this.cwd = cwd;
     // TODO: ajv库检查 jsonArgv
     // 检查配置 && 生成json配置中缺省的默认配置
@@ -33,6 +34,8 @@ module.exports = class InitPage1Table extends CommandBase {
     this.success('初始化数据库连接成功');
     // generate crud
     await this.generateCrud(jsonArgv);
+    // dev 模式循环执行
+    // await this.enableDevMode(jsonArgv);
   }
 
   /**

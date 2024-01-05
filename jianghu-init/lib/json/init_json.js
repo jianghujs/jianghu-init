@@ -10,8 +10,8 @@ const _ = require('lodash');
 const moment = require('moment');
 const path = require('path');
 const typeList = [
-  {value: 'page', name: 'page'},
-  {value: 'component', name: 'component'},
+  {value: '1table-page', name: '1table-page'},
+  {value: '1table-component', name: '1table-component'},
 ]
 
 /**
@@ -19,8 +19,9 @@ const typeList = [
  */
 module.exports = class InitJson extends CommandBase {
 
-  async run(cwd) {
+  async run(cwd, argv) {
     this.cwd = cwd;
+    this.argv = argv;
     // 检查配置 && 生成json配置中缺省的默认配置
     // 检查当前目录是否是在项目中
     await this.checkPath();
@@ -40,32 +41,41 @@ module.exports = class InitJson extends CommandBase {
    */
   async promptConfig() {
     const knex = await this.getKnex();
-
-    const result = await knex.select('TABLE_NAME').from('INFORMATION_SCHEMA.TABLES').where({
-      TABLE_SCHEMA: this.dbSetting.database,
-      TABLE_TYPE: 'BASE TABLE',
-    });
-    const tables = result.map(item => item.TABLE_NAME).filter(table => !table.startsWith('_'));
-    const { table } = await inquirer.prompt({
-      name: 'table',
-      type: 'list',
-      message: '请选择你要生成 crud 的表',
-      choices: tables,
-      pageSize: 100,
-    });
-    const { pageId } = await inquirer.prompt({
-      name: 'pageId',
-      type: 'input',
-      default: table + 'Management',
-      message: `请输入文件名，如"${table}Management"`,
-    });
-    const { type } = await inquirer.prompt({
-      name: 'type',
-      type: 'list',
-      choices: typeList,
-      message: `请选择类型`,
-    });
-    return { table, pageId, type };
+    let { table, pageId, pageType } = this.argv;
+    if (!table) {
+      const result = await knex.select('TABLE_NAME').from('INFORMATION_SCHEMA.TABLES').where({
+        TABLE_SCHEMA: this.dbSetting.database,
+        TABLE_TYPE: 'BASE TABLE',
+      });
+      const tables = result.map(item => item.TABLE_NAME).filter(table => !table.startsWith('_'));
+      const res = await inquirer.prompt({
+        name: 'table',
+        type: 'list',
+        message: '请选择你要生成 crud 的表',
+        choices: tables,
+        pageSize: 100,
+      });
+      table = res.table;
+    }
+    if (!pageId) {
+      const res = await inquirer.prompt({
+        name: 'pageId',
+        type: 'input',
+        default: table + 'Management',
+        message: `请输入文件名，如"${table}Management"`,
+      });
+      pageId = res.pageId;
+    }
+    if (!pageType) {
+      const res = await inquirer.prompt({
+        name: 'type',
+        type: 'list',
+        choices: typeList,
+        message: `请选择类型`,
+      });
+      pageType = res.type;
+    }
+    return { table, pageId, pageType };
   }
 
   async askForConfig() {
@@ -82,10 +92,10 @@ module.exports = class InitJson extends CommandBase {
   /**
    * 生成 vue
    */
-  async buildJson({table, pageId, type}) {
+  async buildJson({table, pageId, pageType}) {
     // 检测创建文件夹
     if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
-    const generateFileDir = type === 'page' ? `./app/view/init-json/page` : `./app/view/init-json/component`;
+    const generateFileDir = pageType === '1table-page' ? `./app/view/init-json/page` : `./app/view/init-json/component`;
     if (!fs.existsSync(generateFileDir)) fs.mkdirSync(generateFileDir);
 
     // 生成文件
@@ -96,9 +106,12 @@ module.exports = class InitJson extends CommandBase {
     let createItemListStr = '';
     let updateItemListStr = '';
     let space = '';
+
+    const { excludeColumn = [] } = this.argv;
     fields.forEach((field, index) => {
       const fieldKey = field.COLUMN_NAME;
       const fieldName = field.COLUMN_COMMENT;
+      if (excludeColumn.includes(fieldKey)) return;
       if (index == 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
       if (index != 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
       createItemListStr += space + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
@@ -107,9 +120,8 @@ module.exports = class InitJson extends CommandBase {
     })
     columnStr += space + `{ text: "", value: "" },\n`;
     columnStr += space + `{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n`;
-    const pageType = type == 'page' ? '1table-page' : '1table-component';
-    const propsStr = type != 'page' ? `props: {},` : '';
-    const componentPath = type != 'page' ? `componentPath: "${pageId}",` : '';
+    const propsStr = pageType == '1table-component' ? `props: {},` : '';
+    const componentPath = pageType == '1table-component' ? `componentPath: "${pageId}",` : '';
     const content = 
 `const content = {
   pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
