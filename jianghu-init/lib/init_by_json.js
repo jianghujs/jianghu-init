@@ -95,7 +95,15 @@ module.exports = class InitByJsonCommand extends CommandBase {
       });
       type = res.type;
     }
-    const generateFileDir = type === '1table-page' ? `./app/view/init-json/page` : `./app/view/init-json/component`;
+    let generateFileDir;
+    if (type === '1table-page') {
+      generateFileDir = `./app/view/init-json/page`;
+    } else if (type === '1table-component') {
+      generateFileDir = `./app/view/init-json/component`;
+    } else {
+      this.error(`不存在的配置类型${type}`);
+      return false;
+    }
     let file;
     if (fs.existsSync(generateFileDir)) {
       // 选择页面文件
