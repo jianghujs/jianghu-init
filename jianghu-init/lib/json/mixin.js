@@ -52,8 +52,8 @@ const mixin = {
           return value;
       }, 2)
           .replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '')
-          .replace(/\\r\\n/g, '\n').replace(/\\n    /g, '\n')
-          .replace(/\\/g, '').replace(/\n/g, '\n    ');
+          .replace(/\\r\\n/g, '\n').replace(/\\n    /g, '\n').replace(/\\n/g, '\n')
+          .replace(/\\(?!n)/g, '').replace(/\n/g, '\n    ');
       testKey.forEach(key => {
         content = content.replace(new RegExp(`"${key}":\\s*?replace_this_key`, 'g'), '');
       })
@@ -320,20 +320,20 @@ const mixin = {
     for( const item of componentList) {
       // 检查文件存在则提示是否覆盖
       const targetFilePath = `./app/view/component/${item.componentPath}.html`;
-      if (fs.existsSync(targetFilePath) ) {
-        if (n) {
-          this.warning(`跳过 ${item.componentPath} 组件的生成`);
-          continue;
-        }
-        if (!y) {
-          const overwrite = await this.readlineMethod(`组件 ${item.componentPath} 已经存在，是否覆盖?(y/N)`, 'n');
-          if ((overwrite !== 'y' && overwrite !== 'Y')) {
+      if (['tableRecordHistory'].includes(item.componentPath)) {
+        if (fs.existsSync(targetFilePath) ) {
+          if (n) {
             this.warning(`跳过 ${item.componentPath} 组件的生成`);
             continue;
           }
+          if (!y) {
+            const overwrite = await this.readlineMethod(`组件 ${item.componentPath} 已经存在，是否覆盖?(y/N)`, 'n');
+            if ((overwrite !== 'y' && overwrite !== 'Y')) {
+              this.warning(`跳过 ${item.componentPath} 组件的生成`);
+              continue;
+            }
+          }
         }
-      }
-      if (['tableRecordHistory'].includes(item.componentPath)) {
         this.info(`${y ? '默认' : ''}开始生成 ${item.componentPath} 组件`);
         let componentHtml = fs.readFileSync(componentPath + '/' + item.componentPath + '.html')
           .toString()
