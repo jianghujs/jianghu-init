@@ -90,7 +90,8 @@ module.exports = class InitJson extends CommandBase {
 
     // 生成文件
     const generateFilePath = `${generateFileDir}/${pageId}.js`
-    const fields = await this.getTableFields(table);
+    let fields = await this.getTableFields(table);
+    fields = fields.filter(f => f.COLUMN_NAME != 'id');
     let columnStr = '';
     let createItemListStr = '';
     let updateItemListStr = '';
@@ -98,7 +99,8 @@ module.exports = class InitJson extends CommandBase {
     fields.forEach((field, index) => {
       const fieldKey = field.COLUMN_NAME;
       const fieldName = field.COLUMN_COMMENT;
-      columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
+      if (index == 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
+      if (index != 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
       createItemListStr += space + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
       updateItemListStr += space + `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
       if (index == 0) space = '      ';
