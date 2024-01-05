@@ -91,7 +91,7 @@ module.exports = class InitJson extends CommandBase {
     // 生成文件
     const generateFilePath = `${generateFileDir}/${pageId}.js`
     let fields = await this.getTableFields(table);
-    fields = fields.filter(f => f.COLUMN_NAME != 'id');
+    // fields = fields.filter(f => f.COLUMN_NAME != 'id');
     let columnStr = '';
     let createItemListStr = '';
     let updateItemListStr = '';
@@ -105,6 +105,7 @@ module.exports = class InitJson extends CommandBase {
       updateItemListStr += space + `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
       if (index == 0) space = '      ';
     })
+    columnStr += space + `{ text: "", value: "" },\n`;
     columnStr += space + `{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n`;
     const pageType = type == 'page' ? '1table-page' : '1table-component';
     const propsStr = type != 'page' ? `props: {},` : '';
