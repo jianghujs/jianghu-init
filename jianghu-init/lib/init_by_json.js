@@ -11,15 +11,15 @@ const path = require('path');
 
 const jsonTypes = [
   {
-    value: 'init-page',
+    value: 'page',
     name: 'init page by json text',
   },
   {
-    value: 'init-json',
+    value: 'json',
     name: 'init json by table',
   }
 ];
-const typeList = [
+const pageTypeList = [
   {value: '1table-page', name: '1table-page'},
   {value: '1table-component', name: '1table-component'},
 ]
@@ -37,7 +37,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
     const jsFile = this.argv.jsFile;
-    let handleType = 'init-page';
+    let handleType = this.argv['generateType'] || 'page';
     if (jsonText) {
       this.jsonArgv = JSON.parse(jsonText);
     } else if (jsonFile) {
@@ -46,13 +46,15 @@ module.exports = class InitByJsonCommand extends CommandBase {
     } else if (jsFile) {
       this.jsonArgv = require(jsFile);
     } else {
-      handleType = await this.askForPageType();
+      if (!this.argv['generateType']) {
+        handleType = await this.askForPageType();
+      }
     }
 
     let pageType = this.jsonArgv?.pageType || '';
-    if (handleType === 'init-json') {
+    if (handleType === 'json') {
       await new InitJson().run(process.cwd());
-    } else if (handleType === 'init-page' && !this.jsonArgv) {
+    } else if (handleType === 'page' && !this.jsonArgv) {
       // 1. 选择生成页面还是组件
       const jsonArgv = await this.promptConfig();
       if (!jsonArgv) {
@@ -83,23 +85,36 @@ module.exports = class InitByJsonCommand extends CommandBase {
    * 确认生成表
    */
   async promptConfig() {
-    const { type } = await inquirer.prompt({
-      name: 'type',
-      type: 'list',
-      choices: typeList,
-      message: `请选择类型`,
-    });
+    let type = this.argv.pageType;
+    if (!type) {
+      const res = await inquirer.prompt({
+        name: 'type',
+        type: 'list',
+        choices: pageTypeList,
+        message: `请选择类型`,
+      });
+      type = res.type;
+    }
     const generateFileDir = type === '1table-page' ? `./app/view/init-json/page` : `./app/view/init-json/component`;
     let file;
     if (fs.existsSync(generateFileDir)) {
       // 选择页面文件
-      const fileList = fs.readdirSync(generateFileDir);
-      const { fileItem } = await inquirer.prompt({
-        name: 'fileItem',
-        type: 'list',
-        choices: fileList,
-        message: `请选择页面文件`,
-      });
+      let fileItem = (this.argv['file'] || '').split('.')[0];
+      if (!fileItem) {
+        const fileList = fs.readdirSync(generateFileDir);
+        const res = await inquirer.prompt({
+          name: 'fileItem',
+          type: 'list',
+          choices: fileList,
+          message: `请选择页面文件`,
+        });
+        fileItem = res.fileItem;
+      } else {
+        if (!fs.existsSync(`${generateFileDir}/${fileItem}.js`)) {
+          this.error(`文件${fileItem}.js不存在`);
+          return false;
+        }
+      }
       const filePath = path.resolve(`${generateFileDir}/${fileItem}`);
       file = require(filePath);
     }
