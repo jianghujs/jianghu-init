@@ -116,7 +116,7 @@ module.exports = class InitJson extends CommandBase {
       if (index != 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
       createItemListStr += space + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
       updateItemListStr += space + `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
-      if (index == 0) space = '      ';
+      space = '      ';
     })
     columnStr += space + `{ text: "", value: "" },\n`;
     columnStr += space + `{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n`;
