@@ -34,8 +34,8 @@ module.exports = class InitPage1Table extends CommandBase {
     this.success('初始化数据库连接成功');
     // generate crud
     await this.generateCrud(jsonArgv);
-    // dev 模式循环执行
-    // await this.enableDevMode(jsonArgv);
+    // dev 模式
+    await this.enableDevMode(jsonArgv);
   }
 
   /**
@@ -43,7 +43,6 @@ module.exports = class InitPage1Table extends CommandBase {
    */
   async generateCrud(jsonConfig) {
     const { table } = jsonConfig;
-    this.info('开始生成 CRUD');
     if (!table) {
       this.info('未配置table，流程结束');
       return;
@@ -61,9 +60,11 @@ module.exports = class InitPage1Table extends CommandBase {
     await this.renderComonent(jsonConfig);
     // 生成 service
     await this.renderService(jsonConfig);
+    this.success('build page by json is success');
   }
 
   async modifyTable(jsonConfig) {
+    if (this.argv.devModel) return;
     const { table, pageId, pageName, idGenerate = false } = jsonConfig;
     const knex = await this.getKnex();
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;

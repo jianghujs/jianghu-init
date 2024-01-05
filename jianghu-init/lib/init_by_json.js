@@ -94,6 +94,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
         message: `请选择类型`,
       });
       type = res.type;
+      this.argv.pageType = type;
     }
     let generateFileDir;
     if (type === '1table-page') {
@@ -117,6 +118,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
           message: `请选择页面文件`,
         });
         fileItem = res.fileItem;
+        this.argv.file = fileItem;
       } else {
         if (!fs.existsSync(`${generateFileDir}/${fileItem}.js`)) {
           this.error(`文件${fileItem}.js不存在`);

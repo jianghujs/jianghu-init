@@ -278,6 +278,7 @@ const mixin = {
   },
   // 批量添加组件 resource --- 废弃
   async modifyComponentResource(jsonConfig) {
+    if (this.argv.devModel) return;
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/component`;
     const componentList = this.getUpdateDrawerComponentList(jsonConfig);
 
@@ -308,6 +309,7 @@ const mixin = {
   },
 
   async renderComonent(jsonConfig) {
+    if (this.argv.devModel) return;
     const componentList = this.getUpdateDrawerComponentList(jsonConfig);
     if (!componentList.length) return;
 
@@ -348,6 +350,7 @@ const mixin = {
    * 生成 service
    */
   async renderService(jsonConfig) {
+    if (this.argv.devModel) return;
     const { idGenerate = false } = jsonConfig;
     if (idGenerate) {
       // idGenerate 依赖 common service
@@ -391,35 +394,32 @@ const mixin = {
     });
   },
 
-  async enableDevMode() {
-    if (this.argv.dev) {
+  async enableDevMode(jsonArgv) {
+    const { dev, pageType, file = '' } = this.argv;
+    if (dev) {
+      this.argv['n'] = true;
+      this.argv['y'] = false;
+      this.argv['devModel'] = true;
+      const generateFileDir = pageType === '1table-page' ? `./app/view/init-json/page` : `./app/view/init-json/component`;
+      const filename = file.split('.')[0];
+      const generateFilePath = `${generateFileDir}/${filename}.js`
+      let lastExecutionTime = Date.now();
       // 监控文件变化
-      const watcher = fs.watch(filename, (eventType, changedFilename) => {
+      const watcher = fs.watch(generateFilePath, (eventType, changedFilename) => {
         console.log(`File ${changedFilename} changed. Event type: ${eventType}`);
         const currentTime = Date.now();
-        if (currentTime - lastExecutionTime >= 3000) {
+        if (currentTime - lastExecutionTime >= 1000) {
           lastExecutionTime = currentTime;
-          this.generateCrud(jsonArgv);
+          const fileObj = eval(fs.readFileSync(generateFilePath).toString());
+          this.generateCrud(fileObj);
         }
       });
-    }
-    if (this.argv.dev) {
-      // 监控文件变化
-      const watcher = fs.watch(filename, (eventType, changedFilename) => {
-        console.log(`File ${changedFilename} changed. Event type: ${eventType}`);
-        // 控制频率，3秒最多执行一次
-        setTimeout(() => {
-        })
-        this.generateCrud(jsonArgv);
-        let lastExecutionTime = 0;
-        
-      });
-      
-      watcher.on('error', (error) => {
-        console.error(`Watcher error: ${error}`);
+      watcher.on('error', (err) => {
+        console.error(`监控文件变化出错: ${err.message}`);
       });
       console.log(`Watching ${filename} for changes...`);
-
+      // 在监控文件时保持进程运行
+      return new Promise(() => {});
     }
   }
   
