@@ -184,8 +184,8 @@ const mixin = {
     const { table, pageId, updateDrawerContent, drawerList = [] } = jsonConfig;
     const componentList = [];
     const componentMap = {
-      'recordHistory': {filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`}, sqlMap: { table, pageId }},
-      'tableRecordHistory': {filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`}, sqlMap: { table, pageId }},
+      'recordHistory': {filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}.id'}, sqlMap: { table, pageId }},
+      'tableRecordHistory': {filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}.id'}, sqlMap: { table, pageId }},
     };
 
     const processContentList = (contentList, itemKey = 'updateItem') => {
@@ -194,11 +194,9 @@ const mixin = {
           if (componentMap[item.componentPath]) {
             const { filename, bind, sqlMap } = componentMap[item.componentPath];
             item.componentPath = filename;
-            if (!item.bind) {
-              item.bind = bind;
-            }
+            item.bind = {..._.cloneDeep(bind), ...item.bind};
             _.forEach(item.bind, (value, key) => {
-              item.bind[key] = value.replace(/"/g, '\'');
+              item.bind[key] = value.replace(/"/g, '\'').replace(/\{\{key\}\}/g, itemKey);
             });
             item.sqlMap = sqlMap;
           } else {
