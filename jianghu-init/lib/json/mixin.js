@@ -122,6 +122,41 @@ const mixin = {
       }
       return tag.join('\n                    ');
     });
+    nunjucksEnv.addFilter('formItemFormat', function(result, drwaerKey = 'updateItem') {
+      let tag = [];
+      const tagItemFormat = (res) => {
+        let tagStr = `<${res.tag} `;
+        if (res.model) {
+          res.attrs['v-model'] = drwaerKey + '.' + res.model;
+        }
+        if (res.rules) {
+          res.attrs[':rules'] = res.rules;
+        }
+        tagStr += _.map(res.attrs, (value, key) => {
+          let val = value;
+          if (key == 'v-model' && !value.includes('.')) {
+            val = drwaerKey + '.' + value;
+          }
+          return tagAttr(key, val, res.tag);
+        }).join(' ');
+        if (res.value) {
+          tagStr += `>${res.value}</${res.tag}>`;
+        } else {
+          tagStr += `></${res.tag}>`;
+        }
+        return tagStr;
+      }
+      if (_.isArray(result)) {
+        result.forEach(res => {
+          tag.push(tagItemFormat(res))
+        });
+      } else if (_.isObject(result)) {
+        tag.push(tagItemFormat(result))
+      } else if (_.isString(result)) {
+        tag.push(result);
+      }
+      return tag.join('\n                    ');
+    });
     nunjucksEnv.addFilter('removeKey', function(data, keyList) {
       if (_.isArray(data)) {
         return _.map(data, function(item) {
