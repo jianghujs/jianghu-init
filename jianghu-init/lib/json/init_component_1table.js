@@ -51,14 +51,14 @@ module.exports = class InitComponent1Table extends CommandBase {
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
       await this.modifyTable(jsonConfig, pageId, componentPath);
+      // 生成组件
+      await this.renderComonent(jsonConfig);
+      // 生成 service
+      await this.renderService(jsonConfig);
     } else {
       this.error(`生成 ${table} 的 vue 文件失败`);
       return;
     }
-    // 生成组件
-    await this.renderComonent(jsonConfig);
-    // 生成 service
-    await this.renderService(jsonConfig);
   }
 
   async modifyTable(jsonConfig) {
@@ -137,6 +137,7 @@ module.exports = class InitComponent1Table extends CommandBase {
     if (componentPathArr.length > 1) {
       const componentDir = componentPathArr.slice(0, componentPathArr.length - 1).join('/');
       if (!fs.existsSync(`./app/view/component/${componentDir}`)) fs.mkdirSync(`./app/view/component/${componentDir}`);
+      if (!fs.existsSync(`./app/view/pageBak/${componentDir}`)) fs.mkdirSync(`./app/view/pageBak/${componentDir}`);
     }
     
     // fs.writeFileSync(filepath, htmlUser);

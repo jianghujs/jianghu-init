@@ -52,15 +52,15 @@ module.exports = class InitPage1Table extends CommandBase {
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
       await this.modifyTable(jsonConfig);
+      // 生成组件
+      await this.renderComonent(jsonConfig);
+      // 生成 service
+      await this.renderService(jsonConfig);
+      this.success('build page by json is success');
     } else {
       this.error(`生成 ${table} 的 vue 文件失败`);
       return;
     }
-    // 生成组件
-    await this.renderComonent(jsonConfig);
-    // 生成 service
-    await this.renderService(jsonConfig);
-    this.success('build page by json is success');
   }
 
   async modifyTable(jsonConfig) {

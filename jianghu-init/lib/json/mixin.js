@@ -406,11 +406,17 @@ const mixin = {
       let lastExecutionTime = Date.now();
       // 监控文件变化
       const watcher = fs.watch(generateFilePath, (eventType, changedFilename) => {
-        console.log(`File ${changedFilename} changed. Event type: ${eventType}`);
+        this.info(`File ${changedFilename} changed`);
         const currentTime = Date.now();
         if (currentTime - lastExecutionTime >= 1000) {
           lastExecutionTime = currentTime;
-          const fileObj = eval(fs.readFileSync(generateFilePath).toString());
+          let fileObj = {};
+          try {
+            fileObj = eval(fs.readFileSync(generateFilePath).toString());
+          } catch (e) {
+            this.error(`文件语法错误: ${e.message}`);
+            return
+          }
           this.generateCrud(fileObj);
         }
       });

@@ -223,4 +223,38 @@ module.exports = content;
 
     return columns;
   }
+
+  async example(cwd, argv) {
+    // 初始化数据库连接
+    this.dbSetting = this.readDbConfigFromFile();
+    // app 默认使用 database，如果有前缀则需要去掉前缀
+    this.app = this.dbSetting.database;
+    await this.getKnex(this.dbSetting);
+
+    const examplePath = `${path.join(__dirname, '../../')}page-template-json/example`;
+    const examplePageFilePath = examplePath + '/class.js';
+    const exampleComponentFilePath = examplePath + '/studentOfClass.js';
+    // 检测创建文件夹
+    if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
+    if (!fs.existsSync('./app/view/init-json/page')) fs.mkdirSync('./app/view/init-json/page');
+    if (!fs.existsSync('./app/view/init-json/component')) fs.mkdirSync('./app/view/init-json/component');
+    // 把样例文件复制到项目中
+    fs.copyFileSync(examplePageFilePath, './app/view/init-json/page/exampleClass.js');
+    fs.copyFileSync(exampleComponentFilePath, './app/view/init-json/component/exampleStudentOfClass.js');
+
+    // sql 文件
+    const sqlFilePath = examplePath + '/crud.sql';
+    // knex 运行 sql 文件
+
+    const knex = await this.getKnex();
+    const sqlContentList = fs.readFileSync(sqlFilePath).toString().replace(/--.*|\n|\\/g, '').split(';').filter(sql => sql)
+    for (const sql of sqlContentList) {
+      await knex.raw(sql);
+    }
+    return [
+      eval(fs.readFileSync('./app/view/init-json/page/exampleClass.js').toString()),
+      eval(fs.readFileSync('./app/view/init-json/component/exampleStudentOfClass.js').toString())
+    ]
+  }
+  
 };

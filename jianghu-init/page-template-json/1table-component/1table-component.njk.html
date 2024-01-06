@@ -26,7 +26,7 @@
           </v-col>
           <=%- elif ss.tag == "v-select" %=>
           <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
-            <v-select v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" :items=<=%- if ss.attrs.items is not string %=>'<=$ ss.attrs.items | dump $=>'<=%- else %=><=$ ss.attrs.items | dump $=><=%- endif %=> dense filled single-line></v-select>
+            <v-select v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=> dense filled single-line></v-select>
           </v-col>
           <=%- elif ss.tag == "v-date-picker" %=> 
           <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
@@ -325,6 +325,9 @@
 <=%- for component in componentList %=>
 {% include 'component/<=$ component.componentPath $=>.html' %}
 <=%- endfor %=>
+<=%- for include in includeList %=>
+<=$ include $=>
+<=%- endfor %=>
 <script>
 
 Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
@@ -539,7 +542,11 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// },
     //===// prepareDoCreateItem() {
     //===//   const {id, ...data} = this.createItem;
-    //===//   this.createActionData = data;
+    //===//   this.createActionData = {
+    //===//     <=%- for formItem in createDrawerContent.formItemList %=> 
+    //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endfor %=>
+    //===//   };
     //===// },
     //===// async doCreateItem() {
     //===//   await window.jhMask.show();
@@ -595,7 +602,11 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// async prepareDoUpdateItem() {
     //===//   const {id, ...data} = this.updateItem;
     //===//   this.updateItemId = id;
-    //===//   this.updateActionData = data;
+    //===//   this.updateActionData = {
+    //===//     <=%- for formItem in updateDrawerContent.contentList[0].formItemList %=>
+    //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endfor %=>
+    //===//   };
     //===// },
     //===// async doUpdateItem() {
     //===//   await window.jhMask.show();

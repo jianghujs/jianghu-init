@@ -17,6 +17,10 @@ const jsonTypes = [
   {
     value: 'json',
     name: 'init json by table',
+  },
+  {
+    value: 'example',
+    name: 'init example json and page',
   }
 ];
 const pageTypeList = [
@@ -71,6 +75,18 @@ module.exports = class InitByJsonCommand extends CommandBase {
         this.success('jianghu init by json is success');
       }
       
+    } else if (handleType === 'example') {
+      const jsonArgvList = await new InitJson().example(process.cwd(), this.argv);
+      for (const jsonArgvItem of jsonArgvList) {
+        this.argv['y'] = true;
+        pageType = jsonArgvItem.pageType;
+        if (pageType === '1table-page') {
+          await new InitPage1Table().run(process.cwd(), jsonArgvItem, this.argv);
+        } else if (pageType === '1table-component') {
+          await new InitComponent1Table().run(process.cwd(), jsonArgvItem, this.argv);
+        }
+      }
+      // await new InitPage1Table().example(process.cwd(), this.jsonArgv);
     } else if (pageType === '1table-page') {
       await new InitPage1Table().run(process.cwd(), this.jsonArgv);
     } else if (pageType === '1table-component') {
