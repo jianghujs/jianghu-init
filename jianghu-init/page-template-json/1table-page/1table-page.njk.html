@@ -50,6 +50,8 @@
                     type='<=$ ss.attrs.type $=>'></v-date-picker>
               </v-menu>
             </v-col>
+            <=%- else %=> 
+              <=$ ss | tagFormat $=>
             <=%- endif %=>
             <=%- endfor %=>  
             <div class="jh-backend-search-btn">
