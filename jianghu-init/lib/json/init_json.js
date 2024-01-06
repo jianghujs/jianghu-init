@@ -127,6 +127,7 @@ module.exports = class InitJson extends CommandBase {
   pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
   resourceList: [], // 额外resource { actionId, resourceType, resourceData }
   drawerList: [], // 抽屉列表 { key, title, contentList }
+  includeList: [], // 其他资源引入
   common: {
     ${propsStr}
     data: {
