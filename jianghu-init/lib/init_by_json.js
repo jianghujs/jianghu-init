@@ -9,6 +9,8 @@ const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
+const lockfile = require('proper-lockfile');
+const chokidar = require('chokidar');
 
 const jsonTypes = [
   {
@@ -39,6 +41,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
   async run(cwd, args) {
     this.argv = this.getParser().parse(args || []);
     this.cwd = cwd;
+    this.page1Table = new InitPage1Table();
+    this.component1Table = new InitComponent1Table();
+    this.page2Table = new InitPage2Table();
 
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
@@ -68,9 +73,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
       } else {
         pageType = jsonArgv.pageType;
         if (pageType === '1table-page') {
-          await new InitPage1Table().run(process.cwd(), jsonArgv, this.argv);
+          await this.page1Table.run(process.cwd(), jsonArgv, this.argv);
         } else if (pageType === '1table-component') {
-          await new InitComponent1Table().run(process.cwd(), jsonArgv, this.argv);
+          await this.component1Table.run(process.cwd(), jsonArgv, this.argv);
         } else if(pageType === '2table-page'){
           await new InitPage2Table().run(process.cwd(), jsonArgv, this.argv);
         } else if (pageType === 'chart-page') {
@@ -78,6 +83,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
         }
         this.success('jianghu init by json is success');
       }
+      await this.enableDevMode();
       
     } else if (handleType === 'example') {
       const jsonArgvList = await new InitJson().example(process.cwd(), this.argv);
@@ -91,12 +97,6 @@ module.exports = class InitByJsonCommand extends CommandBase {
         }
       }
       // await new InitPage1Table().example(process.cwd(), this.jsonArgv);
-    } else if (pageType === '1table-page') {
-      await new InitPage1Table().run(process.cwd(), this.jsonArgv);
-    } else if (pageType === '1table-component') {
-      await new InitComponent1Table().run(process.cwd(), this.jsonArgv);
-    } else if(pageType === '2table-page'){
-      await new InitPage2Table().run(process.cwd(), this.jsonArgv);
     }
     // this.success('jianghu init by json is success');
   }
@@ -198,4 +198,71 @@ module.exports = class InitByJsonCommand extends CommandBase {
     });
     return answer.jsonType;
   }
+
+  async enableDevMode() {
+    const { dev } = this.argv;
+    if (dev) {
+
+      const lockFilePath = path.join('./', 'jianghu-init.dev.lock');
+      if (!fs.existsSync(lockFilePath)) fs.writeFileSync(lockFilePath, '');
+      if (await lockfile.check(lockFilePath)) {
+        console.log('项目已开启 dev 模式');
+        // this.error('项目已开启 dev 模式');
+        return;
+      }
+      await lockfile.lock(lockFilePath);
+
+      this.argv['n'] = true;
+      this.argv['y'] = false;
+      this.argv['devModel'] = true;
+      // 监控文件变化
+      const watcher = chokidar.watch('./app/view/init-json', {
+        persistent: true,
+        ignoreInitial: true,
+        followSymlinks: false,
+        depth: 1,
+      });
+      watcher.on('all', async (event, path) => {
+        if (event == 'change') {
+          this.info(`File ${path.replace('app/view/init-json', '')} changed`);
+          let fileObj = {};
+          try {
+            fileObj = eval(fs.readFileSync('./' + path).toString());
+          } catch (e) {
+            this.error(`文件语法错误: ${e.message}`);
+            return
+          }
+          if (fileObj.pageType === '1table-page') {
+            await this.page1Table.renderVue(fileObj);
+            this.success('page vue render success');
+          } else if (fileObj.pageType === '1table-component') {
+            await this.component1Table.renderVue(fileObj);
+            this.success('component vue render success');
+          }
+        }
+      });
+      watcher.on('error', (err) => {
+        console.error(`监控文件变化出错: ${err.message}`);
+      });
+      console.log(`Watching ./app/view/init-json for changes...`);
+
+      // 在进程退出时删除锁定文件
+      process.on('exit', async () => {
+        await lockfile.unlock(lockFilePath);
+      });
+      process.on('SIGINT', async () => {
+        console.log('接收到 SIGINT 信号，准备退出');
+        if (await lockfile.check(lockFilePath)) {
+          console.log('解锁文件');
+          await lockfile.unlock(lockFilePath);
+        }
+        process.exit();
+      });
+
+      // 在监控文件时保持进程运行
+      return new Promise(() => {});
+    }
+  }
+
+
 };

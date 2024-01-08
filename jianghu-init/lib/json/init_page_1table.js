@@ -34,8 +34,6 @@ module.exports = class InitPage1Table extends CommandBase {
     this.success('初始化数据库连接成功');
     // generate crud
     await this.generateCrud(jsonArgv);
-    // dev 模式
-    await this.enableDevMode(jsonArgv);
   }
 
   /**
@@ -64,7 +62,6 @@ module.exports = class InitPage1Table extends CommandBase {
   }
 
   async modifyTable(jsonConfig) {
-    if (this.argv.devModel) return;
     const { table, pageId, pageName, idGenerate = false } = jsonConfig;
     const knex = await this.getKnex();
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
@@ -146,20 +143,6 @@ module.exports = class InitPage1Table extends CommandBase {
 
     // fs.writeFileSync(filepath, htmlUser);
     fs.writeFileSync(filepath, htmlGenerate); // 测试  
-    fs.writeFileSync(`./app/view/pageBak/${pageId}.base.html`, htmlBase);
-    fs.writeFileSync(`./app/view/pageBak/${pageId}.generate.html`, htmlGenerate); 
-    await this.executeCommand(`git merge-file ./app/view/page/${pageId}.html ./app/view/pageBak/${pageId}.base.html ./app/view/pageBak/${pageId}.generate.html`, );
-    
-    htmlUser = fs.readFileSync(filepath).toString();
-    await this.handleOtherResource(jsonConfig);
-    const diffCount = (htmlUser.match(new RegExp(`<<<<<<< ${filepath}`, 'g')) || []).length;
-    if (diffCount > 0) {
-      // git checkout --theirs ./app/view/page/${pageId}.html ===> 不好使
-      this.warning(`生成的文件有 ${diffCount}处 冲突, 请手动解决!`);
-    }
-    if (diffCount == 0 && bakFilePath) {
-      fs.unlinkSync(bakFilePath);
-    }
     return true;
   }
 

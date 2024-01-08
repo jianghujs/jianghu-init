@@ -34,8 +34,6 @@ module.exports = class InitComponent1Table extends CommandBase {
     this.success('初始化数据库连接成功');
     // generate crud
     await this.generateCrud(jsonArgv);
-    // dev 模式
-    await this.enableDevMode(jsonArgv);
   }
 
   /**
