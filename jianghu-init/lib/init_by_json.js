@@ -24,13 +24,13 @@ const jsonTypes = [
   {
     value: 'example',
     name: 'init example json and page',
-  }
+  },
 ];
 const pageTypeList = [
-  {value: '1table-page', name: '1table-page'},
-  {value: '1table-component', name: '1table-component'},
-  {value: 'chart-page', name: 'chart-page'},
-]
+  { value: '1table-page', name: '1table-page' },
+  { value: '1table-component', name: '1table-component' },
+  { value: 'chart-page', name: 'chart-page' },
+];
 
 
 /**
@@ -48,7 +48,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
     const jsFile = this.argv.jsFile;
-    let handleType = this.argv['generateType'] || 'page';
+    let handleType = this.argv.generateType || 'page';
     if (jsonText) {
       this.jsonArgv = JSON.parse(jsonText);
     } else if (jsonFile) {
@@ -57,12 +57,12 @@ module.exports = class InitByJsonCommand extends CommandBase {
     } else if (jsFile) {
       this.jsonArgv = require(jsFile);
     } else {
-      if (!this.argv['generateType']) {
+      if (!this.argv.generateType) {
         handleType = await this.askForPageType();
       }
     }
 
-    let pageType = this.jsonArgv?.pageType || '';
+    let pageType = this.jsonArgv && this.jsonArgv.pageType || '';
     if (handleType === 'json') {
       await new InitJson().run(process.cwd(), this.argv);
     } else if (handleType === 'page' && !this.jsonArgv) {
@@ -76,7 +76,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
           await this.page1Table.run(process.cwd(), jsonArgv, this.argv);
         } else if (pageType === '1table-component') {
           await this.component1Table.run(process.cwd(), jsonArgv, this.argv);
-        } else if(pageType === '2table-page'){
+        } else if (pageType === '2table-page') {
           await new InitPage2Table().run(process.cwd(), jsonArgv, this.argv);
         } else if (pageType === 'chart-page') {
           await new InitPageChart().run(process.cwd(), jsonArgv, this.argv);
@@ -84,11 +84,11 @@ module.exports = class InitByJsonCommand extends CommandBase {
         this.success('jianghu init by json is success');
       }
       await this.enableDevMode();
-      
+
     } else if (handleType === 'example') {
       const jsonArgvList = await new InitJson().example(process.cwd(), this.argv);
       for (const jsonArgvItem of jsonArgvList) {
-        this.argv['y'] = true;
+        this.argv.y = true;
         pageType = jsonArgvItem.pageType;
         if (pageType === '1table-page') {
           await new InitPage1Table().run(process.cwd(), jsonArgvItem, this.argv);
@@ -101,9 +101,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     // this.success('jianghu init by json is success');
   }
 
-  /**
-   * 确认生成表
-   */
+  // 确认生成表
   async promptConfig() {
     let type = this.argv.pageType;
     if (!type) {
@@ -111,16 +109,16 @@ module.exports = class InitByJsonCommand extends CommandBase {
         name: 'type',
         type: 'list',
         choices: pageTypeList,
-        message: `请选择类型`,
+        message: '请选择类型',
       });
       type = res.type;
       this.argv.pageType = type;
     }
     let generateFileDir;
-    if (['1table-page', 'chart-page'].includes(type)) {
-      generateFileDir = `./app/view/init-json/page`;
+    if ([ '1table-page', 'chart-page' ].includes(type)) {
+      generateFileDir = './app/view/init-json/page';
     } else if (type === '1table-component') {
-      generateFileDir = `./app/view/init-json/component`;
+      generateFileDir = './app/view/init-json/component';
     } else {
       this.error(`不存在的配置类型${type}`);
       return false;
@@ -128,14 +126,14 @@ module.exports = class InitByJsonCommand extends CommandBase {
     let file;
     if (fs.existsSync(generateFileDir)) {
       // 选择页面文件
-      let fileItem = (this.argv['file'] || '').split('.')[0];
+      let fileItem = (this.argv.file || '').split('.')[0];
       if (!fileItem) {
         const fileList = fs.readdirSync(generateFileDir);
         const res = await inquirer.prompt({
           name: 'fileItem',
           type: 'list',
           choices: fileList,
-          message: `请选择页面文件`,
+          message: '请选择页面文件',
         });
         fileItem = res.fileItem;
         this.argv.file = fileItem;
@@ -184,7 +182,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
       excludeColumn: {
         type: 'array',
         description: 'exclude column',
-      }
+      },
     };
   }
 
@@ -212,9 +210,6 @@ module.exports = class InitByJsonCommand extends CommandBase {
       }
       await lockfile.lock(lockFilePath);
 
-      this.argv['n'] = true;
-      this.argv['y'] = false;
-      this.argv['devModel'] = true;
       // 监控文件变化
       const watcher = chokidar.watch('./app/view/init-json', {
         persistent: true,
@@ -223,14 +218,15 @@ module.exports = class InitByJsonCommand extends CommandBase {
         depth: 1,
       });
       watcher.on('all', async (event, path) => {
-        if (event == 'change') {
+        if (event === 'change') {
           this.info(`File ${path.replace('app/view/init-json', '')} changed`);
           let fileObj = {};
           try {
+            // eslint-disable-next-line no-eval
             fileObj = eval(fs.readFileSync('./' + path).toString());
           } catch (e) {
             this.error(`文件语法错误: ${e.message}`);
-            return
+            return;
           }
           if (fileObj.pageType === '1table-page') {
             await this.page1Table.renderVue(fileObj);
@@ -241,10 +237,10 @@ module.exports = class InitByJsonCommand extends CommandBase {
           }
         }
       });
-      watcher.on('error', (err) => {
+      watcher.on('error', err => {
         console.error(`监控文件变化出错: ${err.message}`);
       });
-      console.log(`Watching ./app/view/init-json for changes...`);
+      console.log('Watching ./app/view/init-json for changes...');
 
       // 在进程退出时删除锁定文件
       process.on('exit', async () => {
