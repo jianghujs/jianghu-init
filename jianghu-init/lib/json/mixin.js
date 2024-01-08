@@ -1,4 +1,4 @@
-
+'use strict';
 const nunjucks = require('nunjucks');
 const _ = require('lodash');
 const path = require('path');
@@ -17,18 +17,18 @@ const mixin = {
         variableEnd: '$=>',
       },
     });
-    nunjucksEnv.addFilter('objToVar', function(obj, key, spaceCount=4) {
-      if (!obj) { obj = {}; };
+    nunjucksEnv.addFilter('objToVar', function(obj, key, spaceCount = 4) {
+      if (!obj) { obj = {}; }
       let spaceStr = '';
       for (let i = 0; i < spaceCount; i++) { spaceStr += ' '; }
-      const objStr = JSON.stringify(obj, null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, `\n${spaceStr}`);;
+      const objStr = JSON.stringify(obj, null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, `\n${spaceStr}`);
       return `${key}: ${objStr}`;
     });
-    nunjucksEnv.addFilter('listToVar', function(arr, key, spaceCount=4) {
-      if (!arr) { return `${key}: []`; };
+    nunjucksEnv.addFilter('listToVar', function(arr, key, spaceCount = 4) {
+      if (!arr) { return `${key}: []`; }
       let spaceStr = '';
       for (let i = 0; i < spaceCount; i++) { spaceStr += ' '; }
-      const arrayStr = `[\n${arr.map(item => "  " + spaceStr + JSON.stringify(item).replace(/"([^"]+)":/g, '$1:') + ",\n").join("")}${spaceStr}]`;
+      const arrayStr = `[\n${arr.map(item => '  ' + spaceStr + JSON.stringify(item).replace(/"([^"]+)":/g, '$1:') + ',\n').join('')}${spaceStr}]`;
       return `${key}: ${arrayStr}`;
     });
     // 复杂变量包含函数或函数原样渲染
@@ -36,28 +36,31 @@ const mixin = {
       if (!obj) return '';
       const testKey = [];
       let content = JSON.stringify(obj, function(key, value) {
-          if (typeof value === 'function') {
-            let valStr = value.toString();
-            // 匹配 String Object 等函数原样输出
-            const reg = /function ([A-Z][a-z]+)\(\) \{ \[native code\] \}/;
-            if (reg.test(valStr)) {
-              valStr = valStr.replace(reg, '$1');
-            }
-            if(key && valStr.startsWith(key)) {
-              valStr = 'replace_this_key' + valStr;
-              testKey.push(key);
-            }
-            return `__FUNC_START__${valStr}__FUNC_END__`;
+        if (typeof value === 'function') {
+          let valStr = value.toString();
+          // 匹配 String Object 等函数原样输出
+          const reg = /function ([A-Z][a-z]+)\(\) \{ \[native code\] \}/;
+          if (reg.test(valStr)) {
+            valStr = valStr.replace(reg, '$1');
           }
-          return value;
+          if (key && valStr.startsWith(key)) {
+            valStr = 'replace_this_key' + valStr;
+            testKey.push(key);
+          }
+          return `__FUNC_START__${valStr}__FUNC_END__`;
+        }
+        return value;
       }, 2)
-          .replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '')
-          .replace(/\\r\\n/g, '\n').replace(/\\n    /g, '\n').replace(/\\n/g, '\n')
-          .replace(/\\(?!n)/g, '').replace(/\n/g, '\n    ');
+        .replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '')
+        .replace(/\\r\\n/g, '\n')
+        .replace(/\\n {4}/g, '\n')
+        .replace(/\\n/g, '\n')
+        .replace(/\\(?!n)/g, '')
+        .replace(/\n/g, '\n    ');
       testKey.forEach(key => {
         content = content.replace(new RegExp(`"${key}":\\s*?replace_this_key`, 'g'), '');
-      })
-      
+      });
+
       // 匿名同步格式
       if (k && (/^function\s*?\(/.test(content) || /^\(/.test(content))) {
         content = k + ': ' + content;
@@ -66,10 +69,10 @@ const mixin = {
       if (k && (/^async\s+function\s*?\(/.test(content) || /^async\s+\(/.test(content))) {
         content = k + ': ' + content;
       }
-      if (typeof obj == 'function') {
-        content = content.replace(/   /g, ' ');
+      if (typeof obj === 'function') {
+        content = content.replace(/ {3}/g, ' ');
       }
-      if (typeof obj == 'object' && k) {
+      if (typeof obj === 'object' && k) {
         content = `"${k}": ` + content;
       }
       return content.replace(/"(\w+)":/g, '$1:');
@@ -78,13 +81,11 @@ const mixin = {
       return obj.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '\$1-\$2').toLowerCase();
     });
     nunjucksEnv.addFilter('typeof', function(str) {
-      console.log(str)
-      console.log(typeof str)
       return typeof str;
     });
     const tagAttr = (key, value, tag = '') => {
       // vuetify 的缩略标签
-      const preList = ['x-small', 'small', 'medium', 'large', 'x-large', 'disabled', 'readonly', 'active', 'fixed', 'absolute', 'top', 'bottom', 'left', 'right', 'tile', 'content', 'inset']
+      const preList = [ 'x-small', 'small', 'medium', 'large', 'x-large', 'disabled', 'readonly', 'active', 'fixed', 'absolute', 'top', 'bottom', 'left', 'right', 'tile', 'content', 'inset' ];
       if (tag.startsWith('v-') && preList.includes(key) && value === true) {
         return `${key}`;
       } else if (!_.isString(value) && !key.startsWith(':') && !key.startsWith('@')) {
@@ -98,8 +99,8 @@ const mixin = {
     });
 
     nunjucksEnv.addFilter('tagFormat', function(result) {
-      let tag = [];
-      const tagItemFormat = (res) => {
+      const tag = [];
+      const tagItemFormat = res => {
         let tagStr = `<${res.tag} `;
         tagStr += _.map(res.attrs, (value, key) => {
           return tagAttr(key, value, res.tag);
@@ -110,23 +111,23 @@ const mixin = {
           tagStr += `></${res.tag}>`;
         }
         return tagStr;
-      }
+      };
       if (_.isArray(result)) {
         result.forEach(res => {
-          tag.push(tagItemFormat(res))
+          tag.push(tagItemFormat(res));
         });
       } else if (_.isObject(result)) {
-        tag.push(tagItemFormat(result))
+        tag.push(tagItemFormat(result));
       } else if (_.isString(result)) {
         tag.push(result);
       }
       return tag.join('\n                    ');
     });
     nunjucksEnv.addFilter('formItemFormat', function(result, drwaerKey = 'updateItem') {
-      let tag = [];
-      const tagItemFormat = (res) => {
+      const tag = [];
+      const tagItemFormat = res => {
         if (!res.tag) {
-          return "";
+          return '';
         }
         let tagStr = `<${res.tag} `;
         if (res.model) {
@@ -137,7 +138,7 @@ const mixin = {
         }
         tagStr += _.map(res.attrs, (value, key) => {
           let val = value;
-          if (key == 'v-model' && !value.includes('.')) {
+          if (key === 'v-model' && !value.includes('.')) {
             val = drwaerKey + '.' + value;
           }
           return tagAttr(key, val, res.tag);
@@ -148,13 +149,13 @@ const mixin = {
           tagStr += `></${res.tag}>`;
         }
         return tagStr;
-      }
+      };
       if (_.isArray(result)) {
         result.forEach(res => {
-          tag.push(tagItemFormat(res))
+          tag.push(tagItemFormat(res));
         });
       } else if (_.isObject(result)) {
-        tag.push(tagItemFormat(result))
+        tag.push(tagItemFormat(result));
       } else if (_.isString(result)) {
         tag.push(result);
       }
@@ -196,8 +197,9 @@ const mixin = {
     if (!resourceList) return;
     const knex = await this.getKnex();
     const existResourceList = await knex('_resource').where({ pageId });
-    for (const {actionId, resourceType, desc, resourceData, resourceHook = {} } of resourceList) {
+    for (const { actionId, resourceType, desc, resourceData, resourceHook = {} } of resourceList) {
       // 比对是否存在，存在则更新，不存在则插入
+      // eslint-disable-next-line eqeqeq
       const resourceItem = existResourceList.find(e => e.actionId == actionId && e.resourceType == resourceType);
       if (resourceItem) {
         await knex('_resource').where({ id: resourceItem.id }).update({ desc, resourceData: JSON.stringify(resourceData), resourceHook: JSON.stringify(resourceHook) });
@@ -208,42 +210,43 @@ const mixin = {
   },
 
   handleJsonConfig(jsonConfig) {
-    const { pageContent, createDrawerContent } = jsonConfig;
+    const { createDrawerContent } = jsonConfig;
     if (createDrawerContent) {
-      const idGenerate = createDrawerContent.formItemList.find(e => !!e.idGenerate)?.idGenerate;
-      jsonConfig.idGenerate = idGenerate;
+      const idGenerateItem = createDrawerContent.formItemList.find(e => !!e.idGenerate);
+      jsonConfig.idGenerate = idGenerateItem && idGenerateItem.idGenerate;
     }
     // ... do something
-    
+
   },
 
   getUpdateDrawerComponentList(jsonConfig) {
     const { table, pageId, updateDrawerContent, drawerList = [] } = jsonConfig;
     const componentList = [];
     const componentMap = {
-      'recordHistory': {filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}.id'}, sqlMap: { table, pageId }},
-      'tableRecordHistory': {filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}.id'}, sqlMap: { table, pageId }},
+      recordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}.id' }, sqlMap: { table, pageId } },
+      tableRecordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}.id' }, sqlMap: { table, pageId } },
     };
 
     const processContentList = (contentList, itemKey = 'updateItem') => {
       contentList.forEach(item => {
+        // eslint-disable-next-line eqeqeq
         if (item.type == 'component') {
           if (componentMap[item.componentPath]) {
             const { filename, bind, sqlMap } = componentMap[item.componentPath];
             item.componentPath = filename;
-            item.bind = {..._.cloneDeep(bind), ...item.bind};
+            item.bind = Object.assign({}, _.cloneDeep(bind), item.bind);
             _.forEach(item.bind, (value, key) => {
               item.bind[key] = value.replace(/"/g, '\'').replace(/\{\{key\}\}/g, itemKey);
             });
             item.sqlMap = sqlMap;
           } else {
-            const bind = {}
+            const bind = {};
             if (_.isArray(item.bind)) {
               item.bind.forEach(bindItem => {
                 if (_.isString(bindItem)) {
                   bind[bindItem] = `${itemKey}.${bindItem}`;
                 }
-              })
+              });
             }
             item.bind = bind;
             item.componentPath = item.componentPath;
@@ -251,7 +254,7 @@ const mixin = {
           componentList.push(item);
         }
       });
-    }
+    };
 
     if (updateDrawerContent && updateDrawerContent.contentList) {
       processContentList(updateDrawerContent.contentList);
@@ -259,17 +262,19 @@ const mixin = {
 
     drawerList.forEach(drawer => {
       processContentList(drawer.contentList, drawer.key);
-    })
+    });
 
     return _.uniqBy(componentList, 'componentPath');
   },
 
+  // eslint-disable-next-line valid-jsdoc
   /**
    * 获取数据库表所有原生字段
    * @param {String} table
    * @returns
    */
   async getTableFields(jsonConfig) {
+    const { table } = jsonConfig;
     const knex = await this.getKnex();
     const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT').from('INFORMATION_SCHEMA.COLUMNS').where({
       TABLE_SCHEMA: this.dbSetting.database,
@@ -287,10 +292,7 @@ const mixin = {
     return columns;
   },
 
-  /**
-   * 初始化table依赖字段，检测依赖字段是否存在，不存在则创建
-   * @param {*} jsonConfig 
-   */
+  // 初始化table依赖字段，检测依赖字段是否存在，不存在则创建
   async checkTableFields(table, idGenerate) {
     const knex = await this.getKnex();
     const columnList = await knex(table).columnInfo();
@@ -302,7 +304,7 @@ const mixin = {
         return knex.schema.table(table, t => {
           this.info(`创建依赖字段：${column}`);
           // idSequence 列则在 id 后添加
-          if (column == 'idSequence') {
+          if (column === 'idSequence') {
             t.integer(column).after('id');
           } else {
             t.string(column);
@@ -325,13 +327,13 @@ const mixin = {
 
   async modifyComponentResourceItem(templatePath, component) {
     const knex = await this.getKnex();
-    if (component.type == 'component' && component.componentPath != 'tableRecordHistory') return;
+    if (component.type === 'component' && component.componentPath !== 'tableRecordHistory') return;
     let resourceSql = fs.readFileSync(`${templatePath}/${component.componentPath}.sql`).toString();
     _.forEach(component.sqlMap, (value, key) => {
-      if (!value) return
+      if (!value) return;
       resourceSql = resourceSql.replace(new RegExp(`\{\{${key}\}\}`, 'g'), value);
     });
-    
+
     // 插入数据
     for (const line of resourceSql.split('\n')) {
       if (!line) continue;
@@ -348,14 +350,14 @@ const mixin = {
     if (!componentList.length) return;
 
     const componentPath = `${path.join(__dirname, '../../')}page-template-json/component`;
-    if (!fs.existsSync(`./app/view/component`)) fs.mkdirSync(`./app/view/component`);
+    if (!fs.existsSync('./app/view/component')) fs.mkdirSync('./app/view/component');
 
-    const {y, n} = this.argv;
-    for( const item of componentList) {
+    const { y, n } = this.argv;
+    for (const item of componentList) {
       // 检查文件存在则提示是否覆盖
       const targetFilePath = `./app/view/component/${item.componentPath}.html`;
-      if (['tableRecordHistory'].includes(item.componentPath)) {
-        if (fs.existsSync(targetFilePath) ) {
+      if ([ 'tableRecordHistory' ].includes(item.componentPath)) {
+        if (fs.existsSync(targetFilePath)) {
           if (n) {
             this.warning(`跳过 ${item.componentPath} 组件的生成`);
             continue;
@@ -369,42 +371,40 @@ const mixin = {
           }
         }
         this.info(`${y ? '默认' : ''}开始生成 ${item.componentPath} 组件`);
-        let componentHtml = fs.readFileSync(componentPath + '/' + item.componentPath + '.html')
+        const componentHtml = fs.readFileSync(componentPath + '/' + item.componentPath + '.html')
           .toString()
           .replace(/\/\/===\/\/ /g, '')
           .replace(/\/\/===\/\//g, '');
-  
+
         fs.writeFileSync(targetFilePath, componentHtml);
         await this.modifyComponentResourceItem(componentPath, item);
       }
     }
   },
 
-  /**
-   * 生成 service
-   */
+  // 生成 service
   async renderService(jsonConfig) {
     const { idGenerate = false } = jsonConfig;
     if (idGenerate) {
       // idGenerate 依赖 common service
       const templatePath = `${path.join(__dirname, '../../')}page-template-json/service`;
       const templateTargetPath = `${templatePath}/common.js`;
-      
-      const servicePath = `./app/service`;
+
+      const servicePath = './app/service';
       if (!fs.existsSync(servicePath)) fs.mkdirSync(servicePath);
-  
+
       // 检查 service 是否存在
       const serviceFilePath = `${servicePath}/common.js`;
-      const {y, n} = this.argv;
+      const { y, n } = this.argv;
       if (fs.existsSync(serviceFilePath)) {
         if (n) {
-          this.warning(`跳过 common service 的生成`);
+          this.warning('跳过 common service 的生成');
           return false;
         }
         if (!y) {
-          const overwrite = await this.readlineMethod(`common service 已经存在，是否覆盖?(y/N)`, 'n');
+          const overwrite = await this.readlineMethod('common service 已经存在，是否覆盖?(y/N)', 'n');
           if (overwrite !== 'y' && overwrite !== 'Y') {
-            this.warning(`跳过 common service 的生成`);
+            this.warning('跳过 common service 的生成');
             return false;
           }
         }
@@ -415,18 +415,17 @@ const mixin = {
   },
 
   async executeCommand(command) {
-    return new Promise((resolve, reject) => {
-        exec(command, (error, stdout, stderr) => {
-            if (error) {
-                // console.error(`执行${command}出错: ${error.message}`, { error, stdout, stderr });
-                // reject();
-                resolve(stdout);
-            }
-            resolve(stdout);
-        });
+    return new Promise(resolve => {
+      exec(command, (error, stdout) => {
+        if (error) {
+          // console.error(`执行${command}出错: ${error.message}`, { error, stdout, stderr });
+          // reject();
+          resolve(stdout);
+        }
+        resolve(stdout);
+      });
     });
   },
 
-  
 };
 module.exports = mixin;
