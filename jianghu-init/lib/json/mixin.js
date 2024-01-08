@@ -102,7 +102,7 @@ const mixin = {
       const tag = [];
       const tagItemFormat = res => {
         let tagStr = `<${res.tag} `;
-        tagStr += _.map(res.attrs, (value, key) => {
+        tagStr += _.map((res.attrs || {}), (value, key) => {
           return tagAttr(key, value, res.tag);
         }).join(' ');
         if (res.value) {
@@ -129,6 +129,7 @@ const mixin = {
         if (!res.tag) {
           return '';
         }
+        if (!res.attrs) res.attrs = {};
         let tagStr = `<${res.tag} `;
         if (res.model) {
           res.attrs['v-model'] = drwaerKey + '.' + res.model;
