@@ -582,7 +582,9 @@ new Vue({
     //===//   const {id, ...data} = this.createItem;
     //===//   this.createActionData = {
     //===//     <=%- for formItem in createDrawerContent.formItemList %=> 
+    //===//     <=%- if formItem.model %=>
     //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
     //===// },
@@ -642,7 +644,9 @@ new Vue({
     //===//   this.updateItemId = id;
     //===//   this.updateActionData = {
     //===//     <=%- for formItem in updateDrawerContent.contentList[0].formItemList %=>
+    //===//     <=%- if formItem.model %=>
     //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
     //===// },

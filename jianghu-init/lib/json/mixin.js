@@ -125,6 +125,9 @@ const mixin = {
     nunjucksEnv.addFilter('formItemFormat', function(result, drwaerKey = 'updateItem') {
       let tag = [];
       const tagItemFormat = (res) => {
+        if (!res.tag) {
+          return "";
+        }
         let tagStr = `<${res.tag} `;
         if (res.model) {
           res.attrs['v-model'] = drwaerKey + '.' + res.model;

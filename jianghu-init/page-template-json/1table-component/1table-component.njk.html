@@ -550,7 +550,9 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//   const {id, ...data} = this.createItem;
     //===//   this.createActionData = {
     //===//     <=%- for formItem in createDrawerContent.formItemList %=> 
+    //===//     <=%- if formItem.model %=>
     //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
     //===// },
@@ -610,7 +612,9 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//   this.updateItemId = id;
     //===//   this.updateActionData = {
     //===//     <=%- for formItem in updateDrawerContent.contentList[0].formItemList %=>
+    //===//     <=%- if formItem.model %=>
     //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
     //===// },
