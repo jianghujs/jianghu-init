@@ -183,6 +183,11 @@ const mixin = {
     nunjucksEnv.addFilter('isObject', function(val) {
       return _.isObject(val);
     });
+    nunjucksEnv.addFilter('matchStr', function(str, regexStr) {
+      if (!str) return '';
+      const match = str.replace(/\n/, '\n').match(new RegExp(regexStr));
+      return match && match.length > 1 ? match[1] : '';
+    });
     return nunjucksEnv;
   },
 
@@ -190,10 +195,15 @@ const mixin = {
     const { resourceList, pageId } = jsonConfig;
     if (!resourceList) return;
     const knex = await this.getKnex();
-    for (const {actionId, resourceType, desc, resourceData, resourceHook = null } of resourceList) {
-      // pageId + actionId 删除后新增
-      await knex('_resource').where({ pageId, actionId }).delete();
-      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: JSON.stringify(resourceData), resourceHook });
+    const existResourceList = await knex('_resource').where({ pageId });
+    for (const {actionId, resourceType, desc, resourceData, resourceHook = {} } of resourceList) {
+      // 比对是否存在，存在则更新，不存在则插入
+      const resourceItem = existResourceList.find(e => e.actionId == actionId && e.resourceType == resourceType);
+      if (resourceItem) {
+        await knex('_resource').where({ id: resourceItem.id }).update({ desc, resourceData: JSON.stringify(resourceData), resourceHook: JSON.stringify(resourceHook) });
+        continue;
+      }
+      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: JSON.stringify(resourceData), resourceHook: JSON.stringify(resourceHook) });
     }
   },
 
@@ -205,17 +215,6 @@ const mixin = {
     }
     // ... do something
     
-  },
-
-  async handleOtherResource(jsonConfig) {
-    const { resourceList, pageId } = jsonConfig;
-    if (!resourceList) return;
-    const knex = await this.getKnex();
-    for (const {actionId, resourceType, desc, resourceData, resourceHook = null } of resourceList) {
-      // pageId + actionId 删除后新增
-      await knex('_resource').where({ pageId, actionId }).delete();
-      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: JSON.stringify(resourceData), resourceHook });
-    }
   },
 
   getUpdateDrawerComponentList(jsonConfig) {
@@ -345,7 +344,6 @@ const mixin = {
   },
 
   async renderComonent(jsonConfig) {
-    if (this.argv.devModel) return;
     const componentList = this.getUpdateDrawerComponentList(jsonConfig);
     if (!componentList.length) return;
 
@@ -386,7 +384,6 @@ const mixin = {
    * 生成 service
    */
   async renderService(jsonConfig) {
-    if (this.argv.devModel) return;
     const { idGenerate = false } = jsonConfig;
     if (idGenerate) {
       // idGenerate 依赖 common service
@@ -430,40 +427,6 @@ const mixin = {
     });
   },
 
-  async enableDevMode(jsonArgv) {
-    const { dev, pageType, file = '' } = this.argv;
-    if (dev) {
-      this.argv['n'] = true;
-      this.argv['y'] = false;
-      this.argv['devModel'] = true;
-      const generateFileDir = pageType === '1table-page' ? `./app/view/init-json/page` : `./app/view/init-json/component`;
-      const filename = file.split('.')[0];
-      const generateFilePath = `${generateFileDir}/${filename}.js`
-      let lastExecutionTime = Date.now();
-      // 监控文件变化
-      const watcher = fs.watch(generateFilePath, (eventType, changedFilename) => {
-        this.info(`File ${changedFilename} changed`);
-        const currentTime = Date.now();
-        if (currentTime - lastExecutionTime >= 1000) {
-          lastExecutionTime = currentTime;
-          let fileObj = {};
-          try {
-            fileObj = eval(fs.readFileSync(generateFilePath).toString());
-          } catch (e) {
-            this.error(`文件语法错误: ${e.message}`);
-            return
-          }
-          this.generateCrud(fileObj);
-        }
-      });
-      watcher.on('error', (err) => {
-        console.error(`监控文件变化出错: ${err.message}`);
-      });
-      console.log(`Watching ${filename} for changes...`);
-      // 在监控文件时保持进程运行
-      return new Promise(() => {});
-    }
-  }
   
 };
 module.exports = mixin;

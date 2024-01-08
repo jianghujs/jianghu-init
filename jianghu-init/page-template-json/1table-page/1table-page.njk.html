@@ -449,10 +449,10 @@ new Vue({
   },
   //===// <=$ common.computed | variableToVar('computed') $=><=$ ',' if common.computed $=>
   async created() {
-  },
-  async mounted() {
     this.doUiAction('getTableData');
   },
+  //===// <=% for key, item in common %=>
+  //===// <=% if key == 'mounted' or key == 'created' %=><=$ item | variableToVar(key) $=>,<=% endif %=><=%- endfor %=>
   methods: {
     async doUiAction(uiActionId, uiActionData) {
       switch (uiActionId) {
