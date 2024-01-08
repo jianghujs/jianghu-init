@@ -1,18 +1,15 @@
 'use strict';
-const yargs = require('yargs');
 const CommandBase = require('../command_base');
 
 require('colors');
 const inquirer = require('inquirer');
 const fs = require('fs');
-const nunjucks = require('nunjucks');
-const _ = require('lodash');
-const moment = require('moment');
+// const _ = require('lodash');
 const path = require('path');
 const typeList = [
-  {value: '1table-page', name: '1table-page'},
-  {value: '1table-component', name: '1table-component'},
-]
+  { value: '1table-page', name: '1table-page'},
+  { value: '1table-component', name: '1table-component'},
+];
 
 /**
  * 根据 table 定义生成 crud 页面
@@ -31,14 +28,12 @@ module.exports = class InitJson extends CommandBase {
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
     this.success('初始化数据库连接成功');
-    const config = await this. promptConfig();
+    const config = await this.promptConfig();
     await this.buildJson(config);
     this.success('初始化数据库成功');
   }
 
-  /**
-   * 确认生成表
-   */
+  // 确认生成表
   async promptConfig() {
     const knex = await this.getKnex();
     let { table, pageId, pageType } = this.argv;
@@ -71,36 +66,23 @@ module.exports = class InitJson extends CommandBase {
         name: 'type',
         type: 'list',
         choices: typeList,
-        message: `请选择类型`,
+        message: '请选择类型',
       });
       pageType = res.type;
     }
     return { table, pageId, pageType };
   }
 
-  async askForConfig() {
-    const answer = await inquirer.prompt({
-      name: 'jsonType',
-      type: 'list',
-      message: 'Please select a json type',
-      choices: jsonTypes,
-      pageSize: jsonTypes.length + 1,
-    });
-    return answer.jsonType;
-  }
-
-  /**
-   * 生成 vue
-   */
-  async buildJson({table, pageId, pageType}) {
+  // 生成 json
+  async buildJson({ table, pageId, pageType }) {
     // 检测创建文件夹
     if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
-    const generateFileDir = pageType === '1table-page' ? `./app/view/init-json/page` : `./app/view/init-json/component`;
+    const generateFileDir = pageType === '1table-page' ? './app/view/init-json/page' : './app/view/init-json/component';
     if (!fs.existsSync(generateFileDir)) fs.mkdirSync(generateFileDir);
 
     // 生成文件
-    const generateFilePath = `${generateFileDir}/${pageId}.js`
-    let fields = await this.getTableFields(table);
+    const generateFilePath = `${generateFileDir}/${pageId}.js`;
+    const fields = await this.getTableFields(table);
     // fields = fields.filter(f => f.COLUMN_NAME != 'id');
     let columnStr = '';
     let createItemListStr = '';
@@ -112,17 +94,17 @@ module.exports = class InitJson extends CommandBase {
       const fieldKey = field.COLUMN_NAME;
       const fieldName = field.COLUMN_COMMENT;
       if (excludeColumn.includes(fieldKey)) return;
-      if (index == 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
-      if (index != 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
+      if (index === 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
+      if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
       createItemListStr += space + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
       updateItemListStr += space + `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
       space = '      ';
-    })
-    columnStr += space + `{ text: "", value: "" },\n`;
-    columnStr += space + `{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n`;
-    const propsStr = pageType == '1table-component' ? `props: {},` : '';
-    const componentPath = pageType == '1table-component' ? `componentPath: "${pageId}",` : '';
-    const content = 
+    });
+    columnStr += space + '{ text: "", value: "" },\n';
+    columnStr += space + '{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n';
+    const propsStr = pageType === '1table-component' ? 'props: {},' : '';
+    const componentPath = pageType === '1table-component' ? `componentPath: "${pageId}",` : '';
+    const content =
 `const content = {
   pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
   resourceList: [], // 额外resource { actionId, resourceType, resourceData }
@@ -187,9 +169,6 @@ module.exports = content;
 `;
     fs.writeFileSync(generateFilePath, content);
   }
-
- 
-
 
   /**
    * 获取数据库表所有原生字段

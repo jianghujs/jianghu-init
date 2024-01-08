@@ -224,12 +224,16 @@ module.exports = class InitByJsonCommand extends CommandBase {
             this.error(`文件语法错误: ${e.message}`);
             return;
           }
-          if (fileObj.pageType === '1table-page') {
-            await this.page1Table.renderVue(fileObj);
-            this.success('page vue render success');
-          } else if (fileObj.pageType === '1table-component') {
-            await this.component1Table.renderVue(fileObj);
-            this.success('component vue render success');
+          try {
+            if (fileObj.pageType === '1table-page') {
+              await this.page1Table.renderVue(fileObj);
+              this.success('page vue render success');
+            } else if (fileObj.pageType === '1table-component') {
+              await this.component1Table.renderVue(fileObj);
+              this.success('component vue render success');
+            }
+          } catch (e) {
+            this.error(`${path.replace('app/view/init-json', '')} 文件渲染错误: ${e.message}`);
           }
         }
       });
