@@ -10,15 +10,15 @@ const _ = require('lodash');
 const moment = require('moment');
 const path = require('path');
 const typeList = [
-  {value: '1table-page', name: '1table-page'},
-  {value: '1table-component', name: '1table-component'},
-]
+  { value: '1table-page', name: '1table-page' },
+  { value: '1table-component', name: '1table-component' },
+  { value: 'chart-page', name: 'chart-page' },
+];
 
 /**
  * 根据 table 定义生成 crud 页面
  */
 module.exports = class InitJson extends CommandBase {
-
   async run(cwd, argv) {
     this.cwd = cwd;
     this.argv = argv;
@@ -31,7 +31,7 @@ module.exports = class InitJson extends CommandBase {
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
     this.success('初始化数据库连接成功');
-    const config = await this. promptConfig();
+    const config = await this.promptConfig();
     await this.buildJson(config);
     this.success('初始化数据库成功');
   }
@@ -43,11 +43,16 @@ module.exports = class InitJson extends CommandBase {
     const knex = await this.getKnex();
     let { table, pageId, pageType } = this.argv;
     if (!table) {
-      const result = await knex.select('TABLE_NAME').from('INFORMATION_SCHEMA.TABLES').where({
-        TABLE_SCHEMA: this.dbSetting.database,
-        TABLE_TYPE: 'BASE TABLE',
-      });
-      const tables = result.map(item => item.TABLE_NAME).filter(table => !table.startsWith('_'));
+      const result = await knex
+        .select('TABLE_NAME')
+        .from('INFORMATION_SCHEMA.TABLES')
+        .where({
+          TABLE_SCHEMA: this.dbSetting.database,
+          TABLE_TYPE: 'BASE TABLE',
+        });
+      const tables = result
+        .map((item) => item.TABLE_NAME)
+        .filter((table) => !table.startsWith('_'));
       const res = await inquirer.prompt({
         name: 'table',
         type: 'list',
@@ -92,14 +97,23 @@ module.exports = class InitJson extends CommandBase {
   /**
    * 生成 vue
    */
-  async buildJson({table, pageId, pageType}) {
+  async buildJson({ table, pageId, pageType }) {
     // 检测创建文件夹
-    if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
-    const generateFileDir = pageType === '1table-page' ? `./app/view/init-json/page` : `./app/view/init-json/component`;
+    if (!fs.existsSync('./app/view/init-json')) {
+      fs.mkdirSync('./app/view/init-json');
+    }
+
+    let generateFileDir = null;
+    if (pageType.includes('component')) {
+      generateFileDir = `./app/view/init-json/component`
+    } else {
+      generateFileDir = `./app/view/init-json/page`
+    }
+
     if (!fs.existsSync(generateFileDir)) fs.mkdirSync(generateFileDir);
 
     // 生成文件
-    const generateFilePath = `${generateFileDir}/${pageId}.js`
+    const generateFilePath = `${generateFileDir}/${pageId}.js`;
     let fields = await this.getTableFields(table);
     // fields = fields.filter(f => f.COLUMN_NAME != 'id');
     let columnStr = '';
@@ -112,18 +126,30 @@ module.exports = class InitJson extends CommandBase {
       const fieldKey = field.COLUMN_NAME;
       const fieldName = field.COLUMN_COMMENT;
       if (excludeColumn.includes(fieldKey)) return;
-      if (index == 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
-      if (index != 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
-      createItemListStr += space + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
-      updateItemListStr += space + `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
+      if (index == 0)
+        columnStr +=
+          space +
+          `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
+      if (index != 0)
+        columnStr +=
+          space +
+          `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
+      createItemListStr +=
+        space +
+        `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
+      updateItemListStr +=
+        space +
+        `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
       space = '      ';
-    })
+    });
     columnStr += space + `{ text: "", value: "" },\n`;
-    columnStr += space + `{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n`;
+    columnStr +=
+      space +
+      `{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n`;
     const propsStr = pageType == '1table-component' ? `props: {},` : '';
-    const componentPath = pageType == '1table-component' ? `componentPath: "${pageId}",` : '';
-    const content = 
-`const content = {
+    const componentPath =
+      pageType == '1table-component' ? `componentPath: "${pageId}",` : '';
+    const content = `const content = {
   pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
   resourceList: [], // 额外resource { actionId, resourceType, resourceData }
   drawerList: [], // 抽屉列表 { key, title, contentList }
@@ -188,9 +214,6 @@ module.exports = content;
     fs.writeFileSync(generateFilePath, content);
   }
 
- 
-
-
   /**
    * 获取数据库表所有原生字段
    * @param {String} table
@@ -198,16 +221,24 @@ module.exports = content;
    */
   async getTableFields(table) {
     const knex = await this.getKnex();
-    const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT').from('INFORMATION_SCHEMA.COLUMNS').where({
-      TABLE_SCHEMA: this.dbSetting.database,
-      TABLE_NAME: table,
-    });
+    const result = await knex
+      .select('COLUMN_NAME', 'COLUMN_COMMENT')
+      .from('INFORMATION_SCHEMA.COLUMNS')
+      .where({
+        TABLE_SCHEMA: this.dbSetting.database,
+        TABLE_NAME: table,
+      });
 
-    const defaultColumn = [ 'operation', 'operationByUserId', 'operationByUser', 'operationAt' ];
+    const defaultColumn = [
+      'operation',
+      'operationByUserId',
+      'operationByUser',
+      'operationAt',
+    ];
     for (const column of defaultColumn) {
-      await knex.schema.hasColumn(table, column).then(exists => {
+      await knex.schema.hasColumn(table, column).then((exists) => {
         if (!exists) {
-          return knex.schema.table(table, t => {
+          return knex.schema.table(table, (t) => {
             this.info(`创建依赖字段：${column}`);
             t.string(column);
           });
@@ -215,10 +246,13 @@ module.exports = content;
       });
     }
 
-    const columns = result.map(column => {
+    const columns = result.map((column) => {
       return {
         COLUMN_NAME: column.COLUMN_NAME,
-        COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '').split(';')[0].split('；')[0].split(':')[0],
+        COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '')
+          .split(';')[0]
+          .split('；')[0]
+          .split(':')[0],
       };
     });
 
@@ -232,30 +266,54 @@ module.exports = content;
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
 
-    const examplePath = `${path.join(__dirname, '../../')}page-template-json/example`;
+    const examplePath = `${path.join(
+      __dirname,
+      '../../'
+    )}page-template-json/example`;
     const examplePageFilePath = examplePath + '/class.js';
     const exampleComponentFilePath = examplePath + '/studentOfClass.js';
     // 检测创建文件夹
-    if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
-    if (!fs.existsSync('./app/view/init-json/page')) fs.mkdirSync('./app/view/init-json/page');
-    if (!fs.existsSync('./app/view/init-json/component')) fs.mkdirSync('./app/view/init-json/component');
+    if (!fs.existsSync('./app/view/init-json'))
+      fs.mkdirSync('./app/view/init-json');
+    if (!fs.existsSync('./app/view/init-json/page'))
+      fs.mkdirSync('./app/view/init-json/page');
+    if (!fs.existsSync('./app/view/init-json/component'))
+      fs.mkdirSync('./app/view/init-json/component');
     // 把样例文件复制到项目中
-    fs.copyFileSync(examplePageFilePath, './app/view/init-json/page/exampleClass.js');
-    fs.copyFileSync(exampleComponentFilePath, './app/view/init-json/component/exampleStudentOfClass.js');
+    fs.copyFileSync(
+      examplePageFilePath,
+      './app/view/init-json/page/exampleClass.js'
+    );
+    fs.copyFileSync(
+      exampleComponentFilePath,
+      './app/view/init-json/component/exampleStudentOfClass.js'
+    );
 
     // sql 文件
     const sqlFilePath = examplePath + '/crud.sql';
     // knex 运行 sql 文件
 
     const knex = await this.getKnex();
-    const sqlContentList = fs.readFileSync(sqlFilePath).toString().replace(/--.*|\n|\\/g, '').split(';').filter(sql => sql)
+    const sqlContentList = fs
+      .readFileSync(sqlFilePath)
+      .toString()
+      .replace(/--.*|\n|\\/g, '')
+      .split(';')
+      .filter((sql) => sql);
     for (const sql of sqlContentList) {
       await knex.raw(sql);
     }
     return [
-      eval(fs.readFileSync('./app/view/init-json/page/exampleClass.js').toString()),
-      eval(fs.readFileSync('./app/view/init-json/component/exampleStudentOfClass.js').toString())
-    ]
+      eval(
+        fs.readFileSync('./app/view/init-json/page/exampleClass.js').toString()
+      ),
+      eval(
+        fs
+          .readFileSync(
+            './app/view/init-json/component/exampleStudentOfClass.js'
+          )
+          .toString()
+      ),
+    ];
   }
-  
 };

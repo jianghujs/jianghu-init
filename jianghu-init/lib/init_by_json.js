@@ -3,6 +3,7 @@ const yargs = require('yargs');
 const InitPage1Table = require('./json/init_page_1table');
 const InitComponent1Table = require('./json/init_component_1table');
 const InitPage2Table = require('./json/init_page_2table');
+const InitPageChart = require('./json/init_page_chart');
 const InitJson = require('./json/init_json');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
@@ -26,6 +27,7 @@ const jsonTypes = [
 const pageTypeList = [
   {value: '1table-page', name: '1table-page'},
   {value: '1table-component', name: '1table-component'},
+  {value: 'chart-page', name: 'chart-page'},
 ]
 
 
@@ -71,6 +73,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
           await new InitComponent1Table().run(process.cwd(), jsonArgv, this.argv);
         } else if(pageType === '2table-page'){
           await new InitPage2Table().run(process.cwd(), jsonArgv, this.argv);
+        } else if (pageType === 'chart-page') {
+          await new InitPageChart().run(process.cwd(), jsonArgv, this.argv);
         }
         this.success('jianghu init by json is success');
       }
@@ -113,7 +117,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
       this.argv.pageType = type;
     }
     let generateFileDir;
-    if (type === '1table-page') {
+    if (['1table-page', 'chart-page'].includes(type)) {
       generateFileDir = `./app/view/init-json/page`;
     } else if (type === '1table-component') {
       generateFileDir = `./app/view/init-json/component`;
@@ -194,6 +198,4 @@ module.exports = class InitByJsonCommand extends CommandBase {
     });
     return answer.jsonType;
   }
-
-
 };
