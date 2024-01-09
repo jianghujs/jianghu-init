@@ -75,7 +75,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
         if (pageType === '1table-page') {
           await this.page1Table.run(process.cwd(), jsonArgv, this.argv);
         } else if (pageType === '1table-component') {
-          await this.component1Table.run(process.cwd(), jsonArgv, this.argv);
+          await new InitComponent1Table().run(process.cwd(), jsonArgv, this.argv);
         } else if (pageType === '2table-page') {
           await new InitPage2Table().run(process.cwd(), jsonArgv, this.argv);
         } else if (pageType === 'chart-page') {
