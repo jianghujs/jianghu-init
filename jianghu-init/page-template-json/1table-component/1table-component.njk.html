@@ -148,6 +148,10 @@
           <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-text-field> 
           <=%- elif formItem.tag == "v-select" %=>
           <v-select class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-select> 
+          <=%- elif formItem.tag == "v-autocomplete" %=>
+          <v-autocomplete class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-autocomplete> 
+          <=%- elif formItem.tag == "v-combobox" %=>
+          <v-combobox class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-combobox> 
           <=%- elif formItem.tag == "v-date-picker" %=> 
           <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
               <template v-slot:activator="{on, attrs}">
@@ -218,6 +222,10 @@
                 <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-text-field> 
                 <=%- elif formItem.tag == "v-select" %=>
                 <v-select class="jh-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-select> 
+                <=%- elif formItem.tag == "v-autocomplete" %=>
+                <v-autocomplete class="jh-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-autocomplete> 
+                <=%- elif formItem.tag == "v-combobox" %=>
+                <v-combobox class="jh-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-combobox> 
                 <=%- elif formItem.tag == "v-date-picker" %=> 
                 <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                     <template v-slot:activator="{on, attrs}">
