@@ -44,6 +44,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.page1Table = new InitPage1Table();
     this.component1Table = new InitComponent1Table();
     this.page2Table = new InitPage2Table();
+    this.pageChart = new InitPageChart();
 
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
@@ -234,6 +235,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
               this.success('page vue render success');
             } else if (fileObj.pageType === '1table-component') {
               await this.component1Table.renderVue(fileObj);
+              this.success('component vue render success');
+            } else if (fileObj.pageType === 'chart-page') {
+              await this.pageChart.renderVue(fileObj);
               this.success('component vue render success');
             }
           } catch (e) {

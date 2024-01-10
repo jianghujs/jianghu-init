@@ -5,7 +5,6 @@ require('colors');
 const fs = require('fs');
 const nunjucks = require('nunjucks');
 const _ = require('lodash');
-const moment = require('moment');
 const path = require('path');
 const mixin = require('./mixin.js');
 
@@ -35,13 +34,9 @@ module.exports = class InitPage1Table extends CommandBase {
     this.success('初始化数据库连接成功');
     // generate crud
     await this.generateCrud(jsonArgv);
-    // dev 模式
-    await this.enableDevMode(jsonArgv);
   }
 
-  /**
-   * 生成 crud
-   */
+  // 生成 crud
   async generateCrud(jsonConfig) {
     const { table } = jsonConfig;
     if (!table) {
@@ -65,7 +60,6 @@ module.exports = class InitPage1Table extends CommandBase {
   }
 
   async modifyTable(jsonConfig) {
-    if (this.argv.devModel) return;
     const { table, pageId, pageName, idGenerate = false } = jsonConfig;
     const knex = await this.getKnex();
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/${PAGE_TYPE}`;
@@ -85,7 +79,7 @@ module.exports = class InitPage1Table extends CommandBase {
       } else {
         await knex.raw(line);
       }
-    }    
+    }
 
     let sql = fs.readFileSync(`${templatePath}/crud.sql`).toString();
     sql = sql.replace(/\{\{pageId}}/g, pageId);
@@ -107,17 +101,12 @@ module.exports = class InitPage1Table extends CommandBase {
     }
   }
 
-  /**
-   * 生成 vue
-   */
+  // 生成 vue
   async renderVue(jsonConfig) {
-    const pageBakDir = `./app/view/pageBak`;
-    if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
 
     const { table, pageId, pageType } = jsonConfig;
     const tableCamelCase = _.camelCase(table);
     const filepath = `./app/view/page/${pageId}.html`;
-    const htmlBasePath = `${path.join(__dirname, '../../')}page-template-json/base.njk.html`;
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/${PAGE_TYPE}`;
     const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath)
@@ -128,17 +117,13 @@ module.exports = class InitPage1Table extends CommandBase {
     // 初始化 njk 模板标签、filter
     this.handleNunjucksEnv(templateTargetPath);
     this.handleJsonConfig(jsonConfig);
-    
-    const componentList = this.getUpdateDrawerComponentList(jsonConfig);
-    const htmlBase = fs.readFileSync(htmlBasePath);
-    let htmlUser = fs.existsSync(filepath) ? fs.readFileSync(filepath) : htmlBase;
-    const htmlGenerate = nunjucks.renderString(listTemplate, { tableCamelCase, ...jsonConfig, componentList });
-    const bakFilePath = await this.handleViewBak(pageId, filepath);
 
-    
+    const componentList = this.getUpdateDrawerComponentList(jsonConfig);
+    const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
+
     // 生成 md
-    if (jsonConfig.headContent && jsonConfig.headContent.helpDrawer ) {
-      const mdPath = `./app/view/pageDoc`;
+    if (jsonConfig.headContent && jsonConfig.headContent.helpDrawer) {
+      const mdPath = './app/view/pageDoc';
       if (!fs.existsSync(`${mdPath}/${pageId}.md`)) {
         if (!fs.existsSync(mdPath)) fs.mkdirSync(mdPath);
         fs.writeFileSync(`${mdPath}/${pageId}.md`, `# ${pageId}页面`);
@@ -146,39 +131,7 @@ module.exports = class InitPage1Table extends CommandBase {
     }
 
     // fs.writeFileSync(filepath, htmlUser);
-    fs.writeFileSync(filepath, htmlGenerate); // 测试  
-    fs.writeFileSync(`./app/view/pageBak/${pageId}.base.html`, htmlBase);
-    fs.writeFileSync(`./app/view/pageBak/${pageId}.generate.html`, htmlGenerate); 
-    await this.executeCommand(`git merge-file ./app/view/page/${pageId}.html ./app/view/pageBak/${pageId}.base.html ./app/view/pageBak/${pageId}.generate.html`, );
-    
-    htmlUser = fs.readFileSync(filepath).toString();
-    await this.handleOtherResource(jsonConfig);
-    const diffCount = (htmlUser.match(new RegExp(`<<<<<<< ${filepath}`, 'g')) || []).length;
-    if (diffCount > 0) {
-      // git checkout --theirs ./app/view/page/${pageId}.html ===> 不好使
-      this.warning(`生成的文件有 ${diffCount}处 冲突, 请手动解决!`);
-    }
-    if (diffCount == 0 && bakFilePath) {
-      fs.unlinkSync(bakFilePath);
-    }
+    fs.writeFileSync(filepath, htmlGenerate); // 测试
     return true;
-  }
-
-  /**
-   * 处理文件备份
-   * @param {String} pageId
-   * @param {String} filepath
-   * @returns 
-   */
-  async handleViewBak(pageId, filepath){
-    if (fs.existsSync(filepath)) {
-      const pageBakDir = `./app/view/pageBak`;
-      const pageBakPath = `${pageBakDir}/${pageId}`;
-      if (!fs.existsSync(pageBakPath)) fs.mkdirSync(pageBakPath);
-      const bakFilePath = `${pageBakPath}/${pageId}.${moment().format('YYYYMMDD_HHmmss')}.html`;
-      fs.copyFileSync(filepath, bakFilePath);
-      return bakFilePath;
-    }
-    return null;
   }
 };
