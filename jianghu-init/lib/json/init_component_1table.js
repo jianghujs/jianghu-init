@@ -5,7 +5,6 @@ require('colors');
 const fs = require('fs');
 const nunjucks = require('nunjucks');
 const _ = require('lodash');
-const moment = require('moment');
 const path = require('path');
 const mixin = require('./mixin.js');
 
@@ -34,15 +33,11 @@ module.exports = class InitComponent1Table extends CommandBase {
     this.success('初始化数据库连接成功');
     // generate crud
     await this.generateCrud(jsonArgv);
-    // dev 模式
-    await this.enableDevMode(jsonArgv);
   }
 
-  /**
-   * 生成 crud
-   */
+  // 生成 crud
   async generateCrud(jsonConfig) {
-    const { pageType, pageId, table, componentPath } = jsonConfig;
+    const { pageId, table, componentPath } = jsonConfig;
     this.info('开始生成 CRUD');
     if (!table) {
       this.info('未配置table，流程结束');
@@ -84,7 +79,7 @@ module.exports = class InitComponent1Table extends CommandBase {
       } else {
         await knex.raw(line);
       }
-    }    
+    }
 
     let sql = fs.readFileSync(`${templatePath}/crud.sql`).toString();
     sql = sql.replace(/\{\{pageId}}/g, pageId);
@@ -106,17 +101,14 @@ module.exports = class InitComponent1Table extends CommandBase {
     }
   }
 
-  /**
-   * 生成 vue
-   */
+  // 生成 vue
   async renderVue(jsonConfig) {
-    const pageBakDir = `./app/view/pageBak`;
+    const pageBakDir = './app/view/pageBak';
     if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
 
-    const { table, pageId, pageType, componentPath } = jsonConfig;
+    const { table, pageType, componentPath } = jsonConfig;
     const tableCamelCase = _.camelCase(table);
     const filepath = `./app/view/component/${componentPath}.html`;
-    const htmlBasePath = `${path.join(__dirname, '../../')}page-template-json/base.njk.html`;
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-component`;
     const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath)
@@ -127,12 +119,9 @@ module.exports = class InitComponent1Table extends CommandBase {
     // 初始化 njk 模板标签、filter
     this.handleNunjucksEnv(templateTargetPath);
     this.handleJsonConfig(jsonConfig);
-    
+
     const componentList = this.getUpdateDrawerComponentList(jsonConfig);
-    const htmlBase = fs.readFileSync(htmlBasePath);
-    let htmlUser = fs.existsSync(filepath) ? fs.readFileSync(filepath) : htmlBase;
-    const htmlGenerate = nunjucks.renderString(listTemplate, { tableCamelCase, ...jsonConfig, componentList });
-    const bakFilePath = await this.handleViewBak(pageId, filepath);
+    const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
 
     // fs.writeFileSync(filepath, htmlUser);
     const componentPathArr = componentPath.split('/');
@@ -141,42 +130,10 @@ module.exports = class InitComponent1Table extends CommandBase {
       if (!fs.existsSync(`./app/view/component/${componentDir}`)) fs.mkdirSync(`./app/view/component/${componentDir}`);
       if (!fs.existsSync(`./app/view/pageBak/${componentDir}`)) fs.mkdirSync(`./app/view/pageBak/${componentDir}`);
     }
-    
-    // fs.writeFileSync(filepath, htmlUser);
-    fs.writeFileSync(filepath, htmlGenerate); // 测试  
-    fs.writeFileSync(`./app/view/pageBak/${componentPath}.base.html`, htmlBase);
-    fs.writeFileSync(`./app/view/pageBak/${componentPath}.generate.html`, htmlGenerate); 
-    await this.executeCommand(`git merge-file ./app/view/component/${componentPath}.html ./app/view/pageBak/${componentPath}.base.html ./app/view/pageBak/${componentPath}.generate.html`, );
-    
-    htmlUser = fs.readFileSync(filepath).toString();
-    await this.handleOtherResource(jsonConfig);
-    const diffCount = (htmlUser.match(new RegExp(`<<<<<<< ${filepath}`, 'g')) || []).length;
-    if (diffCount > 0) {
-      // git checkout --theirs ./app/view/page/${componentPath}.html ===> 不好使
-      this.warning(`生成的文件有 ${diffCount}处 冲突, 请手动解决!`);
-    }
-    if (diffCount == 0 && bakFilePath) {
-      fs.unlinkSync(bakFilePath);
-    }
-    return true;
-  }
 
-  /**
-   * 处理文件备份
-   * @param {String} pageId
-   * @param {String} filepath
-   * @returns 
-   */
-  async handleViewBak(pageId, filepath){
-    if (fs.existsSync(filepath)) {
-      const pageBakDir = `./app/view/pageBak`;
-      const pageBakPath = `${pageBakDir}/${pageId}`;
-      if (!fs.existsSync(pageBakPath)) fs.mkdirSync(pageBakPath);
-      const bakFilePath = `${pageBakPath}/${pageId}.${moment().format('YYYYMMDD_HHmmss')}.html`;
-      fs.copyFileSync(filepath, bakFilePath);
-      return bakFilePath;
-    }
-    return null;
+    // fs.writeFileSync(filepath, htmlUser);
+    fs.writeFileSync(filepath, htmlGenerate);
+    return true;
   }
 
 };

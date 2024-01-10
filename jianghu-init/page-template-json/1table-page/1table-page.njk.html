@@ -37,7 +37,7 @@
             </v-col>
             <=%- elif ss.tag == "v-select" %=>
             <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
-              <v-select v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=> dense filled single-line></v-select>
+              <v-select v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" <=% for key, value in ss.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=> dense filled single-line></v-select>
             </v-col>
             <=%- elif ss.tag == "v-date-picker" %=> 
             <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
@@ -91,7 +91,7 @@
               :headers="tableHeaderList"
               :items="tableData"
               :search="tableSearchInput"
-              :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+              :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
               :items-per-page="-1"
               mobile-breakpoint="0"
               :loading="tableLoading"
@@ -162,6 +162,10 @@
             <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-text-field> 
             <=%- elif formItem.tag == "v-select" %=>
             <v-select class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-select> 
+            <=%- elif formItem.tag == "v-autocomplete" %=>
+            <v-autocomplete class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-autocomplete> 
+            <=%- elif formItem.tag == "v-combobox" %=>
+            <v-combobox class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-combobox> 
             <=%- elif formItem.tag == "v-date-picker" %=> 
             <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
@@ -177,7 +181,7 @@
         </v-row>
         <!-- 抽屉操作按钮 -->
         <v-row class="justify-end mx-0 my-8 px-4">
-            <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+            <v-btn color="success" @click="<=$ content.action if content.action else 'doUiAction(\'createItem\')' $=>" small>保存</v-btn>
             <v-btn class="elevation-0 ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
         </v-row>
       </v-form>
@@ -232,6 +236,10 @@
                   <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-text-field> 
                   <=%- elif formItem.tag == "v-select" %=>
                   <v-select class="jh-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-select> 
+                  <=%- elif formItem.tag == "v-autocomplete" %=>
+                  <v-autocomplete class="jh-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-autocomplete> 
+                  <=%- elif formItem.tag == "v-combobox" %=>
+                  <v-combobox class="jh-v-input mr-2" dense filled single-line v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-combobox> 
                   <=%- elif formItem.tag == "v-date-picker" %=> 
                   <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                       <template v-slot:activator="{on, attrs}">
@@ -248,7 +256,7 @@
 
               <!-- 抽屉操作按钮 -->
               <v-row class="justify-end mx-0 my-8 px-4">
-                  <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+                  <v-btn color="success" @click="<=$ content.action if content.action else 'doUiAction(\'updateItem\')' $=>" small>保存</v-btn>
                   <v-btn class="elevation-0 ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
               </v-row>
               <=%- elif content.type == "component" %=>
@@ -449,69 +457,75 @@ new Vue({
   },
   //===// <=$ common.computed | variableToVar('computed') $=><=$ ',' if common.computed $=>
   async created() {
-  },
-  async mounted() {
     this.doUiAction('getTableData');
   },
+  //===// <=% for key, item in common %=>
+  //===// <=% if key == 'mounted' or key == 'created' %=><=$ item | variableToVar(key) $=>,<=% endif %=><=%- endfor %=>
   methods: {
     async doUiAction(uiActionId, uiActionData) {
-      switch (uiActionId) {
-        case 'getTableData':
-          await this.getTableData();
-          break;
-        
-        //===// <=%- if createDrawerContent %=>
-        //===// case 'startCreateItem':
-        //===//   await this.prepareCreateFormData();
-        //===//   await this.openCreateDrawer();
-        //===//   break;
-        //===// case 'createItem':
-        //===//   await this.prepareCreateValidate();
-        //===//   await this.confirmCreateItemDialog();
-        //===//   await this.prepareDoCreateItem();
-        //===//   await this.doCreateItem();
-        //===//   await this.closeCreateDrawer();
-        //===//   await this.getTableData();
-        //===//   break;
-        //===// <=%- endif %=>
+      try {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.getTableData();
+            break;
+          
+          //===// <=%- if createDrawerContent %=>
+          //===// case 'startCreateItem':
+          //===//   await this.prepareCreateFormData();
+          //===//   await this.openCreateDrawer();
+          //===//   break;
+          //===// case 'createItem':
+          //===//   await this.prepareCreateValidate();
+          //===//   await this.confirmCreateItemDialog();
+          //===//   await this.prepareDoCreateItem();
+          //===//   await this.doCreateItem();
+          //===//   await this.closeCreateDrawer();
+          //===//   await this.getTableData();
+          //===//   break;
+          //===// <=%- endif %=>
 
-        //===// <=%- if updateDrawerContent %=>
-        //===// case 'startUpdateItem':
-        //===//   await this.prepareUpdateFormData(uiActionData);
-        //===//   await this.openUpdateDrawer();
-        //===//   break;
-        //===// case 'updateItem':
-        //===//   await this.prepareUpdateValidate();
-        //===//   await this.confirmUpdateItemDialog();
-        //===//   await this.prepareDoUpdateItem();
-        //===//   await this.doUpdateItem();
-        //===//   await this.closeUpdateDrawer();
-        //===//   await this.getTableData();
-        //===//   break;
-        //===// <=%- endif %=>
+          //===// <=%- if updateDrawerContent %=>
+          //===// case 'startUpdateItem':
+          //===//   await this.prepareUpdateFormData(uiActionData);
+          //===//   await this.openUpdateDrawer();
+          //===//   break;
+          //===// case 'updateItem':
+          //===//   await this.prepareUpdateValidate();
+          //===//   await this.confirmUpdateItemDialog();
+          //===//   await this.prepareDoUpdateItem();
+          //===//   await this.doUpdateItem();
+          //===//   await this.closeUpdateDrawer();
+          //===//   await this.getTableData();
+          //===//   break;
+          //===// <=%- endif %=>
 
-        //===// <=%- if deleteContent %=>
-        //===// case 'deleteItem':
-        //===//   await this.prepareDeleteFormData(uiActionData);
-        //===//   await this.confirmDeleteItemDialog();
-        //===//   await this.prepareDoDeleteItem();
-        //===//   await this.doDeleteItem();
-        //===//   await this.clearDeleteItem();
-        //===//   await this.getTableData();
-        //===//   break;
-        //===// <=%- endif %=>
+          //===// <=%- if deleteContent %=>
+          //===// case 'deleteItem':
+          //===//   await this.prepareDeleteFormData(uiActionData);
+          //===//   await this.confirmDeleteItemDialog();
+          //===//   await this.prepareDoDeleteItem();
+          //===//   await this.doDeleteItem();
+          //===//   await this.clearDeleteItem();
+          //===//   await this.getTableData();
+          //===//   break;
+          //===// <=%- endif %=>
 
-        //===// <=%- for key, value in common.doUiAction %=> 
-        //===// case '<=$ key $=>':
-        //===//   <=%- for method in value %=> 
-        //===//   await this.<=$ method $=>(uiActionData);
-        //===//   <=%- endfor %=>
-        //===//   break;
-        //===// <=%- endfor %=>
+          //===// <=%- for key, value in common.doUiAction %=> 
+          //===// case '<=$ key $=>':
+          //===//   <=%- for method in value %=> 
+          //===//   await this.<=$ method $=>(uiActionData);
+          //===//   <=%- endfor %=>
+          //===//   break;
+          //===// <=%- endfor %=>
 
-        default:
-          console.error("[doUiAction] uiActionId not find", {uiActionId});
-          break;
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      } catch (error) {
+        throw error;
+      } finally {
+        window.jhMask.hide();
       }
     },
     // ---------- 获取表格数据 uiAction >>>>>>>>>> --------

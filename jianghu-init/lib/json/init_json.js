@@ -1,13 +1,10 @@
 'use strict';
-const yargs = require('yargs');
 const CommandBase = require('../command_base');
 
 require('colors');
 const inquirer = require('inquirer');
 const fs = require('fs');
-const nunjucks = require('nunjucks');
-const _ = require('lodash');
-const moment = require('moment');
+// const _ = require('lodash');
 const path = require('path');
 const typeList = [
   { value: '1table-page', name: '1table-page' },
@@ -36,9 +33,7 @@ module.exports = class InitJson extends CommandBase {
     this.success('初始化数据库成功');
   }
 
-  /**
-   * 确认生成表
-   */
+  // 确认生成表
   async promptConfig() {
     const knex = await this.getKnex();
     let { table, pageId, pageType } = this.argv;
@@ -51,8 +46,8 @@ module.exports = class InitJson extends CommandBase {
           TABLE_TYPE: 'BASE TABLE',
         });
       const tables = result
-        .map((item) => item.TABLE_NAME)
-        .filter((table) => !table.startsWith('_'));
+        .map(item => item.TABLE_NAME)
+        .filter(table => !table.startsWith('_'));
       const res = await inquirer.prompt({
         name: 'table',
         type: 'list',
@@ -76,45 +71,23 @@ module.exports = class InitJson extends CommandBase {
         name: 'type',
         type: 'list',
         choices: typeList,
-        message: `请选择类型`,
+        message: '请选择类型',
       });
       pageType = res.type;
     }
     return { table, pageId, pageType };
   }
 
-  async askForConfig() {
-    const answer = await inquirer.prompt({
-      name: 'jsonType',
-      type: 'list',
-      message: 'Please select a json type',
-      choices: jsonTypes,
-      pageSize: jsonTypes.length + 1,
-    });
-    return answer.jsonType;
-  }
-
-  /**
-   * 生成 vue
-   */
+  // 生成 json
   async buildJson({ table, pageId, pageType }) {
     // 检测创建文件夹
-    if (!fs.existsSync('./app/view/init-json')) {
-      fs.mkdirSync('./app/view/init-json');
-    }
-
-    let generateFileDir = null;
-    if (pageType.includes('component')) {
-      generateFileDir = `./app/view/init-json/component`
-    } else {
-      generateFileDir = `./app/view/init-json/page`
-    }
-
+    if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
+    const generateFileDir = pageType === '1table-page' ? './app/view/init-json/page' : './app/view/init-json/component';
     if (!fs.existsSync(generateFileDir)) fs.mkdirSync(generateFileDir);
 
     // 生成文件
     const generateFilePath = `${generateFileDir}/${pageId}.js`;
-    let fields = await this.getTableFields(table);
+    const fields = await this.getTableFields(table);
     // fields = fields.filter(f => f.COLUMN_NAME != 'id');
     let columnStr = '';
     let createItemListStr = '';
@@ -126,30 +99,18 @@ module.exports = class InitJson extends CommandBase {
       const fieldKey = field.COLUMN_NAME;
       const fieldName = field.COLUMN_COMMENT;
       if (excludeColumn.includes(fieldKey)) return;
-      if (index == 0)
-        columnStr +=
-          space +
-          `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
-      if (index != 0)
-        columnStr +=
-          space +
-          `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
-      createItemListStr +=
-        space +
-        `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
-      updateItemListStr +=
-        space +
-        `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
+      if (index === 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
+      if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
+      createItemListStr += space + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
+      updateItemListStr += space + `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
       space = '      ';
     });
-    columnStr += space + `{ text: "", value: "" },\n`;
-    columnStr +=
-      space +
-      `{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n`;
-    const propsStr = pageType == '1table-component' ? `props: {},` : '';
-    const componentPath =
-      pageType == '1table-component' ? `componentPath: "${pageId}",` : '';
-    const content = `const content = {
+    columnStr += space + '{ text: "", value: "" },\n';
+    columnStr += space + '{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n';
+    const propsStr = pageType === '1table-component' ? 'props: {},' : '';
+    const componentPath = pageType === '1table-component' ? `componentPath: "${pageId}",` : '';
+    const content =
+`const content = {
   pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
   resourceList: [], // 额外resource { actionId, resourceType, resourceData }
   drawerList: [], // 抽屉列表 { key, title, contentList }
@@ -214,6 +175,7 @@ module.exports = content;
     fs.writeFileSync(generateFilePath, content);
   }
 
+  // eslint-disable-next-line valid-jsdoc
   /**
    * 获取数据库表所有原生字段
    * @param {String} table
@@ -236,9 +198,9 @@ module.exports = content;
       'operationAt',
     ];
     for (const column of defaultColumn) {
-      await knex.schema.hasColumn(table, column).then((exists) => {
+      await knex.schema.hasColumn(table, column).then(exists => {
         if (!exists) {
-          return knex.schema.table(table, (t) => {
+          return knex.schema.table(table, t => {
             this.info(`创建依赖字段：${column}`);
             t.string(column);
           });
@@ -246,7 +208,7 @@ module.exports = content;
       });
     }
 
-    const columns = result.map((column) => {
+    const columns = result.map(column => {
       return {
         COLUMN_NAME: column.COLUMN_NAME,
         COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '')
@@ -259,7 +221,7 @@ module.exports = content;
     return columns;
   }
 
-  async example(cwd, argv) {
+  async example() {
     // 初始化数据库连接
     this.dbSetting = this.readDbConfigFromFile();
     // app 默认使用 database，如果有前缀则需要去掉前缀
@@ -273,12 +235,15 @@ module.exports = content;
     const examplePageFilePath = examplePath + '/class.js';
     const exampleComponentFilePath = examplePath + '/studentOfClass.js';
     // 检测创建文件夹
-    if (!fs.existsSync('./app/view/init-json'))
+    if (!fs.existsSync('./app/view/init-json')) {
       fs.mkdirSync('./app/view/init-json');
-    if (!fs.existsSync('./app/view/init-json/page'))
+    }
+    if (!fs.existsSync('./app/view/init-json/page')) {
       fs.mkdirSync('./app/view/init-json/page');
-    if (!fs.existsSync('./app/view/init-json/component'))
+    }
+    if (!fs.existsSync('./app/view/init-json/component')) {
       fs.mkdirSync('./app/view/init-json/component');
+    }
     // 把样例文件复制到项目中
     fs.copyFileSync(
       examplePageFilePath,
@@ -299,21 +264,15 @@ module.exports = content;
       .toString()
       .replace(/--.*|\n|\\/g, '')
       .split(';')
-      .filter((sql) => sql);
+      .filter(sql => sql);
     for (const sql of sqlContentList) {
       await knex.raw(sql);
     }
     return [
-      eval(
-        fs.readFileSync('./app/view/init-json/page/exampleClass.js').toString()
-      ),
-      eval(
-        fs
-          .readFileSync(
-            './app/view/init-json/component/exampleStudentOfClass.js'
-          )
-          .toString()
-      ),
+      // eslint-disable-next-line no-eval
+      eval(fs.readFileSync('./app/view/init-json/page/exampleClass.js').toString()),
+      // eslint-disable-next-line no-eval
+      eval(fs.readFileSync('./app/view/init-json/component/exampleStudentOfClass.js').toString()),
     ];
   }
 };
