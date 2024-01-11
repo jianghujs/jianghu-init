@@ -1,0 +1,40 @@
+<!--drawerForm.html start-->
+<template id="<=$ componentPath.split('/').pop() | camelToKebab $=>">
+  <div>
+    <=% if pageContent.tag %=>
+    <=$ pageContent | tagFormat $=>
+    <=% endif %=>
+  </div>
+</template>
+<script>
+  // type：字段类型[textarea: 多行文本框，select：下拉框，input：输入框，date：时间选择, searchMultiple: 多选，searchOne: 单选]
+  Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
+    template: '#<=$ componentPath.split('/').pop() | camelToKebab $=>',
+    vuetify: new Vuetify(),
+    name: 'table-record-history',
+    data: () => ({
+      // ================================ common ================================
+      //===// <=%- if common and common.data %=> 
+      //===// <=%- for key, value in common.data %=> 
+      //===// <=$ value | variableToVar(key) $=>,
+      //===// <=%- endfor %=>
+      //===// <=%- endif %=>
+    }),
+    //===// <=%- if common.props | isArray %=> 
+    //===// props: <=$ common.props | dump $=>,
+    //===// <=%- elif common.props | isObject %=>
+    //===// <=$ common.props | variableToVar('props') $=>,
+    //===// <=%- endif %=>
+    computed: {
+    },
+    watch: {
+    },
+    async created() {
+    },
+    methods: {
+    },
+  })
+</script>
+<style>
+</style>
+<!--drawerForm.html end-->
