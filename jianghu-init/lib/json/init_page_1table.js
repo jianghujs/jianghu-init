@@ -47,6 +47,7 @@ module.exports = class InitPage1Table extends CommandBase {
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
       await this.modifyTable(jsonConfig);
+      await this.handleOtherResource(jsonConfig);
       // 生成组件
       await this.renderComonent(jsonConfig);
       // 生成 service
