@@ -346,7 +346,7 @@ const mixin = {
     }
   },
 
-  async renderComonent(jsonConfig) {
+  async renderComponent(jsonConfig) {
     const componentList = this.getUpdateDrawerComponentList(jsonConfig);
     if (!componentList.length) return;
 

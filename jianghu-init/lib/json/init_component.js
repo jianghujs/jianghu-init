@@ -49,7 +49,7 @@ module.exports = class InitComponent extends CommandBase {
     if (renderResult) {
       await this.modifyTable(jsonConfig, pageId, componentPath);
       // 生成组件
-      await this.renderComonent(jsonConfig);
+      await this.renderComponent(jsonConfig);
       // 生成 service
       await this.renderService(jsonConfig);
     } else {

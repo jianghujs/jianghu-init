@@ -50,7 +50,7 @@ module.exports = class InitComponent1Table extends CommandBase {
       await this.modifyTable(jsonConfig, pageId, componentPath);
       await this.handleOtherResource(jsonConfig);
       // 生成组件
-      await this.renderComonent(jsonConfig);
+      await this.renderComponent(jsonConfig);
       // 生成 service
       await this.renderService(jsonConfig);
     } else {
