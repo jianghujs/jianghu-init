@@ -97,31 +97,40 @@ const mixin = {
     nunjucksEnv.addFilter('tagAttr', function(key, value, tag) {
       return tagAttr(key, value, tag);
     });
+    const tagItemFormat = (item, indent = 0) => {
+      if (!item.tag) {
+        return '';
+      }
+      const tag = item.tag;
+      const attrs = Object.entries(item.attrs || {})
+        .map(([ key, value ]) => `${key}="${value}"`)
+        .join(' ');
+      let value = '';
 
-    nunjucksEnv.addFilter('tagFormat', function(result) {
+      if (typeof item.value === 'string') {
+        value = ' '.repeat(indent + 2) + item.value;
+      } else if (Array.isArray(item.value)) {
+        value = item.value.map(subItem => tagItemFormat(subItem, indent + 2)).join('\n');
+      } else if (typeof item.value === 'object') {
+        value = tagItemFormat(item.value, indent + 2);
+      }
+
+      const indentSpaces = ' '.repeat(indent);
+      const lineBreak = value ? '\n' : '';
+      return `${indentSpaces}<${tag} ${attrs}>${lineBreak}${value}${lineBreak}${indentSpaces}</${tag}>`;
+    };
+    nunjucksEnv.addFilter('tagFormat', function(result, indent = 0) {
       const tag = [];
-      const tagItemFormat = res => {
-        let tagStr = `<${res.tag} `;
-        tagStr += _.map((res.attrs || {}), (value, key) => {
-          return tagAttr(key, value, res.tag);
-        }).join(' ');
-        if (res.value) {
-          tagStr += `>${res.value}</${res.tag}>`;
-        } else {
-          tagStr += `></${res.tag}>`;
-        }
-        return tagStr;
-      };
       if (_.isArray(result)) {
         result.forEach(res => {
-          tag.push(tagItemFormat(res));
+          tag.push(tagItemFormat(res, indent).replace(/^\s+/, ''));
         });
       } else if (_.isObject(result)) {
-        tag.push(tagItemFormat(result));
+        tag.push(tagItemFormat(result, indent).replace(/^\s+/, ''));
       } else if (_.isString(result)) {
         tag.push(result);
       }
-      return tag.join('\n                    ');
+      return tag.join('\n' + ' '.repeat(indent));
     });
     nunjucksEnv.addFilter('formItemFormat', function(result, drwaerKey = 'updateItem') {
       const tag = [];

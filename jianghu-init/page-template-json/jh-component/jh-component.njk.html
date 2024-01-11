@@ -10,6 +10,7 @@
 <=$ include $=>
 <=%- endfor %=>
 <script>
+  Vue.component('v-chart', VueECharts);
   Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     template: '#<=$ componentPath.split('/').pop() | camelToKebab $=>',
     vuetify: new Vuetify(),

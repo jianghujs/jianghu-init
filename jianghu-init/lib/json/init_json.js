@@ -16,6 +16,7 @@ const chartTypeList = [
   { value: 'pie', name: 'pie - 饼状图' },
   { value: 'bar', name: 'bar - 柱状图' },
   { value: 'gauge', name: 'gauge - 仪器表' },
+  { value: 'saleData', name: 'saleData - 销售简报' },
 ];
 
 /**
@@ -120,15 +121,56 @@ module.exports = class InitJson extends CommandBase {
         // 添加依赖的public 静态资源
         this.checkStaticChartFile();
       }
-    } else {
+    } else if (pageType === 'jh-page') {
       content = this.getContent({ table, pageId, pageType, fields });
+    } else {
+      content = this.get1TableContent({ table, pageId, pageType, fields });
     }
     // 生成文件
     const generateFilePath = `${generateFileDir}/${fileName}.js`;
     fs.writeFileSync(generateFilePath, content);
   }
 
-  getContent({ table, pageId, pageType, fields }) {
+  getContent({ table, pageId, pageType }) {
+    const content =
+    `const content = {
+      pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
+      resourceList: [], // 额外resource { actionId, resourceType, resourceData }
+      drawerList: [], // 抽屉列表 { key, title, contentList }
+      includeList: [], // 其他资源引入
+      common: {
+        data: {
+        },
+        watch: {},
+        computed: {},
+        doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
+        methods: {}
+      },
+      headContent: {
+        helpDrawer: {}, // 自动初始化md文件
+        // serverSearchList: [
+        //   { tag: "v-text-field",  label: "学生名字",    model: "serverSearchWhereLike.name",                                          },
+        //   { tag: "v-select",      label: "性别",       model: "serverSearchWhere.gender",           attrs: { items: ["全部", "男", "女"] } },
+        //   { tag: "v-date-picker", label: "出生日期",    model: "serverSearchWhereLike.dateOfBirth",  attrs: { type: "month" },             },
+        // ],
+        // serverSearchWhere: { gender: "全部" },
+        // serverSearchWhereLike: { name: null, dateOfBirth: null },
+      },
+      pageContent: {
+        tag: 'v-row',
+        attrs: { justify: 'center' },
+        value: [
+          { tag: 'v-col', attrs: { cols: '12', sm: '12', md: '12', lg: '12', xl: '12' }, value: '' },
+        ]
+      },
+    };
+    
+    module.exports = content;
+    `;
+    return content;
+  }
+
+  get1TableContent({ table, pageId, pageType, fields }) {
     let columnStr = '';
     let createItemListStr = '';
     let updateItemListStr = '';
@@ -317,6 +359,55 @@ module.exports = class InitJson extends CommandBase {
             ],
           },
         };
+      case 'saleData':
+        return {
+          saleData: [
+            {
+              label: '新增客户',
+              number: 2,
+              unit: '人',
+              rate: '100%',
+              status: 'up',
+              chartOption: {
+                color: ['#5470C6'],
+                data: [0, 2, 5, 9, 5, 10, 3]
+              }
+            },
+            {
+              label: '新增联系人',
+              number: 2,
+              unit: '人',
+              rate: '100%',
+              status: 'up',
+              chartOption: {
+                color: ['#5470C6'],
+                data: [0, 2, 5, 9, 5, 10, 3]
+              }
+            },
+            {
+              label: '新增商机',
+              number: 2,
+              unit: '个',
+              rate: '-20%',
+              status: 'down',
+              chartOption: {
+                color: ['#5470C6'],
+                data: [0, 2, 5, 9, 5, 10, 3]
+              }
+            },
+            {
+              label: '新增合同',
+              number: 2,
+              unit: '个',
+              rate: '100%',
+              status: 'up',
+              chartOption: {
+                color: ['#5470C6'],
+                data: [0, 2, 5, 9, 5, 10, 3]
+              }
+            },
+          ]
+        }
       default:
         return {};
     }
@@ -327,7 +418,8 @@ module.exports = class InitJson extends CommandBase {
       pageIdStr = `pageId: "${pageId}", `;
     }
     let pageContent = '';
-    if (chartType) {
+    let includeList = [];
+    if ([ 'line', 'pie', 'bar', 'gauge' ].includes(chartType)) {
       pageContent = `
     tag: "v-chart",
     attrs: {
@@ -337,6 +429,55 @@ module.exports = class InitJson extends CommandBase {
       ref: '${chartType}Chart',
     },
     value: ''`;
+      includeList = [
+        '<script src="/<$ ctx.app.config.appId $>/public/lib/echarts.min.js"></script>',
+        '<script src="/<$ ctx.app.config.appId $>/public/lib/vue-echarts.min.js"></script>',
+      ];
+    } else if (chartType === 'saleData') {
+      includeList = [];
+      pageContent = `
+    tag: "v-card",
+    attrs: {
+      class: 'rounded-lg jh-dashboard-card',
+    },
+    value: [
+      { tag: 'div', attrs: { class: 'd-flex align-center pa-4' }, value: '<div class="font-weight-medium text-subtitle-2">销售简报</div>' },
+      { tag: 'div', attrs: { class: 'px-4 pb-4' }, value: \`
+      <v-row dense>
+        <v-col cols="12" xs="12" sm="12" md="3"
+          v-for="(item, index) in saleData"  
+          :key="index"
+          >
+          <v-card class="rounded-lg pa-4" role="button">
+            <v-row dense align="center">
+              <v-col cols="12" xs="12" sm="12" md="6">
+                <div>{{item.label}}</div>
+                <div class="mt-2"><span class="font-weight-bold text-subtitle-2 mr-1">{{item.number}}</span>{{item.unit}}</div>
+                <div class="d-flex align-center mt-2">
+                  <div class="mr-2">较上月</div>
+                  <div class="mr-2" :class="item.status === 'up' ? 'red--text' : 'success--text'">{{item.rate}}</div>
+                  <div>
+                    <v-icon v-if="item.status === 'up'" size="18" color="red">mdi-arrow-up-bold</v-icon>
+                    <v-icon v-if="item.status === 'down'" size="18" color="green">mdi-arrow-down-bold</v-icon>
+                  </div>
+                </div>
+              </v-col>
+              <v-col cols="12" xs="12" sm="12" md="6">
+                <v-sparkline
+                  :gradient="item.chartOption.color"
+                  line-width="2"
+                  padding="8"
+                  smooth="10"
+                  :value="item.chartOption.data"
+                  auto-draw
+                ></v-sparkline>
+              </v-col>
+            </v-row>
+          </v-card>
+        </v-col>
+      </v-row> 
+      \` },
+    ]`;
 
     }
     const content = `
@@ -345,8 +486,7 @@ const content = {
   resourceList: [], // 额外resource { actionId, resourceType, resourceData }
   drawerList: [], // 抽屉列表 { key, title, contentList }
   includeList: [
-    '<script src="/<$ ctx.app.config.appId $>/public/lib/echarts.min.js"></script>',
-    '<script src="/<$ ctx.app.config.appId $>/public/lib/vue-echarts.min.js"></script>',
+    ${includeList.join(',\n    ')}
   ], // 其他资源引入
   common: {
     data: ${JSON.stringify(this.getChartData(chartType), null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, '\n     ')},
