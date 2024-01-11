@@ -75,7 +75,7 @@
       <v-card class="rounded-lg">
         <v-row class="ma-0 pa-4">
           <!-- 新增按钮 -->
-          <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+          <v-col cols="12" xs="8" sm="8" md="9" xl="10" class="pa-0">
 
             <=%- if createDrawerContent %=>
             <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
@@ -321,6 +321,8 @@
                   <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
                   <=%- if formItem.tag == "v-text-field" %=> 
                   <v-text-field class="jh-v-input" dense single-line filled v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-text-field> 
+                  <=%- elif formItem.tag == "v-textarea" %=> 
+                  <v-textarea class="jh-v-input" dense single-line filled v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-textarea>
                   <=%- elif formItem.tag == "v-select" %=>
                   <v-select class="jh-v-input mr-2" dense filled single-line v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-select> 
                   <=%- elif formItem.tag == "v-date-picker" %=> 
@@ -340,6 +342,11 @@
               <!-- 抽屉操作按钮 -->
               <v-row class="justify-end mx-0 my-8 px-4">
                 <=% if content.action %=><=$ content.action | tagFormat $=><=% endif %=>
+                <=% if content.actions %=>
+                <=% for action in content.actions %=>
+                  <=$ action | tagFormat $=>
+                <=% endfor %=>
+                <=% endif %=>
                 <v-btn class="elevation-0 ml-2" @click="is<=$ drawer.key | ucfirst $=>DrawerShown = false" small>取消</v-btn>
               </v-row>
               <=%- elif content.type == "component" %=>
