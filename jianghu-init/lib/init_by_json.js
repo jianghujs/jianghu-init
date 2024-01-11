@@ -3,7 +3,7 @@ const yargs = require('yargs');
 const InitPage1Table = require('./json/init_page_1table');
 const InitComponent1Table = require('./json/init_component_1table');
 const InitPage2Table = require('./json/init_page_2table');
-const InitPageChart = require('./json/init_page_chart');
+const InitComponent = require('./json/init_component');
 const InitJson = require('./json/init_json');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
@@ -25,6 +25,10 @@ const jsonTypes = [
     value: 'example',
     name: 'init example json and page',
   },
+  {
+    value: 'example chart',
+    name: 'init example chart component',
+  },
 ];
 const pageTypeList = [
   { value: '1table-page', name: '1table-page' },
@@ -44,7 +48,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.page1Table = new InitPage1Table();
     this.component1Table = new InitComponent1Table();
     this.page2Table = new InitPage2Table();
-    this.pageChart = new InitPageChart();
+    this.jhComponent = new InitComponent();
 
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
@@ -79,8 +83,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
           await new InitComponent1Table().run(process.cwd(), jsonArgv, this.argv);
         } else if (pageType === '2table-page') {
           await new InitPage2Table().run(process.cwd(), jsonArgv, this.argv);
-        } else if (pageType === 'chart-page') {
-          await new InitPageChart().run(process.cwd(), jsonArgv, this.argv);
+        } else if (pageType === 'jh-component') {
+          await new this.jhComponent.run(process.cwd(), jsonArgv, this.argv);
         }
         this.success('jianghu init by json is success');
       }
@@ -98,6 +102,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
         }
       }
       // await new InitPage1Table().example(process.cwd(), this.jsonArgv);
+    } else if (handleType === 'example chart') {
+      await new InitJson().run(process.cwd(), Object.assign(this.argv, { pageType: 'jh-component' }));
     }
     // this.success('jianghu init by json is success');
   }
@@ -239,6 +245,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
             } else if (fileObj.pageType === 'chart-page') {
               await this.pageChart.renderVue(fileObj);
               this.success('component vue render success');
+            } else if (fileObj.pageType === 'jh-component') {
+              await this.jhComponent.renderVue(fileObj);
             }
           } catch (e) {
             this.error(`${path.replace('app/view/init-json', '')} 文件渲染错误: ${e.message}`);

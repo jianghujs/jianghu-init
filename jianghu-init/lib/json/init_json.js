@@ -9,7 +9,14 @@ const path = require('path');
 const typeList = [
   { value: '1table-page', name: '1table-page' },
   { value: '1table-component', name: '1table-component' },
-  { value: 'chart-page', name: 'chart-page' },
+  { value: 'jh-component', name: 'jh-component' },
+];
+
+const chartTypeList = [
+  { value: 'line', name: 'line - 折线图' },
+  { value: 'pie', name: 'pie - 饼状图' },
+  { value: 'bar', name: 'bar - 柱状图' },
+  { value: 'gauge', name: 'gauge - 仪器表' },
 ];
 
 /**
@@ -30,13 +37,31 @@ module.exports = class InitJson extends CommandBase {
     this.success('初始化数据库连接成功');
     const config = await this.promptConfig();
     await this.buildJson(config);
-    this.success('初始化数据库成功');
   }
 
   // 确认生成表
   async promptConfig() {
     const knex = await this.getKnex();
     let { table, pageId, pageType } = this.argv;
+    if (!pageType) {
+      const res = await inquirer.prompt({
+        name: 'type',
+        type: 'list',
+        choices: typeList,
+        message: '请选择类型',
+      });
+      pageType = res.type;
+    }
+    if (pageType === 'jh-component') {
+      const res = await inquirer.prompt({
+        name: 'chartType',
+        type: 'list',
+        choices: chartTypeList,
+        message: '请选择图表类型',
+      });
+      const chartType = res.chartType;
+      return { table, pageId, pageType, chartType };
+    }
     if (!table) {
       const result = await knex
         .select('TABLE_NAME')
@@ -66,39 +91,43 @@ module.exports = class InitJson extends CommandBase {
       });
       pageId = res.pageId;
     }
-    if (!pageType) {
-      const res = await inquirer.prompt({
-        name: 'type',
-        type: 'list',
-        choices: typeList,
-        message: '请选择类型',
-      });
-      pageType = res.type;
-    }
     return { table, pageId, pageType };
   }
 
   // 生成 json
-  async buildJson({ table, pageId, pageType }) {
+  async buildJson({ table, pageId, pageType, chartType }) {
     // 检测创建文件夹
     if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
     const generateFileDir = pageType === '1table-page' ? './app/view/init-json/page' : './app/view/init-json/component';
     if (!fs.existsSync(generateFileDir)) fs.mkdirSync(generateFileDir);
 
+    const fields = table ? await this.getTableFields(table) : [];
+
+    let content;
+    let fileName = pageId;
+    if (pageType === 'jh-component') {
+      if (chartType) {
+        content = this.getChartContent({ table, pageId, pageType, chartType });
+        if (!pageId) {
+          fileName = chartType + 'chart';
+        }
+      }
+    } else {
+      content = this.getContent({ table, pageId, pageType, fields });
+    }
     // 生成文件
-    const generateFilePath = `${generateFileDir}/${pageId}.js`;
-    const fields = await this.getTableFields(table);
-    // fields = fields.filter(f => f.COLUMN_NAME != 'id');
+    const generateFilePath = `${generateFileDir}/${fileName}.js`;
+    fs.writeFileSync(generateFilePath, content);
+  }
+
+  getContent({ table, pageId, pageType, fields }) {
     let columnStr = '';
     let createItemListStr = '';
     let updateItemListStr = '';
     let space = '';
-
-    const { excludeColumn = [] } = this.argv;
     fields.forEach((field, index) => {
       const fieldKey = field.COLUMN_NAME;
       const fieldName = field.COLUMN_COMMENT;
-      if (excludeColumn.includes(fieldKey)) return;
       if (index === 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
       if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
       createItemListStr += space + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
@@ -110,69 +139,214 @@ module.exports = class InitJson extends CommandBase {
     const propsStr = pageType === '1table-component' ? 'props: {},' : '';
     const componentPath = pageType === '1table-component' ? `componentPath: "${pageId}",` : '';
     const content =
-`const content = {
-  pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
+    `const content = {
+      pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
+      resourceList: [], // 额外resource { actionId, resourceType, resourceData }
+      drawerList: [], // 抽屉列表 { key, title, contentList }
+      includeList: [], // 其他资源引入
+      common: {
+        ${propsStr}
+        data: {
+          constantObj: {
+              gender: ["全部", "男", "女"],
+          },
+          validationRules: { 
+              requireRules: [
+                  v => !!v || '此项必填',
+              ],
+              phoneRules: [
+                  v => !!v || '此项必填',
+                  v => /^1[3456789]\d{9}$/.test(v) || '手机号格式错误',
+              ],
+          },
+        },
+        watch: {},
+        computed: {},
+        doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
+        methods: {}
+      },
+      headContent: {
+        helpDrawer: {}, // 自动初始化md文件
+        // serverSearchList: [
+        //   { tag: "v-text-field",  label: "学生名字",    model: "serverSearchWhereLike.name",                                          },
+        //   { tag: "v-select",      label: "性别",       model: "serverSearchWhere.gender",           attrs: { items: ["全部", "男", "女"] } },
+        //   { tag: "v-date-picker", label: "出生日期",    model: "serverSearchWhereLike.dateOfBirth",  attrs: { type: "month" },             },
+        // ],
+        // serverSearchWhere: { gender: "全部" },
+        // serverSearchWhereLike: { name: null, dateOfBirth: null },
+      },
+      pageContent: {
+        tableAttrs: {},
+        tableHeaderList: [
+          ${columnStr}
+        ],
+        rowActionList: [], // 行内操作按钮 { tag, value, attrs }
+        headActionList: [], // 表头操作按钮 { tag, value, attrs }
+      },
+      createDrawerContent: {
+        formItemList: [
+          ${createItemListStr}
+        ]
+      },
+      updateDrawerContent: {
+        contentList: [
+          { label: "详细信息", type: "form", formItemList: [
+          ${updateItemListStr}
+          ]},
+          { label: "操作记录", type: "component", componentPath: "recordHistory" },
+        ]
+      },
+      deleteContent: {},
+    };
+    
+    module.exports = content;
+    `;
+    return content;
+  }
+
+  getChartData(chartType) {
+    switch (chartType) {
+      case 'line':
+        return {
+          lineOption: {
+            xAxis: {
+              type: 'category',
+              data: [ '2023-01', '2023-02', '2023-03', '2023-04', '2023-05', '2023-06' ],
+            },
+            yAxis: {
+              type: 'value',
+            },
+            series: [
+              {
+                data: [ 0, 2000, 4000, 6000, 2000, 2000 ],
+                type: 'line',
+              },
+            ],
+          },
+        };
+      case 'bar':
+        return {
+          barChartOption: {
+            xAxis: {
+              max: 'dataMax',
+            },
+            yAxis: {
+              type: 'category',
+              data: [ '初步沟通', '验证客户', '报价', '赢单', '输单' ],
+            },
+            series: [
+              {
+                name: '金额',
+                type: 'bar',
+                data: [ 1000, 2000, 4000, 6000, 2000 ],
+                label: {
+                  show: true,
+                  position: 'right',
+                },
+              },
+            ],
+          },
+        };
+      case 'pie':
+        return {
+          pieChartOption: {
+            title: {
+              left: 'center',
+            },
+            tooltip: {
+              trigger: 'item',
+            },
+            legend: {
+              orient: 'vertical',
+              left: 'left',
+            },
+            series: [
+              {
+                name: 'Access From',
+                type: 'pie',
+                radius: '50%',
+                data: [
+                  { value: 1048, name: 'IT' },
+                  { value: 735, name: '设计' },
+                  { value: 580, name: '金融' },
+                  { value: 484, name: '电力' },
+                  { value: 300, name: '餐饮' },
+                ],
+                emphasis: {
+                  itemStyle: {
+                    shadowBlur: 10,
+                    shadowOffsetX: 0,
+                    shadowColor: 'rgba(0, 0, 0, 0.5)',
+                  },
+                },
+              },
+            ],
+          },
+        };
+      case 'gauge':
+        return {
+          gaugeChartOption: {
+            tooltip: {
+              formatter: '{a} <br/>{b} : {c}%',
+            },
+            series: [
+              {
+                name: 'Pressure',
+                type: 'gauge',
+                detail: {
+                  formatter: '{value}%',
+                },
+                data: [
+                  {
+                    value: 50,
+                    name: '完成率',
+                  },
+                ],
+              },
+            ],
+          },
+        };
+      default:
+        return {};
+    }
+  }
+  getChartContent({ pageId, pageType, chartType }) {
+    let pageIdStr = '';
+    if (pageIdStr) {
+      pageIdStr = `pageId: "${pageId}", `;
+    }
+    let pageContent = '';
+    if (chartType) {
+      pageContent = `
+    tag: "v-chart",
+    attrs: {
+      ':option': '${chartType}ChartOption',
+      style: 'height: 300px;',
+      autoresize: true,
+      ref: '${chartType}Chart',
+    },
+    value: ''`;
+
+    }
+    const content = `
+const content = {
+  pageType: "${pageType}", ${pageIdStr}pageName: "${chartType}图表", componentPath: "${pageId || 'chart/' + chartType}",
   resourceList: [], // 额外resource { actionId, resourceType, resourceData }
   drawerList: [], // 抽屉列表 { key, title, contentList }
   includeList: [], // 其他资源引入
   common: {
-    ${propsStr}
-    data: {
-      constantObj: {
-          gender: ["全部", "男", "女"],
-      },
-      validationRules: { 
-          requireRules: [
-              v => !!v || '此项必填',
-          ],
-          phoneRules: [
-              v => !!v || '此项必填',
-              v => /^1[3456789]\d{9}$/.test(v) || '手机号格式错误',
-          ],
-      },
-    },
-    watch: {},
-    computed: {},
-    doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
-    methods: {}
+    data: ${JSON.stringify(this.getChartData(chartType), null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, '\n    ')},
   },
   headContent: {
-    helpDrawer: {}, // 自动初始化md文件
-    // serverSearchList: [
-    //   { tag: "v-text-field",  label: "学生名字",    model: "serverSearchWhereLike.name",                                          },
-    //   { tag: "v-select",      label: "性别",       model: "serverSearchWhere.gender",           attrs: { items: ["全部", "男", "女"] } },
-    //   { tag: "v-date-picker", label: "出生日期",    model: "serverSearchWhereLike.dateOfBirth",  attrs: { type: "month" },             },
-    // ],
-    // serverSearchWhere: { gender: "全部" },
-    // serverSearchWhereLike: { name: null, dateOfBirth: null },
   },
   pageContent: {
-    tableAttrs: {},
-    tableHeaderList: [
-      ${columnStr}
-    ],
-    rowActionList: [], // 行内操作按钮 { tag, value, attrs }
-    headActionList: [], // 表头操作按钮 { tag, value, attrs }
+    ${pageContent}
   },
-  createDrawerContent: {
-    formItemList: [
-      ${createItemListStr}
-    ]
-  },
-  updateDrawerContent: {
-    contentList: [
-      { label: "详细信息", type: "form", formItemList: [
-      ${updateItemListStr}
-      ]},
-      { label: "操作记录", type: "component", componentPath: "recordHistory" },
-    ]
-  },
-  deleteContent: {},
 };
 
 module.exports = content;
-`;
-    fs.writeFileSync(generateFilePath, content);
+    `;
+    return content;
   }
 
   // eslint-disable-next-line valid-jsdoc
