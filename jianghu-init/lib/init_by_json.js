@@ -83,7 +83,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
         } else if (pageType === '2table-page') {
           await this.page2Table.run(process.cwd(), jsonArgv, this.argv);
         } else if (pageType === 'jh-component') {
-          await new this.jhComponent.run(process.cwd(), jsonArgv, this.argv);
+          await this.jhComponent.run(process.cwd(), jsonArgv, this.argv);
         }
         this.success('jianghu init by json is success');
       }

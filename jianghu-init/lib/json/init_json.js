@@ -115,8 +115,10 @@ module.exports = class InitJson extends CommandBase {
       if (chartType) {
         content = this.getChartContent({ table, pageId, pageType, chartType });
         if (!pageId) {
-          fileName = chartType + 'chart';
+          fileName = chartType + 'Chart';
         }
+        // 添加依赖的public 静态资源
+        this.checkStaticChartFile();
       }
     } else {
       content = this.getContent({ table, pageId, pageType, fields });
@@ -339,12 +341,15 @@ module.exports = class InitJson extends CommandBase {
     }
     const content = `
 const content = {
-  pageType: "${pageType}", ${pageIdStr}pageName: "${chartType}图表", componentPath: "${pageId || 'chart/' + chartType}",
+  pageType: "${pageType}", ${pageIdStr}pageName: "${chartType}图表", componentPath: "${pageId || 'chart/' + chartType}Chart",
   resourceList: [], // 额外resource { actionId, resourceType, resourceData }
   drawerList: [], // 抽屉列表 { key, title, contentList }
-  includeList: [], // 其他资源引入
+  includeList: [
+    '<script src="/<$ ctx.app.config.appId $>/public/lib/echarts.min.js"></script>',
+    '<script src="/<$ ctx.app.config.appId $>/public/lib/vue-echarts.min.js"></script>',
+  ], // 其他资源引入
   common: {
-    data: ${JSON.stringify(this.getChartData(chartType), null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, '\n    ')},
+    data: ${JSON.stringify(this.getChartData(chartType), null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, '\n     ')},
   },
   headContent: {
   },
@@ -356,6 +361,20 @@ const content = {
 module.exports = content;
     `;
     return content;
+  }
+
+  checkStaticChartFile() {
+    const chartDir = './app/public/lib';
+    if (!fs.existsSync(chartDir)) fs.mkdirSync(chartDir);
+    const echartsFile = `${chartDir}/echarts.min.js`;
+    const vueEchartsFile = `${chartDir}/vue-echarts.min.js`;
+
+    if (!fs.existsSync(echartsFile)) {
+      fs.copyFileSync(`${path.join(__dirname, '../../')}page-template-json/jh-component/echarts.min.js`, echartsFile);
+    }
+    if (!fs.existsSync(vueEchartsFile)) {
+      fs.copyFileSync(`${path.join(__dirname, '../../')}page-template-json/jh-component/vue-echarts.min.js`, vueEchartsFile);
+    }
   }
 
   // eslint-disable-next-line valid-jsdoc
