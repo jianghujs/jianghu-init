@@ -11,7 +11,7 @@ const mixin = require('./mixin.js');
 /**
  * 根据 table 定义生成 crud 页面
  */
-module.exports = class InitPage1Table extends CommandBase {
+module.exports = class InitComponent extends CommandBase {
   constructor() {
     super();
     Object.assign(this, mixin);
@@ -37,7 +37,8 @@ module.exports = class InitPage1Table extends CommandBase {
 
   // 生成 crud
   async generateCrud(jsonConfig) {
-    const { table } = jsonConfig;
+    const { pageId, table, componentPath } = jsonConfig;
+    this.info('开始生成 CRUD');
     if (!table) {
       this.info('未配置table，流程结束');
       return;
@@ -46,13 +47,11 @@ module.exports = class InitPage1Table extends CommandBase {
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
-      await this.modifyTable(jsonConfig);
-      await this.handleOtherResource(jsonConfig);
+      await this.modifyTable(jsonConfig, pageId, componentPath);
       // 生成组件
       await this.renderComponent(jsonConfig);
       // 生成 service
       await this.renderService(jsonConfig);
-      this.success('build page by json is success');
     } else {
       this.error(`生成 ${table} 的 vue 文件失败`);
       return;
@@ -60,14 +59,16 @@ module.exports = class InitPage1Table extends CommandBase {
   }
 
   async modifyTable(jsonConfig) {
-    const { table, pageId, pageName, idGenerate = false } = jsonConfig;
+    const { table, pageId, componentPath, idGenerate = false } = jsonConfig;
+    if (!table || !pageId) return;
     const knex = await this.getKnex();
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-component`;
     await this.checkTableFields(table, idGenerate);
 
     let clearSql = fs.readFileSync(`${templatePath}/clear_crud.sql`).toString();
     clearSql = clearSql.replace(/\{\{pageId}}/g, pageId);
     clearSql = clearSql.replace(/\{\{table}}/g, table);
+    clearSql = clearSql.replace(/\{\{component}}/g, componentPath.split('/').pop());
     this.info(`开始生成 ${table} 的相关数据`);
     // 删除数据
     for (const line of clearSql.split('\n')) {
@@ -84,7 +85,7 @@ module.exports = class InitPage1Table extends CommandBase {
     let sql = fs.readFileSync(`${templatePath}/crud.sql`).toString();
     sql = sql.replace(/\{\{pageId}}/g, pageId);
     sql = sql.replace(/\{\{table}}/g, table);
-    sql = sql.replace(/\{\{pageName}}/g, pageName);
+    sql = sql.replace(/\{\{component}}/g, componentPath.split('/').pop());
     if (idGenerate) {
       sql = sql.replace(/\{\{insertBeforeHook}}/g, '{"before": [{"service": "common", "serviceFunction": "generateBizIdOfBeforeHook"}]}');
     } else {
@@ -103,13 +104,10 @@ module.exports = class InitPage1Table extends CommandBase {
 
   // 生成 vue
   async renderVue(jsonConfig) {
-    const pageBakDir = './app/view/pageBak';
-    if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
-
-    const { table, pageId, pageType } = jsonConfig;
+    const { table, pageType, componentPath } = jsonConfig;
     const tableCamelCase = _.camelCase(table);
-    const filepath = `./app/view/page/${pageId}.html`;
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
+    const filepath = `./app/view/component/${componentPath}.html`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-component`;
     const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath)
       .toString()
@@ -123,18 +121,16 @@ module.exports = class InitPage1Table extends CommandBase {
     const componentList = this.getUpdateDrawerComponentList(jsonConfig);
     const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
 
-
-    // 生成 md
-    if (jsonConfig.headContent && jsonConfig.headContent.helpDrawer) {
-      const mdPath = './app/view/pageDoc';
-      if (!fs.existsSync(`${mdPath}/${pageId}.md`)) {
-        if (!fs.existsSync(mdPath)) fs.mkdirSync(mdPath);
-        fs.writeFileSync(`${mdPath}/${pageId}.md`, `# ${pageId}页面`);
-      }
+    // fs.writeFileSync(filepath, htmlUser);
+    const componentPathArr = componentPath.split('/');
+    if (componentPathArr.length > 1) {
+      const componentDir = componentPathArr.slice(0, componentPathArr.length - 1).join('/');
+      if (!fs.existsSync(`./app/view/component/${componentDir}`)) fs.mkdirSync(`./app/view/component/${componentDir}`);
     }
 
     // fs.writeFileSync(filepath, htmlUser);
     fs.writeFileSync(filepath, htmlGenerate);
     return true;
   }
+
 };

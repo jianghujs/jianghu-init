@@ -3,6 +3,8 @@ const yargs = require('yargs');
 const InitPage1Table = require('./json/init_page_1table');
 const InitComponent1Table = require('./json/init_component_1table');
 const InitPage2Table = require('./json/init_page_2table');
+const InitPage = require('./json/init_page');
+const InitComponent = require('./json/init_component');
 const InitJson = require('./json/init_json');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
@@ -10,6 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const lockfile = require('proper-lockfile');
 const chokidar = require('chokidar');
+const dayjs = require('dayjs');
 
 const jsonTypes = [
   {
@@ -24,10 +27,14 @@ const jsonTypes = [
     value: 'example',
     name: 'init example json and page',
   },
+  {
+    value: 'example chart',
+    name: 'init example chart component',
+  },
 ];
 const pageTypeList = [
-  { value: '1table-page', name: '1table-page' },
-  { value: '1table-component', name: '1table-component' },
+  { value: 'page', name: 'page' },
+  { value: 'component', name: 'component' },
 ];
 
 
@@ -42,6 +49,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.page1Table = new InitPage1Table();
     this.component1Table = new InitComponent1Table();
     this.page2Table = new InitPage2Table();
+    this.jhComponent = new InitComponent();
+    this.jhPage = new InitPage();
 
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
@@ -70,12 +79,25 @@ module.exports = class InitByJsonCommand extends CommandBase {
         this.error('没有可选择的文件，流程结束');
       } else {
         pageType = jsonArgv.pageType;
-        if (pageType === '1table-page') {
-          await this.page1Table.run(process.cwd(), jsonArgv, this.argv);
-        } else if (pageType === '1table-component') {
-          await this.component1Table.run(process.cwd(), jsonArgv, this.argv);
-        } else if (pageType === '2table-page') {
-          await this.page2Table.run(process.cwd(), jsonArgv, this.argv);
+        switch (pageType) {
+          case '1table-page':
+            await this.page1Table.run(process.cwd(), jsonArgv, this.argv);
+            break;
+          case '1table-component':
+            await this.component1Table.run(process.cwd(), jsonArgv, this.argv);
+            break;
+          case '2table-page':
+            await this.page2Table.run(process.cwd(), jsonArgv, this.argv);
+            break;
+          case 'jh-component':
+            await this.jhComponent.run(process.cwd(), jsonArgv, this.argv);
+            break;
+          case 'jh-page':
+            await this.jhPage.run(process.cwd(), jsonArgv, this.argv);
+            break;
+          default:
+            this.error(`不存在的 pageType: ${pageType}`);
+            break;
         }
         this.success('jianghu init by json is success');
       }
@@ -93,6 +115,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
         }
       }
       // await new InitPage1Table().example(process.cwd(), this.jsonArgv);
+    } else if (handleType === 'example chart') {
+      await new InitJson().run(process.cwd(), Object.assign(this.argv, { pageType: 'jh-component' }));
     }
     // this.success('jianghu init by json is success');
   }
@@ -111,9 +135,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
       this.argv.pageType = type;
     }
     let generateFileDir;
-    if (type === '1table-page') {
+    if (type === 'page') {
       generateFileDir = './app/view/init-json/page';
-    } else if (type === '1table-component') {
+    } else if (type === 'component') {
       generateFileDir = './app/view/init-json/component';
     } else {
       this.error(`不存在的配置类型${type}`);
@@ -215,7 +239,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
       });
       watcher.on('all', async (event, path) => {
         if (event === 'change') {
-          this.info(`File ${path.replace('app/view/init-json', '')} changed`);
+          this.info(`File ${path.replace('app/view/init-json', '')} change ${dayjs().format('HH:mm:ss')}`);
           let fileObj = {};
           try {
             // eslint-disable-next-line no-eval
@@ -225,13 +249,26 @@ module.exports = class InitByJsonCommand extends CommandBase {
             return;
           }
           try {
-            if (fileObj.pageType === '1table-page') {
-              await this.page1Table.renderVue(fileObj);
-              this.success('page vue render success');
-            } else if (fileObj.pageType === '1table-component') {
-              await this.component1Table.renderVue(fileObj);
-              this.success('component vue render success');
+            switch (fileObj.pageType) {
+              case '1table-page':
+                await this.page1Table.renderVue(fileObj);
+                this.success('page vue render success');
+                break;
+              case '1table-component':
+                await this.component1Table.renderVue(fileObj);
+                this.success('component vue render success');
+                break;
+              case 'jh-component':
+                await this.jhComponent.renderVue(fileObj);
+                break;
+              case 'jh-page':
+                await this.jhPage.renderVue(fileObj);
+                break;
+              default:
+                this.error(`不存在的 pageType: ${fileObj.pageType}`);
+                break;
             }
+            this.success('build page success');
           } catch (e) {
             this.error(`${path.replace('app/view/init-json', '')} 文件渲染错误: ${e.message}`);
           }
@@ -244,12 +281,13 @@ module.exports = class InitByJsonCommand extends CommandBase {
 
       // 在进程退出时删除锁定文件
       process.on('exit', async () => {
+        this.success('exit dev mode');
         await lockfile.unlock(lockFilePath);
       });
       process.on('SIGINT', async () => {
         console.log('接收到 SIGINT 信号，准备退出');
         if (await lockfile.check(lockFilePath)) {
-          console.log('解锁文件');
+          this.success('exit dev mode');
           await lockfile.unlock(lockFilePath);
         }
         process.exit();

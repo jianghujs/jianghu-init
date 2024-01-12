@@ -1,0 +1,280 @@
+{% extends 'template/jhTemplateV4.html'%}
+{% block vueTemplate %}
+<script type="text/html" id="app-template">
+  <div>
+    <v-app mobile-breakpoint="sm">
+      <jh-menu />
+      <v-main class="mt-15">
+        <!-- 头部内容 >>>>>>>>>>>>> -->
+        <=%- if headContent %=> 
+    <div class="jh-page-second-bar px-8">
+      <v-row class="align-center" dense>
+        <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+          <div class="py-4 text-body-1 font-weight-bold d-flex align-center"><=$ pageName $=>
+            <=%- if headContent.breadcrumbList %=> 
+            <span>{{ breadcrumbList[breadcrumbList.length-1].text }}</span>
+            <=%- endif %=>
+            <=%- if headContent.helpDrawer %=> 
+            <!-- 帮助页按钮 -->
+            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+            </span>
+            <=%- endif %=>
+          </div>
+        </v-col>
+        <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+          <v-row class="jh-backend-form-container justify-end ma-0 py-3">
+            <=%- for ss in headContent.serverSearchList %=>
+            <=%- if ss.tag == "v-text-field" %=> 
+            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2">
+              <v-text-field v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense filled single-line></v-text-field>
+            </v-col>
+            <=%- elif ss.tag == "v-select" %=>
+            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
+              <v-select v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=> dense filled single-line></v-select>
+            </v-col>
+            <=%- elif ss.tag == "v-date-picker" %=> 
+            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
+              <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
+                <template v-slot:activator="{on, attrs}">
+                <v-text-field v-bind="attrs" v-on="on"  
+                    v-model="<=$ ss.model $=>" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense single-line filled clearable></v-text-field>
+                </template>
+                <v-date-picker color="success" elevation="20" v-model="<=$ ss.model $=>"
+                    type='<=$ ss.attrs.type $=>'></v-date-picker>
+              </v-menu>
+            </v-col>
+            <=%- else %=> 
+              <=$ ss | tagFormat $=>
+            <=%- endif %=>
+            <=%- endfor %=>  
+            <div class="jh-backend-search-btn">
+              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </div>
+          </v-row>
+        </v-col>
+      </v-row>
+    </div>
+    <=%- endif %=>
+        <!-- <<<<<<<<<<<<< 头部内容 -->
+
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <div class="jh-page-body-container px-8">
+          <v-container class="pa-0">
+            <v-card>
+              <v-chart
+                ref="customerGrossChart"
+                :option="customerGrossOption"
+                autoresize
+                style="height: 400px;"
+              />
+
+              <v-row class="mt-4" no-gutters>
+                <v-col cols="12" md="12" class="justify-end text-right">
+                  <v-btn class="mr-4" small>导出</v-btn>
+                </v-col>
+              </v-row>
+
+              <v-data-table
+                :headers="headers"
+                :items="tableData"
+                :search="searchInput"
+                :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+                :items-per-page="-1"
+                mobile-breakpoint="0"
+                :loading="isTableLoading"
+                checkbox-color="success"
+                fixed-header
+                :class="{'zebraLine': isTableZebraLineShown }"
+                class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+              >
+                <!--没有数据-->
+                <template v-slot:loading>
+                  <div class="jh-no-data">数据加载中</div>
+                </template>
+                <template v-slot:no-data>
+                  <div class="jh-no-data">暂无数据</div>
+                </template>
+                <template v-slot:no-results>
+                  <div class="jh-no-data">暂无数据</div>
+                </template>
+                <!--表格分页-->
+                <template v-slot:footer.page-text="pagination">
+                  <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                  <span class="ml-1">共{{pagination.itemsLength}}条</span>
+                </template>
+              </v-data-table>
+            </v-card>
+          </v-container>
+        </div>
+
+        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+        <v-navigation-drawer
+          v-model="isHelpPageDrawerShown"
+          fixed
+          temporary
+          right
+          width="80%"
+          class="elevation-24"
+        >
+          <iframe
+            style="border: 0"
+            :src="`/${appInfo.appId}/pageDoc#1.directory.md`"
+            width="100%"
+            height="100%"
+          ></iframe>
+          <v-btn
+            elevation="0"
+            color="success"
+            fab
+            absolute
+            top
+            left
+            small
+            tile
+            class="drawer-close-float-btn"
+            @click="isHelpPageDrawerShown = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+      </v-main>
+    </v-app>
+    <jh-toast />
+    <jhMask />
+    <jhConfirmDialog />
+  </div>
+</script>
+<div id="app"></div>
+{% endblock %} {% block vueScript %}
+
+<script src="/<$ ctx.app.config.appId $>/public/lib/echarts.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/lib/vue-echarts.min.js"></script>
+<script type="module">
+  Vue.component('v-chart', VueECharts);
+
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: {
+      isMobile: window.innerWidth < 500,
+      isHelpPageDrawerShown: false,
+      serverSearchInput: {
+        date: '本年',
+        user: '本人及下属',
+      },
+      constantObj: {
+        date: ['今天', ' 昨天', '本周', '本月', '本季', '本年', '自定义'],
+        user: ['仅本人', '本部门', '本部门及下属部门', '本人及下属', '自定义']
+      },
+      headers: [
+        { text: '员工姓名', value: 'name', width: 120 },
+        { text: '当前客户数', value: 'currentNum', width: 120 },
+        { text: '新建客户数', value: 'newNum', width: 120 },
+        { text: '成交客户数', value: 'payNum', width: 120 },
+        { text: '客户成交率', value: 'payNuma', width: 120 },
+        { text: '合同总金额(元)', value: 'contrctMoney', width: 120 },
+        { text: '回款金额(元)', value: 'sMoney', width: 120 },
+      ],
+      tableData: [
+        {
+          name: '小明',
+          currentNum: 10,
+          newNum: 10,
+          payNum: 10,
+          payNuma: 10,
+          contrctMoney: 10,
+          sMoney: 10,
+        },
+      ],
+      searchInput: null,
+      isTableLoading: false,
+      isTableZebraLineShown: true,
+      customerGrossOption: {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow',
+          },
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true,
+        },
+        xAxis: [
+          {
+            type: 'category',
+            data: Array.from({ length: 12 }, (v, i) =>
+              dayjs().month(i).format('YYYY-MM-01')
+            ),
+            axisTick: {
+              alignWithLabel: true,
+            },
+          },
+        ],
+        yAxis: [
+          {
+            type: 'value',
+          },
+        ],
+        series: [
+          {
+            name: '成交客户数',
+            type: 'bar',
+            barWidth: '60%',
+            data: [10, 52, 200, 334, 390, 330, 220],
+          },
+          {
+            name: '新建客户数',
+            type: 'bar',
+            barWidth: '60%',
+            data: [10, 52, 200, 334, 390, 330, 220],
+          },
+        ],
+        legend: {
+          top: 10,
+          left: 'center',
+          data: ['成交客户数', '新建客户数'],
+        },
+
+        toolbox: {
+          show: true,
+          feature: {
+            saveAsImage: {},
+          },
+        },
+      },
+    },
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+    },
+    watch: {},
+    async created() {},
+    mounted() {
+      // this.doUiAction('getTableData');
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.getTableData();
+            break;
+          default:
+            console.error('[doUiAction] uiActionId not find', { uiActionId });
+            break;
+        }
+      },
+    },
+  });
+</script>
+
+<style scoped></style>
+{% endblock %}

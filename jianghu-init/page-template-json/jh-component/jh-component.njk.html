@@ -1,0 +1,43 @@
+<!-- <=$ componentPath.split('/').pop() $=>.html start -->
+<template id="<=$ componentPath.split('/').pop() | camelToKebab $=>">
+  <div>
+    <=% if pageContent.tag %=>
+    <=$ pageContent | tagFormat $=>
+    <=% endif %=>
+  </div>
+</template>
+<=%- for include in includeList %=>
+<=$ include $=>
+<=%- endfor %=>
+<script>
+  Vue.component('v-chart', VueECharts);
+  Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
+    template: '#<=$ componentPath.split('/').pop() | camelToKebab $=>',
+    vuetify: new Vuetify(),
+    name: '<=$ componentPath.split('/').pop() | camelToKebab $=>',
+    //===// <=%- if common.props | isArray %=> 
+    //===// props: <=$ common.props | dump $=>,
+    //===// <=%- elif common.props | isObject %=>
+    //===// <=$ common.props | variableToVar('props') $=>,
+    //===// <=%- endif %=>
+    data: () => ({
+      // ================================ common ================================
+      //===// <=%- if common and common.data %=> 
+      //===// <=%- for key, value in common.data %=> 
+      //===// <=$ value | variableToVar(key) $=>,
+      //===// <=%- endfor %=>
+      //===// <=%- endif %=>
+    }),
+    computed: {
+    },
+    watch: {
+    },
+    async created() {
+    },
+    methods: {
+    },
+  })
+</script>
+<style>
+</style>
+<!-- <=$ componentPath.split('/').pop() $=>.html end -->

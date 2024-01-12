@@ -46,7 +46,7 @@ module.exports = class InitPage1Table extends CommandBase {
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
-      await this.modifyTable(jsonConfig);
+      // await this.modifyTable(jsonConfig);
       await this.handleOtherResource(jsonConfig);
       // 生成组件
       await this.renderComponent(jsonConfig);
@@ -62,7 +62,7 @@ module.exports = class InitPage1Table extends CommandBase {
   async modifyTable(jsonConfig) {
     const { table, pageId, pageName, idGenerate = false } = jsonConfig;
     const knex = await this.getKnex();
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-page`;
     await this.checkTableFields(table, idGenerate);
 
     let clearSql = fs.readFileSync(`${templatePath}/clear_crud.sql`).toString();
@@ -109,7 +109,7 @@ module.exports = class InitPage1Table extends CommandBase {
     const { table, pageId, pageType } = jsonConfig;
     const tableCamelCase = _.camelCase(table);
     const filepath = `./app/view/page/${pageId}.html`;
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-page`;
     const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath)
       .toString()
