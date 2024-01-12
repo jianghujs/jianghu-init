@@ -527,6 +527,13 @@ new Vue({
           //===//   break;
           //===// <=%- endif %=>
 
+          //===// <=%- for drawer in drawerList %=>
+          //===// case 'view<=$ drawer.key | ucfirst $=>':
+          //===//   await this.prepare<=$ drawer.key | ucfirst $=>Data(uiActionData);
+          //===//   await this.open<=$ drawer.key | ucfirst $=>Drawer(uiActionData);
+          //===//   break;
+          //===// <=%- endfor %=>
+
           //===// <=%- for key, value in common.doUiAction %=> 
           //===// case '<=$ key $=>':
           //===//   <=%- for method in value %=> 
@@ -534,6 +541,8 @@ new Vue({
           //===//   <=%- endfor %=>
           //===//   break;
           //===// <=%- endfor %=>
+
+          
 
           default:
             console.error("[doUiAction] uiActionId not find", {uiActionId});
@@ -754,6 +763,9 @@ new Vue({
     //===// },
     //===// async close<=$ drawer.key | ucfirst $=>Drawer() {
     //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = false;
+    //===// },
+    //===// async prepare<=$ drawer.key | ucfirst $=>Data(item) {
+    //===//   this.<=$ drawer.key $=> = _.cloneDeep(item);
     //===// },
     //===// <=%- endfor %=>
   }
