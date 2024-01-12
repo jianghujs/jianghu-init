@@ -486,7 +486,7 @@ const content = {
   resourceList: [], // 额外resource { actionId, resourceType, resourceData }
   drawerList: [], // 抽屉列表 { key, title, contentList }
   includeList: [
-    ${includeList.join(',\n    ')}
+    ${includeList.map(item => `'${item}'`).join(',\n    ')}
   ], // 其他资源引入
   common: {
     data: ${JSON.stringify(this.getChartData(chartType), null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, '\n     ')},
