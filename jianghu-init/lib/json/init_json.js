@@ -448,9 +448,9 @@ module.exports = content;
               rate: '100%',
               status: 'up',
               chartOption: {
-                color: ['#5470C6'],
-                data: [0, 2, 5, 9, 5, 10, 3]
-              }
+                color: [ '#5470C6' ],
+                data: [ 0, 2, 5, 9, 5, 10, 3 ],
+              },
             },
             {
               label: '新增联系人',
@@ -459,9 +459,9 @@ module.exports = content;
               rate: '100%',
               status: 'up',
               chartOption: {
-                color: ['#5470C6'],
-                data: [0, 2, 5, 9, 5, 10, 3]
-              }
+                color: [ '#5470C6' ],
+                data: [ 0, 2, 5, 9, 5, 10, 3 ],
+              },
             },
             {
               label: '新增商机',
@@ -470,9 +470,9 @@ module.exports = content;
               rate: '-20%',
               status: 'down',
               chartOption: {
-                color: ['#5470C6'],
-                data: [0, 2, 5, 9, 5, 10, 3]
-              }
+                color: [ '#5470C6' ],
+                data: [ 0, 2, 5, 9, 5, 10, 3 ],
+              },
             },
             {
               label: '新增合同',
@@ -481,12 +481,12 @@ module.exports = content;
               rate: '100%',
               status: 'up',
               chartOption: {
-                color: ['#5470C6'],
-                data: [0, 2, 5, 9, 5, 10, 3]
-              }
+                color: [ '#5470C6' ],
+                data: [ 0, 2, 5, 9, 5, 10, 3 ],
+              },
             },
-          ]
-        }
+          ],
+        };
       default:
         return {};
     }
