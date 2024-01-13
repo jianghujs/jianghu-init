@@ -11,15 +11,12 @@
 <v-app mobile-breakpoint="sm">
   <jh-menu />
   <v-main class="mt-13">
-    <!-- 头部内容 >>>>>>>>>>>>> -->
     <=%- if headContent %=> 
+    <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
       <v-row class="align-center" dense>
         <v-col cols="12" xs="12" sm="12" md="4" xl="3">
           <div class="py-4 text-body-1 font-weight-bold d-flex align-center"><=$ pageName $=>
-            <=%- if headContent.breadcrumbList %=> 
-            <span>{{ breadcrumbList[breadcrumbList.length-1].text }}</span>
-            <=%- endif %=>
             <=%- if headContent.helpDrawer %=> 
             <!-- 帮助页按钮 -->
             <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
@@ -31,51 +28,316 @@
         <v-col cols="12" xs="12" sm="12" md="8" xl="9">
           <v-row class="jh-backend-form-container justify-end ma-0 py-3">
             <=%- for ss in headContent.serverSearchList %=>
-            <=%- if ss.tag == "v-text-field" %=> 
-            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2">
-              <v-text-field v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense filled single-line></v-text-field>
-            </v-col>
-            <=%- elif ss.tag == "v-select" %=>
-            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
-              <v-select v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" <=% for key, value in ss.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=> dense filled single-line></v-select>
-            </v-col>
-            <=%- elif ss.tag == "v-autocomplete" %=>
-            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
-              <v-autocomplete v-model="<=$ ss.model $=>" color="success" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" <=% for key, value in ss.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=> dense filled single-line></v-autocomplete>
-            </v-col>
-            <=%- elif ss.tag == "v-date-picker" %=> 
-            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
+            <=%- if ss.tag == "v-date-picker" %=> 
+            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 pt-2 pt-sm-0">
               <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
                 <v-text-field v-bind="attrs" v-on="on"  
                     v-model="<=$ ss.model $=>" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense single-line filled clearable></v-text-field>
                 </template>
-                <v-date-picker color="success" elevation="20" v-model="<=$ ss.model $=>"
-                    type='<=$ ss.attrs.type $=>'></v-date-picker>
+                <v-date-picker color="success" elevation="20" v-model="<=$ ss.model $=>" type='<=$ ss.attrs.type $=>'></v-date-picker>
               </v-menu>
             </v-col>
             <=%- else %=> 
-              <=$ ss | tagFormat $=>
+              
+            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>">
+              <=$ ss | formItemFormat $=>
+            </v-col>
             <=%- endif %=>
             <=%- endfor %=>  
-            <div class="jh-backend-search-btn">
+            <=%- if headContent.searchBtn is undefined or headContent.searchBtn != false %=>
+            <div class="jh-backend-search-btn ml-2">
+              <=%- if headContent.searchBtn %=>
+              <=$ headContent.searchBtn | tagFormat(10) $=>
+              <=%- else %=>
               <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
                 查询
               </v-btn>
+              <=%- endif %=>
             </div>
+            <=%- endif %=>
           </v-row>
         </v-col>
       </v-row>
     </div>
-    <=%- endif %=>
     <!-- <<<<<<<<<<<<< 头部内容 -->
+    <=%- endif %=>
 
     <!-- 页面内容 >>>>>>>>>>>>> -->
     <div class="jh-page-body-container px-8">
-      <=%- if pageContent.tag %=>
-      <=$ pageContent | tagFormat(6) $=><=% endif %=>
+      <=%- if pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table' %=>
+      <v-card class="rounded-lg">
+        <v-row class="ma-0 pa-4">
+          <!-- 新增按钮 -->
+          <v-col cols="12" xs="8" sm="8" md="9" xl="10" class="pa-0">
+            <=%- if createDrawerContent %=>
+            <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
+            <=%- endif %=>
+            <=%- for action in pageContent.headActionList %=>
+            <=$ action | tagFormat(12) $=>
+            <=%- endfor %=>
+          </v-col>
+          <v-spacer></v-spacer>
+          <!-- 搜索过滤 -->
+          <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+            <v-text-field color="success" v-model="tableSearchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+          </v-col>
+        </v-row>
+        <!-- 表格 -->
+        <v-data-table
+          :headers="tableHeaderList"
+          :items="tableData"
+          :search="tableSearchInput"
+          :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+          :items-per-page="-1"
+          mobile-breakpoint="0"
+          :loading="tableLoading"
+          checkbox-color="success"
+          :class="{'zebraLine': true }"
+          fixed-header
+          <=%- for attr, value in pageContent.attrs %=>
+          <=$ attr | tagAttr(value) $=>
+          <=%- endfor %=>
+          class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+        >
+          <=%- for header in pageContent.value %=>
+          <=%- if header.formatter %=>
+          <template v-slot:item.<=$ header.value $=>="{item, index}">
+            <=$ header.formatter | tagFormat(12) $=>
+          </template>
+          <=%- endif %=>
+          <=%- endfor %=>
+            
+          <!-- 表格操作按钮 -->
+          <template v-slot:item.action="{ item }">
+            <=%- for action in pageContent.rowActionList %=>
+            <=$ action | tagFormat(12) $=>
+            <=%- endfor %=>
+            <=%- if updateDrawerContent %=>
+            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+              <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>详情
+            </span>
+            <=%- endif %=>
+            <=%- if deleteContent %=>
+            <span role="button" class="error--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+              <v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除
+            </span>
+            <=%- endif %=>
+          </template>
+          <!-- 没有数据 -->
+          <template v-slot:loading>
+            <div class="jh-no-data">数据加载中</div>
+          </template>
+          <template v-slot:no-data>
+            <div class="jh-no-data">暂无数据</div>
+          </template>
+          <template v-slot:no-results>
+            <div class="jh-no-data">暂无数据</div>
+          </template>
+          <!-- 表格分页 -->
+          <template v-slot:footer.page-text="pagination">
+            <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+            <span class="ml-1">共{{pagination.itemsLength}}条</span>
+          </template>
+        </v-data-table>
+      </v-card>
+      <=%- else %=>
+      <=$ pageContent | tagFormat(6) $=>
+      <=%- endif %=>
     </div>
     <!-- <<<<<<<<<<<<< 页面内容 -->
+
+    <=%- if createDrawerContent %=> 
+    <!-- 新增抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <v-form ref="createForm" lazy-validation>
+        <!-- 抽屉标题 -->
+        <v-row no-gutters>
+          <span class="text-h7 font-weight-bold pa-4">新增信息</span>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <v-row class="mt-0 px-4">
+          <=%- for formItem in createDrawerContent.formItemList %=>
+          <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>">
+            <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+            <=%- if formItem.tag == "v-date-picker" %=> 
+            <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
+                <template v-slot:activator="{on, attrs}">
+                <v-text-field v-bind="attrs" v-on="on" v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly></v-text-field>
+                </template>
+                <v-date-picker color="success" elevation="20" v-model="createItem.<=$ formItem.model $=>"></v-date-picker>
+            </v-menu>
+            <=%- else %=> 
+            <=$ formItem | formItemFormat('createItem') $=>
+            <=%- endif %=>
+          </v-col>
+          <=%- endfor %=>
+        </v-row>
+        <!-- 抽屉操作按钮 -->
+        <v-row class="justify-end mx-0 my-8 px-4">
+            <v-btn color="success" @click="<=$ content.action if content.action else 'doUiAction(\'createItem\')' $=>" small>保存</v-btn>
+            <v-btn class="elevation-0 ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+        </v-row>
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 新增抽屉 -->
+    <=%- endif %=>
+
+    <=%- if updateDrawerContent %=> 
+    <!-- 编辑抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <v-form ref="updateForm" lazy-validation>
+        <!-- 抽屉标题 -->
+        <v-row no-gutters>
+          <span class="text-h7 font-weight-bold pa-4">详细信息</span>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <=%- if updateDrawerContent.otherActionList %=> 
+        <v-row>
+          <v-col cols="12" class="px-6 pt-0">
+            <=% for actionItem in updateDrawerContent.otherActionList %=> 
+            <=$ actionItem.tag | tagFormat $=><=% endfor %=>
+          </v-col>
+        </v-row>
+        <=%- endif %=>
+        <div class="px-4">
+          <v-tabs
+            v-model="updateDrawerTab"
+            color="success"
+          >
+            <=%- for content in updateDrawerContent.contentList %=>
+            <v-tab key="<=$ content.label $=>">
+              <=$ content.label $=>
+            </v-tab>
+            <=%- endfor %=>
+          </v-tabs>
+        </div>
+        <v-tabs-items v-model="updateDrawerTab">
+          <=%- for content in updateDrawerContent.contentList %=>
+          <v-tab-item
+            key="<=$ content.label $=>"
+          >
+            <=%- if content.type == "form" %=> 
+            <v-row class="mt-0 px-4">
+              <=%- for formItem in content.formItemList %=>
+              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>">
+                <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                <=%- if formItem.tag == "v-date-picker" %=> 
+                <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
+                  <template v-slot:activator="{on, attrs}">
+                  <v-text-field v-bind="attrs" v-on="on" v-model="updateItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly></v-text-field>
+                  </template>
+                  <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ formItem.model $=>"></v-date-picker>
+                </v-menu>
+                <=%- else %=> 
+                <=$ formItem | formItemFormat('updateItem') $=>
+                <=%- endif %=>
+              </v-col>
+              <=%- endfor %=> 
+            </v-row>
+
+            <!-- 抽屉操作按钮 -->
+            <v-row class="justify-end mx-0 my-8 px-4">
+                <v-btn color="success" @click="<=$ content.action if content.action else 'doUiAction(\'updateItem\')' $=>" small>保存</v-btn>
+                <v-btn class="elevation-0 ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+            <=%- elif content.type == "component" %=>
+            <<=$ content.componentPath.split('/').pop() | camelToKebab $=> v-bind="{<=% for key, value in content.bind %=>'<=$ key $=>': <=$ value $=>, <=%- endfor %=>}"/>
+            <=%- endif %=>
+          </v-tab-item>
+          <=%- endfor %=>
+        </v-tabs-items>
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShown = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 编辑抽屉 -->
+    <=%- endif %=>
+
+    <=%- for drawer in drawerList %=> 
+    <!-- <=$ drawer.title $=> >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-model="is<=$ drawer.key | ucfirst $=>DrawerShown" :permanent="is<=$ drawer.key | ucfirst $=>DrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <v-form ref="<=$ drawer.key $=>" lazy-validation>
+        <=% if drawer.title %=>
+        <!-- 抽屉标题 -->
+        <v-row no-gutters>
+          <span class="text-h7 font-weight-bold pa-4"><=$ drawer.title $=></span>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <=% endif %=>
+        <=%- if drawer.otherActionList %=> 
+        <v-row>
+          <v-col cols="12" class="px-6 pt-0">
+            <=% for actionItem in drawer.otherActionList %=> 
+            <=$ actionItem.tag | tagFormat $=><=% endfor %=>
+          </v-col>
+        </v-row>
+        <=%- endif %=>
+        <=% if drawer.contentList.length > 1 %=>
+        <div class="px-4">
+          <v-tabs
+            v-model="<=$ drawer.key $=>DrawerTab"
+            color="success"
+          >
+            <=%- for content in drawer.contentList %=>
+            <v-tab key="<=$ content.label $=>">
+              <=$ content.label $=>
+            </v-tab>
+            <=%- endfor %=>
+          </v-tabs>
+        </div>
+        <=% endif %=>
+        <v-tabs-items v-model="<=$ drawer.key $=>DrawerTab">
+          <=%- for content in drawer.contentList %=>
+          <v-tab-item
+            key="<=$ content.label $=>"
+          >
+            <=%- if content.type == "form" %=> 
+            <v-row class="mt-0 px-4">
+              <=%- for formItem in content.formItemList %=>
+              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>">
+                <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                <=%- if formItem.tag == "v-date-picker" %=> 
+                <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
+                    <template v-slot:activator="{on, attrs}">
+                    <v-text-field v-bind="attrs" v-on="on" v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly></v-text-field>
+                    </template>
+                    <v-date-picker color="success" elevation="20" v-model="<=$ drawer.key $=>.<=$ formItem.model $=>"></v-date-picker>
+                </v-menu>
+                <=%- else %=> 
+                <=$ formItem | formItemFormat(drawer.key) $=>
+                <=%- endif %=>
+              </v-col>
+              <=%- endfor %=> 
+            </v-row>
+
+            <!-- 抽屉操作按钮 -->
+            <v-row class="justify-end mx-0 my-8 px-4">
+              <=%- if content.action %=>
+              <=$ content.action | tagFormat(14) $=>
+              <=%- endif %=>
+              <v-btn class="elevation-0 ml-2" @click="is<=$ drawer.key | ucfirst $=>DrawerShown = false" small>取消</v-btn>
+            </v-row>
+            <=%- elif content.type == "component" %=>
+            <<=$ content.componentPath.split('/').pop() | camelToKebab $=> v-bind="{<=% for key, value in content.bind %=>'<=$ key $=>': <=$ value $=>, <=%- endfor %=>}"/>
+            <=%- endif %=>
+          </v-tab-item>
+          <=%- endfor %=>
+        </v-tabs-items>
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="is<=$ drawer.key | ucfirst $=>DrawerShown = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< <=$ drawer.title $=> -->
+    <=%- endfor %=>
 
     <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
     <=%- if headContent.helpDrawer %=> 
@@ -103,8 +365,8 @@
 <=%- for component in componentList %=>
 {% include 'component/<=$ component.componentPath $=>.html' %}
 <=%- endfor %=>
-<=%- for include in includeList %=>
-<=$ include $=>
+<=%- for item in includeList %=>
+<=$ item | includeFormat $=>
 <=%- endfor %=>
 
 <script type="module">
@@ -122,7 +384,6 @@ new Vue({
 
     //===// <=%- if headContent %=>
     // ================================ headContent ================================
-    //===// <=$ headContent.breadcrumbList | listToVar('breadcrumbList') $=>,
     //===// <=$ headContent.serverSearchWhere | objToVar('serverSearchWhere') $=>,
     //===// <=$ headContent.serverSearchWhereLike | objToVar('serverSearchWhereLike') $=>,
     //===// <=%- endif %=>
@@ -131,9 +392,9 @@ new Vue({
     //===// isHelpPageDrawerLoaded: false,
     //===// <=%- endif %=>
 
-    //===// <=%- if pageContent.tableHeaderList %=>
+    //===// <=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
     // ================================ pageContent ================================
-    //===// <=$ pageContent.tableHeaderList | removeKey(['formatter']) | listToVar('tableHeaderList') $=>,
+    //===// <=$ pageContent.value | removeKey(['formatter']) | listToVar('tableHeaderList') $=>,
     //===// tableData: [],
     //===// tableLoading: true,
     //===// tableSearchInput: null,
@@ -169,7 +430,7 @@ new Vue({
     //===// <=%- endfor %=>
   }),
   watch: {
-    //===// <=%- if headContent %=>
+    //===// <=%- if headContent and headContent.helpDrawer %=>
     isHelpPageDrawerShown(val) {
       if (val && !this.isHelpPageDrawerLoaded) {
         this.isHelpPageDrawerLoaded = true;
@@ -182,7 +443,7 @@ new Vue({
   },
   //===// <=$ common.computed | variableToVar('computed') $=><=$ ',' if common.computed $=>
   async created() {
-    //===// <=%- if pageContent.tableHeaderList %=>
+    //===// <=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
     this.doUiAction('getTableData');
     //===// <=%- endif %=>
   },
@@ -192,7 +453,7 @@ new Vue({
     async doUiAction(uiActionId, uiActionData) {
       try {
         switch (uiActionId) {
-          //===// <=%- if pageContent.tableHeaderList %=>
+          //===// <=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
           case 'getTableData':
             await this.getTableData();
             break;
@@ -254,11 +515,11 @@ new Vue({
       } catch (error) {
         throw error;
       } finally {
-        window.jhMask.hide();
+        window.jhMask && window.jhMask.hide();
       }
     },
 
-    //===// <=%- if pageContent.tableHeaderList %=>
+    //===// <=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
     // ---------- 获取表格数据 uiAction >>>>>>>>>> --------
     async getTableData() {
       this.tableLoading = true;
@@ -457,11 +718,14 @@ new Vue({
     //===// <=%- endif %=>
 
     //===// <=%- if common and common.methods %=> 
+    // ---------- Custom uiAction >>>>>>>>>>>> --------
     //===// <=%- for key, value in common.methods %=> 
     //===// <=$ value | variableToVar(key) | safe $=>,
     //===// <=%- endfor %=>
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
     //===// <=%- endif %=>
 
+    //===// <=%- if drawerList.length %=>
     // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
     //===// <=%- for drawer in drawerList %=>
     //===// async open<=$ drawer.key | ucfirst $=>Drawer() {
@@ -471,6 +735,7 @@ new Vue({
     //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = false;
     //===// },
     //===// <=%- endfor %=>
+    //===// <=%- endif %=>
   }
 })
 </script>

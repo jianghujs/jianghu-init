@@ -15,11 +15,11 @@ const initTypes = [
   {
     value: 'project',
     name: 'project - Create a project and init table.',
-  }, 
+  },
   {
     value: 'page',
     name: 'page - Generate manage or test page from database table.',
-  }, 
+  },
   {
     value: 'tool',
     name: 'tool - Add some tools to manage your app.',
@@ -30,17 +30,16 @@ const initTypes = [
  */
 module.exports = class Entry {
 
-  async run() {
 
+  async run() {
     let passArgv = process.argv.slice(2);
     let initType = passArgv[0];
 
-    if (initType !== 'project' && initType !== 'page' && initType !== 'tool' && initType !== 'json') {
-      // 需要指定是 page 还是 project
+    if (![ 'project', 'page', 'tool', 'json' ].includes(initType)) {
       const answer = await inquirer.prompt({
         name: 'initType',
         type: 'list',
-        message: 'Please select a init type',
+        message: 'Please select an init type',
         choices: initTypes,
         pageSize: initTypes.length + 1,
       });
@@ -49,17 +48,26 @@ module.exports = class Entry {
       passArgv = passArgv.slice(1);
     }
 
-    if (initType === 'project') {
-      await new CommandInitProject().run(process.cwd(), passArgv);
-    } else if (initType === 'page') {
-      await new CommandInitPage().run(process.cwd(), passArgv);
-    } else if (initType === 'tool') {
-      await new CommandInitTool().run(process.cwd(), passArgv);
-    } else if (initType === 'json') {
-      await new CommandInitByJson().run(process.cwd(), passArgv);
+    switch (initType) {
+      case 'project':
+        await new CommandInitProject().run(process.cwd(), passArgv);
+        break;
+      case 'page':
+        await new CommandInitPage().run(process.cwd(), passArgv);
+        break;
+      case 'tool':
+        await new CommandInitTool().run(process.cwd(), passArgv);
+        break;
+      case 'json':
+        await new CommandInitByJson().run(process.cwd(), passArgv);
+        break;
+      default:
+        this.errror('init type is not support');
+        break;
     }
 
     process.exit();
   }
+
 
 };

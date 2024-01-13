@@ -9,9 +9,12 @@ const path = require('path');
 const typeList = [
   { value: '1table-page', name: '1table-page' },
   { value: '1table-component', name: '1table-component' },
+  { value: 'jh-page', name: 'jh-page' },
+  { value: 'jh-component', name: 'jh-component' },
 ];
 
 const chartTypeList = [
+  { value: 'all', name: 'all - 所有样例（page + component）' },
   { value: 'line', name: 'line - 折线图' },
   { value: 'pie', name: 'pie - 饼状图' },
   { value: 'bar', name: 'bar - 柱状图' },
@@ -35,16 +38,15 @@ module.exports = class InitJson extends CommandBase {
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
-    this.success('初始化数据库连接成功');
     const config = await this.promptConfig();
     await this.buildJson(config);
-    this.success('初始化数据库成功');
+    this.success('生成配置文件成功！');
   }
 
   // 确认生成表
   async promptConfig() {
     const knex = await this.getKnex();
-    let { table, pageId, pageType } = this.argv;
+    let { table, pageId, pageType, chartPage } = this.argv;
     if (!pageType) {
       const res = await inquirer.prompt({
         name: 'type',
@@ -54,7 +56,7 @@ module.exports = class InitJson extends CommandBase {
       });
       pageType = res.type;
     }
-    if (pageType === 'jh-component') {
+    if (chartPage) {
       const res = await inquirer.prompt({
         name: 'chartType',
         type: 'list',
@@ -69,7 +71,10 @@ module.exports = class InitJson extends CommandBase {
         TABLE_SCHEMA: this.dbSetting.database,
         TABLE_TYPE: 'BASE TABLE',
       });
-      const tables = result.map(item => item.TABLE_NAME).filter(table => !table.startsWith('_'));
+      const tables = result.filter(table => !table.TABLE_NAME.startsWith('_')).map(item => ({ value: item.TABLE_NAME, name: item.TABLE_NAME }));
+      if (pageType.startsWith('jh-')) {
+        tables.unshift({ value: '', name: '自定义页面，不选择 table' });
+      }
       const res = await inquirer.prompt({
         name: 'table',
         type: 'list',
@@ -83,8 +88,8 @@ module.exports = class InitJson extends CommandBase {
       const res = await inquirer.prompt({
         name: 'pageId',
         type: 'input',
-        default: table + 'Management',
-        message: `请输入文件名，如"${table}Management"`,
+        default: table ? table + 'Management' : 'examplePage',
+        message: `请输入文件名，如"${table ? table + 'Management' : 'examplePage'}"`,
       });
       pageId = res.pageId;
     }
@@ -105,7 +110,7 @@ module.exports = class InitJson extends CommandBase {
   async buildJson({ table, pageId, pageType, chartType }) {
     // 检测创建文件夹
     if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
-    const generateFileDir = pageType === '1table-page' ? './app/view/init-json/page' : './app/view/init-json/component';
+    const generateFileDir = [ '1table-page', 'jh-page' ].includes(pageType) ? './app/view/init-json/page' : './app/view/init-json/component';
     if (!fs.existsSync(generateFileDir)) fs.mkdirSync(generateFileDir);
 
     const fields = table ? await this.getTableFields(table) : [];
@@ -114,59 +119,133 @@ module.exports = class InitJson extends CommandBase {
     let fileName = pageId;
     if (pageType === 'jh-component') {
       if (chartType) {
-        content = this.getChartContent({ table, pageId, pageType, chartType });
+        if (chartType === 'all') {
+          content = await this.getAllChartContent();
+          this.checkStaticChartFile();
+          return;
+        } else {
+          content = this.getChartContent({ table, pageId, pageType, chartType });
+        }
         if (!pageId) {
           fileName = chartType + 'Chart';
         }
         // 添加依赖的public 静态资源
         this.checkStaticChartFile();
       }
+      content = this.getJhContent({ table, pageId, pageType, fields });
     } else if (pageType === 'jh-page') {
-      content = this.getContent({ table, pageId, pageType, fields });
+      content = this.getJhContent({ table, pageId, pageType, fields });
     } else {
       content = this.get1TableContent({ table, pageId, pageType, fields });
     }
     // 生成文件
     const generateFilePath = `${generateFileDir}/${fileName}.js`;
     fs.writeFileSync(generateFilePath, content);
+    if (pageType.includes('component')) {
+      this.info(`
+    ---------- 引入示例 ----------
+    includeList: [
+      { type: 'component', path: "${fileName}" },
+    ],
+
+    ---------- 渲染示例 ----------
+    <${fileName.split('/').pop().replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '\$1-\$2')
+    .toLowerCase()}/>
+      `);
+    }
   }
 
-  getContent({ table, pageId, pageType }) {
-    const content =
-    `const content = {
-      pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
-      resourceList: [], // 额外resource { actionId, resourceType, resourceData }
-      drawerList: [], // 抽屉列表 { key, title, contentList }
-      includeList: [], // 其他资源引入
-      common: {
-        data: {
-        },
-        watch: {},
-        computed: {},
-        doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
-        methods: {}
-      },
-      headContent: {
-        helpDrawer: {}, // 自动初始化md文件
-        // serverSearchList: [
-        //   { tag: "v-text-field",  label: "学生名字",    model: "serverSearchWhereLike.name",                                          },
-        //   { tag: "v-select",      label: "性别",       model: "serverSearchWhere.gender",           attrs: { items: ["全部", "男", "女"] } },
-        //   { tag: "v-date-picker", label: "出生日期",    model: "serverSearchWhereLike.dateOfBirth",  attrs: { type: "month" },             },
-        // ],
-        // serverSearchWhere: { gender: "全部" },
-        // serverSearchWhereLike: { name: null, dateOfBirth: null },
-      },
-      pageContent: {
-        tag: 'v-row',
-        attrs: { justify: 'center' },
-        value: [
-          { tag: 'v-col', attrs: { cols: '12', sm: '12', md: '12', lg: '12', xl: '12' }, value: '' },
-        ]
-      },
-    };
-    
-    module.exports = content;
-    `;
+  getJhContent({ table, pageId, pageType, fields }) {
+    let tableStr = '';
+    let columnStr = '';
+    let space = '';
+    let pageContent = '';
+    let createDrawer = '';
+    let updateDrawer = '';
+    let deleteContent = '';
+    if (table) {
+      let createItemListStr = '';
+      let updateItemListStr = '';
+      tableStr = `table: "${table}",`;
+      const { excludeColumn = [] } = this.argv;
+      fields.forEach((field, index) => {
+        const fieldKey = field.COLUMN_NAME;
+        const fieldName = field.COLUMN_COMMENT;
+        if (excludeColumn.includes(fieldKey)) return;
+        if (index === 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
+        if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
+        createItemListStr += space + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
+        updateItemListStr += space + `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
+        space = '      ';
+      });
+      pageContent = `{
+    tag: 'jh-table',
+    attrs: {  },
+    value: [
+      ${columnStr}
+    ]
+  }`;
+      createDrawer = `createDrawerContent: {
+    formItemList: [
+      ${createItemListStr}
+    ]
+  },
+      `;
+      updateDrawer = `updateDrawerContent: {
+    contentList: [
+      { label: "详细信息", type: "form", formItemList: [
+      ${updateItemListStr}
+      ]},
+      { label: "操作记录", type: "component", componentPath: "recordHistory" },
+    ]
+  },
+      `;
+      deleteContent = 'deleteContent: {}';
+    } else {
+      pageContent = `{
+    tag: 'v-row',
+    attrs: { justify: 'center' },
+    value: [
+      { tag: 'v-col', attrs: { cols: '12', sm: '12', md: '12', lg: '12', xl: '12' }, value: '' },
+    ]
+  }`;
+    }
+
+
+    const propsStr = pageType === 'jh-component' ? 'props: {},' : '';
+    const componentPath = pageType === 'jh-component' ? `componentPath: "${pageId}",` : '';
+    const content = `const content = {
+  pageType: "${pageType}", pageId: "${pageId}", ${tableStr} pageName: "${pageId}页面", ${componentPath}
+  resourceList: [], // 额外resource { actionId, resourceType, resourceData }
+  drawerList: [], // 抽屉列表 { key, title, contentList }
+  includeList: [], // 其他资源引入
+  common: { 
+    ${propsStr}
+    data: {
+    },
+    watch: {},
+    computed: {},
+    doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
+    methods: {}
+  },
+  headContent: {
+    helpDrawer: {}, // 自动初始化md文件
+    // serverSearchList: [
+    //   { tag: "v-text-field",  label: "学生名字",    model: "serverSearchWhereLike.name",                                          },
+    //   { tag: "v-select",      label: "性别",       model: "serverSearchWhere.gender",           attrs: { items: ["全部", "男", "女"] } },
+    //   { tag: "v-date-picker", label: "出生日期",    model: "serverSearchWhereLike.dateOfBirth",  attrs: { type: "month" },             },
+    // ],
+    // serverSearchWhere: { gender: "全部" },
+    // serverSearchWhereLike: { name: null, dateOfBirth: null },
+  },
+  pageContent: ${pageContent},
+  ${createDrawer}
+  ${updateDrawer}
+  ${deleteContent}
+};
+
+module.exports = content;
+`;
     return content;
   }
 
@@ -261,7 +340,7 @@ module.exports = class InitJson extends CommandBase {
     switch (chartType) {
       case 'line':
         return {
-          lineOption: {
+          lineChartOption: {
             xAxis: {
               type: 'category',
               data: [ '2023-01', '2023-02', '2023-03', '2023-04', '2023-05', '2023-06' ],
@@ -420,8 +499,7 @@ module.exports = class InitJson extends CommandBase {
     let pageContent = '';
     let includeList = [];
     if ([ 'line', 'pie', 'bar', 'gauge' ].includes(chartType)) {
-      pageContent = `
-    tag: "v-chart",
+      pageContent = `tag: "v-chart",
     attrs: {
       ':option': '${chartType}ChartOption',
       style: 'height: 300px;',
@@ -441,14 +519,14 @@ module.exports = class InitJson extends CommandBase {
       class: 'rounded-lg jh-dashboard-card',
     },
     value: [
-      { tag: 'div', attrs: { class: 'd-flex align-center pa-4' }, value: '<div class="font-weight-medium text-subtitle-2">销售简报</div>' },
-      { tag: 'div', attrs: { class: 'px-4 pb-4' }, value: \`
+      { tag: 'div', attrs: { class: 'd-flex align-center py-4' }, value: '<div class="font-weight-medium text-subtitle-2">销售简报</div>' },
+      { tag: 'div', attrs: { class: 'pb-4' }, value: \`
       <v-row dense>
         <v-col cols="12" xs="12" sm="12" md="3"
           v-for="(item, index) in saleData"  
           :key="index"
           >
-          <v-card class="rounded-lg pa-4" role="button">
+          <v-card class="rounded-lg pa-4" outlined role="button">
             <v-row dense align="center">
               <v-col cols="12" xs="12" sm="12" md="6">
                 <div>{{item.label}}</div>
@@ -489,9 +567,7 @@ const content = {
     ${includeList.map(item => `'${item}'`).join(',\n    ')}
   ], // 其他资源引入
   common: {
-    data: ${JSON.stringify(this.getChartData(chartType), null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, '\n     ')},
-  },
-  headContent: {
+    data: ${JSON.stringify(this.getChartData(chartType), null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, '\n    ')},
   },
   pageContent: {
     ${pageContent}
@@ -587,6 +663,66 @@ module.exports = content;
       // eslint-disable-next-line no-eval
       eval(fs.readFileSync('./app/view/init-json/component/exampleStudentOfClass.js').toString()),
     ];
+  }
+
+  async getAllChartContent() {
+    const examplePath = `${path.join(__dirname, '../../')}page-template-json/example-chart`;
+    const fileList = [
+      { file: 'lineChart', path: 'component/exampleChart', checkPath: true },
+      { file: 'pieChart', path: 'component/exampleChart' },
+      { file: 'barChart', path: 'component/exampleChart' },
+      { file: 'gaugeChart', path: 'component/exampleChart' },
+      { file: 'saleDataChart', path: 'component/exampleChart' },
+      { file: 'exampleChartPage', path: 'page' },
+    ];
+
+    // 检测创建文件夹
+    if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
+    if (!fs.existsSync('./app/view/init-json/page')) fs.mkdirSync('./app/view/init-json/page');
+    if (!fs.existsSync('./app/view/init-json/component')) fs.mkdirSync('./app/view/init-json/component');
+    // 把样例文件复制到项目中
+    for (const fileItem of fileList) {
+      if (fileItem.checkPath) {
+        const pathArr = fileItem.path.split('/');
+        // 判断目录不存在就创建
+        let dir = './app/view/init-json';
+        for (const pathItem of pathArr) {
+          dir += '/' + pathItem;
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+        }
+      }
+      fs.copyFileSync(`${examplePath}/${fileItem.file}.js`, `./app/view/init-json/${fileItem.path}/${fileItem.file}.js`);
+    }
+    // sql 文件
+    const sqlFilePath = 'example-chart/check_page.sql';
+    await this.executeSql(sqlFilePath, { pageId: 'exampleChartPage', pageName: '图表样例' });
+  }
+
+  async executeSql(sqlFile, obj) {
+    const knex = await this.getKnex();
+    let label = '';
+    const sqlFilename = sqlFile.split('/').pop();
+    if (sqlFilename.startsWith('clear_')) {
+      label = '正在执行删除';
+    } else if (sqlFilename.startsWith('init_')) {
+      label = '正在执行插入/更新';
+    } else if (sqlFilename.startsWith('check_')) {
+      label = '正在执行检查';
+    }
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json`;
+    let sqlContent = fs.readFileSync(`${templatePath}/${sqlFile.replace(/\.sql$/, '') + '.sql'}`).toString();
+    for (const key in obj) {
+      sqlContent = sqlContent.replace(new RegExp(`{{${key}}}`, 'g'), obj[key]);
+    }
+    const sqlList = sqlContent.split('\n');
+    for (const line of sqlList) {
+      if (!line) continue;
+      if (line.startsWith('--')) {
+        this.info(`${label} ${line}`);
+      } else {
+        await knex.raw(line);
+      }
+    }
   }
 
 };

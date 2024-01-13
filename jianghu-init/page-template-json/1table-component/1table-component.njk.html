@@ -6,9 +6,6 @@
     <v-row class="align-center" dense>
       <v-col cols="12" xs="12" sm="12" md="4" xl="3">
         <div class="py-4 text-body-1 font-weight-bold d-flex align-center"><=$ pageName $=>
-          <=%- if headContent.breadcrumbList %=> 
-          <span>{{ breadcrumbList[breadcrumbList.length-1].text }}</span>
-          <=%- endif %=>
           <=%- if headContent.helpDrawer %=> 
           <!-- 帮助页按钮 -->
           <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
@@ -36,11 +33,9 @@
           <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
             <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
               <template v-slot:activator="{on, attrs}">
-              <v-text-field v-bind="attrs" v-on="on"  
-                  v-model="<=$ ss.model $=>" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense single-line filled clearable></v-text-field>
+              <v-text-field v-bind="attrs" v-on="on" v-model="<=$ ss.model $=>" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense single-line filled clearable></v-text-field>
               </template>
-              <v-date-picker color="success" elevation="20" v-model="<=$ ss.model $=>"
-                  type='<=$ ss.attrs.type $=>'></v-date-picker>
+              <v-date-picker color="success" elevation="20" v-model="<=$ ss.model $=>" type='<=$ ss.attrs.type $=>'></v-date-picker>
             </v-menu>
           </v-col>
           <=%- endif %=>
@@ -63,7 +58,6 @@
       <v-row class="ma-0 pa-4">
         <!-- 新增按钮 -->
         <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
-
           <=%- if createDrawerContent %=>
           <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
           <=%- endif %=>
@@ -74,62 +68,61 @@
         <v-spacer></v-spacer>
         <!-- 搜索过滤 -->
         <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
-            <v-text-field color="success" v-model="tableSearchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+          <v-text-field color="success" v-model="tableSearchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
         </v-col>
-        </v-row>
-        <!-- 表格 -->
-        <v-data-table
-            :headers="tableHeaderList"
-            :items="tableData"
-            :search="tableSearchInput"
-            :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
-            :items-per-page="-1"
-            mobile-breakpoint="0"
-            :loading="tableLoading"
-            checkbox-color="success"
-            :class="{'zebraLine': true }"
-            fixed-header
-            <=%- for attr, value in pageContent.tableAttrs %=>
-            <=$ attr | tagAttr(value) $=><=%- endfor %=>
-            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
-          >
-          <=%- for header in pageContent.tableHeaderList %=>
-          <=%- if header.formatter %=>
-          <template v-slot:item.<=$ header.value $=>="{item, index}">
-            <=$ header.formatter | tagFormat $=>
-          </template><=%- endif %=><=%- endfor %=>
+      </v-row>
+      <!-- 表格 -->
+      <v-data-table
+        :headers="tableHeaderList"
+        :items="tableData"
+        :search="tableSearchInput"
+        :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+        :items-per-page="-1"
+        mobile-breakpoint="0"
+        :loading="tableLoading"
+        checkbox-color="success"
+        :class="{'zebraLine': true }"
+        fixed-header
+        <=%- for attr, value in pageContent.tableAttrs %=>
+        <=$ attr | tagAttr(value) $=><=%- endfor %=>
+        class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+      >
+        <=%- for header in pageContent.tableHeaderList %=>
+        <=%- if header.formatter %=>
+        <template v-slot:item.<=$ header.value $=>="{item, index}">
+          <=$ header.formatter | tagFormat(10) $=>
+        </template><=%- endif %=><=%- endfor %=>
           
         <!-- 表格操作按钮 -->
         <template v-slot:item.action="{ item }">
-
-            <=%- for action in pageContent.rowActionList %=>
-            <=$ action | tagFormat $=>
-            <=%- endfor %=>
-            <=%- if updateDrawerContent %=>
-            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
-                <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>详情
-            </span>
-            <=%- endif %=>
-            <=%- if deleteContent %=>
-            <span role="button" class="error--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-                <v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除
-            </span>
-            <=%- endif %=>
+          <=%- for action in pageContent.rowActionList %=>
+          <=$ action | tagFormat(10) $=>
+          <=%- endfor %=>
+          <=%- if updateDrawerContent %=>
+          <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+            <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>详情
+          </span>
+          <=%- endif %=>
+          <=%- if deleteContent %=>
+          <span role="button" class="error--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+            <v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除
+          </span>
+          <=%- endif %=>
         </template>
         <!-- 没有数据 -->
         <template v-slot:loading>
-            <div class="jh-no-data">数据加载中</div>
+          <div class="jh-no-data">数据加载中</div>
         </template>
         <template v-slot:no-data>
-            <div class="jh-no-data">暂无数据</div>
+          <div class="jh-no-data">暂无数据</div>
         </template>
         <template v-slot:no-results>
-            <div class="jh-no-data">暂无数据</div>
+          <div class="jh-no-data">暂无数据</div>
         </template>
         <!-- 表格分页 -->
         <template v-slot:footer.page-text="pagination">
-            <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-            <span class="ml-1">共{{pagination.itemsLength}}条</span>
+          <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+          <span class="ml-1">共{{pagination.itemsLength}}条</span>
         </template>
       </v-data-table>
     </v-card>
@@ -158,10 +151,10 @@
           <v-combobox class="jh-v-input mr-2" dense filled single-line v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-combobox> 
           <=%- elif formItem.tag == "v-date-picker" %=> 
           <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
-              <template v-slot:activator="{on, attrs}">
-              <v-text-field v-bind="attrs" v-on="on" v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly></v-text-field>
-              </template>
-              <v-date-picker color="success" elevation="20" v-model="createItem.<=$ formItem.model $=>"></v-date-picker>
+            <template v-slot:activator="{on, attrs}">
+            <v-text-field v-bind="attrs" v-on="on" v-model="createItem.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly></v-text-field>
+            </template>
+            <v-date-picker color="success" elevation="20" v-model="createItem.<=$ formItem.model $=>"></v-date-picker>
           </v-menu>
           <=%- else %=> 
           <=$ formItem | formItemFormat('createItem') $=>
@@ -196,7 +189,7 @@
         <v-row>
           <v-col cols="12" class="px-6 pt-0">
             <=% for actionItem in updateDrawerContent.otherActionList %=> 
-            <=$ actionItem.tag | tagFormat $=><=% endfor %=>
+            <=$ actionItem.tag | tagFormat(10) $=><=% endfor %=>
           </v-col>
         </v-row>
         <=%- endif %=>
