@@ -83,19 +83,12 @@ module.exports = class InitByJsonCommand extends CommandBase {
       } else {
         pageType = jsonArgv.pageType;
         switch (pageType) {
-          case '1table-page':
-            await this.page1Table.run(process.cwd(), jsonArgv, this.argv);
-            break;
-          case '1table-component':
-            await this.component1Table.run(process.cwd(), jsonArgv, this.argv);
-            break;
-          case '2table-page':
-            await this.page2Table.run(process.cwd(), jsonArgv, this.argv);
-            break;
           case 'jh-component':
+          case '1table-component':
             await this.jhComponent.run(process.cwd(), jsonArgv, this.argv);
             break;
           case 'jh-page':
+          case '1table-page':
             await this.jhPage.run(process.cwd(), jsonArgv, this.argv);
             break;
           default:
@@ -288,19 +281,16 @@ module.exports = class InitByJsonCommand extends CommandBase {
   }
 
   async renderContent(fileObj, filename) {
-    this.checkWarning(fileObj, filename);
+    const { error } = this.checkWarning(fileObj, filename);
+    if (error) return;
     try {
       switch (fileObj.pageType) {
-        case '1table-page':
-          await this.page1Table.renderContent(fileObj);
-          break;
-        case '1table-component':
-          await this.component1Table.renderContent(fileObj);
-          break;
         case 'jh-component':
+        case '1table-component':
           await this.jhComponent.renderContent(fileObj);
           break;
         case 'jh-page':
+        case '1table-page':
           await this.jhPage.renderContent(fileObj);
           break;
         default:
@@ -334,24 +324,30 @@ module.exports = class InitByJsonCommand extends CommandBase {
 
   checkWarning(fileObj, file) {
     const warning = [];
+    const error = [];
     // ------------ 全局检查 ------------
     if (fileObj.includeList && fileObj.includeList.find(item => _.isString(item))) {
       warning.push('includeList 更新规范 { type, path }');
     }
     if (fileObj.drawerList && fileObj.drawerList.some(a => a.contentList.find(e => e.type === 'form' && e.actions))) {
-      warning.push('错误的用法 drawerList => form => actions, 请统一使用 action <object | array>');
+      warning.push('错误的用法 drawerList.form.actions, 请统一使用 action <object | array>');
     }
     if (fileObj.updateDrawerContent && fileObj.updateDrawerContent.contentList.find(e => e.type === 'form' && e.actions)) {
-      warning.push('错误的用法 updateDrawerContent => form => actions, 请统一使用 action <object | array>');
+      warning.push('错误的用法 updateDrawerContent.form.actions, 请统一使用 action <object | array>');
     }
     if (fileObj.headContent && (fileObj.headContent.serverSearchList || []).find(e => e.label)) {
       warning.push('无效的 serverSearchList label 设置');
     }
+    if (fileObj.pageType === '1table-page') {
+      error.push('1table-page 已废弃，请使用 jh-page');
+    }
+    if (fileObj.pageType === '1table-component') {
+      error.push('1table-component 已废弃，请使用 jh-component');
+    }
     // ------------ 最新 pageContent 检查 ------------
-    if ([ 'jh-page', 'jh-component' ].includes(fileObj.pageType)) {
-      if (fileObj.pageContent) {
-        if (fileObj.pageContent.tableAttrs || fileObj.pageContent.tableHeaderList) {
-          warning.push(`请参照最新 pageContent table 规范
+    if (fileObj.pageContent) {
+      if (fileObj.pageContent.tableAttrs || fileObj.pageContent.tableHeaderList) {
+        warning.push(`请参照最新 pageContent table 规范
     {                                     {
       tag: 'jh-table',                      tag: 'v-row',
       attrs: {},                            attrs: {},
@@ -361,17 +357,28 @@ module.exports = class InitByJsonCommand extends CommandBase {
       rowActionList: [],                  }
       headActionList: [],
     }`);
-        }
       }
     }
-    if (warning.length) {
+    if (error.length) {
+      this.error('┏----------------------------------------------------------┓');
+      this.error('  Error: ' + file + ' 渲染失败');
+      this.error('┗----------------------------------------------------------┛');
+    } else if (warning.length) {
       this.warning('┏----------------------------------------------------------┓');
       this.warning('  Warning: ' + file);
       this.warning('┗----------------------------------------------------------┛');
     }
-    warning.forEach((item, index) => {
-      this.warning((index + 1) + '.' + item);
+    let index = 1;
+    error.forEach(item => {
+      this.error(index + '.' + item);
+      index++;
     });
+    warning.forEach(item => {
+      this.warning(index + '.' + item);
+      index++;
+    });
+
+    return { error: error.length, warning: warning.length };
   }
 
 };

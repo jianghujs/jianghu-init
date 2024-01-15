@@ -233,7 +233,7 @@ const mixin = {
     });
     nunjucksEnv.addFilter('includeFormat', function(item) {
       if (!item) return '';
-      if (_.isString(item)) return item;
+      if (_.isString(item)) return item; // 兼容原生代码
       const { type, path } = item;
       if ([ 'js', 'script' ].includes(type)) {
         return `<script src="${path}"></script>`;
@@ -272,6 +272,22 @@ const mixin = {
       }
       await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: JSON.stringify(resourceData), resourceHook: resourceDataStr });
     }
+    // filter 数据库内有但是却没设置的 resource
+    const warningList = existResourceList.filter(e => !resourceList.some(r => r.actionId === e.actionId));
+    this.warning(`尚未配置 resource, 如不需要请手动数据库删除: 
+    ${warningList
+    .map(e => {
+      const fieldList = [ 'actionId', 'desc', 'resourceType', 'resourceData' ];
+      if (e.resourceHook) fieldList.unshift('resourceHook');
+      e.resourceData = JSON.parse(e.resourceData);
+      if (e.resourceHook) e.resourceHook = JSON.parse(e.resourceHook);
+      return JSON.stringify(_.pick(e, fieldList))
+        .replace(/\\"/g, '====')
+        .replace(/"([^"]+)":/g, '$1:')
+        .replace(/"/g, '\'')
+        .replace(/====/g, '"');
+    })
+    .join(',\n    ')}`);
   },
 
   handleJsonConfig(jsonConfig) {
