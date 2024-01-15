@@ -274,6 +274,7 @@ const mixin = {
     }
     // filter 数据库内有但是却没设置的 resource
     const warningList = existResourceList.filter(e => !resourceList.some(r => r.actionId === e.actionId));
+    if (!warningList.length) return;
     this.warning(`尚未配置 resource, 如不需要请手动数据库删除: 
     ${warningList
     .map(e => {

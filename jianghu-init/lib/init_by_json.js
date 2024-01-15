@@ -228,11 +228,14 @@ module.exports = class InitByJsonCommand extends CommandBase {
     const fileList = await this.findJsFiles('./app/view/init-json');
 
     this.info(`共有 ${fileList.length} 个配置文件，加载中...`);
+    const configFileList = [];
     for (const file of fileList) {
       // eslint-disable-next-line no-eval
       const fileObj = eval(fs.readFileSync('./' + file).toString());
+      configFileList.push(Object.assign(fileObj, { file }));
       await this.renderContent(fileObj, file.replace('app/view/init-json/', ''));
     }
+    this.checkFileRepeat(configFileList);
     this.success(`共有 ${fileList.length} 个配置文件，加载完成`);
 
     // 监控文件变化
@@ -320,6 +323,45 @@ module.exports = class InitByJsonCommand extends CommandBase {
     }
 
     return files;
+  }
+
+  checkFileRepeat(configFileList) {
+    const pageConfigList = configFileList.filter(item => [ 'jh-page', '1table-page' ].includes(item.pageType));
+    const componentConfigList = configFileList.filter(item => [ 'jh-component', '1table-component' ].includes(item.pageType));
+    if (pageConfigList.length) {
+      // lodash 查询有哪些重复 pageId 的页面
+      const pageIdList = pageConfigList.map(item => ({ pageId: item.pageId, filename: item.file }));
+      const pageIdGroup = _.groupBy(pageIdList, 'pageId');
+      const pageIdGroupFilter = _.pickBy(pageIdGroup, item => item.length > 1);
+      if (Object.keys(pageIdGroupFilter).length) {
+        this.warning('页面 pageId 重复，请检查');
+
+        Object.keys(pageIdGroupFilter).forEach(pageId => {
+          const fileList = [];
+          pageIdGroupFilter[pageId].forEach(item => {
+            fileList.push(item.filename.replace('app/view/init-json/', ''));
+          });
+          this.warning('pageId: ' + pageId + '  [ ' + fileList.join(', ') + ' ]');
+        });
+      }
+    }
+    if (componentConfigList.length) {
+      // lodash 查询有哪些重复 componentPath 的页面
+      const componentPathList = componentConfigList.map(item => ({ componentPath: item.componentPath, filename: item.file }));
+      const componentPathGroup = _.groupBy(componentPathList, 'componentPath');
+      const componentPathGroupFilter = _.pickBy(componentPathGroup, item => item.length > 1);
+      if (Object.keys(componentPathGroupFilter).length) {
+        this.warning('组件 componentPath 重复，请检查');
+
+        Object.keys(componentPathGroupFilter).forEach(componentPath => {
+          const fileList = [];
+          componentPathGroupFilter[componentPath].forEach(item => {
+            fileList.push(item.filename.replace('app/view/init-json/', ''));
+          });
+          this.warning('componentPath: ' + componentPath + '  [ ' + fileList.join(', ') + ' ]');
+        });
+      }
+    }
   }
 
   checkWarning(fileObj, file) {
