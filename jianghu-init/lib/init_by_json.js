@@ -232,11 +232,11 @@ module.exports = class InitByJsonCommand extends CommandBase {
     for (const file of fileList) {
       // eslint-disable-next-line no-eval
       const fileObj = eval(fs.readFileSync('./' + file).toString());
-      configFileList.push(Object.assign(fileObj, { file }));
+      configFileList.push({ pageType: fileObj.pageType, pageId: fileObj.pageId, componentPath: fileObj.componentPath, file: file.replace('app/view/init-json/', '') });
       await this.renderContent(fileObj, file.replace('app/view/init-json/', ''));
     }
-    this.checkFileRepeat(configFileList);
     this.success(`共有 ${fileList.length} 个配置文件，加载完成`);
+    this.checkFileRepeat(configFileList);
 
     // 监控文件变化
     const watcher = chokidar.watch('./app/view/init-json', {
@@ -257,6 +257,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
           return;
         }
         await this.renderContent(fileObj, pathStr.replace('app/view/init-json/', ''));
+      } else if (event === 'unlink') {
+        this.allConfigFileList = this.allConfigFileList.filter(item => !pathStr.includes(item.file));
       }
     });
     watcher.on('error', err => {
@@ -326,42 +328,27 @@ module.exports = class InitByJsonCommand extends CommandBase {
   }
 
   checkFileRepeat(configFileList) {
-    const pageConfigList = configFileList.filter(item => [ 'jh-page', '1table-page' ].includes(item.pageType));
-    const componentConfigList = configFileList.filter(item => [ 'jh-component', '1table-component' ].includes(item.pageType));
-    if (pageConfigList.length) {
-      // lodash 查询有哪些重复 pageId 的页面
-      const pageIdList = pageConfigList.map(item => ({ pageId: item.pageId, filename: item.file }));
-      const pageIdGroup = _.groupBy(pageIdList, 'pageId');
-      const pageIdGroupFilter = _.pickBy(pageIdGroup, item => item.length > 1);
-      if (Object.keys(pageIdGroupFilter).length) {
-        this.warning('页面 pageId 重复，请检查');
+    if (!this.allConfigFileList) {
+      this.allConfigFileList = configFileList || [];
+    }
+    const pageConfigList = this.allConfigFileList.filter(item => [ 'jh-page', '1table-page' ].includes(item.pageType));
+    const componentConfigList = this.allConfigFileList.filter(item => [ 'jh-component', '1table-component' ].includes(item.pageType));
 
-        Object.keys(pageIdGroupFilter).forEach(pageId => {
-          const fileList = [];
-          pageIdGroupFilter[pageId].forEach(item => {
-            fileList.push(item.filename.replace('app/view/init-json/', ''));
-          });
-          this.warning('pageId: ' + pageId + '  [ ' + fileList.join(', ') + ' ]');
+    const checkDuplicate = (configList, property, warningMessage) => {
+      const group = _.groupBy(configList, property);
+      const duplicateGroup = _.pickBy(group, item => item.length > 1);
+      if (Object.keys(duplicateGroup).length) {
+        this.warning(warningMessage);
+
+        Object.keys(duplicateGroup).forEach(key => {
+          const fileList = duplicateGroup[key].map(item => item.file);
+          this.warning(`${property}: ${key}  [ ${fileList.join(', ')} ]`);
         });
       }
-    }
-    if (componentConfigList.length) {
-      // lodash 查询有哪些重复 componentPath 的页面
-      const componentPathList = componentConfigList.map(item => ({ componentPath: item.componentPath, filename: item.file }));
-      const componentPathGroup = _.groupBy(componentPathList, 'componentPath');
-      const componentPathGroupFilter = _.pickBy(componentPathGroup, item => item.length > 1);
-      if (Object.keys(componentPathGroupFilter).length) {
-        this.warning('组件 componentPath 重复，请检查');
+    };
 
-        Object.keys(componentPathGroupFilter).forEach(componentPath => {
-          const fileList = [];
-          componentPathGroupFilter[componentPath].forEach(item => {
-            fileList.push(item.filename.replace('app/view/init-json/', ''));
-          });
-          this.warning('componentPath: ' + componentPath + '  [ ' + fileList.join(', ') + ' ]');
-        });
-      }
-    }
+    checkDuplicate(pageConfigList, 'pageId', '页面 pageId 重复，请检查');
+    checkDuplicate(componentConfigList, 'componentPath', '组件 componentPath 重复，请检查');
   }
 
   checkWarning(fileObj, file) {
@@ -401,6 +388,21 @@ module.exports = class InitByJsonCommand extends CommandBase {
     }`);
       }
     }
+
+    // 检查 this.allConfigFileList 内是否有除了 fileObj 的其他重复项, 有则检查提示重复, 没有则添加
+    this.allConfigFileList = this.allConfigFileList || [];
+    let duplicateList = [];
+    if ([ 'jh-page', '1table-page' ].includes(fileObj.pageType)) {
+      duplicateList = this.allConfigFileList.filter(item => item.pageType.includes('-page') && item.pageId === fileObj.pageId && item.file !== file);
+    } else {
+      duplicateList = this.allConfigFileList.filter(item => item.pageType.includes('-component') && item.componentPath === fileObj.componentPath && item.file !== file);
+    }
+    if (duplicateList.length) {
+      error.push(`pageId: ${fileObj.pageId} [ ${file}, ${duplicateList.map(e => e.file).join(',')} ] 文件重复，请检查`);
+    } else {
+      this.allConfigFileList.push({ pageId: fileObj.pageId, pageType: fileObj.pageType, componentPath: fileObj.componentPath, file });
+    }
+
     if (error.length) {
       this.error('┏----------------------------------------------------------┓');
       this.error('  Error: ' + file + ' 渲染失败');
