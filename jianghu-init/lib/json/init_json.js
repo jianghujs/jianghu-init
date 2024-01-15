@@ -138,6 +138,12 @@ module.exports = class InitJson extends CommandBase {
     } else {
       content = this.get1TableContent({ table, pageId, pageType, fields });
     }
+
+    if (fileName.includes('/')) {
+      const dir = fileName.split('/').slice(0, -1).join('/');
+      if (!fs.existsSync(`${generateFileDir}/${dir}`)) fs.mkdirSync(`${generateFileDir}/${dir}`);
+    }
+
     // 生成文件
     const generateFilePath = `${generateFileDir}/${fileName}.js`;
     fs.writeFileSync(generateFilePath, content);
