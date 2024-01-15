@@ -13,6 +13,7 @@ const path = require('path');
 const lockfile = require('proper-lockfile');
 const chokidar = require('chokidar');
 const dayjs = require('dayjs');
+const _ = require('lodash');
 
 const jsonTypes = [
   {
@@ -51,6 +52,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.page2Table = new InitPage2Table();
     this.jhComponent = new InitComponent();
     this.jhPage = new InitPage();
+
+    await this.enableDevMode(args.includes('dev'));
 
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
@@ -101,7 +104,6 @@ module.exports = class InitByJsonCommand extends CommandBase {
         }
         this.success('jianghu init by json is success');
       }
-      await this.enableDevMode();
 
     } else if (handleType === 'example') {
       const jsonArgvList = await new InitJson().example(process.cwd(), this.argv);
@@ -116,9 +118,10 @@ module.exports = class InitByJsonCommand extends CommandBase {
       }
       // await new InitPage1Table().example(process.cwd(), this.jsonArgv);
     } else if (handleType === 'example chart') {
-      await new InitJson().run(process.cwd(), Object.assign(this.argv, { pageType: 'jh-component' }));
+      await new InitJson().run(process.cwd(), Object.assign(this.argv, { chartPage: true, pageType: 'jh-component' }));
     }
     // this.success('jianghu init by json is success');
+    await this.enableDevMode(this.argv.dev);
   }
 
   // 确认生成表
@@ -217,86 +220,158 @@ module.exports = class InitByJsonCommand extends CommandBase {
     return answer.jsonType;
   }
 
-  async enableDevMode() {
-    const { dev } = this.argv;
-    if (dev) {
+  async enableDevMode(dev) {
+    if (!dev) return;
+    const lockFilePath = path.join('./', 'jianghu-init.dev.lock');
+    if (!fs.existsSync(lockFilePath)) fs.writeFileSync(lockFilePath, '');
+    if (await lockfile.check(lockFilePath)) {
+      console.log('项目已开启 dev 模式');
+      // this.error('项目已开启 dev 模式');
+      return;
+    }
+    await lockfile.lock(lockFilePath);
 
-      const lockFilePath = path.join('./', 'jianghu-init.dev.lock');
-      if (!fs.existsSync(lockFilePath)) fs.writeFileSync(lockFilePath, '');
-      if (await lockfile.check(lockFilePath)) {
-        console.log('项目已开启 dev 模式');
-        // this.error('项目已开启 dev 模式');
-        return;
-      }
-      await lockfile.lock(lockFilePath);
+    // 默认渲染 ./app/view/init-json 内的递归所有文件
+    const fileList = await this.findJsFiles('./app/view/init-json');
 
-      // 监控文件变化
-      const watcher = chokidar.watch('./app/view/init-json', {
-        persistent: true,
-        ignoreInitial: true,
-        followSymlinks: false,
-        depth: 1,
-      });
-      watcher.on('all', async (event, path) => {
-        if (event === 'change') {
-          this.info(`File ${path.replace('app/view/init-json', '')} change ${dayjs().format('HH:mm:ss')}`);
-          let fileObj = {};
-          try {
-            // eslint-disable-next-line no-eval
-            fileObj = eval(fs.readFileSync('./' + path).toString());
-          } catch (e) {
-            this.error(`文件语法错误: ${e.message}`);
-            return;
-          }
-          try {
-            switch (fileObj.pageType) {
-              case '1table-page':
-                await this.page1Table.renderVue(fileObj);
-                this.success('page vue render success');
-                break;
-              case '1table-component':
-                await this.component1Table.renderVue(fileObj);
-                this.success('component vue render success');
-                break;
-              case 'jh-component':
-                await this.jhComponent.renderVue(fileObj);
-                break;
-              case 'jh-page':
-                await this.jhPage.renderVue(fileObj);
-                break;
-              default:
-                this.error(`不存在的 pageType: ${fileObj.pageType}`);
-                break;
-            }
-            this.success('build page success');
-          } catch (e) {
-            this.error(`${path.replace('app/view/init-json', '')} 文件渲染错误: ${e.message}`);
-          }
+    this.info(`共有 ${fileList.length} 个配置文件，加载中...`);
+    for (const file of fileList) {
+      // eslint-disable-next-line no-eval
+      const fileObj = eval(fs.readFileSync('./' + file).toString());
+      await this.renderContent(fileObj, file.replace('app/view/init-json/', ''));
+    }
+    this.success(`共有 ${fileList.length} 个配置文件，加载完成`);
+
+    // 监控文件变化
+    const watcher = chokidar.watch('./app/view/init-json', {
+      persistent: true,
+      ignoreInitial: true,
+      followSymlinks: false,
+      depth: 2,
+    });
+    watcher.on('all', async (event, pathStr) => {
+      if (event === 'change') {
+        this.info(`File ${pathStr.replace('app/view/init-json', '')} change ${dayjs().format('HH:mm:ss')}`);
+        let fileObj = {};
+        try {
+          // eslint-disable-next-line no-eval
+          fileObj = eval(fs.readFileSync('./' + pathStr).toString());
+        } catch (e) {
+          this.error(`文件语法错误: ${e.message}`);
+          return;
         }
-      });
-      watcher.on('error', err => {
-        console.error(`监控文件变化出错: ${err.message}`);
-      });
-      console.log('Watching ./app/view/init-json for changes...');
+        await this.renderContent(fileObj, pathStr.replace('app/view/init-json/', ''));
+      }
+    });
+    watcher.on('error', err => {
+      console.error(`监控文件变化出错: ${err.message}`);
+    });
+    this.success('启动 dev 开发模式');
+    console.log('Watching ./app/view/init-json for changes...');
 
-      // 在进程退出时删除锁定文件
-      process.on('exit', async () => {
+    // 在进程退出时删除锁定文件
+    process.on('exit', async () => {
+      this.success('exit dev mode');
+      await lockfile.unlock(lockFilePath);
+    });
+    process.on('SIGINT', async () => {
+      console.log('接收到 SIGINT 信号，准备退出');
+      if (await lockfile.check(lockFilePath)) {
         this.success('exit dev mode');
         await lockfile.unlock(lockFilePath);
-      });
-      process.on('SIGINT', async () => {
-        console.log('接收到 SIGINT 信号，准备退出');
-        if (await lockfile.check(lockFilePath)) {
-          this.success('exit dev mode');
-          await lockfile.unlock(lockFilePath);
-        }
-        process.exit();
-      });
+      }
+      process.exit();
+    });
 
-      // 在监控文件时保持进程运行
-      return new Promise(() => {});
+    // 在监控文件时保持进程运行
+    return new Promise(() => {});
+  }
+
+  async renderContent(fileObj, filename) {
+    this.checkWarning(fileObj, filename);
+    try {
+      switch (fileObj.pageType) {
+        case '1table-page':
+          await this.page1Table.renderContent(fileObj);
+          break;
+        case '1table-component':
+          await this.component1Table.renderContent(fileObj);
+          break;
+        case 'jh-component':
+          await this.jhComponent.renderContent(fileObj);
+          break;
+        case 'jh-page':
+          await this.jhPage.renderContent(fileObj);
+          break;
+        default:
+          this.error(`不存在的 pageType: ${fileObj.pageType}`);
+          break;
+      }
+      this.info(`build ${filename} success`);
+      console.log('');
+    } catch (e) {
+      this.error(`${filename} 文件渲染错误: ${e.message}`);
     }
   }
 
+  findJsFiles(dir) {
+    let files = [];
+    const items = fs.readdirSync(dir);
+
+    for (const item of items) {
+      const fullPath = path.join(dir, item);
+      const stats = fs.statSync(fullPath);
+
+      if (stats.isDirectory()) {
+        files = files.concat(this.findJsFiles(fullPath)); // 如果是目录，则递归搜索
+      } else if (path.extname(item) === '.js') {
+        files.push(fullPath); // 如果是 .js 文件，则添加到文件列表
+      }
+    }
+
+    return files;
+  }
+
+  checkWarning(fileObj, file) {
+    const warning = [];
+    // ------------ 全局检查 ------------
+    if (fileObj.includeList && fileObj.includeList.find(item => _.isString(item))) {
+      warning.push('includeList 更新规范 { type, path }');
+    }
+    if (fileObj.drawerList && fileObj.drawerList.some(a => a.contentList.find(e => e.type === 'form' && e.actions))) {
+      warning.push('错误的用法 drawerList => form => actions, 请统一使用 action <object | array>');
+    }
+    if (fileObj.updateDrawerContent && fileObj.updateDrawerContent.contentList.find(e => e.type === 'form' && e.actions)) {
+      warning.push('错误的用法 updateDrawerContent => form => actions, 请统一使用 action <object | array>');
+    }
+    if (fileObj.headContent && (fileObj.headContent.serverSearchList || []).find(e => e.label)) {
+      warning.push('无效的 serverSearchList label 设置');
+    }
+    // ------------ 最新 pageContent 检查 ------------
+    if ([ 'jh-page', 'jh-component' ].includes(fileObj.pageType)) {
+      if (fileObj.pageContent) {
+        if (fileObj.pageContent.tableAttrs || fileObj.pageContent.tableHeaderList) {
+          warning.push(`请参照最新 pageContent table 规范
+    {                                     {
+      tag: 'jh-table',                      tag: 'v-row',
+      attrs: {},                            attrs: {},
+      value: [                              value: [  // < string | object | array >
+        ...headers,             OR            { tag: 'v-col', attrs: { cols: 12 }, value: '' },
+      ],                                    ],
+      rowActionList: [],                  }
+      headActionList: [],
+    }`);
+        }
+      }
+    }
+    if (warning.length) {
+      this.warning('┏----------------------------------------------------------┓');
+      this.warning('  Warning: ' + file);
+      this.warning('┗----------------------------------------------------------┛');
+    }
+    warning.forEach((item, index) => {
+      this.warning((index + 1) + '.' + item);
+    });
+  }
 
 };

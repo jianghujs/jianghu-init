@@ -89,68 +89,67 @@
           <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
               <v-text-field color="success" v-model="tableSearchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
           </v-col>
-          </v-row>
-          <!-- 表格 -->
-          <v-data-table
-              :headers="tableHeaderList"
-              :items="tableData"
-              :search="tableSearchInput"
-              :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
-              :items-per-page="-1"
-              mobile-breakpoint="0"
-              :loading="tableLoading"
-              checkbox-color="success"
-              :class="{'zebraLine': true }"
-              fixed-header
-              <=%- for attr, value in pageContent.tableAttrs %=>
-              <=$ attr | tagAttr(value) $=><=%- endfor %=>
-              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
-            >
-            <=%- for header in pageContent.tableHeaderList %=>
-            <=%- if header.formatter %=>
-            <template v-slot:item.<=$ header.value $=>="{item, index}">
-              <=$ header.formatter | tagFormat $=>
-            </template><=%- endif %=><=%- endfor %=>
+        </v-row>
+        <!-- 表格 -->
+        <v-data-table
+          :headers="tableHeaderList"
+          :items="tableData"
+          :search="tableSearchInput"
+          :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+          :items-per-page="-1"
+          mobile-breakpoint="0"
+          :loading="tableLoading"
+          checkbox-color="success"
+          :class="{'zebraLine': true }"
+          fixed-header
+          <=%- for attr, value in pageContent.tableAttrs %=>
+          <=$ attr | tagAttr(value) $=><=%- endfor %=>
+          class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+        >
+          <=%- for header in pageContent.tableHeaderList %=>
+          <=%- if header.formatter %=>
+          <template v-slot:item.<=$ header.value $=>="{item, index}">
+            <=$ header.formatter | tagFormat $=>
+          </template><=%- endif %=><=%- endfor %=>
             
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
-
-              <=%- for action in pageContent.rowActionList %=>
-              <=$ action | tagFormat $=>
-              <=%- endfor %=>
-              <=%- if updateDrawerContent %=>
-              <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
-                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>详情
-              </span>
-              <=%- endif %=>
-              <=%- if deleteContent %=>
-              <span role="button" class="error--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-                  <v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除
-              </span>
-              <=%- endif %=>
+            <=%- for action in pageContent.rowActionList %=>
+            <=$ action | tagFormat $=>
+            <=%- endfor %=>
+            <=%- if updateDrawerContent %=>
+            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+                <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>详情
+            </span>
+            <=%- endif %=>
+            <=%- if deleteContent %=>
+            <span role="button" class="error--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                <v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除
+            </span>
+            <=%- endif %=>
           </template>
           <!-- 没有数据 -->
           <template v-slot:loading>
-              <div class="jh-no-data">数据加载中</div>
+            <div class="jh-no-data">数据加载中</div>
           </template>
           <template v-slot:no-data>
-              <div class="jh-no-data">暂无数据</div>
+            <div class="jh-no-data">暂无数据</div>
           </template>
           <template v-slot:no-results>
-              <div class="jh-no-data">暂无数据</div>
+            <div class="jh-no-data">暂无数据</div>
           </template>
           <!-- 表格分页 -->
           <template v-slot:footer.page-text="pagination">
-              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-              <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+            <span class="ml-1">共{{pagination.itemsLength}}条</span>
           </template>
         </v-data-table>
       </v-card>
     </div>
     <!-- <<<<<<<<<<<<< 页面内容 -->
 
-    <!-- 新增抽屉 >>>>>>>>>>>>> -->
     <=%- if createDrawerContent %=> 
+    <!-- 新增抽屉 >>>>>>>>>>>>> -->
     <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
       <v-form ref="createForm" lazy-validation>
         <!-- 抽屉标题 -->
@@ -196,11 +195,11 @@
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>
-    <=%- endif %=>
     <!-- <<<<<<<<<<<<< 新增抽屉 -->
+    <=%- endif %=>
 
-    <!-- 编辑抽屉 >>>>>>>>>>>>> -->
     <=%- if updateDrawerContent %=> 
+    <!-- 编辑抽屉 >>>>>>>>>>>>> -->
     <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="80%" class="elevation-24">
         <v-form ref="updateForm" lazy-validation>
           <!-- 抽屉标题 -->
@@ -279,6 +278,7 @@
           <v-icon>mdi-close</v-icon>
         </v-btn>
     </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 编辑抽屉 -->
     <=%- endif %=>
     <=%- for drawer in drawerList %=> 
     <!-- <=$ drawer.title $=> >>>>>>>>>>>>> -->
@@ -367,8 +367,8 @@
           <v-icon>mdi-close</v-icon>
         </v-btn>
     </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< <=$ drawer.title $=> -->
     <=%- endfor %=>
-    <!-- <<<<<<<<<<<<< 编辑抽屉 -->
 
     <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
     <=%- if headContent.helpDrawer %=> 

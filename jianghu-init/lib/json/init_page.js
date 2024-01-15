@@ -46,7 +46,7 @@ module.exports = class InitPage1Table extends CommandBase {
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
-      // await this.modifyTable(jsonConfig);
+      await this.modifyTable(jsonConfig);
       await this.handleOtherResource(jsonConfig);
       // 生成组件
       await this.renderComponent(jsonConfig);
@@ -59,42 +59,50 @@ module.exports = class InitPage1Table extends CommandBase {
     }
   }
 
+  async renderContent(jsonConfig) {
+    this.dbSetting = this.readDbConfigFromFile();
+    // app 默认使用 database，如果有前缀则需要去掉前缀
+    this.app = this.dbSetting.database;
+    await this.getKnex(this.dbSetting);
+    await this.renderVue(jsonConfig);
+    await this.handleOtherResource(jsonConfig);
+  }
+
   async modifyTable(jsonConfig) {
-    const { table, pageId, pageName, idGenerate = false } = jsonConfig;
+    const { table, pageId, pageName = '', idGenerate = false } = jsonConfig;
+
+    if (table) {
+      await this.checkTableFields(table, idGenerate);
+      await this.executeSql('clear_resource.sql', { pageId, table });
+      const insertBeforeHook = idGenerate ? '{"before": [{"service": "common", "serviceFunction": "generateBizIdOfBeforeHook"}]}' : '';
+      await this.executeSql('check_resource.sql', { pageId, pageName, table, insertBeforeHook });
+    }
+    if (pageId) {
+      await this.executeSql('check_page.sql', { pageId, pageName });
+    }
+  }
+
+  async executeSql(sqlFile, obj) {
     const knex = await this.getKnex();
+    let label = '';
+    const sqlFilename = sqlFile.replace(/\.sql$/, '') + '.sql';
+    if (sqlFilename.startsWith('clear_')) {
+      label = '正在执行删除';
+    } else if (sqlFilename.startsWith('init_')) {
+      label = '正在执行插入/更新';
+    } else if (sqlFilename.startsWith('check_')) {
+      label = '正在执行检查';
+    }
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-page`;
-    await this.checkTableFields(table, idGenerate);
-
-    let clearSql = fs.readFileSync(`${templatePath}/clear_crud.sql`).toString();
-    clearSql = clearSql.replace(/\{\{pageId}}/g, pageId);
-    clearSql = clearSql.replace(/\{\{table}}/g, table);
-    this.info(`开始生成 ${table} 的相关数据`);
-    // 删除数据
-    for (const line of clearSql.split('\n')) {
-      if (!line) {
-        continue;
-      }
-      if (line.startsWith('--')) {
-        this.info(`正在执行删除 ${line}`);
-      } else {
-        await knex.raw(line);
-      }
+    let sqlContent = fs.readFileSync(`${templatePath}/${sqlFilename}`).toString();
+    for (const key in obj) {
+      sqlContent = sqlContent.replace(new RegExp(`{{${key}}}`, 'g'), obj[key]);
     }
-
-    let sql = fs.readFileSync(`${templatePath}/crud.sql`).toString();
-    sql = sql.replace(/\{\{pageId}}/g, pageId);
-    sql = sql.replace(/\{\{table}}/g, table);
-    sql = sql.replace(/\{\{pageName}}/g, pageName);
-    if (idGenerate) {
-      sql = sql.replace(/\{\{insertBeforeHook}}/g, '{"before": [{"service": "common", "serviceFunction": "generateBizIdOfBeforeHook"}]}');
-    } else {
-      sql = sql.replace(/\{\{insertBeforeHook}}/g, '');
-    }
-    // 插入数据
-    for (const line of sql.split('\n')) {
+    const sqlList = sqlContent.split('\n');
+    for (const line of sqlList) {
       if (!line) continue;
       if (line.startsWith('--')) {
-        this.info(`正在执行插入/更新 ${line}`);
+        this.info(`${label} ${line}`);
       } else {
         await knex.raw(line);
       }

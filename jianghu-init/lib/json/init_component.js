@@ -58,6 +58,15 @@ module.exports = class InitComponent extends CommandBase {
     }
   }
 
+  async renderContent(jsonConfig) {
+    this.dbSetting = this.readDbConfigFromFile();
+    // app 默认使用 database，如果有前缀则需要去掉前缀
+    this.app = this.dbSetting.database;
+    await this.getKnex(this.dbSetting);
+    await this.renderVue(jsonConfig);
+    await this.handleOtherResource(jsonConfig);
+  }
+
   async modifyTable(jsonConfig) {
     const { table, pageId, componentPath, idGenerate = false } = jsonConfig;
     if (!table || !pageId) return;

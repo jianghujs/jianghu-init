@@ -33,30 +33,35 @@ const mixin = {
     });
     // 复杂变量包含函数或函数原样渲染
     nunjucksEnv.addFilter('variableToVar', function(obj, k) {
-      if (!obj) return '';
+      if (_.isUndefined(obj)) return '';
       const testKey = [];
-      let content = JSON.stringify(obj, function(key, value) {
-        if (typeof value === 'function') {
-          let valStr = value.toString();
-          // 匹配 String Object 等函数原样输出
-          const reg = /function ([A-Z][a-z]+)\(\) \{ \[native code\] \}/;
-          if (reg.test(valStr)) {
-            valStr = valStr.replace(reg, '$1');
+      let content;
+      if (!_.isBoolean(obj)) {
+        content = JSON.stringify(obj, function(key, value) {
+          if (typeof value === 'function') {
+            let valStr = value.toString();
+            // 匹配 String Object 等函数原样输出
+            const reg = /function ([A-Z][a-z]+)\(\) \{ \[native code\] \}/;
+            if (reg.test(valStr)) {
+              valStr = valStr.replace(reg, '$1');
+            }
+            if (key && valStr.startsWith(key)) {
+              valStr = 'replace_this_key' + valStr;
+              testKey.push(key);
+            }
+            return `__FUNC_START__${valStr}__FUNC_END__`;
           }
-          if (key && valStr.startsWith(key)) {
-            valStr = 'replace_this_key' + valStr;
-            testKey.push(key);
-          }
-          return `__FUNC_START__${valStr}__FUNC_END__`;
-        }
-        return value;
-      }, 2)
-        .replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '')
-        .replace(/\\r\\n/g, '\n')
-        .replace(/\\n {4}/g, '\n')
-        .replace(/\\n/g, '\n')
-        .replace(/\\(?!n)/g, '')
-        .replace(/\n/g, '\n    ');
+          return value;
+        }, 2)
+          .replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '')
+          .replace(/\\r\\n/g, '\n')
+          .replace(/\\n {4}/g, '\n')
+          .replace(/\\n/g, '\n')
+          .replace(/\\(?!n)/g, '')
+          .replace(/\n/g, '\n    ');
+      } else {
+        content = obj;
+      }
       testKey.forEach(key => {
         content = content.replace(new RegExp(`"${key}":\\s*?replace_this_key`, 'g'), '');
       });
@@ -75,6 +80,9 @@ const mixin = {
       if (typeof obj === 'object' && k) {
         content = `"${k}": ` + content;
       }
+      if (_.isBoolean(obj) && k) {
+        content = `"${k}": ` + content;
+      }
       return content.replace(/"(\w+)":/g, '$1:');
     });
     nunjucksEnv.addFilter('camelToKebab', function(obj) {
@@ -85,9 +93,9 @@ const mixin = {
     });
     const tagAttr = (key, value, tag = '') => {
       // vuetify 的缩略标签
-      const preList = [ 'x-small', 'small', 'medium', 'large', 'x-large', 'disabled', 'readonly', 'active', 'fixed', 'absolute', 'top', 'bottom', 'left', 'right', 'tile', 'content', 'inset' ];
-      if (tag.startsWith('v-') && preList.includes(key) && value === true) {
-        return `${key}`;
+      const preList = [ 'x-small', 'small', 'medium', 'large', 'x-large', 'disabled', 'readonly', 'active', 'fixed', 'absolute', 'top', 'bottom', 'left', 'right', 'tile', 'content', 'inset', 'dense', 'single-line', 'filled' ];
+      if (tag.startsWith('v-') && (preList.includes(key) || preList.includes(key.replace(':', ''))) && value === true) {
+        return `${key}`.replace(/:/g, '');
       } else if (!_.isString(value) && !key.startsWith(':') && !key.startsWith('@')) {
         return `:${key}="${value.toString()}"`;
       }
@@ -103,7 +111,7 @@ const mixin = {
       }
       const tag = item.tag;
       const attrs = Object.entries(item.attrs || {})
-        .map(([ key, value ]) => `${key}="${value}"`)
+        .map(([ key, value ]) => tagAttr(key, value, tag))
         .join(' ');
       let value = '';
 
@@ -138,13 +146,37 @@ const mixin = {
         if (!res.tag) {
           return '';
         }
+
         if (!res.attrs) res.attrs = {};
+        // class="jh-v-input" dense single-line filled
+        if (!res.attrs.class) res.attrs.class = 'jh-v-input';
+        if (!res.attrs[':dense']) res.attrs[':dense'] = true;
+        if (!res.attrs[':single-line']) res.attrs[':single-line'] = true;
+        if (!res.attrs[':filled']) res.attrs[':filled'] = true;
+
         let tagStr = `<${res.tag} `;
         if (res.model) {
-          res.attrs['v-model'] = drwaerKey + '.' + res.model;
+          res.attrs['v-model'] = res.model.includes('.') ? res.model : drwaerKey + '.' + res.model;
         }
         if (res.rules) {
           res.attrs[':rules'] = res.rules;
+        }
+        if (res.attrs[':items'] && !_.isString(res.attrs[':items'])) {
+          if (_.isFunction(res.attrs[':items'])) {
+            res.attrs[':items'] = res.attrs[':items'].toString().replace(/"/g, '\'');
+          } else {
+            res.attrs[':items'] = JSON.stringify(res.attrs[':items']);
+          }
+        }
+        if (res.attrs.items) {
+          if (_.isString(res.attrs.items)) {
+            res.attrs[':items'] = res.attrs.items.replace(/"/g, '\'');
+          } else if (_.isFunction(res.attrs.items)) {
+            res.attrs[':items'] = res.attrs.items.toString().replace(/"/g, '\'');
+          } else {
+            res.attrs[':items'] = JSON.stringify(res.attrs.items);
+          }
+          delete res.attrs.items;
         }
         tagStr += _.map(res.attrs, (value, key) => {
           let val = value;
@@ -199,23 +231,46 @@ const mixin = {
       const match = str.replace(/\n/, '\n').match(new RegExp(regexStr));
       return match && match.length > 1 ? match[1] : '';
     });
+    nunjucksEnv.addFilter('includeFormat', function(item) {
+      if (!item) return '';
+      if (_.isString(item)) return item;
+      const { type, path } = item;
+      if ([ 'js', 'script' ].includes(type)) {
+        return `<script src="${path}"></script>`;
+      } else if ([ 'css', 'style' ].includes(type)) {
+        return `<link rel="stylesheet" href="${path}">`;
+      } else if ([ 'include', 'html', 'component' ].includes(type)) {
+        return `{% include "${path}" %}`;
+      }
+    });
     return nunjucksEnv;
   },
 
   async handleOtherResource(jsonConfig) {
     const { resourceList, pageId } = jsonConfig;
-    if (!resourceList) return;
-    const knex = await this.getKnex();
+    if (!resourceList || !pageId) return;
+    const knex = this.knex;
     const existResourceList = await knex('_resource').where({ pageId });
-    for (const { actionId, resourceType, desc, resourceData, resourceHook = {} } of resourceList) {
+    for (const { actionId, resourceType, desc = null, resourceData, resourceHook = null } of resourceList) {
+      const resourceDataStr = resourceHook ? JSON.stringify(resourceData) : resourceHook;
       // 比对是否存在，存在则更新，不存在则插入
       // eslint-disable-next-line eqeqeq
-      const resourceItem = existResourceList.find(e => e.actionId == actionId && e.resourceType == resourceType);
+      const resourceItem = existResourceList.find(e => e.actionId == actionId);
       if (resourceItem) {
-        await knex('_resource').where({ id: resourceItem.id }).update({ desc, resourceData: JSON.stringify(resourceData), resourceHook: JSON.stringify(resourceHook) });
+        // 对比有差异再修改
+        let isDiff = false;
+        const updateData = { actionId, pageId, desc, resourceData: JSON.stringify(resourceData), resourceHook: resourceDataStr };
+        _.forEach(updateData, (value, key) => {
+          if ((value || null) !== (resourceItem[key] || null)) {
+            isDiff = true;
+            updateData[key] = updateData[key] || null;
+          }
+        });
+        if (!isDiff) continue;
+        await knex('_resource').where({ id: resourceItem.id }).update(updateData);
         continue;
       }
-      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: JSON.stringify(resourceData), resourceHook: JSON.stringify(resourceHook) });
+      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: JSON.stringify(resourceData), resourceHook: resourceDataStr });
     }
   },
 
