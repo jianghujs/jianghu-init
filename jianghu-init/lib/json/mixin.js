@@ -252,14 +252,15 @@ const mixin = {
     const knex = this.knex;
     const existResourceList = await knex('_resource').where({ pageId });
     for (const { actionId, resourceType, desc = null, resourceData, resourceHook = null } of resourceList) {
-      const resourceDataStr = resourceHook ? JSON.stringify(resourceData) : resourceHook;
+      const resourceDataStr = _.isObject(resourceData) ? JSON.stringify(resourceData) : resourceData;
+      const resourceHookStr = _.isObject(resourceHook) ? JSON.stringify(resourceHook) : resourceHook;
       // 比对是否存在，存在则更新，不存在则插入
       // eslint-disable-next-line eqeqeq
       const resourceItem = existResourceList.find(e => e.actionId == actionId);
       if (resourceItem) {
         // 对比有差异再修改
         let isDiff = false;
-        const updateData = { actionId, pageId, desc, resourceData: JSON.stringify(resourceData), resourceHook: resourceDataStr };
+        const updateData = { actionId, pageId, desc, resourceData: resourceDataStr, resourceHook: resourceHookStr };
         _.forEach(updateData, (value, key) => {
           if ((value || null) !== (resourceItem[key] || null)) {
             isDiff = true;
@@ -270,7 +271,7 @@ const mixin = {
         await knex('_resource').where({ id: resourceItem.id }).update(updateData);
         continue;
       }
-      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: JSON.stringify(resourceData), resourceHook: resourceDataStr });
+      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr });
     }
     // filter 数据库内有但是却没设置的 resource
     const warningList = existResourceList.filter(e => !resourceList.some(r => r.actionId === e.actionId));
