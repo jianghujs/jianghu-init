@@ -279,11 +279,11 @@ module.exports = content;
 
     // resource预定义
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
-    let defaultResourceJSON = fs.readFileSync(`${templatePath}/crud.json`).toString();
+    const defaultResourceJSON = fs.readFileSync(`${templatePath}/crud.json`).toString();
 
     const resourceList = defaultResourceJSON
-    .replace(/\{\{pageId}}/g, pageId)
-    .replace(/\{\{table}}/g, table);
+      .replace(/\{\{pageId}}/g, pageId)
+      .replace(/\{\{table}}/g, table);
 
     const content =
     `const content = {
