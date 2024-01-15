@@ -191,10 +191,19 @@ module.exports = class InitJson extends CommandBase {
     columnStr += space + '{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n';
     const propsStr = pageType === '1table-component' ? 'props: {},' : '';
     const componentPath = pageType === '1table-component' ? `componentPath: "${pageId}",` : '';
+
+    // resource预定义
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
+    let defaultResourceJSON = fs.readFileSync(`${templatePath}/crud.json`).toString();
+
+    const resourceList = defaultResourceJSON
+    .replace(/\{\{pageId}}/g, pageId)
+    .replace(/\{\{table}}/g, table);
+
     const content =
     `const content = {
       pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
-      resourceList: [], // 额外resource { actionId, resourceType, resourceData }
+      resourceList: ${resourceList}, // 额外resource { actionId, resourceType, resourceData }
       drawerList: [], // 抽屉列表 { key, title, contentList }
       includeList: [], // 其他资源引入
       common: {
