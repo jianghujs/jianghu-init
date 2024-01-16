@@ -111,8 +111,8 @@ module.exports = class InitPage1Table extends CommandBase {
 
   // 生成 vue
   async renderVue(jsonConfig) {
-    const pageBakDir = './app/view/pageBak';
-    if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
+    // const pageBakDir = './app/view/pageBak';
+    // if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
 
     const { table, pageId, pageType } = jsonConfig;
     const tableCamelCase = _.camelCase(table);
@@ -131,6 +131,16 @@ module.exports = class InitPage1Table extends CommandBase {
     const componentList = this.getUpdateDrawerComponentList(jsonConfig);
     const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
 
+    if (pageId.includes('/')) {
+      const pageIdArr = pageId.split('/');
+      const pageIdDir = pageIdArr.slice(0, pageIdArr.length - 1).join('/');
+      [ 'page', 'pageDoc' ].forEach(dir => {
+        const pageIdDirPath = `./app/view/${dir}/${pageIdDir}`;
+        if (!fs.existsSync(pageIdDirPath)) {
+          fs.mkdirSync(pageIdDirPath);
+        }
+      });
+    }
 
     // 生成 md
     if (jsonConfig.headContent && jsonConfig.headContent.helpDrawer) {
@@ -140,6 +150,7 @@ module.exports = class InitPage1Table extends CommandBase {
         fs.writeFileSync(`${mdPath}/${pageId}.md`, `# ${pageId}页面`);
       }
     }
+
 
     // fs.writeFileSync(filepath, htmlUser);
     fs.writeFileSync(filepath, htmlGenerate);

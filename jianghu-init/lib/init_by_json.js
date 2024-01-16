@@ -83,19 +83,12 @@ module.exports = class InitByJsonCommand extends CommandBase {
       } else {
         pageType = jsonArgv.pageType;
         switch (pageType) {
-          case '1table-page':
-            await this.page1Table.run(process.cwd(), jsonArgv, this.argv);
-            break;
-          case '1table-component':
-            await this.component1Table.run(process.cwd(), jsonArgv, this.argv);
-            break;
-          case '2table-page':
-            await this.page2Table.run(process.cwd(), jsonArgv, this.argv);
-            break;
           case 'jh-component':
+          case '1table-component':
             await this.jhComponent.run(process.cwd(), jsonArgv, this.argv);
             break;
           case 'jh-page':
+          case '1table-page':
             await this.jhPage.run(process.cwd(), jsonArgv, this.argv);
             break;
           default:
@@ -235,12 +228,15 @@ module.exports = class InitByJsonCommand extends CommandBase {
     const fileList = await this.findJsFiles('./app/view/init-json');
 
     this.info(`共有 ${fileList.length} 个配置文件，加载中...`);
+    const configFileList = [];
     for (const file of fileList) {
       // eslint-disable-next-line no-eval
       const fileObj = eval(fs.readFileSync('./' + file).toString());
+      configFileList.push({ pageType: fileObj.pageType, pageId: fileObj.pageId, componentPath: fileObj.componentPath, file: file.replace('app/view/init-json/', '') });
       await this.renderContent(fileObj, file.replace('app/view/init-json/', ''));
     }
     this.success(`共有 ${fileList.length} 个配置文件，加载完成`);
+    this.checkFileRepeat(configFileList);
 
     // 监控文件变化
     const watcher = chokidar.watch('./app/view/init-json', {
@@ -261,6 +257,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
           return;
         }
         await this.renderContent(fileObj, pathStr.replace('app/view/init-json/', ''));
+      } else if (event === 'unlink') {
+        this.allConfigFileList = this.allConfigFileList.filter(item => !pathStr.includes(item.file));
       }
     });
     watcher.on('error', err => {
@@ -288,19 +286,16 @@ module.exports = class InitByJsonCommand extends CommandBase {
   }
 
   async renderContent(fileObj, filename) {
-    this.checkWarning(fileObj, filename);
+    const { error } = this.checkWarning(fileObj, filename);
+    if (error) return;
     try {
       switch (fileObj.pageType) {
-        case '1table-page':
-          await this.page1Table.renderContent(fileObj);
-          break;
-        case '1table-component':
-          await this.component1Table.renderContent(fileObj);
-          break;
         case 'jh-component':
+        case '1table-component':
           await this.jhComponent.renderContent(fileObj);
           break;
         case 'jh-page':
+        case '1table-page':
           await this.jhPage.renderContent(fileObj);
           break;
         default:
@@ -332,26 +327,56 @@ module.exports = class InitByJsonCommand extends CommandBase {
     return files;
   }
 
+  checkFileRepeat(configFileList) {
+    if (!this.allConfigFileList) {
+      this.allConfigFileList = configFileList || [];
+    }
+    const pageConfigList = this.allConfigFileList.filter(item => [ 'jh-page', '1table-page' ].includes(item.pageType));
+    const componentConfigList = this.allConfigFileList.filter(item => [ 'jh-component', '1table-component' ].includes(item.pageType));
+
+    const checkDuplicate = (configList, property, warningMessage) => {
+      const group = _.groupBy(configList, property);
+      const duplicateGroup = _.pickBy(group, item => item.length > 1);
+      if (Object.keys(duplicateGroup).length) {
+        this.warning(warningMessage);
+
+        Object.keys(duplicateGroup).forEach(key => {
+          const fileList = duplicateGroup[key].map(item => item.file);
+          this.warning(`${property}: ${key}  [ ${fileList.join(', ')} ]`);
+        });
+      }
+    };
+
+    checkDuplicate(pageConfigList, 'pageId', '页面 pageId 重复，请检查');
+    checkDuplicate(componentConfigList, 'componentPath', '组件 componentPath 重复，请检查');
+  }
+
   checkWarning(fileObj, file) {
     const warning = [];
+    const error = [];
     // ------------ 全局检查 ------------
     if (fileObj.includeList && fileObj.includeList.find(item => _.isString(item))) {
       warning.push('includeList 更新规范 { type, path }');
     }
     if (fileObj.drawerList && fileObj.drawerList.some(a => a.contentList.find(e => e.type === 'form' && e.actions))) {
-      warning.push('错误的用法 drawerList => form => actions, 请统一使用 action <object | array>');
+      warning.push('错误的用法 drawerList.form.actions, 请统一使用 action <object | array>');
     }
     if (fileObj.updateDrawerContent && fileObj.updateDrawerContent.contentList.find(e => e.type === 'form' && e.actions)) {
-      warning.push('错误的用法 updateDrawerContent => form => actions, 请统一使用 action <object | array>');
+      warning.push('错误的用法 updateDrawerContent.form.actions, 请统一使用 action <object | array>');
     }
     if (fileObj.headContent && (fileObj.headContent.serverSearchList || []).find(e => e.label)) {
       warning.push('无效的 serverSearchList label 设置');
     }
+    if (fileObj.pageType === '1table-page') {
+      error.push('1table-page 已废弃，请使用 jh-page');
+    }
+    if (fileObj.pageType === '1table-component') {
+      error.push('1table-component 已废弃，请使用 jh-component');
+    }
     // ------------ 最新 pageContent 检查 ------------
-    if ([ 'jh-page', 'jh-component' ].includes(fileObj.pageType)) {
-      if (fileObj.pageContent) {
-        if (fileObj.pageContent.tableAttrs || fileObj.pageContent.tableHeaderList) {
-          warning.push(`请参照最新 pageContent table 规范
+    if (fileObj.pageContent) {
+      if (fileObj.pageContent.tableAttrs || fileObj.pageContent.tableHeaderList) {
+        warning.push(`请参照最新 pageContent table 规范
     {                                     {
       tag: 'jh-table',                      tag: 'v-row',
       attrs: {},                            attrs: {},
@@ -361,17 +386,43 @@ module.exports = class InitByJsonCommand extends CommandBase {
       rowActionList: [],                  }
       headActionList: [],
     }`);
-        }
       }
     }
-    if (warning.length) {
+
+    // 检查 this.allConfigFileList 内是否有除了 fileObj 的其他重复项, 有则检查提示重复, 没有则添加
+    this.allConfigFileList = this.allConfigFileList || [];
+    let duplicateList = [];
+    if ([ 'jh-page', '1table-page' ].includes(fileObj.pageType)) {
+      duplicateList = this.allConfigFileList.filter(item => item.pageType.includes('-page') && item.pageId === fileObj.pageId && item.file !== file);
+    } else {
+      duplicateList = this.allConfigFileList.filter(item => item.pageType.includes('-component') && item.componentPath === fileObj.componentPath && item.file !== file);
+    }
+    if (duplicateList.length) {
+      error.push(`pageId: ${fileObj.pageId} [ ${file}, ${duplicateList.map(e => e.file).join(',')} ] 文件重复，请检查`);
+    } else {
+      this.allConfigFileList.push({ pageId: fileObj.pageId, pageType: fileObj.pageType, componentPath: fileObj.componentPath, file });
+    }
+
+    if (error.length) {
+      this.error('┏----------------------------------------------------------┓');
+      this.error('  Error: ' + file + ' 渲染失败');
+      this.error('┗----------------------------------------------------------┛');
+    } else if (warning.length) {
       this.warning('┏----------------------------------------------------------┓');
       this.warning('  Warning: ' + file);
       this.warning('┗----------------------------------------------------------┛');
     }
-    warning.forEach((item, index) => {
-      this.warning((index + 1) + '.' + item);
+    let index = 1;
+    error.forEach(item => {
+      this.error(index + '.' + item);
+      index++;
     });
+    warning.forEach(item => {
+      this.warning(index + '.' + item);
+      index++;
+    });
+
+    return { error: error.length, warning: warning.length };
   }
 
 };

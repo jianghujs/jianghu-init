@@ -51,6 +51,7 @@ const content = {
       { tag: "v-date-picker", label: "日期", model: "serverSearchWhere.month",  attrs: { type: "month" } },
     ],
     serverSearchWhere: { month: "" },
+    searchBtn: false
     // serverSearchWhereLike: { className: null },
   },
   pageContent: {

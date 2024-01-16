@@ -233,7 +233,7 @@ const mixin = {
     });
     nunjucksEnv.addFilter('includeFormat', function(item) {
       if (!item) return '';
-      if (_.isString(item)) return item;
+      if (_.isString(item)) return item; // 兼容原生代码
       const { type, path } = item;
       if ([ 'js', 'script' ].includes(type)) {
         return `<script src="${path}"></script>`;
@@ -252,14 +252,15 @@ const mixin = {
     const knex = this.knex;
     const existResourceList = await knex('_resource').where({ pageId });
     for (const { actionId, resourceType, desc = null, resourceData, resourceHook = null } of resourceList) {
-      const resourceDataStr = resourceHook ? JSON.stringify(resourceData) : resourceHook;
+      const resourceDataStr = _.isObject(resourceData) ? JSON.stringify(resourceData) : resourceData;
+      const resourceHookStr = _.isObject(resourceHook) ? JSON.stringify(resourceHook) : resourceHook;
       // 比对是否存在，存在则更新，不存在则插入
       // eslint-disable-next-line eqeqeq
       const resourceItem = existResourceList.find(e => e.actionId == actionId);
       if (resourceItem) {
         // 对比有差异再修改
         let isDiff = false;
-        const updateData = { actionId, pageId, desc, resourceData: JSON.stringify(resourceData), resourceHook: resourceDataStr };
+        const updateData = { actionId, pageId, desc, resourceData: resourceDataStr, resourceHook: resourceHookStr };
         _.forEach(updateData, (value, key) => {
           if ((value || null) !== (resourceItem[key] || null)) {
             isDiff = true;
@@ -270,8 +271,25 @@ const mixin = {
         await knex('_resource').where({ id: resourceItem.id }).update(updateData);
         continue;
       }
-      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: JSON.stringify(resourceData), resourceHook: resourceDataStr });
+      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr });
     }
+    // filter 数据库内有但是却没设置的 resource
+    const warningList = existResourceList.filter(e => !resourceList.some(r => r.actionId === e.actionId));
+    if (!warningList.length) return;
+    this.warning(`尚未配置 resource, 如不需要请手动数据库删除: 
+    ${warningList
+    .map(e => {
+      const fieldList = [ 'actionId', 'desc', 'resourceType', 'resourceData' ];
+      if (e.resourceHook) fieldList.unshift('resourceHook');
+      e.resourceData = JSON.parse(e.resourceData);
+      if (e.resourceHook) e.resourceHook = JSON.parse(e.resourceHook);
+      return JSON.stringify(_.pick(e, fieldList))
+        .replace(/\\"/g, '====')
+        .replace(/"([^"]+)":/g, '$1:')
+        .replace(/"/g, '\'')
+        .replace(/====/g, '"');
+    })
+    .join(',\n    ')}`);
   },
 
   handleJsonConfig(jsonConfig) {
