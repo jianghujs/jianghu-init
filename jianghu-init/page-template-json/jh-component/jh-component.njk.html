@@ -575,7 +575,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//     data: {
     //===//       appData: {
     //===//         pageId: '<=$ pageId $=>',
-    //===//         actionId: 'insertItem',
+    //===//         actionId: '<=$ componentPath.split('/').pop() $=>-insertItem',
     //===//         <=%- if idGenerate %=>
     //===//         bizIdGenerate: {
     //===//           type: "idSequence",
@@ -637,7 +637,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//     data: {
     //===//       appData: {
     //===//         pageId: '<=$ pageId $=>',
-    //===//         actionId: 'updateItem',
+    //===//         actionId: '<=$ componentPath.split('/').pop() $=>-updateItem',
     //===//         actionData: this.updateActionData,
     //===//         where: {id: this.updateItemId}
     //===//       }
@@ -675,7 +675,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//     data: {
     //===//       appData: {
     //===//         pageId: '<=$ pageId $=>',
-    //===//         actionId: 'deleteItem',
+    //===//         actionId: '<=$ componentPath.split('/').pop() $=>-deleteItem',
     //===//         actionData: {},
     //===//         where: {id: this.deleteItemId}
     //===//       }
