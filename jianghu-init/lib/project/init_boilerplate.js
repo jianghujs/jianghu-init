@@ -15,6 +15,7 @@ const compressing = require('compressing');
 const rimraf = require('mz-modules/rimraf');
 const isTextOrBinary = require('istextorbinary');
 const ProxyAgent = require('proxy-agent');
+const { execSync } = require('child_process');
 
 require('colors');
 const symbols = require('log-symbols');
@@ -25,7 +26,7 @@ const chalk = require('chalk');
  */
 module.exports = class InitBoilerplate {
 
-  constructor(options) {
+  constructor (options) {
     options = options || {};
     this.name = options.name || 'jianghu-init';
     this.configName = options.configName || '@jianghujs/jianghu-init-config';
@@ -589,9 +590,11 @@ module.exports = class InitBoilerplate {
       return result.data;
     } catch (err) {
       this.log(`线上失败 ${pkgName}`);
+      // 获取当前命令运行的目录
+      const directory = execSync('npm root -g').toString().trim();
       if (withFallback) {
         this.log(`use fallback from ${pkgName}`);
-        return require(`../../${pkgName}/package.json`);
+        return require(`${directory}/${pkgName}/package.json`);
       } else {
         throw err;
       }
