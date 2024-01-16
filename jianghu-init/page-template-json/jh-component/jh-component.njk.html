@@ -338,7 +338,9 @@
 <=$ item | includeFormat $=>
 <=%- endfor %=>
 <script>
-Vue.component('v-chart', VueECharts);
+//===// <=% if (pageContent.tag !== 'jh-table') %=>
+//===// Vue.component('v-chart', VueECharts);
+//===// <=% endif %=>
 Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
   template: '#<=$ componentPath.split('/').pop() | camelToKebab $=>',
   vuetify: new Vuetify(),
@@ -409,8 +411,15 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- endfor %=>
   },
   //===// <=$ common.computed | variableToVar('computed') $=><=$ ',' if common.computed $=>
+
+  //===// <=%- if not common.created %=>
   async created() {
+    //===// <=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
+    this.doUiAction('getTableData');
+    //===// <=%- endif %=>
   },
+  //===// <=%- endif %=>
+
   //===// <=% for key, item in common %=>
   //===// <=%- if key == 'mounted' or key == 'created' %=><=$ item | variableToVar(key) $=>,<=% endif %=><=%- endfor %=>
   methods: {
