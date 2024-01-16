@@ -441,11 +441,14 @@ new Vue({
     //===// <=%- endfor %=>
   },
   //===// <=$ common.computed | variableToVar('computed') $=><=$ ',' if common.computed $=>
+  //===// <=%- if not common.created %=>
   async created() {
     //===// <=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
     this.doUiAction('getTableData');
     //===// <=%- endif %=>
   },
+  //===// <=%- endif %=>
+
   //===// <=% for key, item in common %=>
   //===// <=%- if key == 'mounted' or key == 'created' %=><=$ item | variableToVar(key) $=>,<=% endif %=><=%- endfor %=>
   methods: {
