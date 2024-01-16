@@ -466,6 +466,13 @@ new Vue({
     async doUiAction(uiActionId, uiActionData) {
       try {
         switch (uiActionId) {
+          //===// <=%- for key, value in common.doUiAction %=> 
+          //===// case '<=$ key $=>':
+          //===//   <=%- for method in value %=> 
+          //===//   await this.<=$ method $=>(uiActionData);
+          //===//   <=%- endfor %=>
+          //===//   break;
+          //===// <=%- endfor %=>
           //===// <=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
           case 'getTableData':
             await this.getTableData();
@@ -520,13 +527,6 @@ new Vue({
           //===//   break;
           //===// <=%- endfor %=>
 
-          //===// <=%- for key, value in common.doUiAction %=> 
-          //===// case '<=$ key $=>':
-          //===//   <=%- for method in value %=> 
-          //===//   await this.<=$ method $=>(uiActionData);
-          //===//   <=%- endfor %=>
-          //===//   break;
-          //===// <=%- endfor %=>
 
           default:
             console.error("[doUiAction] uiActionId not find", {uiActionId});
