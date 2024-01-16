@@ -261,7 +261,7 @@
 
     <=%- for drawer in drawerList %=> 
     <!-- <=$ drawer.title $=> >>>>>>>>>>>>> -->
-    <v-navigation-drawer v-model="is<=$ drawer.key | ucfirst $=>DrawerShown" :permanent="is<=$ drawer.key | ucfirst $=>DrawerShown" fixed temporary right width="80%" class="elevation-24">
+    <v-navigation-drawer v-if="is<=$ drawer.key | ucfirst $=>DrawerShown" v-model="is<=$ drawer.key | ucfirst $=>DrawerShown" :permanent="is<=$ drawer.key | ucfirst $=>DrawerShown" fixed temporary right width="80%" class="elevation-24">
       <v-form ref="<=$ drawer.key $=>" lazy-validation>
         <=% if drawer.title %=>
         <!-- 抽屉标题 -->
