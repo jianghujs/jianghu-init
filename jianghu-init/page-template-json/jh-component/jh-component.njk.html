@@ -22,8 +22,7 @@
             <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 pt-2 pt-sm-0">
               <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
-                <v-text-field v-bind="attrs" v-on="on"  
-                    v-model="<=$ ss.model $=>" prefix="<=$ ss.label $=>：" class="jh-v-input bg-white" dense single-line filled clearable></v-text-field>
+                  <v-text-field v-bind="attrs" v-on="on" v-model="<=$ ss.model $=>" prefix="<=$ ss.attrs.prefix if ss.attrs else '' $=>：" class="jh-v-input bg-white" dense single-line filled clearable <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-text-field>
                 </template>
                 <v-date-picker color="success" elevation="20" v-model="<=$ ss.model $=>" type='<=$ ss.attrs.type $=>'></v-date-picker>
               </v-menu>
@@ -143,8 +142,10 @@
         <v-divider class="jh-divider"></v-divider>
         <v-row class="mt-0 px-4">
           <=%- for formItem in createDrawerContent.formItemList %=>
-          <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>">
+          <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+            <=%- if formItem.label %=>
             <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+            <=%- endif %=>
             <=%- if formItem.tag == "v-date-picker" %=> 
             <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
@@ -152,6 +153,8 @@
                 </template>
                 <v-date-picker color="success" elevation="20" v-model="createItem.<=$ formItem.model $=>"></v-date-picker>
             </v-menu>
+            <=%- elif formItem.tag == "jh-json-editor" %=> 
+            <vue-json-editor v-model="createItem.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></vue-json-editor>
             <=%- else %=> 
             <=$ formItem | formItemFormat('createItem') $=>
             <=%- endif %=>
@@ -209,8 +212,10 @@
             <=%- if content.type == "form" %=> 
             <v-row class="mt-0 px-4">
               <=%- for formItem in content.formItemList %=>
-              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>">
+              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+                <=%- if formItem.label %=>
                 <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                <=%- endif %=>
                 <=%- if formItem.tag == "v-date-picker" %=> 
                 <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                   <template v-slot:activator="{on, attrs}">
@@ -218,6 +223,8 @@
                   </template>
                   <v-date-picker color="success" elevation="20" v-model="updateItem.<=$ formItem.model $=>"></v-date-picker>
                 </v-menu>
+                <=%- elif formItem.tag == "jh-json-editor" %=> 
+                <vue-json-editor v-model="updateItem.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></vue-json-editor>
                 <=%- else %=> 
                 <=$ formItem | formItemFormat('updateItem') $=>
                 <=%- endif %=>
@@ -286,21 +293,19 @@
             <=%- if content.type == "form" %=> 
             <v-row class="mt-0 px-4">
               <=%- for formItem in content.formItemList %=>
-              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>">
+              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+                <=%- if formItem.label %=>
                 <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
-                <=%- if formItem.tag == "v-text-field" %=> 
-                <v-text-field class="jh-v-input" dense single-line filled v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-text-field> 
-                <=%- elif formItem.tag == "v-textarea" %=> 
-                <v-textarea class="jh-v-input" dense single-line filled v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-textarea>
-                <=%- elif formItem.tag == "v-select" %=>
-                <v-select class="jh-v-input mr-2" dense filled single-line v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" <=% for key, value in formItem.attrs %=><=$ key | tagAttr(value) $=><=% endfor %=>></v-select> 
-                <=%- elif formItem.tag == "v-date-picker" %=> 
+                <=%- endif %=>
+                <=%- if formItem.tag == "v-date-picker" %=> 
                 <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                     <template v-slot:activator="{on, attrs}">
                     <v-text-field v-bind="attrs" v-on="on" v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly></v-text-field>
                     </template>
                     <v-date-picker color="success" elevation="20" v-model="<=$ drawer.key $=>.<=$ formItem.model $=>"></v-date-picker>
                 </v-menu>
+                <=%- elif formItem.tag == "jh-json-editor" %=> 
+                <vue-json-editor v-model="<=$ drawer.key $=>.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></vue-json-editor>
                 <=%- else %=> 
                 <=$ formItem | formItemFormat(drawer.key) $=>
                 <=%- endif %=>

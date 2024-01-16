@@ -302,12 +302,13 @@ const mixin = {
 
   },
 
-  getUpdateDrawerComponentList(jsonConfig) {
+  getConfigComponentList(jsonConfig) {
     const { table, pageId, updateDrawerContent, drawerList = [] } = jsonConfig;
     const componentList = [];
     const componentMap = {
       recordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}.id' }, sqlMap: { table, pageId } },
       tableRecordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}.id' }, sqlMap: { table, pageId } },
+      vueJsonEditor: { filename: 'vueJsonEditor', model: '', bind: { mode: 'code', expandedOnStart: false } },
     };
 
     const processContentList = (contentList, itemKey = 'updateItem') => {
@@ -335,6 +336,12 @@ const mixin = {
             item.componentPath = item.componentPath;
           }
           componentList.push(item);
+        } else if (item.type === 'form' && item.formItemList) {
+          if (item.formItemList.some(e => e.tag === 'jh-json-editor')) {
+            componentList.push({
+              componentPath: 'vueJsonEditor',
+            });
+          }
         }
       });
     };
@@ -400,7 +407,7 @@ const mixin = {
   async modifyComponentResource(jsonConfig) {
     if (this.argv.devModel) return;
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/component`;
-    const componentList = this.getUpdateDrawerComponentList(jsonConfig);
+    const componentList = this.getConfigComponentList(jsonConfig);
 
     // 循环 componentList 运行 sql
     for (const component of componentList) {
@@ -411,6 +418,7 @@ const mixin = {
   async modifyComponentResourceItem(templatePath, component) {
     const knex = await this.getKnex();
     if (component.type === 'component' && component.componentPath !== 'tableRecordHistory') return;
+    if (!fs.existsSync(`${templatePath}/${component.componentPath}.sql`)) return;
     let resourceSql = fs.readFileSync(`${templatePath}/${component.componentPath}.sql`).toString();
     _.forEach(component.sqlMap, (value, key) => {
       if (!value) return;
@@ -429,7 +437,7 @@ const mixin = {
   },
 
   async renderComponent(jsonConfig) {
-    const componentList = this.getUpdateDrawerComponentList(jsonConfig);
+    const componentList = this.getConfigComponentList(jsonConfig);
     if (!componentList.length) return;
 
     const componentPath = `${path.join(__dirname, '../../')}page-template-json/component`;
@@ -461,6 +469,12 @@ const mixin = {
 
         fs.writeFileSync(targetFilePath, componentHtml);
         await this.modifyComponentResourceItem(componentPath, item);
+      } else if (item.componentPath === 'vueJsonEditor') {
+        const componentHtml = fs.readFileSync(componentPath + '/' + item.componentPath + '.html')
+          .toString()
+          .replace(/\/\/===\/\/ /g, '')
+          .replace(/\/\/===\/\//g, '');
+        fs.writeFileSync(targetFilePath, componentHtml);
       }
     }
   },

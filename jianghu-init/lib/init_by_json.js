@@ -2,7 +2,6 @@
 const yargs = require('yargs');
 const InitPage1Table = require('./json/init_page_1table');
 const InitComponent1Table = require('./json/init_component_1table');
-const InitPage2Table = require('./json/init_page_2table');
 const InitPage = require('./json/init_page');
 const InitComponent = require('./json/init_component');
 const InitJson = require('./json/init_json');
@@ -49,7 +48,6 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.cwd = cwd;
     this.page1Table = new InitPage1Table();
     this.component1Table = new InitComponent1Table();
-    this.page2Table = new InitPage2Table();
     this.jhComponent = new InitComponent();
     this.jhPage = new InitPage();
 
@@ -403,6 +401,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
       this.allConfigFileList.push({ pageId: fileObj.pageId, pageType: fileObj.pageType, componentPath: fileObj.componentPath, file });
     }
 
+    // 检查 jh-json-editor 资源引入
+    this.checkJhJsonExists(fileObj, warning);
+
     if (error.length) {
       this.error('┏----------------------------------------------------------┓');
       this.error('  Error: ' + file + ' 渲染失败');
@@ -423,6 +424,32 @@ module.exports = class InitByJsonCommand extends CommandBase {
     });
 
     return { error: error.length, warning: warning.length };
+  }
+
+  checkJhJsonExists(fileObj, warning) {
+    let jhJsonExists = false;
+    const { drawerList, createDrawerContent, updateDrawerContent, includeList } = fileObj;
+    if (drawerList && drawerList.some(drawer => drawer.contentList.some(content => content.type === 'form' && content.formItemList.some(item => item.tag === 'jh-json-editor')))) {
+      jhJsonExists = true;
+    }
+    if (!jhJsonExists && createDrawerContent && createDrawerContent.formItemList.some(content => content.tag === 'jh-json-editor')) {
+      jhJsonExists = true;
+    }
+    if (!jhJsonExists && updateDrawerContent && updateDrawerContent.contentList.some(content => content.type === 'form' && content.formItemList.some(item => item.tag === 'jh-json-editor'))) {
+      jhJsonExists = true;
+    }
+    if (jhJsonExists) {
+      const warn = [];
+      if (!includeList || !includeList.some(item => item.path === '/<$ ctx.app.config.appId $>/public/plugins/jsoneditor/jsoneditor.js' && item.type === 'js')) {
+        warn.push('{ type: \'js\', path: \'/<$ ctx.app.config.appId $>/public/plugins/jsoneditor/jsoneditor.js\' },');
+      }
+      if (!includeList || !includeList.some(item => item.path === '/<$ ctx.app.config.appId $>/public/plugins/jsoneditor/jsoneditor.css' && item.type === 'css')) {
+        warn.push('{ type: \'css\', path: \'/<$ ctx.app.config.appId $>/public/plugins/jsoneditor/jsoneditor.css\' },');
+      }
+      if (warn.length) {
+        warning.push('请在 includeList 中添加 jh-json-editor 资源引入\n    ' + warn.join('\n    '));
+      }
+    }
   }
 
 };

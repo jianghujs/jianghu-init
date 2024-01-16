@@ -130,7 +130,7 @@ module.exports = class InitComponent1Table extends CommandBase {
     this.handleNunjucksEnv(templateTargetPath);
     this.handleJsonConfig(jsonConfig);
 
-    const componentList = this.getUpdateDrawerComponentList(jsonConfig);
+    const componentList = this.getConfigComponentList(jsonConfig);
     const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
 
     // fs.writeFileSync(filepath, htmlUser);

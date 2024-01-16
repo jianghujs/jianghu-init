@@ -128,7 +128,7 @@ module.exports = class InitPage1Table extends CommandBase {
     this.handleNunjucksEnv(templateTargetPath);
     this.handleJsonConfig(jsonConfig);
 
-    const componentList = this.getUpdateDrawerComponentList(jsonConfig);
+    const componentList = this.getConfigComponentList(jsonConfig);
     const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
 
     if (pageId.includes('/')) {
