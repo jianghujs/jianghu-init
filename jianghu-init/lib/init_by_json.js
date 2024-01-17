@@ -290,11 +290,11 @@ module.exports = class InitByJsonCommand extends CommandBase {
       switch (fileObj.pageType) {
         case 'jh-component':
         case '1table-component':
-          await this.jhComponent.renderContent(fileObj);
+          await this.jhComponent.renderContent(fileObj, true);
           break;
         case 'jh-page':
         case '1table-page':
-          await this.jhPage.renderContent(fileObj);
+          await this.jhPage.renderContent(fileObj, true);
           break;
         default:
           this.error(`不存在的 pageType: ${fileObj.pageType}`);
