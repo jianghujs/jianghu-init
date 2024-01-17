@@ -156,7 +156,7 @@
         <v-divider class="jh-divider"></v-divider>
         <v-row class="mt-0 px-4">
           <=%- for formItem in createDrawerContent.formItemList %=>
-          <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+          <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>"<=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
             <=%- if formItem.label %=>
             <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
             <=%- endif %=>
@@ -307,7 +307,7 @@
             <=%- if content.type == "form" %=> 
             <v-row class="mt-0 px-4">
               <=%- for formItem in content.formItemList %=>
-              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>"<=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
                 <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
                 <=%- endif %=>
