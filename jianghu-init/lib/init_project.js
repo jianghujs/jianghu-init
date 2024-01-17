@@ -23,11 +23,18 @@ module.exports = class InitProjectCommand extends CommandBase {
 
     // 下载模板并生成项目
     const { targetDir, boilerplate, database = '' } = await new InitBoilerplate({ dbPrefix }).run(cwd, args);
-    
+
     const projectName = path.basename(path.resolve(targetDir));
 
+    const dbConfig = {
+      dbIp: this.argv.dbIp,
+      dbPort: this.argv.dbPort,
+      dbUser: this.argv.dbUser,
+      dbPass: this.argv.dbPass,
+    };
+
     // 运行数据库初始化
-    await this.initDb(boilerplate, projectName, dbPrefix, database);
+    await this.initDb(boilerplate, projectName, dbPrefix, database, dbConfig);
 
     // done
     this.printGuide(targetDir, boilerplate);
@@ -57,13 +64,29 @@ module.exports = class InitProjectCommand extends CommandBase {
         type: 'string',
         description: 'project type',
       },
+      dbIp: {
+        type: 'string',
+        description: 'database ip',
+      },
+      dbPort: {
+        type: 'string',
+        description: 'database port',
+      },
+      dbUser: {
+        type: 'string',
+        description: 'database user',
+      },
+      dbPass: {
+        type: 'string',
+        description: 'database pass',
+      },
     };
   }
 
   /**
    * 获取数据库配置
    */
-  async getDbSetting(boilerplate, projectName, database) {
+  async getDbSetting(boilerplate, projectName, database, dbConfig) {
     let dbSetting = {};
     if (this.inMultiDemoProject.includes(boilerplate.name) && fs.existsSync('user_app_management')) {
       // 读取 example 中的数据库前缀
@@ -72,15 +95,15 @@ module.exports = class InitProjectCommand extends CommandBase {
       process.chdir('..');
     } else {
       dbSetting.dbPrefix = this.tryGetDbPrefix();
-      dbSetting.host = await this.readlineMethod('数据库IP：', '127.0.0.1');
+      dbSetting.host = dbConfig.dbIp || await this.readlineMethod('数据库IP：', '127.0.0.1');
       if (!this.multiDemoProject.includes(boilerplate.name)) {
         // const databaseName = projectName.replace(new RegExp('-', 'g'), '_');
         // dbSetting.defaultDatabase = await this.readlineMethod('数据库名称：', databaseName);
         dbSetting.defaultDatabase = database;
       }
-      dbSetting.port = await this.readlineMethod('数据库端口：', 3306);
-      dbSetting.user = await this.readlineMethod('数据库账号：', 'root');
-      dbSetting.password = await this.readlineMethod('数据库密码：', '123456');
+      dbSetting.port = dbConfig.dbPort || await this.readlineMethod('数据库端口：', 3306);
+      dbSetting.user = dbConfig.dbUser || await this.readlineMethod('数据库账号：', 'root');
+      dbSetting.password = dbConfig.dbPass || await this.readlineMethod('数据库密码：', '123456');
     }
     return dbSetting;
   }
@@ -88,7 +111,7 @@ module.exports = class InitProjectCommand extends CommandBase {
   /**
    * 运行数据库初始化
    */
-  async initDb(boilerplate, projectName, dbPrefix, database) {
+  async initDb(boilerplate, projectName, dbPrefix, database, dbConfig) {
     // 确认要处理的 app
     const apps = [];
     if (this.multiDemoProject.includes(boilerplate.name)) {
@@ -102,12 +125,11 @@ module.exports = class InitProjectCommand extends CommandBase {
     }
 
     // 获取数据库配置
-    const dbSetting = await this.getDbSetting(boilerplate, projectName, database);
+    const dbSetting = await this.getDbSetting(boilerplate, projectName, database, dbConfig);
     dbSetting.dbPrefix = dbSetting.dbPrefix || dbPrefix || '';
     if (!this.multiDemoProject.includes(boilerplate.name) && !this.inMultiDemoProject.includes(boilerplate.name)) {
       dbSetting.dbPrefix = '';
     }
-
     for (const app of apps) {
       // 目录切换
       if (await exists(path.join(process.cwd(), app))) {
