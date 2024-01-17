@@ -59,13 +59,16 @@ module.exports = class InitPage1Table extends CommandBase {
     }
   }
 
-  async renderContent(jsonConfig) {
+  async renderContent(jsonConfig, dev = false) {
     this.dbSetting = this.readDbConfigFromFile();
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
     await this.renderVue(jsonConfig);
     await this.handleOtherResource(jsonConfig);
+    // 提示组件尚未生成
+    await this.renderComponent(jsonConfig, dev);
+    await this.renderService(jsonConfig, dev);
   }
 
   async modifyTable(jsonConfig) {
@@ -128,7 +131,7 @@ module.exports = class InitPage1Table extends CommandBase {
     this.handleNunjucksEnv(templateTargetPath);
     this.handleJsonConfig(jsonConfig);
 
-    const componentList = this.getUpdateDrawerComponentList(jsonConfig);
+    const componentList = this.getConfigComponentList(jsonConfig);
     const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
 
     if (pageId.includes('/')) {
