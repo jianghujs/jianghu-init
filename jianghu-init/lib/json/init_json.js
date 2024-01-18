@@ -217,12 +217,21 @@ module.exports = class InitJson extends CommandBase {
   }`;
     }
 
+    // resourceList预设
+    let resourceList = []
+    if (table) {
+      const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-page`;
+      const defaultResourceJSON = fs.readFileSync(`${templatePath}/crud.json`).toString();
+      resourceList = defaultResourceJSON
+        .replace(/\{\{pageId}}/g, pageId)
+        .replace(/\{\{table}}/g, table);
+    }
 
     const propsStr = pageType === 'jh-component' ? 'props: {},' : '';
     const componentPath = pageType === 'jh-component' ? `componentPath: "${pageId}",` : '';
     const content = `const content = {
   pageType: "${pageType}", pageId: "${pageId}", ${tableStr} pageName: "${pageId}页面", ${componentPath}
-  resourceList: [], // 额外resource { actionId, resourceType, resourceData }
+  resourceList: ${resourceList}, // 额外resource { actionId, resourceType, resourceData }
   drawerList: [], // 抽屉列表 { key, title, contentList }
   includeList: [], // 其他资源引入
   common: { 
