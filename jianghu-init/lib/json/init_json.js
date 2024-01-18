@@ -87,34 +87,34 @@ module.exports = class InitJson extends CommandBase {
         name: 'pageId',
         type: 'input',
         default: table ? table + 'Management' : 'examplePage',
-        message: `请输入文件名，如"${table ? table + 'Management' : 'examplePage'}"`,
+        message: `请输入pageId，如"${table ? table + 'Management' : 'examplePage'}"`,
       });
       pageId = res.pageId;
     }
-    if (!pageType) {
+    let filename = pageId;
+    if (pageType === 'jh-component') {
       const res = await inquirer.prompt({
-        name: 'type',
-        type: 'list',
-        choices: typeList,
-        message: '请选择类型',
+        name: 'filename',
+        type: 'input',
+        default: table ? table + 'Component' : 'examplePage',
+        message: `请输入文件名，如"${table ? table + 'Component' : 'examplePage'}"`,
       });
-      pageType = res.type;
+      filename = res.filename;
     }
-    return { table, pageId, pageType };
+    return { table, pageId, pageType, filename };
   }
 
 
   // 生成 json
-  async buildJson({ table, pageId, pageType, chartType }) {
+  async buildJson({ table, pageId, pageType, chartType, filename }) {
     // 检测创建文件夹
     if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
     const generateFileDir = [ '1table-page', 'jh-page' ].includes(pageType) ? './app/view/init-json/page' : './app/view/init-json/component';
     if (!fs.existsSync(generateFileDir)) fs.mkdirSync(generateFileDir);
 
     const fields = table ? await this.getTableFields(table) : [];
-
     let content;
-    let fileName = pageId;
+    let fileName = filename;
     if (pageType === 'jh-component') {
       if (chartType) {
         if (chartType === 'all') {
@@ -130,9 +130,9 @@ module.exports = class InitJson extends CommandBase {
         // 添加依赖的public 静态资源
         this.checkStaticChartFile();
       }
-      content = this.getJhContent({ table, pageId, pageType, fields });
+      content = this.getJhContent({ table, pageId, pageType, fields, filename: fileName });
     } else if (pageType === 'jh-page') {
-      content = this.getJhContent({ table, pageId, pageType, fields });
+      content = this.getJhContent({ table, pageId, pageType, fields, filename: fileName });
     } else {
       content = this.get1TableContent({ table, pageId, pageType, fields });
     }
@@ -159,7 +159,7 @@ module.exports = class InitJson extends CommandBase {
     }
   }
 
-  getJhContent({ table, pageId, pageType, fields }) {
+  getJhContent({ table, pageId, pageType, fields, filename = '' }) {
     let tableStr = '';
     let columnStr = '';
     let space = '';
@@ -219,19 +219,20 @@ module.exports = class InitJson extends CommandBase {
     }
 
     // resourceList预设
-    let resourceList = []
+    let resourceList = [];
     if (table) {
-      const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-page`;
-      const defaultResourceJSON = fs.readFileSync(`${templatePath}/crud.json`).toString();
+      const templatePath = `${path.join(__dirname, '../../')}page-template-json/${pageType}`;
+      const defaultResourceJSON = fs.readFileSync(`${templatePath}/resource.json`).toString();
       resourceList = defaultResourceJSON
         .replace(/\{\{pageId}}/g, pageId)
         .replace(/\{\{table}}/g, table)
+        .replace(/\{\{filename}}/g, filename.split('/').pop())
         .replace(/"([^"]+)":/g, '$1:')
         .replace(/\n/g, '\n  ');
     }
 
     const propsStr = pageType === 'jh-component' ? 'props: {},' : '';
-    const componentPath = pageType === 'jh-component' ? `componentPath: "${pageId}",` : '';
+    const componentPath = pageType === 'jh-component' ? `componentPath: "${filename}",` : '';
     const content = `const content = {
   pageType: "${pageType}", pageId: "${pageId}", ${tableStr} pageName: "${pageId}页面", ${componentPath}
   resourceList: ${resourceList}, // 额外resource { actionId, resourceType, resourceData }

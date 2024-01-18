@@ -1,0 +1,42 @@
+[
+  {
+    "actionId": "{{filename}}-selectItemList",
+    "resourceType": "sql",
+    "resourceHook": {},
+    "desc": "✅查询列表-{{pageId}}",
+    "resourceData": {
+      "table": "{{table}}",
+      "operation": "select"
+    }
+  },
+  {
+    "actionId": "{{filename}}-insertItem",
+    "resourceType": "sql",
+    "resourceHook": {},
+    "desc": "✅添加-{{pageId}}",
+    "resourceData": {
+      "table": "{{table}}",
+      "operation": "jhInsert"
+    }
+  },
+  {
+    "actionId": "{{filename}}-updateItem",
+    "resourceType": "sql",
+    "resourceHook": {},
+    "desc": "✅更新-{{pageId}}",
+    "resourceData": {
+      "table": "{{table}}",
+      "operation": "jhUpdate"
+    }
+  },
+  {
+    "actionId": "{{filename}}-deleteItem",
+    "resourceType": "sql",
+    "resourceHook": {},
+    "desc": "✅删除-{{pageId}}",
+    "resourceData": {
+      "table": "{{table}}",
+      "operation": "jhDelete"
+    }
+  }
+]
