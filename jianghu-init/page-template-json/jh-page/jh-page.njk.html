@@ -206,6 +206,7 @@
           </v-col>
         </v-row>
         <=%- endif %=>
+        <=%- if updateDrawerContent.contentList.length > 1 %=>
         <div class="px-4">
           <v-tabs
             v-model="updateDrawerTab"
@@ -218,6 +219,7 @@
             <=%- endfor %=>
           </v-tabs>
         </div>
+        <=%- endif %=>
         <v-tabs-items v-model="updateDrawerTab">
           <=%- for content in updateDrawerContent.contentList %=>
           <v-tab-item
@@ -371,7 +373,9 @@
 {% endblock %}
 
 {% block vueScript %}
-
+<=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+<=%- endif %=>
 <=%- for component in componentList %=>
 {% include 'component/<=$ component.componentPath $=>.html' %}
 <=%- endfor %=>
