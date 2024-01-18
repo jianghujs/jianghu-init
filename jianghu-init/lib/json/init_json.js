@@ -182,6 +182,9 @@ module.exports = class InitJson extends CommandBase {
         updateItemListStr += space + `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
         space = '      ';
       });
+
+      columnStr += space + '{ text: "", value: "" },\n';
+      columnStr += space + '{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n';
       pageContent = `{
     tag: 'jh-table',
     attrs: {  },
