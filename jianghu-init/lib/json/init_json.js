@@ -251,9 +251,9 @@ module.exports = class InitJson extends CommandBase {
   headContent: {
     helpDrawer: {}, // 自动初始化md文件
     // serverSearchList: [
-    //   { tag: "v-text-field",  label: "学生名字",    model: "serverSearchWhereLike.name",                                          },
-    //   { tag: "v-select",      label: "性别",       model: "serverSearchWhere.gender",           attrs: { items: ["全部", "男", "女"] } },
-    //   { tag: "v-date-picker", label: "出生日期",    model: "serverSearchWhereLike.dateOfBirth",  attrs: { type: "month" },             },
+    //   { tag: "v-text-field", model: "serverSearchWhereLike.name", attrs: { prefix: "学生名字", }},
+    //   { tag: "v-select", model: "serverSearchWhere.gender", attrs: { prefix: "性别", items: ["全部", "男", "女"] } },
+    //   { tag: "v-date-picker", model: "serverSearchWhereLike.dateOfBirth",  attrs: { prefix: "出生日期", type: "month" },             },
     // ],
     // serverSearchWhere: { gender: "全部" },
     // serverSearchWhereLike: { name: null, dateOfBirth: null },
