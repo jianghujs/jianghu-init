@@ -7,8 +7,6 @@ const fs = require('fs');
 // const _ = require('lodash');
 const path = require('path');
 const typeList = [
-  { value: '1table-page', name: '1table-page' },
-  { value: '1table-component', name: '1table-component' },
   { value: 'jh-page', name: 'jh-page' },
   { value: 'jh-component', name: 'jh-component' },
 ];
@@ -224,7 +222,9 @@ module.exports = class InitJson extends CommandBase {
       const defaultResourceJSON = fs.readFileSync(`${templatePath}/crud.json`).toString();
       resourceList = defaultResourceJSON
         .replace(/\{\{pageId}}/g, pageId)
-        .replace(/\{\{table}}/g, table);
+        .replace(/\{\{table}}/g, table)
+        .replace(/"([^"]+)":/g, '$1:')
+        .replace(/\n/g, '\n  ');
     }
 
     const propsStr = pageType === 'jh-component' ? 'props: {},' : '';
