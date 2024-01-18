@@ -47,7 +47,7 @@ module.exports = class InitComponent extends CommandBase {
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
-      await this.modifyTable(jsonConfig, pageId, componentPath);
+      // await this.modifyTable(jsonConfig, pageId, componentPath);
       // 生成组件
       await this.renderComponent(jsonConfig);
       // 生成 service

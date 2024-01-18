@@ -46,7 +46,7 @@ module.exports = class InitPage1Table extends CommandBase {
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
-      await this.modifyTable(jsonConfig);
+      // await this.modifyTable(jsonConfig);
       await this.handleOtherResource(jsonConfig);
       // 生成组件
       await this.renderComponent(jsonConfig);
