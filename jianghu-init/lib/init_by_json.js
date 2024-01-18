@@ -129,9 +129,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
       this.argv.pageType = type;
     }
     let generateFileDir;
-    if ([ '1table-page', 'page' ].includes(type)) {
+    if ([ '1table-page', 'jh-page' ].includes(type)) {
       generateFileDir = './app/view/init-json/page';
-    } else if ([ '1table-component', 'component' ].includes(type)) {
+    } else if ([ '1table-component', 'jh-component' ].includes(type)) {
       generateFileDir = './app/view/init-json/component';
     } else {
       this.error(`不存在的配置类型${type}`);
