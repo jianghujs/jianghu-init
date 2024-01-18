@@ -1,5 +1,5 @@
 const content = {
-  pageType: "1table-page", pageId: "exampleClass", table: "example_class", pageName: "班级页面", 
+  pageType: "jh-page", pageId: "exampleClass", table: "example_class", pageName: "班级页面", 
   // 1table 外需要添加的其他 resource
   resourceList: [
     { actionId: "balance-updateItem", resourceType: 'sql', resourceData: {
@@ -118,12 +118,13 @@ const content = {
     serverSearchWhereLike: { className: null },
   },
   pageContent: {
-    tableAttrs:{
+    tag: 'jh-table',
+    attrs:{
       ':show-select': true,
       'v-model': 'tableSelected',
       'item-key': 'classId',
     },
-    tableHeaderList: [
+    value: [
       { text: "班级ID", value: "classId", type: "v-text-field", width: 80, sortable: true },
       { text: "班级名称", value: "className", type: "v-text-field", width: 80, sortable: true },
       { text: "班级类型", value: "classType", type: "v-text-field", width: 80, sortable: true, formatter: [

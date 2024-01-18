@@ -1,5 +1,5 @@
 const content = {
-  pageType: "1table-component", pageId: "exampleClass", table: "example_student", pageName: "班级学生列表", componentPath: "example/studentOfClass",
+  pageType: "jh-component", pageId: "exampleClass", table: "example_student", pageName: "班级学生列表", componentPath: "example/studentOfClass",
   resourceList: [],
   drawerList: [],
   includeList: [],
@@ -46,8 +46,9 @@ const content = {
     serverSearchWhereLike: { name: null, dateOfBirth: null },
   },
   pageContent: {
-    tableAttrs:{},
-    tableHeaderList: [
+    tag: 'jh-table',
+    attrs:{},
+    value: [
       { text: "学生ID", value: "studentId", type: "v-text-field", width: 80, sortable: true}, // 格式化、插槽
       { text: "学生名字", value: "name", type: "v-text-field", width: 80, sortable: true },
       { text: "性别", value: "gender", type: "v-text-field", width: 80, sortable: true },
