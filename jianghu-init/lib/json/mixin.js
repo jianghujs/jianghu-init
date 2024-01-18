@@ -260,7 +260,7 @@ const mixin = {
       if (resourceItem) {
         // 对比有差异再修改
         let isDiff = false;
-        const updateData = { actionId, pageId, desc, resourceData: resourceDataStr, resourceHook: resourceHookStr };
+        const updateData = { actionId, pageId, resourceType, desc, resourceData: resourceDataStr, resourceHook: resourceHookStr };
         _.forEach(updateData, (value, key) => {
           if ((value || null) !== (resourceItem[key] || null)) {
             isDiff = true;
@@ -436,19 +436,20 @@ const mixin = {
     }
   },
 
-  async renderComponent(jsonConfig) {
+  async renderComponent(jsonConfig, devModel = false) {
     const componentList = this.getConfigComponentList(jsonConfig);
     if (!componentList.length) return;
 
     const componentPath = `${path.join(__dirname, '../../')}page-template-json/component`;
     if (!fs.existsSync('./app/view/component')) fs.mkdirSync('./app/view/component');
 
-    const { y, n } = this.argv;
+    const { y, n } = this.argv || {};
     for (const item of componentList) {
       // 检查文件存在则提示是否覆盖
       const targetFilePath = `./app/view/component/${item.componentPath}.html`;
-      if ([ 'tableRecordHistory' ].includes(item.componentPath)) {
+      if ([ 'tableRecordHistory', 'vueJsonEditor' ].includes(item.componentPath)) {
         if (fs.existsSync(targetFilePath)) {
+          if (devModel) continue;
           if (n) {
             this.warning(`跳过 ${item.componentPath} 组件的生成`);
             continue;
@@ -469,18 +470,12 @@ const mixin = {
 
         fs.writeFileSync(targetFilePath, componentHtml);
         await this.modifyComponentResourceItem(componentPath, item);
-      } else if (item.componentPath === 'vueJsonEditor') {
-        const componentHtml = fs.readFileSync(componentPath + '/' + item.componentPath + '.html')
-          .toString()
-          .replace(/\/\/===\/\/ /g, '')
-          .replace(/\/\/===\/\//g, '');
-        fs.writeFileSync(targetFilePath, componentHtml);
       }
     }
   },
 
   // 生成 service
-  async renderService(jsonConfig) {
+  async renderService(jsonConfig, dev = false) {
     const { idGenerate = false } = jsonConfig;
     if (idGenerate) {
       // idGenerate 依赖 common service
@@ -492,8 +487,9 @@ const mixin = {
 
       // 检查 service 是否存在
       const serviceFilePath = `${servicePath}/common.js`;
-      const { y, n } = this.argv;
+      const { y, n } = this.argv || {};
       if (fs.existsSync(serviceFilePath)) {
+        if (dev) return;
         if (n) {
           this.warning('跳过 common service 的生成');
           return false;
