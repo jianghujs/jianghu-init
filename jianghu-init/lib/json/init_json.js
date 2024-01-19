@@ -220,7 +220,7 @@ module.exports = class InitJson extends CommandBase {
     }
 
     // resourceList预设
-    let resourceList = [];
+    let resourceList = '[]';
     if (table) {
       const templatePath = `${path.join(__dirname, '../../')}page-template-json/${pageType}`;
       const defaultResourceJSON = fs.readFileSync(`${templatePath}/resource.json`).toString();
