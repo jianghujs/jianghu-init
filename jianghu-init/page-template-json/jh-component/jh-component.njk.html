@@ -75,7 +75,7 @@
           :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
           :items-per-page="-1"
           mobile-breakpoint="0"
-          :loading="tableLoading"
+          :loading="isTableLoading"
           checkbox-color="success"
           :class="{'zebraLine': true }"
           fixed-header
@@ -94,19 +94,62 @@
             
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
-            <=%- for action in pageContent.rowActionList %=>
-            <=$ action | tagFormat(12) $=>
-            <=%- endfor %=>
-            <=%- if updateDrawerContent %=>
-            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
-              <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>详情
-            </span>
-            <=%- endif %=>
-            <=%- if deleteContent %=>
-            <span role="button" class="error--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
-              <v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除
-            </span>
-            <=%- endif %=>
+            <template>
+              <=%- for action in pageContent.rowActionList %=>
+              <=%- if action.tag %=>
+              <=$ action | tagFormat(12) $=>
+              <=%- endif %=>
+              <=%- endfor %=>
+              <!-- pc端 -->
+              <template v-if="!isMobile">
+                <=%- for action in pageContent.rowActionList %=>
+                <=%- if not action.tag %=>
+                <span role="button" class="<=$ action.color | default('success') $=>--text font-weight-medium font-size-2 mr-2" @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>">
+                  <=%- if action.icon %=>
+                  <v-icon size="16" class="<=$ action.color | default('success') $=>--text">mdi-<=$ action.icon.replace('mdi-', '') $=></v-icon><=%- endif %=><=$ action.text $=>
+                </span>
+                <=%- endif %=>
+                <=%- endfor %=>
+                <=%- if updateDrawerContent %=>
+                <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>详情
+                </span>
+                <=%- endif %=>
+                <=%- if deleteContent %=>
+                <span role="button" class="error--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                  <v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除
+                </span>
+                <=%- endif %=>
+              </template>
+              <!-- 手机端 -->
+              <v-menu offset-y v-if="isMobile">
+                <template v-slot:activator="{ on, attrs }">
+                  <span role="button" class="success--text font-weight-medium font-size-2"
+                    v-bind="attrs" v-on="on">
+                    操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                  </span>
+                </template>
+                <v-list dense>
+                  <=%- for action in pageContent.rowActionList %=>
+                  <=%- if not action.tag %=>
+                  <v-list-item @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>">
+                    <v-list-item-title><=$ action.text $=></v-list-item-title>
+                  </v-list-item>
+                  <=%- endif %=>
+                  <=%- endfor %=>
+                  <=%- if updateDrawerContent %=>
+                  <v-list-item @click="doUiAction('startUpdateItem', item)">
+                    <v-list-item-title>详情</v-list-item-title>
+                  </v-list-item>
+                  <=%- endif %=>
+                  <=%- if deleteContent %=>
+                  <v-list-item @click="doUiAction('deleteItem', item)">
+                    <v-list-item-title>删除</v-list-item-title>
+                  </v-list-item>
+                  <=%- endif %=>
+                </v-list>
+              </v-menu>
+            </template>
           </template>
           <!-- 没有数据 -->
           <template v-slot:loading>
@@ -359,7 +402,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     // ================================ common ================================
     //===// <=%- if common and common.data %=> 
     //===// <=%- for key, value in common.data %=> 
-    //===// <=$ value | variableToVar(key) $=>,
+    //===// <=$ value | variableToVar(key, 4) $=>,
     //===// <=%- endfor %=>
     //===// <=%- endif %=>
 
@@ -379,7 +422,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     // ================================ pageContent ================================
     //===// <=$ pageContent.value | removeKey(['formatter']) | listToVar('tableHeaderList') $=>,
     //===// tableData: [],
-    //===// tableLoading: true,
+    //===// isTableLoading: true,
     //===// tableSearchInput: null,
     //===// <=%- endif %=>
 
@@ -501,7 +544,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
     // ---------- 获取表格数据 uiAction >>>>>>>>>> --------
     async getTableData() {
-      this.tableLoading = true;
+      this.isTableLoading = true;
       const where = {};
       const whereLike = {};
       //===// <=%- if headContent.serverSearchWhere %=>
@@ -546,9 +589,17 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
           }
         }
       })).data.appData.resultData.rows;
-      this.tableData = rows;
-      this.tableLoading = false;
+      this.tableData = this.formatTableData(rows);
+      this.isTableLoading = false;
     },
+    //===// <=%- if not common.methods.formatTableData %=>
+    formatTableData(data) {
+      rows.forEach(row => {
+        row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+      });
+      return rows;
+    },
+    //===// <=%- endif %=>
     // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
     //===// <=%- endif %=>
 

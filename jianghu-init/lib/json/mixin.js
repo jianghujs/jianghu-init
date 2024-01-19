@@ -28,15 +28,18 @@ const mixin = {
       if (!arr) { return `${key}: []`; }
       let spaceStr = '';
       for (let i = 0; i < spaceCount; i++) { spaceStr += ' '; }
-      const arrayStr = `[\n${arr.map(item => '  ' + spaceStr + JSON.stringify(item).replace(/"([^"]+)":/g, '$1:') + ',\n').join('')}${spaceStr}]`;
+      const arrayStr = `[\n${arr.map(item => '  ' + spaceStr + JSON.stringify(item).replace(/"([^"]+)":/g, '$1: ').replace(/width:\s*['"`](.*?)['"`]/g, (match, group1) => `width:${group1}`)
+        .replace(/\{/g, '\{ ')
+        .replace(/}/g, ' }')
+        .replace(/,/g, ', ') + ',\n').join('')}${spaceStr}]`;
       return `${key}: ${arrayStr}`;
     });
     // 复杂变量包含函数或函数原样渲染
-    nunjucksEnv.addFilter('variableToVar', function(obj, k) {
+    nunjucksEnv.addFilter('variableToVar', function(obj, k, indent = 2) {
       if (_.isUndefined(obj)) return '';
       const testKey = [];
       let content;
-      if (!_.isBoolean(obj)) {
+      if (!_.isBoolean(obj) && !_.isString(obj)) {
         content = JSON.stringify(obj, function(key, value) {
           if (typeof value === 'function') {
             let valStr = value.toString();
@@ -58,30 +61,31 @@ const mixin = {
           .replace(/\\n {4}/g, '\n')
           .replace(/\\n/g, '\n')
           .replace(/\\(?!n)/g, '')
-          .replace(/\n/g, '\n    ');
+          .replace(/\n/g, '\n' + ' '.repeat(indent));
       } else {
         content = obj;
       }
       testKey.forEach(key => {
         content = content.replace(new RegExp(`"${key}":\\s*?replace_this_key`, 'g'), '');
       });
-
-      // 匿名同步格式
-      if (k && (/^function\s*?\(/.test(content) || /^\(/.test(content))) {
-        content = k + ': ' + content;
-      }
-      // 匿名异步格式
-      if (k && (/^async\s+function\s*?\(/.test(content) || /^async\s+\(/.test(content))) {
-        content = k + ': ' + content;
-      }
-      if (typeof obj === 'function') {
-        content = content.replace(/ {3}/g, ' ');
-      }
-      if (typeof obj === 'object' && k) {
-        content = `"${k}": ` + content;
-      }
-      if (_.isBoolean(obj) && k) {
-        content = `"${k}": ` + content;
+      if (k) {
+        // 匿名同步格式
+        if (/^function\s*?\(/.test(content) || /^\(/.test(content)) {
+          content = k + ': ' + content;
+        }
+        // 匿名异步格式
+        if ((/^async\s+function\s*?\(/.test(content) || /^async\s+\(/.test(content))) {
+          content = k + ': ' + content;
+        }
+        if (typeof obj === 'object') {
+          content = `"${k}": ` + content;
+        }
+        if (_.isBoolean(obj)) {
+          content = `"${k}": ` + content;
+        }
+        if (_.isString(obj)) {
+          content = `"${k}": ` + content;
+        }
       }
       return content.replace(/"(\w+)":/g, '$1:');
     });
