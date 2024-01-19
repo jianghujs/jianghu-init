@@ -241,6 +241,7 @@ module.exports = class InitJson extends CommandBase {
   common: { 
     ${propsStr}
     data: {
+      constantObj: {},
       validationRules: {
         requireRules: [
           v => !!v || '必填',
