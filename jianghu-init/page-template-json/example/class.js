@@ -38,7 +38,7 @@ const content = {
       ]
     },
   ],
-  includeList: [],
+  includeList: [], // { type: < js | css | html >, path: ''}
   common: {
     data: {
       constantObj: {
@@ -58,6 +58,8 @@ const content = {
               v => /^1[3456789]d{9}$/.test(v) || '手机号格式错误',
           ],
       },
+      isMobile: 'window.innerWidth < 500', // 表达式使用字符串包裹
+      testString: '"测试字符串"', // 字符串变量需要使用双层引号包裹
       tableSelected: [],
     },
     doUiAction: {
@@ -139,8 +141,8 @@ const content = {
       ] },
       { text: "班费", value: "classBalance", type: "v-text-field", width: 80, sortable: true },
       { text: "备注", value: "remarks", type: "v-text-field", width: 80, sortable: true },
-      { text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },
-
+      { text: "操作", value: "action", type: "action", width: 'window.innerWidth < 500 ? 70 : 120', align: "center", class: "fixed", cellClass: "fixed" },
+      // width 表达式需要使用字符串包裹
     ],
     rowActionList: [
       { 
@@ -151,16 +153,8 @@ const content = {
           class: "success--text font-weight-medium font-size-2 mr-2",
           '@click': "doUiAction('startUpdateBalance', item)"
         }
-      },
-      { 
-        tag: 'span',  
-        value: `<v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>班级学生列表`, 
-        attrs: {
-          role: "button",
-          class: "success--text font-weight-medium font-size-2 mr-2",
-          '@click': "doUiAction('viewClassStudentList', item)"
-        }
-      },
+      }, // tag写法不支持移动端折叠
+      {text: '班费', icon: 'mdi-note-edit-outline', click: 'doUiAction("startUpdateBalance", item)', color: 'success'} // 简写支持 pc 和 移动端折叠
     ],
     headActionList: [
       { 
@@ -186,8 +180,10 @@ const content = {
   updateDrawerContent: {
     contentList: [
       { label: "编辑", type: "form", formItemList: [
+        { tag: 'h3', value: '分组1', cols: '12', colsAttrs: { class: 'pb-0' } }, // 表单分组
         { label: "班级ID", model: "classId", tag: "v-text-field", rules: "validationRules.requireRules", attrs: { disabled: true }},
         { label: "班级名称", model: "className", tag: "v-text-field", rules: "validationRules.requireRules",   },
+        { tag: 'h3', value: '分组2', cols: '12', colsAttrs: { class: 'pb-0' } }, // 表单分组
         { label: "班级类型", model: "classType", tag: "v-select", rules: "validationRules.requireRules", attrs: { ':items': 'constantObj.classType' }  },
         { label: "备注", model: "remarks", tag: "v-text-field",   },
 
