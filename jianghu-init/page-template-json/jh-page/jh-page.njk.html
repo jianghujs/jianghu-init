@@ -590,7 +590,7 @@ new Vue({
     //===//   this.createItem = {
     //===//     <=%- for formItem in createDrawerContent.formItemList %=> 
     //===//     <=%- if formItem.default is defined %=> 
-    //===//     <=$ formItem.model $=>: '<=$ formItem.default $=>', 
+    //===//     <=$ formItem.model $=>: <=$ formItem.default $=>, 
     //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
@@ -612,9 +612,13 @@ new Vue({
     //===// prepareDoCreateItem() {
     //===//   const {id, ...data} = this.createItem;
     //===//   this.createActionData = {
-    //===//     <=%- for formItem in createDrawerContent.formItemList %=> 
+    //===//     <=%- for formItem in createDrawerContent.formItemList %=>
     //===//     <=%- if formItem.model %=>
+    //===//     <=%- if formItem.valueType === 'json' %=>
+    //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
+    //===//     <=%- else %=>
     //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endif %=>
     //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
@@ -654,6 +658,11 @@ new Vue({
     //===// <=%- if updateDrawerContent %=>
     // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
     //===// async prepareUpdateFormData(funObj) {
+    //===//   <=%- for formItem in createDrawerContent.formItemList %=>
+    //===//   <=%- if formItem.valueType === 'json' %=>
+    //===//   funObj.<=$ formItem.model $=> = JSON.parse(funObj.<=$ formItem.model $=> || '[]'),
+    //===//   <=%- endif %=>
+    //===//   <=%- endfor %=>
     //===//   this.updateItem = _.cloneDeep(funObj);
     //===// },
     //===// async openUpdateDrawer() {
@@ -676,7 +685,11 @@ new Vue({
     //===//   this.updateActionData = {
     //===//     <=%- for formItem in updateDrawerContent.contentList[0].formItemList %=>
     //===//     <=%- if formItem.model %=>
+    //===//     <=%- if formItem.valueType === 'json' %=>
+    //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
+    //===//     <=%- else %=>
     //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endif %=>
     //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
