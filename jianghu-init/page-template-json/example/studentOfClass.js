@@ -104,10 +104,12 @@ const content = {
   updateDrawerContent: {
     contentList: [
       { label: "详细信息", type: "form", formItemList: [
+        { tag: 'h3', value: '分组1', cols: '12', colsAttrs: { class: 'pb-0' } }, // 表单分组
         { label: "学生ID", model: "studentId", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
         { label: "学生名字", model: "name", tag: "v-text-field", rules: "[v => !!v || '此项必填',]", required: true },
         { label: "性别", model: "gender", tag: "v-select", rules: "validationRules.requireRules", required: true, attrs: { ':items': 'constantObj.gender' }},
         { label: "出生日期", model: "dateOfBirth", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
+        { tag: 'h3', value: '分组2', cols: '12', colsAttrs: { class: 'pb-0' } }, // 表单分组
         { label: "班级ID", model: "classId", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
         { label: "年级", model: "level", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
         { label: "身高", model: "bodyHeight", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
