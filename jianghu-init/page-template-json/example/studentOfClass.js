@@ -1,8 +1,8 @@
 const content = {
   pageType: "jh-component", pageId: "exampleClass", table: "example_student", pageName: "班级学生列表", componentPath: "example/studentOfClass",
-  resourceList: [],
-  drawerList: [],
-  includeList: [],
+  resourceList: [], // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
+  drawerList: [], // { key: '', title: '', contentList: [] }
+  includeList: [], // { type: < js | css | html >, path: ''}
   common: {
     props: {
       classId: {
@@ -24,6 +24,8 @@ const content = {
               v => /^1[3456789]d{9}$/.test(v) || '手机号格式错误',
           ],
       },
+      isMobile: 'window.innerWidth < 500', // 表达式使用字符串包裹
+      testString: '"测试字符串"', // 字符串变量需要使用双层引号包裹
       tableSelected: [],
     },
     watch: {
@@ -80,8 +82,8 @@ const content = {
       { text: "身高", value: "bodyHeight", type: "v-text-field", width: 80, sortable: true },
       { text: "学生状态", value: "studentStatus", type: "v-text-field", width: 80, sortable: true },
       { text: "备注", value: "remarks", type: "v-text-field", width: 80, sortable: true },
-      { text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },
-
+      { text: "操作", value: "action", type: "action", width: 'window.innerWidth < 500 ? 70 : 120', align: "center", class: "fixed", cellClass: "fixed" },
+      // width 表达式需要使用字符串包裹
     ],
     rowActionList: [],
     headActionList: []

@@ -184,12 +184,13 @@ module.exports = class InitJson extends CommandBase {
       });
 
       columnStr += space + '{ text: "", value: "" },\n';
-      columnStr += space + '{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n';
+      columnStr += space + '{ text: "操作", value: "action", type: "action", width: \'width:window.innerWidth < 500 ? 70 : 120\', align: "center", class: "fixed", cellClass: "fixed" },\n';
       pageContent = `{
     tag: 'jh-table',
     attrs: {  },
     value: [
       ${columnStr}
+      // width 表达式需要使用字符串包裹
     ]
   }`;
       createDrawer = `createDrawerContent: {
@@ -235,9 +236,9 @@ module.exports = class InitJson extends CommandBase {
     const componentPath = pageType === 'jh-component' ? `componentPath: "${filename}",` : '';
     const content = `const content = {
   pageType: "${pageType}", pageId: "${pageId}", ${tableStr} pageName: "${pageId}页面", ${componentPath}
-  resourceList: ${resourceList}, // 额外resource { actionId, resourceType, resourceData }
-  drawerList: [], // 抽屉列表 { key, title, contentList }
-  includeList: [], // 其他资源引入
+  resourceList: ${resourceList}, // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
+  drawerList: [], // { key: '', title: '', contentList: [] }
+  includeList: [], // { type: < js | css | html >, path: ''}
   common: { 
     ${propsStr}
     data: {
@@ -247,6 +248,8 @@ module.exports = class InitJson extends CommandBase {
           v => !!v || '必填',
         ],
       },
+      isMobile: 'window.innerWidth < 500', // 表达式使用字符串包裹
+      testString: '"测试字符串"', // 字符串变量需要使用双层引号包裹
     },
     watch: {},
     computed: {},
