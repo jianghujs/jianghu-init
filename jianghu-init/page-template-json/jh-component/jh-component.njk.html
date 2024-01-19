@@ -185,6 +185,7 @@
         <v-divider class="jh-divider"></v-divider>
         <v-row class="mt-0 px-4">
           <=%- for formItem in createDrawerContent.formItemList %=>
+          <=%- if not formItem.hidden %=>
           <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
             <=%- if formItem.label %=>
             <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
@@ -202,6 +203,7 @@
             <=$ formItem | formItemFormat('createItem') $=>
             <=%- endif %=>
           </v-col>
+          <=%- endif %=>
           <=%- endfor %=>
         </v-row>
         <!-- 抽屉操作按钮 -->
@@ -255,6 +257,7 @@
             <=%- if content.type == "form" %=> 
             <v-row class="mt-0 px-4">
               <=%- for formItem in content.formItemList %=>
+              <=%- if not formItem.hidden %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
                 <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
@@ -272,6 +275,7 @@
                 <=$ formItem | formItemFormat('updateItem') $=>
                 <=%- endif %=>
               </v-col>
+              <=%- endif %=>
               <=%- endfor %=> 
             </v-row>
 
@@ -336,6 +340,7 @@
             <=%- if content.type == "form" %=> 
             <v-row class="mt-0 px-4">
               <=%- for formItem in content.formItemList %=>
+              <=%- if not formItem.hidden %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
                 <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
@@ -353,6 +358,7 @@
                 <=$ formItem | formItemFormat(drawer.key) $=>
                 <=%- endif %=>
               </v-col>
+              <=%- endif %=>
               <=%- endfor %=> 
             </v-row>
 
@@ -593,7 +599,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       this.isTableLoading = false;
     },
     //===// <=%- if not common.methods.formatTableData %=>
-    formatTableData(data) {
+    formatTableData(rows) {
       rows.forEach(row => {
         row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
       });
@@ -609,7 +615,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//   this.createItem = {
     //===//     <=%- for formItem in createDrawerContent.formItemList %=> 
     //===//     <=%- if formItem.default is defined %=> 
-    //===//     <=$ formItem.model $=>: '<=$ formItem.default $=>', 
+    //===//     <=$ formItem.model $=>: <=$ formItem.default $=>, 
     //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };

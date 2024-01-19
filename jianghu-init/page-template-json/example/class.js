@@ -154,7 +154,7 @@ const content = {
           '@click': "doUiAction('startUpdateBalance', item)"
         }
       }, // tag写法不支持移动端折叠
-      {text: '班费', icon: 'mdi-note-edit-outline', click: 'doUiAction("startUpdateBalance", item)', color: 'success'} // 简写支持 pc 和 移动端折叠
+      {text: '学生列表', icon: 'mdi-note-edit-outline', click: 'doUiAction("viewClassStudentList", item)', color: 'success'} // 简写支持 pc 和 移动端折叠
     ],
     headActionList: [
       { 
@@ -171,9 +171,9 @@ const content = {
   },
   createDrawerContent: {
     formItemList: [
-      { label: "班级ID", model: "classId", tag: "v-text-field", idGenerate: { prefix: "C", startValue: 10001, bizId: "classId" }, attrs: { disabled: true, placeholder: "规则自动生成" } },
-      { label: "班级名称", model: "className", tag: "v-text-field", rules: "validationRules.requireRules",   },
-      { label: "班级类型", model: "classType", tag: "v-select", rules: "validationRules.requireRules", default: '普通班', attrs: { ':items': 'constantObj.classType' }  },
+      { label: "班级ID", model: "classId", tag: "v-text-field", idGenerate: { prefix: "C", startValue: 10001, bizId: "classId" }, attrs: { disabled: true, placeholder: "规则自动生成" }, hidden: true },
+      { label: "班级名称", model: "className", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
+      { label: "班级类型", model: "classType", tag: "v-select", rules: "validationRules.requireRules", required: true, default: '"普通班"', attrs: { ':items': 'constantObj.classType' }  },
       { label: "备注", model: "remarks", tag: "v-text-field",   },
     ],
   },
@@ -181,10 +181,10 @@ const content = {
     contentList: [
       { label: "编辑", type: "form", formItemList: [
         { tag: 'h3', value: '分组1', cols: '12', colsAttrs: { class: 'pb-0' } }, // 表单分组
-        { label: "班级ID", model: "classId", tag: "v-text-field", rules: "validationRules.requireRules", attrs: { disabled: true }},
-        { label: "班级名称", model: "className", tag: "v-text-field", rules: "validationRules.requireRules",   },
+        { label: "班级ID", model: "classId", tag: "v-text-field", rules: "validationRules.requireRules", required: true, attrs: { disabled: true }},
+        { label: "班级名称", model: "className", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
         { tag: 'h3', value: '分组2', cols: '12', colsAttrs: { class: 'pb-0' } }, // 表单分组
-        { label: "班级类型", model: "classType", tag: "v-select", rules: "validationRules.requireRules", attrs: { ':items': 'constantObj.classType' }  },
+        { label: "班级类型", model: "classType", tag: "v-select", rules: "validationRules.requireRules", attrs: { ':items': 'constantObj.classType' }, required: true },
         { label: "备注", model: "remarks", tag: "v-text-field",   },
 
       ]},

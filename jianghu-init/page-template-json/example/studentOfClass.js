@@ -32,6 +32,8 @@ const content = {
       classId: {
         immediate: true,
         handler(val) {
+          if (!val) return;
+          this.serverSearchPropsWhere.classId = val;
           this.doUiAction('getTableData');
         }
       }
@@ -92,7 +94,7 @@ const content = {
     formItemList: [
       { label: "学生ID", model: "studentId", tag: "v-text-field", idGenerate: { prefix: "S", startValue: 10001, bizId: "studentId" }, attrs: { disabled: true, placeholder: "规则自动生成" }},
       { label: "学生名字", model: "name", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
-      { label: "性别", model: "gender", tag: "v-select", rules: "[v => !!v || '此项必填',]", required: true, attrs: { ':items': 'constantObj.gender' }, default: "男" },
+      { label: "性别", model: "gender", tag: "v-select", rules: "[v => !!v || '此项必填',]", required: true, attrs: { ':items': 'constantObj.gender' }, default: "'男'" },
       { label: "出生日期", model: "dateOfBirth", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
       { label: "班级ID", model: "classId", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
       { label: "年级", model: "level", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
