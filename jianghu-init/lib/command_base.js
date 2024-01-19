@@ -96,11 +96,14 @@ module.exports = class CommandBase {
   readDbConfigFromFile() {
     const configData = fs.readFileSync('./config/config.local.js').toString();
     const setting = {};
+    // 去除注释
+    const fileContent = configData.replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
     [ 'host', 'port', 'user', 'password', 'database' ].forEach(key => {
-      const regStr = `${key}: (.*)`;
+      const regStr = `${key}:\s?(.*),`;
       const reg = new RegExp(regStr);
-      const matchResult = configData.match(reg);
-      setting[key] = matchResult[1].replace(/'/g, '').replace(/,/g, '').replace(/"/g, '');
+      const matchResult = fileContent.match(reg);
+      setting[key] = matchResult[1].replace(/'/g, '').replace(/\s+/g, '').replace(/,/g, '')
+        .replace(/"/g, '');
     });
     setting.dbPrefix = this.tryGetDbPrefix();
     return setting;
