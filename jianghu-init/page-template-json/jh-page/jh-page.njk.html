@@ -658,12 +658,12 @@ new Vue({
     //===// <=%- if updateDrawerContent %=>
     // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
     //===// async prepareUpdateFormData(funObj) {
+    //===//   this.updateItem = _.cloneDeep(funObj);
     //===//   <=%- for formItem in createDrawerContent.formItemList %=>
     //===//   <=%- if formItem.valueType === 'json' %=>
-    //===//   funObj.<=$ formItem.model $=> = JSON.parse(funObj.<=$ formItem.model $=> || '[]'),
+    //===//   this.updateItem.<=$ formItem.model $=> = JSON.parse(this.updateItem.<=$ formItem.model $=> || '[]')
     //===//   <=%- endif %=>
     //===//   <=%- endfor %=>
-    //===//   this.updateItem = _.cloneDeep(funObj);
     //===// },
     //===// async openUpdateDrawer() {
     //===//   this.isUpdateDrawerShown = true;
