@@ -78,14 +78,14 @@
           <v-spacer></v-spacer>
           <!-- 搜索过滤 -->
           <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
-            <v-text-field color="success" v-model="tableSearchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+            <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
           </v-col>
         </v-row>
         <!-- 表格 -->
         <v-data-table
-          :headers="tableHeaderList"
+          :headers="headers"
           :items="tableData"
-          :search="tableSearchInput"
+          :search="searchInput"
           :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
           :items-per-page="-1"
           mobile-breakpoint="0"
@@ -159,7 +159,7 @@
                   <=%- endfor %=>
                   <=%- if updateDrawerContent %=>
                   <v-list-item @click="doUiAction('startUpdateItem', item)">
-                    <v-list-item-title>详情</v-list-item-title>
+                    <v-list-item-title><v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除</v-list-item-title>
                   </v-list-item>
                   <=%- endif %=>
                   <=%- if deleteContent %=>
@@ -463,10 +463,10 @@ new Vue({
 
     //===// <=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
     // ================================ pageContent ================================
-    //===// <=$ pageContent.value | removeKey(['formatter']) | listToVar('tableHeaderList') $=>,
+    //===// <=$ pageContent.value | removeKey(['formatter']) | listToVar('headers') $=>,
     //===// tableData: [],
     //===// isTableLoading: true,
-    //===// tableSearchInput: null,
+    //===// searchInput: null,
     //===// <=%- endif %=>
 
     //===// <=%- if createDrawerContent %=>
