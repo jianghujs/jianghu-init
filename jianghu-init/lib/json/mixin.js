@@ -144,7 +144,7 @@ const mixin = {
       }
       return tag.join('\n' + ' '.repeat(indent));
     });
-    nunjucksEnv.addFilter('formItemFormat', function(result, drwaerKey = 'updateItem') {
+    nunjucksEnv.addFilter('formItemFormat', function(result, drawerKey = 'updateItem') {
       const tag = [];
       const tagItemFormat = res => {
         if (!res.tag) {
@@ -160,7 +160,7 @@ const mixin = {
 
         let tagStr = `<${res.tag} `;
         if (res.model) {
-          res.attrs['v-model'] = res.model.includes('.') ? res.model : drwaerKey + '.' + res.model;
+          res.attrs['v-model'] = res.model.includes('.') ? res.model : drawerKey + '.' + res.model;
         }
         if (res.rules) {
           res.attrs[':rules'] = res.rules;
@@ -185,7 +185,7 @@ const mixin = {
         tagStr += _.map(res.attrs, (value, key) => {
           let val = value;
           if (key === 'v-model' && !value.includes('.')) {
-            val = drwaerKey + '.' + value;
+            val = drawerKey + '.' + value;
           }
           return tagAttr(key, val, res.tag);
         }).join(' ');
