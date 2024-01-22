@@ -235,6 +235,14 @@ const mixin = {
       const match = str.replace(/\n/, '\n').match(new RegExp(regexStr));
       return match && match.length > 1 ? match[1] : '';
     });
+    nunjucksEnv.addFilter('componentName', function(path) {
+      return path.split('/').pop().split('.')[0];
+    });
+    nunjucksEnv.addFilter('componentHumpName', function(path) {
+      let componentName = path.split('/').pop().split('.')[0]
+      return _.camelCase(componentName);
+    });
+
     nunjucksEnv.addFilter('includeFormat', function(item) {
       if (!item) return '';
       if (_.isString(item)) return item; // 兼容原生代码

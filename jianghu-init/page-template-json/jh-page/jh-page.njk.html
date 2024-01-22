@@ -406,6 +406,14 @@
     <!-- <<<<<<<<<<<<< <=$ drawer.title $=> -->
     <=%- endfor %=>
 
+
+    <=%- for item in includeList %=>
+    <=%- if (item.includeType === 'auto') %=>
+    <<=$ item.path | componentName $=> ref="<=$ item.path | componentHumpName $=>Ref" />
+    <=%- endif %=>
+    <=%- endfor %=>
+
+
     <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
     <=%- if headContent.helpDrawer %=> 
     <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
