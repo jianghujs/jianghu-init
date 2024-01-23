@@ -447,6 +447,11 @@
 <=%- endfor %=>
 
 <script type="module">
+//===// <=%- for item in includeList %=>
+//===// <=%- if item.register %=>
+//===// <=$ item.register $=>
+//===// <=%- endif %=>
+//===// <=%- endfor %=>
 new Vue({
   el: '#app',
   template: '#app-template',
