@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-init",
-  "version": "3.0.22",
+  "version": "3.0.3",
   "description": "Init jianghu app helper tools.",
   "main": "lib/entry.js",
   "scripts": {
