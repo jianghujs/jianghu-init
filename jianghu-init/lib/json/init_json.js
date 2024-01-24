@@ -315,6 +315,7 @@ module.exports = class InitJson extends CommandBase {
         ],
       },
       testString: '测试字符串',
+      serverSearchWhereLike: { className: '' },
     },
     dataExpression: {
       isMobile: 'window.innerWidth < 500'
@@ -325,7 +326,7 @@ module.exports = class InitJson extends CommandBase {
     methods: {}
   },
   headContent: [
-    { tag: 'jh-page-title', value: "班级页面", attrs: {}, helpBtn: true, slot: [] },
+    { tag: 'jh-page-title', value: "${pageId}", attrs: {}, helpBtn: true, slot: [] },
     { 
       tag: 'jh-search', 
       value: [

@@ -267,7 +267,7 @@ const mixin = {
         return `<script src="${path}"></script>`;
       } else if ([ 'css', 'style' ].includes(type)) {
         return `<link rel="stylesheet" href="${path}">`;
-      } else if ([ 'html', 'component' ].includes(type)) {
+      } else if ([ 'html', 'component', 'include' ].includes(type)) {
         return `{% include "${path}" %}`;
       } else if (type === 'vueComponent') {
         return `Vue.component('${item.name}', ${item.component})`;

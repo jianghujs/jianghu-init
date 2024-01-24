@@ -2,7 +2,6 @@
 const content = {
   pageType: "jh-component", pageName: "line图表", componentPath: "exampleChart/lineChart",
   resourceList: [], // 额外resource { actionId, resourceType, resourceData }
-  drawerList: [], // 抽屉列表 { key, title, contentList }
   includeList: [], // 其他资源引入
   common: {
     props: {
