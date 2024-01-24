@@ -18,7 +18,7 @@
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-page-title' %=>
         <v-col cols="12" xs="12" sm="12" md="4" xl="3" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-          <div class="py-4 text-body-1 font-weight-bold d-flex align-center"><=$ pageName $=>
+          <div class="py-4 text-body-1 font-weight-bold d-flex align-center"><=$ content.value $=>
             <=%- if content.helpBtn %=> 
             <!-- 帮助页按钮 -->
             <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
@@ -235,8 +235,10 @@
                 </v-menu> 
                 <=%- elif formItem.tag == "jh-json-editor" %=> 
                 <vue-json-editor v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></vue-json-editor>
-                <=%- else %=> 
+                <=%- elif formItem.model is defined %=> 
                 <=$ formItem | formItemFormat(actionItem.key + 'Item') $=>
+                <=%- else %=>
+                <=$ formItem | tagFormat(16) $=>
                 <=%- endif %=>
               </v-col>
               <=%- endif %=>
