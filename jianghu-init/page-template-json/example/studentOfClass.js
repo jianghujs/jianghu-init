@@ -74,6 +74,8 @@ const content = {
       },
       testString: '测试字符串', // 字符串变量需要使用双层引号包裹
       tableSelected: [],
+      serverSearchWhereLike: {},
+      serverSearchWhere: {},
     },
     dataExpression: {
       isMobile: 'window.innerWidth < 500', // data 表达式
@@ -185,7 +187,10 @@ const content = {
       key: "update",
       attrs: {},
       title: '编辑班级',
-      headSlot: [],
+      headSlot: [
+        { tag: 'v-spacer' },
+        { tag: 'v-btn', value: '自定义按钮', attrs: { color: 'success', class: 'mr-2', '@click': 'doUiAction("123")', small: true } },
+      ],
       contentList: [
         { 
           label: "编辑", 
