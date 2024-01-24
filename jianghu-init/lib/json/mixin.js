@@ -255,7 +255,7 @@ const mixin = {
       return path.split('/').pop().split('.')[0];
     });
     nunjucksEnv.addFilter('componentHumpName', function(path) {
-      let componentName = path.split('/').pop().split('.')[0]
+      const componentName = path.split('/').pop().split('.')[0];
       return _.camelCase(componentName);
     });
 
@@ -316,7 +316,7 @@ const mixin = {
     // filter 数据库内有但是却没设置的 resource
     // const warningList = existResourceList.filter(e => !resourceList.some(r => r.actionId === e.actionId));
     // if (!warningList.length) return;
-    // this.warning(`尚未配置 resource, 如不需要请手动数据库删除: 
+    // this.warning(`尚未配置 resource, 如不需要请手动数据库删除
     // ${warningList
     // .map(e => {
     //   const fieldList = [ 'actionId', 'desc', 'resourceType', 'resourceData' ];
@@ -391,6 +391,10 @@ const mixin = {
 
     if ((headContent.find(e => e.tag === 'jh-page-title') || {}).helpBtn) {
       jsonConfig.hasHelpDrawer = true;
+    }
+
+    if (headContent.find(e => e.tag === 'jh-search')) {
+      jsonConfig.hasSearch = true;
     }
     Object.assign(jsonConfig, this.getBasicConfig(jsonConfig));
 

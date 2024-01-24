@@ -326,9 +326,10 @@ module.exports = class InitJson extends CommandBase {
     methods: {}
   },
   headContent: [
-    { tag: 'jh-page-title', value: "${pageId}", attrs: {}, helpBtn: true, slot: [] },
+    { tag: 'jh-page-title', value: "${pageId}", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
     { 
       tag: 'jh-search', 
+      attrs: { cols: 12, sm: 6, md:8 }
       value: [
         { tag: "v-text-field", model: "serverSearchWhereLike.className", attrs: {prefix: '前缀'} },
       ], 

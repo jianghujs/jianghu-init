@@ -7,7 +7,7 @@
       <v-row class="align-center" dense>
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-page-title' %=>
-        <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+        <v-col cols="12" xs="12" sm="12" md="4" xl="3" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <div class="py-4 text-body-1 font-weight-bold d-flex align-center"><=$ pageName $=>
             <=%- if content.helpBtn %=> 
             <!-- 帮助页按钮 -->
@@ -18,7 +18,7 @@
           </div>
         </v-col>
         <=%- elif content.tag == 'jh-search' %=>
-        <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+        <v-col cols="12" xs="12" sm="12" md="8" xl="9" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <v-row class="jh-backend-form-container justify-end ma-0 py-3">
             <=%- for search in content.value %=>
             <=%- if search.tag == "v-date-picker" %=> 
