@@ -134,7 +134,7 @@ module.exports = class InitJson extends CommandBase {
     } else if (pageType === 'jh-page') {
       content = this.getJhContent({ table, pageId, pageType, fields, filename: fileName });
     } else {
-      content = this.get1TableContent({ table, pageId, pageType, fields });
+      this.error('pageType `1table-page` 已废弃，请使用 `jh-page`');
     }
 
     if (fileName.includes('/')) {
@@ -329,7 +329,7 @@ module.exports = class InitJson extends CommandBase {
     { tag: 'jh-page-title', value: "${pageId}", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
     { 
       tag: 'jh-search', 
-      attrs: { cols: 12, sm: 6, md:8 }
+      attrs: { cols: 12, sm: 6, md:8 },
       value: [
         { tag: "v-text-field", model: "serverSearchWhereLike.className", attrs: {prefix: '前缀'} },
       ], 
