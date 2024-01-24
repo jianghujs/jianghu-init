@@ -76,12 +76,12 @@ module.exports = class InitPage1Table extends CommandBase {
   async modifyTable(jsonConfig) {
     const { table, pageId, pageName = '', idGenerate = false } = jsonConfig;
 
-    // if (table) {
-    //   await this.checkTableFields(table, idGenerate);
-    //   await this.executeSql('clear_resource.sql', { pageId, table });
-    //   const insertBeforeHook = idGenerate ? '{"before": [{"service": "common", "serviceFunction": "generateBizIdOfBeforeHook"}]}' : '';
-    //   await this.executeSql('check_resource.sql', { pageId, pageName, table, insertBeforeHook });
-    // }
+    if (table) {
+      await this.checkTableFields(table, idGenerate);
+      // await this.executeSql('clear_resource.sql', { pageId, table });
+      // const insertBeforeHook = idGenerate ? '{"before": [{"service": "common", "serviceFunction": "generateBizIdOfBeforeHook"}]}' : '';
+      // await this.executeSql('check_resource.sql', { pageId, pageName, table, insertBeforeHook });
+    }
     if (pageId) {
       await this.executeSql('check_page.sql', { pageId, pageName });
     }
@@ -155,7 +155,6 @@ module.exports = class InitPage1Table extends CommandBase {
         fs.writeFileSync(`${mdPath}/${pageId}.md`, `# ${pageId}页面`);
       }
     }
-
 
     // fs.writeFileSync(filepath, htmlUser);
     fs.writeFileSync(filepath, htmlGenerate);

@@ -1,7 +1,5 @@
 'use strict';
 const yargs = require('yargs');
-const InitPage1Table = require('./json/init_page_1table');
-const InitComponent1Table = require('./json/init_component_1table');
 const InitPage = require('./json/init_page');
 const InitComponent = require('./json/init_component');
 const InitJson = require('./json/init_json');
@@ -46,8 +44,6 @@ module.exports = class InitByJsonCommand extends CommandBase {
   async run(cwd, args) {
     this.argv = this.getParser().parse(args || []);
     this.cwd = cwd;
-    this.page1Table = new InitPage1Table();
-    this.component1Table = new InitComponent1Table();
     this.jhComponent = new InitComponent();
     this.jhPage = new InitPage();
 
@@ -101,13 +97,20 @@ module.exports = class InitByJsonCommand extends CommandBase {
       for (const jsonArgvItem of jsonArgvList) {
         this.argv.y = true;
         pageType = jsonArgvItem.pageType;
-        if (pageType === '1table-page') {
-          await new InitPage1Table().run(process.cwd(), jsonArgvItem, this.argv);
-        } else if (pageType === '1table-component') {
-          await new InitComponent1Table().run(process.cwd(), jsonArgvItem, this.argv);
+        switch (pageType) {
+          case 'jh-component':
+          case '1table-component':
+            await this.jhComponent.run(process.cwd(), jsonArgvItem, this.argv);
+            break;
+          case 'jh-page':
+          case '1table-page':
+            await this.jhPage.run(process.cwd(), jsonArgvItem, this.argv);
+            break;
+          default:
+            this.error(`不存在的 pageType: ${pageType}`);
+            break;
         }
       }
-      // await new InitPage1Table().example(process.cwd(), this.jsonArgv);
     } else if (handleType === 'example chart') {
       await new InitJson().run(process.cwd(), Object.assign(this.argv, { chartPage: true, pageType: 'jh-component' }));
     }
@@ -303,7 +306,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
       this.info(`build ${filename} success`);
       console.log('');
     } catch (e) {
-      this.error(`${filename} 文件渲染错误: ${e.message}`);
+      this.error(e);
     }
   }
 
@@ -372,19 +375,22 @@ module.exports = class InitByJsonCommand extends CommandBase {
       error.push('1table-component 已废弃，请使用 jh-component');
     }
     // ------------ 最新 pageContent 检查 ------------
-    if (fileObj.pageContent) {
-      if (fileObj.pageContent.tableAttrs || fileObj.pageContent.tableHeaderList) {
-        warning.push(`请参照最新 pageContent table 规范
-    {                                     {
-      tag: 'jh-table',                      tag: 'v-row',
-      attrs: {},                            attrs: {},
-      value: [                              value: [  // < string | object | array >
-        ...headers,             OR            { tag: 'v-col', attrs: { cols: 12 }, value: '' },
-      ],                                    ],
-      rowActionList: [],                  }
-      headActionList: [],
-    }`);
-      }
+    // if (fileObj.pageContent) {
+    //   if (fileObj.pageContent.tableAttrs || fileObj.pageContent.tableHeaderList) {
+    //     warning.push(`请参照最新 pageContent table 规范
+    // {                                     {
+    //   tag: 'jh-table',                      tag: 'v-row',
+    //   attrs: {},                            attrs: {},
+    //   value: [                              value: [  // < string | object | array >
+    //     ...headers,             OR            { tag: 'v-col', attrs: { cols: 12 }, value: '' },
+    //   ],                                    ],
+    //   rowActionList: [],                  }
+    //   headActionList: [],
+    // }`);
+    //   }
+    // }
+    if (fileObj.createDrawerContent || fileObj.updateDrawerContent) {
+      error.push('createDrawerContent 和 updateDrawerContent 已废弃，请使用 actionContent');
     }
 
     // 检查 this.allConfigFileList 内是否有除了 fileObj 的其他重复项, 有则检查提示重复, 没有则添加

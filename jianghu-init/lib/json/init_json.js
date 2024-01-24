@@ -159,14 +159,13 @@ module.exports = class InitJson extends CommandBase {
     }
   }
 
-  getJhContent({ table, pageId, pageType, fields, filename = '' }) {
+  getJhContent({ table, pageId, pageType, fields, filename = '', otherResourceList = [] }) {
     let tableStr = '';
     let columnStr = '';
     let space = '';
+    let actionSpace = '';
     let pageContent = '';
-    let createDrawer = '';
-    let updateDrawer = '';
-    let deleteContent = '';
+    let actionContent = '';
     if (table) {
       let createItemListStr = '';
       let updateItemListStr = '';
@@ -178,52 +177,114 @@ module.exports = class InitJson extends CommandBase {
         if (excludeColumn.includes(fieldKey)) return;
         if (index === 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
         if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
-        createItemListStr += space + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
-        updateItemListStr += space + `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
-        space = '      ';
+        createItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
+        updateItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
+        space = ' '.repeat(8);
+        actionSpace = ' '.repeat(12);
       });
 
       columnStr += space + '{ text: "", value: "" },\n';
       columnStr += space + '{ text: "操作", value: "action", type: "action", width: \'window.innerWidth < 500 ? 70 : 120\', align: "center", class: "fixed", cellClass: "fixed" },\n';
-      pageContent = `{
-    tag: 'jh-table',
-    attrs: {  },
-    value: [
-      ${columnStr}
-      // width 表达式需要使用字符串包裹
-    ]
-  }`;
-      createDrawer = `createDrawerContent: {
-    formItemList: [
-      ${createItemListStr}
-    ]
-  },
-      `;
-      updateDrawer = `updateDrawerContent: {
-    contentList: [
-      { label: "详细信息", type: "form", formItemList: [
-      ${updateItemListStr}
-      ]},
-      { label: "操作记录", type: "component", componentPath: "recordHistory" },
-    ]
-  },
-      `;
-      deleteContent = 'deleteContent: {}';
+      pageContent = `[
+    {
+      tag: 'jh-table',
+      attrs: {  },
+      value: [
+        ${columnStr}
+        // width 表达式需要使用字符串包裹
+      ],
+      headActionList: [
+        { tag: 'v-btn', value: '新增', attrs: { color: 'success', class: 'mr-2', '@click': 'doUiAction("startCreateItem")', small: true } },
+        { tag: 'v-spacer' },
+        // 默认筛选
+        {
+          tag: 'v-col',
+          attrs: { cols: '12', sm: '6', md: '4', class: 'pa-0' },
+          value: [
+            { tag: 'v-text-field', attrs: {prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true} },
+          ],
+        }
+      ],
+      rowActionList: [
+        { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: 'doUiAction("startUpdateItem", item)' }, // 简写支持 pc 和 移动端折叠
+        { text: '删除', icon: 'mdi-trash-can-outline', color: 'error', click: 'doUiAction("deleteItem", item)' } // 简写支持 pc 和 移动端折叠
+      ],
+    }
+  ]`;
+      actionContent = `actionContent: [
+    {
+      tag: 'jh-create-drawer',
+      key: "create",
+      attrs: {},
+      title: '新增班级',
+      headSlot: [],
+      contentList: [
+        { 
+          label: "新增", 
+          type: "form", 
+          formItemList: [
+            ${createItemListStr}
+          ], 
+          action: {
+            tag: "v-btn",
+            value: "新增",
+            attrs: {
+              color: "success",
+              ':small': true,
+              '@click': "doUiAction('createItem')"
+            }
+          }, 
+        },
+
+      ]
+    },
+    {
+      tag: 'jh-update-drawer',
+      key: "update",
+      attrs: {},
+      title: '编辑班级',
+      headSlot: [],
+      contentList: [
+        { 
+          label: "编辑", 
+          type: "form", 
+          formItemList: [
+            ${updateItemListStr}
+          ], 
+          action: {
+            tag: "v-btn",
+            value: "编辑",
+            attrs: {
+              color: "success",
+              ':small': true,
+              '@click': "doUiAction('updateItem')"
+            }
+          }, 
+        },
+        { label: "操作记录", type: "component", componentPath: "recordHistory" },
+      ]
+    },
+  ]`;
+
     } else {
-      pageContent = `{
-    tag: 'v-row',
-    attrs: { justify: 'center' },
-    value: [
-      { tag: 'v-col', attrs: { cols: '12', sm: '12', md: '12', lg: '12', xl: '12' }, value: '' },
-    ]
-  }`;
+      pageContent = `[
+    {
+      tag: 'v-row',
+      attrs: { justify: 'center', ':no-gutters': true },
+      value: [
+        { tag: 'v-col', attrs: { cols: '12', sm: '12', md: '12', lg: '12', xl: '12' }, value: '自定义容器内容' },
+      ]
+    }
+  ]`;
     }
 
     // resourceList预设
     let resourceList = '[]';
     if (table) {
       const templatePath = `${path.join(__dirname, '../../')}page-template-json/${pageType}`;
-      const defaultResourceJSON = fs.readFileSync(`${templatePath}/resource.json`).toString();
+      const defaultResource = JSON.parse(fs.readFileSync(`${templatePath}/resource.json`));
+      defaultResource.push(...otherResourceList);
+      const defaultResourceJSON = JSON.stringify(defaultResource, null, 2);
       resourceList = defaultResourceJSON
         .replace(/\{\{pageId}}/g, pageId)
         .replace(/\{\{table}}/g, table)
@@ -234,11 +295,16 @@ module.exports = class InitJson extends CommandBase {
 
     const propsStr = pageType === 'jh-component' ? 'props: {},' : '';
     const componentPath = pageType === 'jh-component' ? `componentPath: "${filename}",` : '';
-    const content = `const content = {
+
+    return this.getBasicContent({ pageId, pageType, tableStr, componentPath, resourceList, propsStr, pageContent, actionContent, style: '' });
+  }
+
+  getBasicContent({ pageId, pageType, tableStr = '', componentPath = '', resourceList = '[]', propsStr = '', pageContent = '[]', actionContent, style }) {
+    return `const content = {
   pageType: "${pageType}", pageId: "${pageId}", ${tableStr} pageName: "${pageId}页面", ${componentPath}
   resourceList: ${resourceList}, // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
   drawerList: [], // { key: '', title: '', contentList: [] }
-  includeList: [], // { type: < js | css | html >, path: ''}
+  includeList: [], // { type: < js | css | html | vueComponent >, path: ''}
   common: { 
     ${propsStr}
     data: {
@@ -248,129 +314,33 @@ module.exports = class InitJson extends CommandBase {
           v => !!v || '必填',
         ],
       },
-      isMobile: 'window.innerWidth < 500', // 表达式使用字符串包裹
-      testString: '"测试字符串"', // 字符串变量需要使用双层引号包裹
+      testString: '测试字符串',
     },
+    dataExpression: {
+      isMobile: 'window.innerWidth < 500'
+    }, // data 表达式
     watch: {},
     computed: {},
     doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
     methods: {}
   },
-  headContent: {
-    helpDrawer: {}, // 自动初始化md文件
-    // serverSearchList: [
-    //   { tag: "v-text-field", model: "serverSearchWhereLike.name", attrs: { prefix: "学生名字", }},
-    //   { tag: "v-select", model: "serverSearchWhere.gender", attrs: { prefix: "性别", items: ["全部", "男", "女"] } },
-    //   { tag: "v-date-picker", model: "serverSearchWhereLike.dateOfBirth",  attrs: { prefix: "出生日期", type: "month" },             },
-    // ],
-    // serverSearchWhere: { gender: "全部" },
-    // serverSearchWhereLike: { name: null, dateOfBirth: null },
-  },
+  headContent: [
+    { tag: 'jh-page-title', value: "班级页面", attrs: {}, helpBtn: true, slot: [] },
+    { 
+      tag: 'jh-search', 
+      value: [
+        { tag: "v-text-field", model: "serverSearchWhereLike.className", attrs: {prefix: '前缀'} },
+      ], 
+      searchBtn: {}
+    }
+  ],
   pageContent: ${pageContent},
-  ${createDrawer}
-  ${updateDrawer}
-  ${deleteContent}
+  ${actionContent}
+  ${style}
 };
 
 module.exports = content;
 `;
-    return content;
-  }
-
-  get1TableContent({ table, pageId, pageType, fields }) {
-    let columnStr = '';
-    let createItemListStr = '';
-    let updateItemListStr = '';
-    let space = '';
-
-    const { excludeColumn = [] } = this.argv;
-    fields.forEach((field, index) => {
-      const fieldKey = field.COLUMN_NAME;
-      const fieldName = field.COLUMN_COMMENT;
-      if (excludeColumn.includes(fieldKey)) return;
-      if (index === 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
-      if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
-      createItemListStr += space + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
-      updateItemListStr += space + `  { label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
-      space = '      ';
-    });
-    columnStr += space + '{ text: "", value: "" },\n';
-    columnStr += space + '{ text: "操作", value: "action", type: "action", width: 120, align: "center", class: "fixed", cellClass: "fixed" },\n';
-    const propsStr = pageType === '1table-component' ? 'props: {},' : '';
-    const componentPath = pageType === '1table-component' ? `componentPath: "${pageId}",` : '';
-
-    // resource预定义
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-page`;
-    const defaultResourceJSON = fs.readFileSync(`${templatePath}/crud.json`).toString();
-
-    const resourceList = defaultResourceJSON
-      .replace(/\{\{pageId}}/g, pageId)
-      .replace(/\{\{table}}/g, table);
-
-    const content =
-    `const content = {
-      pageType: "${pageType}", pageId: "${pageId}", table: "${table}", pageName: "${pageId}页面", ${componentPath}
-      resourceList: ${resourceList}, // 额外resource { actionId, resourceType, resourceData }
-      drawerList: [], // 抽屉列表 { key, title, contentList }
-      includeList: [], // 其他资源引入
-      common: {
-        ${propsStr}
-        data: {
-          constantObj: {
-              gender: ["全部", "男", "女"],
-          },
-          validationRules: { 
-              requireRules: [
-                  v => !!v || '此项必填',
-              ],
-              phoneRules: [
-                  v => !!v || '此项必填',
-                  v => /^1[3456789]\d{9}$/.test(v) || '手机号格式错误',
-              ],
-          },
-        },
-        watch: {},
-        computed: {},
-        doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
-        methods: {}
-      },
-      headContent: {
-        helpDrawer: {}, // 自动初始化md文件
-        // serverSearchList: [
-        //   { tag: "v-text-field",  label: "学生名字",    model: "serverSearchWhereLike.name",                                          },
-        //   { tag: "v-select",      label: "性别",       model: "serverSearchWhere.gender",           attrs: { items: ["全部", "男", "女"] } },
-        //   { tag: "v-date-picker", label: "出生日期",    model: "serverSearchWhereLike.dateOfBirth",  attrs: { type: "month" },             },
-        // ],
-        // serverSearchWhere: { gender: "全部" },
-        // serverSearchWhereLike: { name: null, dateOfBirth: null },
-      },
-      pageContent: {
-        tableAttrs: {},
-        tableHeaderList: [
-          ${columnStr}
-        ],
-        rowActionList: [], // 行内操作按钮 { tag, value, attrs }
-        headActionList: [], // 表头操作按钮 { tag, value, attrs }
-      },
-      createDrawerContent: {
-        formItemList: [
-          ${createItemListStr}
-        ]
-      },
-      updateDrawerContent: {
-        contentList: [
-          { label: "详细信息", type: "form", formItemList: [
-          ${updateItemListStr}
-          ]},
-          { label: "操作记录", type: "component", componentPath: "recordHistory" },
-        ]
-      },
-      deleteContent: {},
-    };
-    
-    module.exports = content;
-    `;
-    return content;
   }
 
   getChartData(chartType) {
@@ -665,7 +635,9 @@ module.exports = content;
     return columns;
   }
 
-  async example() {
+  async example(cwd, argv) {
+    this.cwd = cwd;
+    this.argv = argv;
     // 初始化数据库连接
     this.dbSetting = this.readDbConfigFromFile();
     // app 默认使用 database，如果有前缀则需要去掉前缀

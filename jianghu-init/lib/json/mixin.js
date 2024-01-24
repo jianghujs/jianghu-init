@@ -5,6 +5,13 @@ const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
 
+const checkClick = (obj, action) => {
+  // /doUiAction\(['"]action['"]/
+  if (!obj || !action) return false;
+  const reg = new RegExp(`doUiAction\\(['"]${action || ''}['"]`);
+  return obj && obj.attrs && obj.attrs['@click'] && reg.test(obj.attrs['@click']);
+};
+
 // 1table-page / 1table-component 共用方法
 const mixin = {
   handleNunjucksEnv(templateTargetPath) {
@@ -84,10 +91,16 @@ const mixin = {
           content = `"${k}": ` + content;
         }
         if (_.isString(obj)) {
-          content = `"${k}": ` + content;
+          content = `"${k}": '` + content.replace(/"/g, '\'') + '\''; // 字符串需要加引号
         }
       }
       return content.replace(/"(\w+)":/g, '$1:');
+    });
+
+    nunjucksEnv.addFilter('expressionToVar', function(obj, k) {
+      if (!_.isString(obj)) return '';
+      const str = `"${k}": ` + obj.replace(/"/g, '\'');
+      return str.replace(/"(\w+)":/, '$1:');
     });
     nunjucksEnv.addFilter('camelToKebab', function(obj) {
       return obj.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '\$1-\$2').toLowerCase();
@@ -97,10 +110,13 @@ const mixin = {
     });
     const tagAttr = (key, value, tag = '') => {
       // vuetify 的缩略标签
-      const preList = [ 'x-small', 'small', 'medium', 'large', 'x-large', 'disabled', 'readonly', 'active', 'fixed', 'absolute', 'top', 'bottom', 'left', 'right', 'tile', 'content', 'inset', 'dense', 'single-line', 'filled' ];
+      const preList = [ 'x-small', 'small', 'medium', 'large', 'x-large', 'disabled', 'readonly', 'active', 'fixed', 'absolute', 'top', 'bottom', 'left', 'right', 'tile', 'content', 'inset', 'dense', 'single-line', 'filled', 'v-else' ];
       if (tag.startsWith('v-') && (preList.includes(key) || preList.includes(key.replace(':', ''))) && value === true) {
         return `${key}`.replace(/:/g, '');
       } else if (!_.isString(value) && !key.startsWith(':') && !key.startsWith('@')) {
+        if (key === 'v-else') {
+          return `${key}`;
+        }
         return `:${key}="${value.toString()}"`;
       }
 
@@ -251,9 +267,21 @@ const mixin = {
         return `<script src="${path}"></script>`;
       } else if ([ 'css', 'style' ].includes(type)) {
         return `<link rel="stylesheet" href="${path}">`;
-      } else if ([ 'include', 'html', 'component' ].includes(type)) {
+      } else if ([ 'html', 'component' ].includes(type)) {
         return `{% include "${path}" %}`;
+      } else if (type === 'vueComponent') {
+        return `Vue.component('${item.name}', ${item.component})`;
       }
+    });
+
+    nunjucksEnv.addFilter('find', function(list, obj) {
+      if (!list || !obj) return;
+      return list.find(item => {
+        return _.isMatch(item, obj);
+      });
+    });
+    nunjucksEnv.addFilter('isString', function(item) {
+      return _.isString(item);
     });
     return nunjucksEnv;
   },
@@ -286,40 +314,95 @@ const mixin = {
       await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr });
     }
     // filter 数据库内有但是却没设置的 resource
-    const warningList = existResourceList.filter(e => !resourceList.some(r => r.actionId === e.actionId));
-    if (!warningList.length) return;
-    this.warning(`尚未配置 resource, 如不需要请手动数据库删除: 
-    ${warningList
-    .map(e => {
-      const fieldList = [ 'actionId', 'desc', 'resourceType', 'resourceData' ];
-      if (e.resourceHook) fieldList.unshift('resourceHook');
-      e.resourceData = JSON.parse(e.resourceData);
-      if (e.resourceHook) e.resourceHook = JSON.parse(e.resourceHook);
-      return JSON.stringify(_.pick(e, fieldList))
-        .replace(/\\"/g, '====')
-        .replace(/"([^"]+)":/g, '$1:')
-        .replace(/"/g, '\'')
-        .replace(/====/g, '"');
-    })
-    .join(',\n    ')}`);
+    // const warningList = existResourceList.filter(e => !resourceList.some(r => r.actionId === e.actionId));
+    // if (!warningList.length) return;
+    // this.warning(`尚未配置 resource, 如不需要请手动数据库删除: 
+    // ${warningList
+    // .map(e => {
+    //   const fieldList = [ 'actionId', 'desc', 'resourceType', 'resourceData' ];
+    //   if (e.resourceHook) fieldList.unshift('resourceHook');
+    //   e.resourceData = JSON.parse(e.resourceData);
+    //   if (e.resourceHook) e.resourceHook = JSON.parse(e.resourceHook);
+    //   return JSON.stringify(_.pick(e, fieldList))
+    //     .replace(/\\"/g, '====')
+    //     .replace(/"([^"]+)":/g, '$1:')
+    //     .replace(/"/g, '\'')
+    //     .replace(/====/g, '"');
+    // })
+    // .join(',\n    ')}`);
   },
 
+  // 处理配置文件数据
   handleJsonConfig(jsonConfig) {
-    const { createDrawerContent } = jsonConfig;
-    if (createDrawerContent) {
-      const idGenerateItem = createDrawerContent.formItemList.find(e => !!e.idGenerate);
-      jsonConfig.idGenerate = idGenerateItem && idGenerateItem.idGenerate;
+    let { actionContent, pageContent, headContent, common } = jsonConfig;
+    /**
+     * njk 快捷判断变量
+     * {hasJhTable} - 是否有 jh-table
+     * {hasCreateDrawer / hasCreateStart / hasCreateSubmit} - 是否有创建抽屉
+     * {hasUpdateDrawer / hasUpdateStart / hasUpdateSubmit} - 是否有更新抽屉
+     * {idGenerate} - 是否有业务id配置
+     */
+    if (!common.doUiAction) {
+      common.doUiAction = [];
     }
-    // ... do something
+    if (!actionContent) {
+      actionContent = [];
+    }
+    if (!_.isArray(pageContent) && _.isObject(pageContent)) {
+      jsonConfig.pageContent = [ pageContent ];
+      pageContent = jsonConfig.pageContent;
+    }
+    const findJhTable = pageContent.find(e => [ 'jhTable', 'jh-table' ].includes(e.tag));
+    if (findJhTable) {
+      jsonConfig.hasJhTable = true;
+      if (findJhTable.headActionList) {
+        if (findJhTable.headActionList.some(e => checkClick(e, 'startCreateItem'))) {
+          jsonConfig.hasCreateStart = true;
+        }
+      }
+
+      if (findJhTable.rowActionList && findJhTable.rowActionList.length) {
+        jsonConfig.hasUpdateStart = findJhTable.rowActionList.some(e => checkClick(e, 'startUpdateItem') || /doUiAction\(['"]startUpdateItem['"]/.test(e.click || ''));
+        jsonConfig.hasDelete = findJhTable.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
+      }
+    }
+    const createDrawer = actionContent.find(e => e.tag === 'jh-create-drawer');
+    if (createDrawer) {
+      jsonConfig.hasCreateDrawer = createDrawer.contentList.length;
+      const action = createDrawer.contentList.find(e => e.type === 'form' && e.action && (_.isObject(e.action) && checkClick(e.action, 'createItem')) || (_.isArray(e.action) && e.action.some(a => checkClick(a, 'createItem'))));
+      if (action) {
+        jsonConfig.createFormItemList = action.formItemList;
+        jsonConfig.hasCreateSubmit = true;
+      }
+      const idGenerate = createDrawer.contentList.find(e => e.type === 'form' && e.formItemList.some(item => !!item.idGenerate));
+      if (idGenerate) {
+        jsonConfig.idGenerate = idGenerate.formItemList.find(item => !!item.idGenerate).idGenerate;
+      }
+    }
+    const updateDrawer = actionContent.find(e => e.tag === 'jh-update-drawer');
+    if (updateDrawer) {
+      jsonConfig.hasUpdateDrawer = updateDrawer.contentList.length;
+      const action = updateDrawer.contentList.some(e => e.type === 'form' && e.action && (_.isObject(e.action) && checkClick(e.action, 'updateItem')) || (_.isArray(e.action) && e.action.some(a => checkClick(a, 'updateItem'))));
+      if (action) {
+        jsonConfig.updateFormItemList = action.formItemList;
+        jsonConfig.hasUpdateSubmit = true;
+      }
+    }
+
+    if ((headContent.find(e => e.tag === 'jh-page-title') || {}).helpBtn) {
+      jsonConfig.hasHelpDrawer = true;
+    }
+    Object.assign(jsonConfig, this.getBasicConfig(jsonConfig));
+
 
   },
 
   getConfigComponentList(jsonConfig) {
-    const { table, pageId, updateDrawerContent, drawerList = [] } = jsonConfig;
+    const { table, pageId, actionContent = [] } = jsonConfig;
     const componentList = [];
     const componentMap = {
-      recordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}.id' }, sqlMap: { table, pageId } },
-      tableRecordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}.id' }, sqlMap: { table, pageId } },
+      recordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}Item.id' }, sqlMap: { table, pageId } },
+      tableRecordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}Item.id' }, sqlMap: { table, pageId } },
       vueJsonEditor: { filename: 'vueJsonEditor', model: '', bind: { mode: 'code', expandedOnStart: false } },
     };
 
@@ -340,7 +423,7 @@ const mixin = {
             if (_.isArray(item.bind)) {
               item.bind.forEach(bindItem => {
                 if (_.isString(bindItem)) {
-                  bind[bindItem] = `${itemKey}.${bindItem}`;
+                  bind[bindItem] = `${itemKey}Item.${bindItem}`;
                 }
               });
             }
@@ -357,10 +440,7 @@ const mixin = {
         }
       });
     };
-
-    if (updateDrawerContent && updateDrawerContent.contentList) {
-      processContentList(updateDrawerContent.contentList);
-    }
+    const drawerList = actionContent.filter(e => [ 'jh-create-drawer', 'jh-update-drawer', 'jh-drawer' ].includes(e.tag));
 
     drawerList.forEach(drawer => {
       processContentList(drawer.contentList, drawer.key);
@@ -530,6 +610,48 @@ const mixin = {
         resolve(stdout);
       });
     });
+  },
+
+  getBasicConfig(config) {
+    const basicUiActionConfig = this.basicUiAction(config);
+    return {
+      basicUiActionConfig: this.basicUiAction(config),
+      basicUiActionList: _.flatten(_.values(basicUiActionConfig)),
+    };
+  },
+
+  basicUiAction({ common, hasJhTable, hasCreateStart, hasCreateSubmit, hasUpdateStart, hasUpdateSubmit }) {
+    const defaultUiAction = {
+      getTableData: [ 'getTableData' ],
+      startCreateItem: [ 'prepareCreateFormData', 'openCreateDrawer' ],
+      createItem: [ 'prepareCreateValidate', 'confirmCreateItemDialog', 'prepareDoCreateItem', 'doCreateItem', 'closeCreateDrawer', 'getTableData' ],
+      startUpdateItem: [ 'prepareUpdateFormData', 'openUpdateDrawer' ],
+      updateItem: [ 'prepareUpdateValidate', 'confirmUpdateItemDialog', 'prepareDoUpdateItem', 'doUpdateItem', 'closeUpdateDrawer', 'getTableData' ],
+      deleteItem: [ 'prepareDeleteFormData', 'confirmDeleteItemDialog', 'prepareDoDeleteItem', 'doDeleteItem', 'getTableData' ],
+    };
+
+    if (!hasJhTable) {
+      delete defaultUiAction.getTableData;
+    }
+    if (!hasCreateStart) {
+      delete defaultUiAction.startCreateItem;
+    }
+    if (!hasCreateSubmit) {
+      delete defaultUiAction.createItem;
+    }
+    if (!hasUpdateStart) {
+      delete defaultUiAction.startUpdateItem;
+    }
+    if (!hasUpdateSubmit) {
+      delete defaultUiAction.updateItem;
+    }
+    for (const key in defaultUiAction) {
+      if (common.doUiAction[key]) {
+        delete defaultUiAction[key];
+      }
+    }
+
+    return defaultUiAction;
   },
 
 };

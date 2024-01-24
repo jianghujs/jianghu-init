@@ -99,7 +99,7 @@ module.exports = class CommandBase {
     // 去除注释
     const fileContent = configData.replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
     [ 'host', 'port', 'user', 'password', 'database' ].forEach(key => {
-      const regStr = `${key}:\s?(.*),`;
+      const regStr = `${key}:\s?(.*)`;
       const reg = new RegExp(regStr);
       const matchResult = fileContent.match(reg);
       setting[key] = matchResult[1].replace(/'/g, '').replace(/\s+/g, '').replace(/,/g, '')
