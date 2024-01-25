@@ -334,7 +334,7 @@ const mixin = {
 
   // 处理配置文件数据
   handleJsonConfig(jsonConfig) {
-    let { actionContent, pageContent, headContent, common } = jsonConfig;
+    let { actionContent, pageContent, headContent = [], common } = jsonConfig;
     /**
      * njk 快捷判断变量
      * {hasJhTable} - 是否有 jh-table
@@ -346,7 +346,12 @@ const mixin = {
       common.doUiAction = [];
     }
     if (!actionContent) {
+      jsonConfig.actionContent = [];
       actionContent = [];
+    }
+    if (!headContent) {
+      jsonConfig.headContent = [];
+      headContent = [];
     }
     if (!_.isArray(pageContent) && _.isObject(pageContent)) {
       jsonConfig.pageContent = [ pageContent ];
