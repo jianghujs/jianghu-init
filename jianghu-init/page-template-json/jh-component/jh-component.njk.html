@@ -419,6 +419,19 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===// }
       //===// <=%- endif %=>
 
+      for (const fieldKey in this.serverSearchPropsWhere) {
+        const fieldValue = this.serverSearchPropsWhere[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          where[fieldKey] = fieldValue;
+        }
+      }
+      for (const fieldKey in this.serverSearchPropsWhereLike) {
+        const fieldValue = this.serverSearchPropsWhereLike[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          whereLike[fieldKey] = fieldValue;
+        }
+      }
+
       const rows = (await window.jianghuAxios({
         data: {
           appData: {
