@@ -317,14 +317,14 @@
 {% include 'component/<=$ component.componentPath $=>.html' %}
 <=%- endfor %=>
 <=%- for item in includeList %=>
-<=%- if item.type != 'vueComponent' %=>
+<=%- if item.type != 'vueComponent' and item.type != 'vueUse' %=>
 <=$ item | includeFormat $=>
 <=%- endif %=>
 <=%- endfor %=>
 
 <script type="module">
 //===// <=%- for item in includeList %=>
-//===// <=%- if item.type == 'vueComponent' %=>
+//===// <=%- if item.type == 'vueComponent' or item.type == 'vueUse' %=>
 //===// <=$ item | includeFormat $=>
 //===// <=%- endif %=>
 //===// <=%- endfor %=>

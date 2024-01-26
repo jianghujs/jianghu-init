@@ -271,6 +271,8 @@ const mixin = {
         return `{% include "${path}" %}`;
       } else if (type === 'vueComponent') {
         return `Vue.component('${item.name}', ${item.component})`;
+      } else if (type === 'vueUse') {
+        return `Vue.use(${item.component})`;
       }
     });
 
