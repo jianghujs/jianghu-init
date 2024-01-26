@@ -32,7 +32,7 @@
           <v-row class="jh-backend-form-container justify-end ma-0 py-3">
             <=%- for search in content.value %=>
             <=%- if search.tag == "v-date-picker" %=> 
-            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 pt-2 pt-sm-0">
+            <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 pt-2 pt-sm-0" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
                   <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>：" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
@@ -40,9 +40,13 @@
                 <v-date-picker color="success" elevation="20" v-model="<=$ search.model $=>" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>></v-date-picker>
               </v-menu>
             </v-col>
-            <=%- else %=> 
-            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>">
+            <=%- elif search.model is defined %=> 
+            <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <=$ search | formItemFormat $=>
+            </v-col>
+            <=%- else %=>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <=$ search | tagFormat(14) $=>
             </v-col>
             <=%- endif %=>
             <=%- endfor %=>  

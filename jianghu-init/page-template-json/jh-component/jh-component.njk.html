@@ -30,9 +30,13 @@
                 <v-date-picker color="success" elevation="20" v-model="<=$ search.model $=>" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>></v-date-picker>
               </v-menu>
             </v-col>
-            <=%- else %=> 
+            <=%- elif search.model is defined %=> 
             <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>">
               <=$ search | formItemFormat $=>
+            </v-col>
+            <=%- else %=>
+            <v-col cols="12" xs="6" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>">
+              <=$ search | tagFormat(14) $=>
             </v-col>
             <=%- endif %=>
             <=%- endfor %=>  
