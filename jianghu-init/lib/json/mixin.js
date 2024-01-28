@@ -126,6 +126,9 @@ const mixin = {
       return tagAttr(key, value, tag);
     });
     const tagItemFormat = (item, indent = 0) => {
+      if (typeof item === 'string') {
+        return ' '.repeat(indent + 2) + item;
+      }
       if (!item.tag) {
         return '';
       }
@@ -138,14 +141,20 @@ const mixin = {
       if (typeof item.value === 'string') {
         value = ' '.repeat(indent + 2) + item.value;
       } else if (Array.isArray(item.value)) {
-        value = item.value.map(subItem => tagItemFormat(subItem, indent + 2)).join('\n');
+        if (!item.value.length) {
+          value = '';
+        } else if (item.value.length === 1 && typeof item.value[0] === 'string') {
+          value = ' '.repeat(indent + 2) + item.value[0];
+        } else {
+          value = item.value.map(subItem => tagItemFormat(subItem, indent + 2)).join('\n');
+        }
       } else if (typeof item.value === 'object') {
         value = tagItemFormat(item.value, indent + 2);
       }
 
       const indentSpaces = ' '.repeat(indent);
       const lineBreak = value ? '\n' : '';
-      return `${indentSpaces}<${tag} ${attrs}>${lineBreak}${value}${lineBreak}${indentSpaces}</${tag}>`;
+      return `${indentSpaces}<${tag} ${attrs}>${lineBreak}${value}${lineBreak}${value ? indentSpaces : ''}</${tag}>`;
     };
     nunjucksEnv.addFilter('tagFormat', function(result, indent = 0) {
       const tag = [];
