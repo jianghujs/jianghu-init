@@ -93,6 +93,9 @@ const mixin = {
         if (_.isString(obj)) {
           content = `"${k}": '` + content.replace(/"/g, '\'') + '\''; // 字符串需要加引号
         }
+        if (_.isNumber(obj)) {
+          content = k + ': ' + content; // 字符串需要加引号
+        }
       }
       return content.replace(/"(\w+)":/g, '$1:');
     });
