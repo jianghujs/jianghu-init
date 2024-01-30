@@ -11,7 +11,7 @@
 <v-app mobile-breakpoint="sm">
   <jh-menu />
   <v-main class="mt-13">
-    <=%- if headContent %=> 
+    <=%- if headContent %=>
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
       <v-row class="align-center" dense>
@@ -19,7 +19,7 @@
         <=%- if content.tag == 'jh-page-title' %=>
         <v-col cols="12" xs="12" sm="12" md="4" xl="3" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <div class="py-4 text-body-1 font-weight-bold d-flex align-center"><=$ content.value $=>
-            <=%- if content.helpBtn %=> 
+            <=%- if content.helpBtn %=>
             <!-- 帮助页按钮 -->
             <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
               <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
@@ -31,7 +31,7 @@
         <v-col cols="12" xs="12" sm="12" md="8" xl="9" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <v-row class="jh-backend-form-container justify-end ma-0 py-3">
             <=%- for search in content.value %=>
-            <=%- if search.tag == "v-date-picker" %=> 
+            <=%- if search.tag == "v-date-picker" %=>
             <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 pt-2 pt-sm-0" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
@@ -40,7 +40,7 @@
                 <v-date-picker color="success" elevation="20" v-model="<=$ search.model $=>" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>></v-date-picker>
               </v-menu>
             </v-col>
-            <=%- elif search.model is defined %=> 
+            <=%- elif search.model is defined %=>
             <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <=$ search | formItemFormat $=>
             </v-col>
@@ -49,7 +49,7 @@
               <=$ search | tagFormat(14) $=>
             </v-col>
             <=%- endif %=>
-            <=%- endfor %=>  
+            <=%- endfor %=>
             <=%- if content.searchBtn is undefined or content.searchBtn != false %=>
             <div class="jh-backend-search-btn ml-2">
               <=%- if content.searchBtn %=>
@@ -113,7 +113,7 @@
           </template>
           <=%- endif %=>
           <=%- endfor %=>
-            
+
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
             <=%- for action in content.rowActionList %=>
@@ -174,9 +174,9 @@
       <=%- endfor %=>
     </div>
     <!-- <<<<<<<<<<<<< 页面内容 -->
-    <=%- for actionItem in actionContent %=> 
+    <=%- for actionItem in actionContent %=>
 
-    <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' %=> 
+    <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' %=>
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
     <v-navigation-drawer v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" :permanent="is<=$ actionItem.key | ucfirst $=>DrawerShown" fixed temporary right width="80%" class="elevation-24" <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
@@ -190,10 +190,10 @@
         </v-row>
         <v-divider class="jh-divider"></v-divider>
         <=%- endif %=>
-        <=%- if actionItem.otherActionList %=> 
+        <=%- if actionItem.otherActionList %=>
         <v-row>
           <v-col cols="12" class="px-6 pt-0">
-            <=% for actionItem in actionItem.otherActionList %=> 
+            <=% for actionItem in actionItem.otherActionList %=>
             <=$ actionItem.tag | tagFormat $=><=% endfor %=>
           </v-col>
         </v-row>
@@ -222,7 +222,7 @@
           >
           <=%- endif %=>
 
-            <=%- if content.type == "form" %=> 
+            <=%- if content.type == "form" %=>
             <v-row class="mt-0 px-4">
               <=%- for formItem in content.formItemList %=>
               <=%- if not formItem.hidden %=>
@@ -230,23 +230,23 @@
                 <=%- if formItem.label %=>
                 <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
                 <=%- endif %=>
-                <=%- if formItem.tag == "v-date-picker" %=> 
+                <=%- if formItem.tag == "v-date-picker" %=>
                 <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                     <template v-slot:activator="{on, attrs}">
                     <v-text-field v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly></v-text-field>
                     </template>
                     <v-date-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"></v-date-picker>
-                </v-menu> 
-                <=%- elif formItem.tag == "jh-json-editor" %=> 
+                </v-menu>
+                <=%- elif formItem.tag == "jh-json-editor" %=>
                 <vue-json-editor v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></vue-json-editor>
-                <=%- elif formItem.model is defined %=> 
+                <=%- elif formItem.model is defined %=>
                 <=$ formItem | formItemFormat(actionItem.key + 'Item') $=>
                 <=%- else %=>
                 <=$ formItem | tagFormat(16) $=>
                 <=%- endif %=>
               </v-col>
               <=%- endif %=>
-              <=%- endfor %=> 
+              <=%- endfor %=>
             </v-row>
 
             <!-- 抽屉操作按钮 -->
@@ -259,7 +259,7 @@
             <=%- elif content.type == "component" %=>
             <<=$ content.componentPath.split('/').pop() | camelToKebab $=> v-bind="{<=% for key, value in content.bind %=>'<=$ key $=>': <=$ value $=>, <=%- endfor %=>}"/>
             <=%- endif %=>
-          
+
           <=%- if actionItem.contentList.length > 1 %=>
           </v-tab-item>
           <=%- endif %=>
@@ -289,7 +289,7 @@
 
 
     <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-    <=%- if hasHelpDrawer %=> 
+    <=%- if hasHelpDrawer %=>
     <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
       <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#<=$ pageId $=>.md`" width="100%" height="100%"></iframe>
       <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
@@ -379,13 +379,16 @@ new Vue({
     //===// <=%- endif %=>
 
     // ================================ common ================================
-    //===// <=%- if common and common.data %=>  
-    //===// <=%- for key, value in common.data %=> 
+    //===// <=%- if common and common.dataString %=>
+    //===// <=$ common.dataString | stringToVar $=>
+    //===// <=%- endif %=>
+    //===// <=%- if common and common.data %=>
+    //===// <=%- for key, value in common.data %=>
     //===// <=$ value | variableToVar(key, 4) $=>,
     //===// <=%- endfor %=>
     //===// <=%- endif %=>
-    //===// <=%- if common and common.dataExpression %=>  
-    //===// <=%- for key, value in common.dataExpression %=> 
+    //===// <=%- if common and common.dataExpression %=>
+    //===// <=%- for key, value in common.dataExpression %=>
     //===// <=$ value | expressionToVar(key, 4) $=>,
     //===// <=%- endfor %=>
     //===// <=%- endif %=>
@@ -425,22 +428,32 @@ new Vue({
   //===// <=%- if key == 'mounted' or key == 'created' %=><=$ item | variableToVar(key) $=>,
   //===// <=%- endif %=>
   //===// <=%- endfor %=>
+  //===// <=%- if common.createdString %=>
+  async created() {
+  //===// <=$ common.createdString $=>
+  },
+  //===// <=%- endif %=>
+  //===// <=%- if common.mountedString %=>
+  async mounted() {
+  //===// <=$ common.createString | stringToVar $=>
+  },
+  //===// <=%- endif %=>
   methods: {
     async doUiAction(uiActionId, uiActionData) {
       try {
         switch (uiActionId) {
-          //===// <=%- for key, value in basicUiActionConfig %=> 
+          //===// <=%- for key, value in basicUiActionConfig %=>
           //===// case '<=$ key $=>':
-          //===//   <=%- for method in value %=> 
+          //===//   <=%- for method in value %=>
           //===//   await this.<=$ method $=>(uiActionData);
           //===//   <=%- endfor %=>
           //===//   break;
-          //===// <=%- endfor %=> 
+          //===// <=%- endfor %=>
 
 
-          //===// <=%- for key, value in common.doUiAction %=> 
+          //===// <=%- for key, value in common.doUiAction %=>
           //===// case '<=$ key $=>':
-          //===//   <=%- for method in value %=> 
+          //===//   <=%- for method in value %=>
           //===//   await this.<=$ method $=>(uiActionData);
           //===//   <=%- endfor %=>
           //===//   break;
@@ -522,9 +535,9 @@ new Vue({
     // ---------- 新增数据 uiAction >>>>>>>>>> --------
     //===// async prepareCreateFormData() {
     //===//   this.createItem = {
-    //===//     <=%- for formItem in createFormItemList %=> 
-    //===//     <=%- if formItem.default is defined %=> 
-    //===//     <=$ formItem.model $=>: <=$ formItem.default $=>, 
+    //===//     <=%- for formItem in createFormItemList %=>
+    //===//     <=%- if formItem.default is defined %=>
+    //===//     <=$ formItem.model $=>: <=$ formItem.default $=>,
     //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
@@ -652,7 +665,7 @@ new Vue({
     //===// },
     // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
     //===// <=%- endif %=>
-    
+
     //===// <=%- if hasDelete %=>
     // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
     //===// async prepareDeleteFormData(funObj) {
@@ -688,9 +701,9 @@ new Vue({
     // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
     //===// <=%- endif %=>
 
-    //===// <=%- if common and common.methods %=> 
+    //===// <=%- if common and common.methods %=>
     // ---------- Custom uiAction >>>>>>>>>>>> --------
-    //===// <=%- for key, value in common.methods %=> 
+    //===// <=%- for key, value in common.methods %=>
     //===// <=$ value | variableToVar(key) | safe $=>,
     //===// <=%- endfor %=>
     // ---------- <<<<<<<<<<< Custom uiAction ---------

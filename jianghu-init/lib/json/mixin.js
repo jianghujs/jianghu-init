@@ -100,6 +100,10 @@ const mixin = {
       return content.replace(/"(\w+)":/g, '$1:');
     });
 
+    nunjucksEnv.addFilter('stringToVar', function(obj) {
+      if (!_.isString(obj)) return '';
+      return obj.substring(1, obj.length - 1);
+    });
     nunjucksEnv.addFilter('expressionToVar', function(obj, k) {
       if (!_.isString(obj)) return '';
       const str = `"${k}": ` + obj.replace(/"/g, '\'');
