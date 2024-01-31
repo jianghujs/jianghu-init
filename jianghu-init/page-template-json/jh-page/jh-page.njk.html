@@ -419,8 +419,12 @@ new Vue({
   //===// <=$ common.computed | variableToVar('computed') $=><=$ ',' if common.computed $=>
   //===// <=%- if not common.created %=>
   async created() {
+    //===// <=%- if common.createdString %=>
+    //===// <=$ common.createdString $=>
+    //===// <=$- else $=>
     //===// <=%- if hasJhTable %=>
     this.doUiAction('getTableData');
+    //===// <=%- endif %=>
     //===// <=%- endif %=>
   },
   //===// <=%- endif %=>
@@ -428,11 +432,7 @@ new Vue({
   //===// <=%- if key == 'mounted' or key == 'created' %=><=$ item | variableToVar(key) $=>,
   //===// <=%- endif %=>
   //===// <=%- endfor %=>
-  //===// <=%- if common.createdString %=>
-  async created() {
-  //===// <=$ common.createdString $=>
-  },
-  //===// <=%- endif %=>
+
   //===// <=%- if common.mountedString %=>
   async mounted() {
   //===// <=$ common.createString | stringToVar $=>
