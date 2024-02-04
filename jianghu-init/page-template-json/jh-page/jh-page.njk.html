@@ -318,7 +318,7 @@
 <=%- endfor %=>
 <=%- for item in includeList %=>
 <=%- if item.type != 'vueComponent' and item.type != 'vueUse' %=>
-<=$ item | includeFormat $=>
+<=$ item | includeFormat | safe $=>
 <=%- endif %=>
 <=%- endfor %=>
 
@@ -333,6 +333,9 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: () => ({
+    //===// <=%- if common and common.dataString %=>
+    //===// <=$ common.dataString | stringToVar $=>
+    //===// <=%- else %=>
 
     //===// <=%- if hasHelpDrawer %=>
     //===// isHelpPageDrawerShown: false,
@@ -379,9 +382,6 @@ new Vue({
     //===// <=%- endif %=>
 
     // ================================ common ================================
-    //===// <=%- if common and common.dataString %=>
-    //===// <=$ common.dataString | stringToVar $=>
-    //===// <=%- endif %=>
     //===// <=%- if common and common.data %=>
     //===// <=%- for key, value in common.data %=>
     //===// <=$ value | variableToVar(key, 4) $=>,
@@ -403,6 +403,8 @@ new Vue({
     //===// <=%- endif %=>
     //===// <=%- endif %=>
     //===// <=%- endfor %=>
+
+    //===// <=%- endif %=>
   }),
   watch: {
     //===// <=%- if hasHelpDrawer %=>
