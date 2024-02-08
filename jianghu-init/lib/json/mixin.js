@@ -97,6 +97,7 @@ const mixin = {
           content = k + ': ' + content; // 字符串需要加引号
         }
       }
+      content = content.replace(/'__FUN__\(/gm, '').replace(/\)__FUN__'/gm, '');
       return content.replace(/"(\w+)":/g, '$1:');
     });
 

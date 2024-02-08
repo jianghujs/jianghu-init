@@ -11,7 +11,9 @@
 <v-app mobile-breakpoint="sm">
   <jh-menu />
   <v-main class="mt-15">
-    <=%- if headContent %=>
+    <=%- if headContentStudio %=>
+    <=$ headContentStudio | tagFormat(4) $=>
+    <=%- elif headContent %=>
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
       <v-row class="align-center" dense>
@@ -333,9 +335,6 @@ new Vue({
   template: '#app-template',
   vuetify: new Vuetify(),
   data: () => ({
-    //===// <=%- if common and common.dataString %=>
-    //===// <=$ common.dataString | stringToVar $=>
-    //===// <=%- else %=>
 
     //===// <=%- if hasHelpDrawer %=>
     //===// isHelpPageDrawerShown: false,
@@ -404,7 +403,6 @@ new Vue({
     //===// <=%- endif %=>
     //===// <=%- endfor %=>
 
-    //===// <=%- endif %=>
   }),
   watch: {
     //===// <=%- if hasHelpDrawer %=>
