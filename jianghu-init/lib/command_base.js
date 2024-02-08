@@ -108,7 +108,6 @@ module.exports = class CommandBase {
         .replace(/"/g, '');
     });
     setting.dbPrefix = this.tryGetDbPrefix();
-    console.log('setting', setting);
     return setting;
   }
 
