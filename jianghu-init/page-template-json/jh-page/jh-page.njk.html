@@ -10,7 +10,7 @@
 <div>
 <v-app mobile-breakpoint="sm">
   <jh-menu />
-  <v-main class="mt-15">
+  <v-main class="mt-13">
     <=%- if headContentStudio %=>
     <=$ headContentStudio | tagFormat(4) $=>
     <=%- elif headContent %=>
@@ -426,7 +426,7 @@ new Vue({
   async created() {
     //===// <=%- if common.createdString %=>
     //===// <=$ common.createdString $=>
-    //===// <=$- else $=>
+    //===// <=%- else %=>
     //===// <=%- if hasJhTable %=>
     this.doUiAction('getTableData');
     //===// <=%- endif %=>

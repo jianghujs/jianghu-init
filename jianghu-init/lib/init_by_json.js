@@ -255,6 +255,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
           fileObj = eval(fs.readFileSync('./' + pathStr).toString());
         } catch (e) {
           this.error(`文件语法错误: ${e.message}`);
+          console.log(e);
           return;
         }
         await this.renderContent(fileObj, pathStr.replace('app/view/init-json/', ''));
@@ -306,6 +307,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
       this.info(`build ${filename} success`);
       console.log('');
     } catch (e) {
+      console.log(e);
       this.error(e);
     }
   }

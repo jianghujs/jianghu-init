@@ -97,7 +97,9 @@ module.exports = class CommandBase {
     const configData = fs.readFileSync('./config/config.local.js').toString();
     const setting = {};
     // 去除注释
-    const fileContent = configData.replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
+    let fileContent = configData.replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
+    // 匹配到 connection 配置的块
+    fileContent = fileContent.match(/connection: {[\s\S]*?}/)[0];
     [ 'host', 'port', 'user', 'password', 'database' ].forEach(key => {
       const regStr = `${key}:\s?(.*)`;
       const reg = new RegExp(regStr);
