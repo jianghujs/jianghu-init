@@ -83,13 +83,14 @@ module.exports = class InitJson extends CommandBase {
       table = res.table;
     }
     if (!pageId) {
-      const res = await inquirer.prompt({
-        name: 'pageId',
-        type: 'input',
-        default: table ? table + 'Management' : 'examplePage',
-        message: `请输入pageId，如"${table ? table + 'Management' : 'examplePage'}"`,
-      });
-      pageId = res.pageId;
+      // 不要乱起名字，固定的名字最合适，否则 studio 会找不到对应的 json
+      // const res = await inquirer.prompt({
+      //   name: 'pageId',
+      //   type: 'input',
+      //   default: table ? table + 'Management' : 'examplePage',
+      //   message: `请输入pageId，如"${table ? table + 'Management' : 'examplePage'}"`,
+      // });
+      pageId = table;
     }
     let filename = pageId;
     if (pageType === 'jh-component') {
@@ -225,7 +226,7 @@ module.exports = class InitJson extends CommandBase {
           formItemList: [
             ${createItemListStr}
           ], 
-          action: {
+          action: [{
             tag: "v-btn",
             value: "新增",
             attrs: {
@@ -233,7 +234,7 @@ module.exports = class InitJson extends CommandBase {
               ':small': true,
               '@click': "doUiAction('createItem')"
             }
-          }, 
+          }],
         },
 
       ]
@@ -251,7 +252,7 @@ module.exports = class InitJson extends CommandBase {
           formItemList: [
             ${updateItemListStr}
           ], 
-          action: {
+          action: [{
             tag: "v-btn",
             value: "编辑",
             attrs: {
@@ -259,7 +260,7 @@ module.exports = class InitJson extends CommandBase {
               ':small': true,
               '@click': "doUiAction('updateItem')"
             }
-          }, 
+          }],
         },
         { label: "操作记录", type: "component", componentPath: "recordHistory" },
       ]
