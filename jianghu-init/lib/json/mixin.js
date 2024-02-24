@@ -406,7 +406,7 @@ const mixin = {
     const updateDrawer = actionContent.find(e => e.tag === 'jh-update-drawer');
     if (updateDrawer) {
       jsonConfig.hasUpdateDrawer = updateDrawer.contentList.length;
-      const action = updateDrawer.contentList.some(e => e.type === 'form' && e.action && (_.isObject(e.action) && checkClick(e.action, 'updateItem')) || (_.isArray(e.action) && e.action.some(a => checkClick(a, 'updateItem'))));
+      const action = updateDrawer.contentList.find(e => e.type === 'form' && e.action && (_.isObject(e.action) && checkClick(e.action, 'updateItem')) || (_.isArray(e.action) && e.action.some(a => checkClick(a, 'updateItem'))));
       if (action) {
         jsonConfig.updateFormItemList = action.formItemList;
         jsonConfig.hasUpdateSubmit = true;
