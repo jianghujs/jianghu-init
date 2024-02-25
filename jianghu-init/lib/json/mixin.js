@@ -137,6 +137,9 @@ const mixin = {
       return tagAttr(key, value, tag);
     });
     const tagItemFormat = (item, indent = 0) => {
+      if (!item) {
+        return '';
+      }
       if (typeof item === 'string') {
         return ' '.repeat(indent + 2) + item;
       }
@@ -169,13 +172,14 @@ const mixin = {
     };
     nunjucksEnv.addFilter('tagFormat', function(result, indent = 0) {
       const tag = [];
+      console.log(result);
       if (_.isArray(result)) {
         result.forEach(res => {
           tag.push(tagItemFormat(res, indent).replace(/^\s+/, ''));
         });
       } else if (_.isObject(result)) {
         tag.push(tagItemFormat(result, indent).replace(/^\s+/, ''));
-      } else if (_.isString(result)) {
+      } else {
         tag.push(result);
       }
       return tag.join('\n' + ' '.repeat(indent));
