@@ -24,6 +24,9 @@ const mixin = {
         variableEnd: '$=>',
       },
     });
+    nunjucksEnv.addFilter('isArray', function(value) {
+      return Array.isArray(value);
+    });
     nunjucksEnv.addFilter('objToVar', function(obj, key, spaceCount = 4) {
       if (!obj) { obj = {}; }
       let spaceStr = '';
