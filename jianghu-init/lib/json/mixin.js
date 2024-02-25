@@ -172,7 +172,6 @@ const mixin = {
     };
     nunjucksEnv.addFilter('tagFormat', function(result, indent = 0) {
       const tag = [];
-      console.log(result);
       if (_.isArray(result)) {
         result.forEach(res => {
           tag.push(tagItemFormat(res, indent).replace(/^\s+/, ''));
