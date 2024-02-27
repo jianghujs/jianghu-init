@@ -124,6 +124,8 @@ const mixin = {
       const preList = [ 'x-small', 'small', 'medium', 'large', 'x-large', 'disabled', 'readonly', 'active', 'fixed', 'absolute', 'top', 'bottom', 'left', 'right', 'tile', 'content', 'inset', 'dense', 'single-line', 'filled', 'v-else' ];
       if (tag.startsWith('v-') && (preList.includes(key) || preList.includes(key.replace(':', ''))) && value === true) {
         return `${key}`.replace(/:/g, '');
+      } else if (key === 'rules') {
+        return `:${key}="${Array.isArray(value) ? JSON.stringify(value).replace(/"/g, '') : value}"`;
       } else if (!_.isString(value) && !key.startsWith(':') && !key.startsWith('@')) {
         if (key === 'v-else') {
           return `${key}`;
@@ -150,8 +152,8 @@ const mixin = {
       const attrs = Object.entries(item.attrs || {})
         .map(([ key, value ]) => tagAttr(key, value, tag))
         .join(' ');
-      let value = '';
 
+      let value = '';
       if (typeof item.value === 'string') {
         value = ' '.repeat(indent + 2) + item.value;
       } else if (Array.isArray(item.value)) {
@@ -202,7 +204,7 @@ const mixin = {
           res.attrs['v-model'] = res.model.includes('.') ? res.model : drawerKey + '.' + res.model;
         }
         if (res.rules) {
-          res.attrs[':rules'] = res.rules;
+          res.attrs.rules = res.rules;
         }
         if (res.attrs[':items'] && !_.isString(res.attrs[':items'])) {
           if (_.isFunction(res.attrs[':items'])) {
