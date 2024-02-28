@@ -184,7 +184,6 @@ module.exports = class InitJson extends CommandBase {
         actionSpace = ' '.repeat(12);
       });
 
-      columnStr += space + '{ text: "", value: "" },\n';
       columnStr += space + '{ text: "操作", value: "action", type: "action", width: \'window.innerWidth < 500 ? 70 : 120\', align: "center", class: "fixed", cellClass: "fixed" },\n';
       pageContent = `[
     {
