@@ -260,6 +260,8 @@
             </v-row>
             <=%- elif content.type == "component" %=>
             <<=$ content.componentPath.split('/').pop() | camelToKebab $=> v-bind="{<=% for key, value in content.bind %=>'<=$ key $=>': <=$ value $=>, <=%- endfor %=>}"/>
+            <=%- else %=>
+            <=$ content | tagFormat(12) $=>
             <=%- endif %=>
 
           <=%- if actionItem.contentList.length > 1 %=>
