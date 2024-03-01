@@ -65,7 +65,7 @@ const mixin = {
             if (!key && valStr.includes('=>')) {
               const params = valStr.substring(0, valStr.indexOf('=>')).trim();
               const funcBody = valStr.substring(valStr.indexOf('=>') + 2).trim();
-              if(params.startsWith("(")) {
+              if (params.startsWith('(')) {
                 valStr = value.name + `${params} ` + funcBody;
               } else {
                 valStr = value.name + `(${params}) ` + funcBody;
