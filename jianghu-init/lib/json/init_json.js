@@ -316,12 +316,17 @@ module.exports = class InitJson extends CommandBase {
       },
       testString: '测试字符串',
       serverSearchWhereLike: { className: '' },
+      filterMap: {},
     },
     dataExpression: {
       isMobile: 'window.innerWidth < 500'
     }, // data 表达式
     watch: {},
-    computed: {},
+    computed: {
+      tableDataComputed() {
+        return this.tableData;
+      }
+    },
     doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
     methods: {}
   },
