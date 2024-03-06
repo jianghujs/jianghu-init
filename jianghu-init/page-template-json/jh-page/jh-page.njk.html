@@ -438,14 +438,28 @@ new Vue({
       }
     }
   },
-
+  //===// <=%- if not common.created %=>
   async created() {
+    //===// <=%- if common.createdString %=>
+    //===// <=$ common.createdString $=>
+    //===// <=%- else %=>
     //===// <=%- if hasJhTable %=>
     this.doUiAction('getTableData');
     //===// <=%- endif %=>
+    //===// <=%- endif %=>
   },
+  //===// <=%- endif %=>
+  //===// <=% for key, item in common %=>
+  //===// <=%- if key == 'mounted' or key == 'created' %=>
+  //===// <=$ item | variableToVar(key) $=>,
+  //===// <=%- endif %=>
+  //===// <=%- endfor %=>
+
+  //===// <=%- if common.mountedString %=>
   async mounted() {
+  //===// <=$ common.createString | stringToVar $=>
   },
+  //===// <=%- endif %=>
   methods: {
     async doUiAction(uiActionId, uiActionData) {
       try {
