@@ -223,6 +223,11 @@ module.exports = class InitByJsonCommand extends CommandBase {
       // this.error('项目已开启 dev 模式');
       return;
     }
+    // 检测 init-json 文件夹是否存在，不存在则创建
+    if (!fs.existsSync('./app/view/init-json')) {
+      fs.mkdirSync('./app/view/init-json', { recursive: true });
+    }
+
     await lockfile.lock(lockFilePath);
 
     // 默认渲染 ./app/view/init-json 内的递归所有文件
