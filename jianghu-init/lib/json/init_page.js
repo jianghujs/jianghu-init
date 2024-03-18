@@ -68,6 +68,7 @@ module.exports = class InitPage1Table extends CommandBase {
     await this.renderVue(jsonConfig);
     await this.modifyTable(jsonConfig);
     await this.handleOtherResource(jsonConfig);
+    await this.checkPage(jsonConfig);
     // 提示组件尚未生成
     await this.renderComponent(jsonConfig, dev);
     await this.renderService(jsonConfig, dev);

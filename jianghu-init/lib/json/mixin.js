@@ -319,6 +319,25 @@ const mixin = {
     return nunjucksEnv;
   },
 
+  async checkPage(jsonConfig) {
+    const { pageId, pageName } = jsonConfig;
+    const knex = await this.getKnex();
+    const existPage = await knex('_page').where({ pageId }).first();
+    const pageData = {
+      pageId,
+      pageName,
+    };
+    if (existPage && existPage.pageName !== pageName) {
+      console.log(`更新页面名称 ${existPage.pageName} => ${pageName}`);
+      await knex('_page').where({ id: existPage.id }).update(pageData);
+    } else if (!existPage) {
+      console.log(`插入页面 ${pageName}`);
+      await knex('_page').insert(pageData);
+    } else {
+      console.log('页面名称未变更');
+    }
+  },
+
   async handleOtherResource(jsonConfig) {
     const { resourceList, pageId } = jsonConfig;
     if (!resourceList || !pageId) return;
