@@ -333,8 +333,6 @@ const mixin = {
     } else if (!existPage) {
       console.log(`插入页面 ${pageName}`);
       await knex('_page').insert(pageData);
-    } else {
-      console.log('页面名称未变更');
     }
   },
 
