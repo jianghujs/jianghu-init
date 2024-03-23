@@ -552,7 +552,6 @@ new Vue({
     //===// <=%- endif %=>
 
     //===// <=%- if hasCreateDrawer %=>
-    //===// <=%- if hasCreateStart %=>
     // ---------- 新增数据 uiAction >>>>>>>>>> --------
     //===// async prepareCreateFormData() {
     //===//   this.createItem = {
@@ -563,7 +562,6 @@ new Vue({
     //===//     <=%- endfor %=>
     //===//   };
     //===// },
-    //===// <=%- endif %=>
     //===// async openCreateDrawer() {
     //===//   this.isCreateDrawerShown = true;
     //===// },
@@ -583,7 +581,11 @@ new Vue({
     //===//   this.createActionData = {
     //===//     <=%- for formItem in createFormItemList %=>
     //===//     <=%- if formItem.model %=>
+    //===//     <=%- if formItem.valueType === 'json' %=>
+    //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
+    //===//     <=%- else %=>
     //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endif %=>
     //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
@@ -625,11 +627,9 @@ new Vue({
 
     //===// <=%- if hasUpdateDrawer %=>
     // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
-    //===// <=%- if hasUpdateStart %=>
     //===// async prepareUpdateFormData(funObj) {
     //===//   this.updateItem = _.cloneDeep(funObj);
     //===// },
-    //===// <=%- endif %=>
     //===// async openUpdateDrawer() {
     //===//   this.isUpdateDrawerShown = true;
     //===// },

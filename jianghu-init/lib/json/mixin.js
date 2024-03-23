@@ -94,13 +94,13 @@ const mixin = {
           content = k + ': ' + content;
         }
         if (typeof obj === 'object') {
-          content = `"${k}": ` + content;
+          content = k + ': ' + content;
         }
         if (_.isBoolean(obj)) {
-          content = `"${k}": ` + content;
+          content = k + ': ' + content;
         }
         if (_.isString(obj)) {
-          content = `"${k}": '` + content.replace(/"/g, '\'') + '\''; // 字符串需要加引号
+          content = k + ': \'' + content.replace(/"/g, '\'') + '\''; // 字符串需要加引号
         }
         if (_.isNumber(obj)) {
           content = k + ': ' + content; // 字符串需要加引号
@@ -116,7 +116,7 @@ const mixin = {
     });
     nunjucksEnv.addFilter('expressionToVar', function(obj, k) {
       if (!_.isString(obj)) return '';
-      const str = `"${k}": ` + obj.replace(/"/g, '\'');
+      const str = k + ': ' + obj.replace(/"/g, '\'');
       return str.replace(/"(\w+)":/, '$1:');
     });
     nunjucksEnv.addFilter('camelToKebab', function(obj) {
@@ -459,10 +459,17 @@ const mixin = {
   getConfigComponentList(jsonConfig) {
     const { table, pageId, actionContent = [] } = jsonConfig;
     const componentList = [];
+    /**
+     * 组件映射表
+     * filename - 组件文件名
+     * bind - 组件绑定数据
+     * sqlMap - 组件 sqlMap
+     */
     const componentMap = {
       recordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}Item.id' }, sqlMap: { table, pageId } },
       tableRecordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}Item.id' }, sqlMap: { table, pageId } },
       vueJsonEditor: { filename: 'vueJsonEditor', model: '', bind: { mode: 'code', expandedOnStart: false } },
+      jhFile: { filename: 'jhFile', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}Item.id', fileType: '[]', fileSubType: '[]' }, sqlMap: { table, pageId, insertBeforeHook: '' } },
     };
 
     const processContentList = (contentList, itemKey = 'updateItem') => {
@@ -472,6 +479,12 @@ const mixin = {
           if (componentMap[item.componentPath]) {
             const { filename, bind, sqlMap } = componentMap[item.componentPath];
             item.componentPath = filename;
+            if (_.isArray(item.bind)) {
+              item.bind = item.bind.reduce((obj, key) => {
+                obj[key] = `${itemKey}Item.${key}`;
+                return obj;
+              }, {});
+            }
             item.bind = Object.assign({}, _.cloneDeep(bind), item.bind);
             _.forEach(item.bind, (value, key) => {
               item.bind[key] = value.replace(/"/g, '\'').replace(/\{\{key\}\}/g, itemKey);
@@ -568,12 +581,11 @@ const mixin = {
 
   async modifyComponentResourceItem(templatePath, component) {
     const knex = await this.getKnex();
-    if (component.type === 'component' && component.componentPath !== 'tableRecordHistory') return;
+    if (component.type === 'component' && ![ 'tableRecordHistory', 'jhFile' ].includes(component.componentPath)) return;
     if (!fs.existsSync(`${templatePath}/${component.componentPath}.sql`)) return;
     let resourceSql = fs.readFileSync(`${templatePath}/${component.componentPath}.sql`).toString();
     _.forEach(component.sqlMap, (value, key) => {
-      if (!value) return;
-      resourceSql = resourceSql.replace(new RegExp(`\{\{${key}\}\}`, 'g'), value);
+      resourceSql = resourceSql.replace(new RegExp(`\{\{${key}\}\}`, 'g'), value || '');
     });
 
     // 插入数据
@@ -598,7 +610,7 @@ const mixin = {
     for (const item of componentList) {
       // 检查文件存在则提示是否覆盖
       const targetFilePath = `./app/view/component/${item.componentPath}.html`;
-      if ([ 'tableRecordHistory', 'vueJsonEditor' ].includes(item.componentPath)) {
+      if ([ 'tableRecordHistory', 'vueJsonEditor', 'jhFile' ].includes(item.componentPath)) {
         if (fs.existsSync(targetFilePath)) {
           if (devModel) continue;
           if (n) {
@@ -679,7 +691,7 @@ const mixin = {
     };
   },
 
-  basicUiAction({ common, hasJhTable, hasCreateStart, hasCreateSubmit, hasUpdateStart, hasUpdateSubmit }) {
+  basicUiAction({ common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasUpdateSubmit }) {
     const defaultUiAction = {
       getTableData: [ 'getTableData' ],
       startCreateItem: [ 'prepareCreateFormData', 'openCreateDrawer' ],
@@ -692,13 +704,13 @@ const mixin = {
     if (!hasJhTable) {
       delete defaultUiAction.getTableData;
     }
-    if (!hasCreateStart) {
+    if (!hasCreateDrawer) {
       delete defaultUiAction.startCreateItem;
     }
     if (!hasCreateSubmit) {
       delete defaultUiAction.createItem;
     }
-    if (!hasUpdateStart) {
+    if (!hasUpdateDrawer) {
       delete defaultUiAction.startUpdateItem;
     }
     if (!hasUpdateSubmit) {

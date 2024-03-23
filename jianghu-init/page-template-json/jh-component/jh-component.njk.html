@@ -199,35 +199,41 @@
         </div>
         <=%- endif %=>
        
+        <=%- if actionItem.contentList.length > 1 %=>
         <v-tabs-items v-model="<=$ actionItem.key $=>DrawerTab">
+        <=%- endif %=>
           <=%- for content in actionItem.contentList %=>
+          <=%- if actionItem.contentList.length > 1 %=>
           <v-tab-item
             key="<=$ content.label $=>"
           >
+          <=%- endif %=>
 
-            <=%- if content.type == "form" %=> 
+            <=%- if content.type == "form" %=>
             <v-row class="mt-0 px-4">
               <=%- for formItem in content.formItemList %=>
               <=%- if not formItem.hidden %=>
-              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>"<=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.cols | default('12') $=>" md="<=$ formItem.cols | default('4') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
                 <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
                 <=%- endif %=>
-                <=%- if formItem.tag == "v-date-picker" %=> 
+                <=%- if formItem.tag == "v-date-picker" %=>
                 <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
                     <template v-slot:activator="{on, attrs}">
                     <v-text-field v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly></v-text-field>
                     </template>
                     <v-date-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"></v-date-picker>
-                </v-menu> 
-                <=%- elif formItem.tag == "jh-json-editor" %=> 
+                </v-menu>
+                <=%- elif formItem.tag == "jh-json-editor" %=>
                 <vue-json-editor v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></vue-json-editor>
-                <=%- else %=> 
+                <=%- elif formItem.model is defined %=>
                 <=$ formItem | formItemFormat(actionItem.key + 'Item') $=>
+                <=%- else %=>
+                <=$ formItem | tagFormat(16) $=>
                 <=%- endif %=>
               </v-col>
               <=%- endif %=>
-              <=%- endfor %=> 
+              <=%- endfor %=>
             </v-row>
 
             <!-- 抽屉操作按钮 -->
@@ -239,10 +245,17 @@
             </v-row>
             <=%- elif content.type == "component" %=>
             <<=$ content.componentPath.split('/').pop() | camelToKebab $=> v-bind="{<=% for key, value in content.bind %=>'<=$ key $=>': <=$ value $=>, <=%- endfor %=>}"/>
+            <=%- else %=>
+            <=$ content | tagFormat(12) $=>
             <=%- endif %=>
+
+          <=%- if actionItem.contentList.length > 1 %=>
           </v-tab-item>
+          <=%- endif %=>
           <=%- endfor %=>
+        <=%- if actionItem.contentList.length > 1 %=>
         </v-tabs-items>
+        <=%- endif %=>
       </v-form>
       <!-- 抽屉关闭按钮 -->
       <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false">
@@ -463,18 +476,16 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- endif %=>
 
     //===// <=%- if hasCreateDrawer %=>
-    //===// <=%- if hasCreateStart %=>
     // ---------- 新增数据 uiAction >>>>>>>>>> --------
     //===// async prepareCreateFormData() {
     //===//   this.createItem = {
-    //===//     <=%- for formItem in createDrawerContent.formItemList %=> 
-    //===//     <=%- if formItem.default is defined %=> 
-    //===//     <=$ formItem.model $=>: <=$ formItem.default $=>, 
+    //===//     <=%- for formItem in createFormItemList %=>
+    //===//     <=%- if formItem.default is defined %=>
+    //===//     <=$ formItem.model $=>: <=$ formItem.default $=>,
     //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
     //===// },
-    //===// <=%- endif %=>
     //===// async openCreateDrawer() {
     //===//   this.isCreateDrawerShown = true;
     //===// },
@@ -492,7 +503,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// prepareDoCreateItem() {
     //===//   const {id, ...data} = this.createItem;
     //===//   this.createActionData = {
-    //===//     <=%- for formItem in createDrawerContent.formItemList %=>
+    //===//     <=%- for formItem in createFormItemList %=>
     //===//     <=%- if formItem.model %=>
     //===//     <=%- if formItem.valueType === 'json' %=>
     //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
@@ -540,7 +551,6 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
 
     //===// <=%- if hasUpdateDrawer %=>
     // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
-    //===// <=%- if hasUpdateStart %=>
     //===// async prepareUpdateFormData(funObj) {
     //===//   this.updateItem = _.cloneDeep(funObj);
     //===//   <=%- for formItem in createDrawerContent.formItemList %=>
@@ -549,7 +559,6 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//   <=%- endif %=>
     //===//   <=%- endfor %=>
     //===// },
-    //===// <=%- endif %=>
     //===// async openUpdateDrawer() {
     //===//   this.isUpdateDrawerShown = true;
     //===// },
@@ -568,7 +577,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//   const {id, ...data} = this.updateItem;
     //===//   this.updateItemId = id;
     //===//   this.updateActionData = {
-    //===//     <=%- for formItem in updateDrawerContent.contentList[0].formItemList %=>
+    //===//     <=%- for formItem in updateFormItemList %=>
     //===//     <=%- if formItem.model %=>
     //===//     <=%- if formItem.valueType === 'json' %=>
     //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
