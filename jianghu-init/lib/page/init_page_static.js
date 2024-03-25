@@ -24,10 +24,13 @@ module.exports = class InitPagePublic extends CommandBase {
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     // 如果是 multi，则切换到 user_app_management 获取前缀
-    if (fs.existsSync('../user_app_management')) {
+    const enterPriseV1 = fs.existsSync('../user_app_management');
+    const enterPriseV2 = fs.existsSync('../base-system');
+    if (enterPriseV1 || enterPriseV2) {
       const oldCwd = process.cwd();
-      process.chdir('../user_app_management');
-      this.dbPrefix = this.readDbPrefixFromFile();
+      const systemDir = enterPriseV1 ? 'user_app_management' : 'base-system';
+      process.chdir(enterPriseV1 ? '../' + systemDir : '../' + systemDir);
+      this.dbPrefix = this.readDbPrefixFromFile(systemDir);
       process.chdir(oldCwd);
       if (this.dbPrefix && this.app.startsWith(this.dbPrefix)) {
         this.app = this.app.slice(this.dbPrefix.length);
@@ -45,7 +48,7 @@ module.exports = class InitPagePublic extends CommandBase {
   /**
    * 生成 crud
    */
-  async generateCrud({ pageId: defaultPageId, path, queryPageId = true }) {
+  async generateCrud({ type, pageId: defaultPageId, filename, path, queryPageId = true, demo }) {
 
     this.info('开始生成 CRUD');
     let pageId = defaultPageId;
@@ -57,14 +60,14 @@ module.exports = class InitPagePublic extends CommandBase {
         default: defaultPageId,
       })).pageId;
     }
-    if (!pageId) {
-      this.info('为输入page，流程结束');
+    if (!pageId && pageId !== false) {
+      this.info('未输入page，流程结束');
       return;
     }
     this.info(`开始生成 ${pageId} 的 CRUD`);
 
     // 生成 vue
-    if (await this.renderVue(path, pageId, { pageId })) {
+    if (await this.renderVue(path, type, pageId, filename, { pageId })) {
       this.success(`生成 ${pageId} 的 vue 文件完成`);
     }
     // 生成 sql
@@ -75,14 +78,24 @@ module.exports = class InitPagePublic extends CommandBase {
     if (await this.renderService(path, { pageId })) {
       this.success(`生成 ${pageId} 的 service 文件完成`);
     }
+
+    if (type === 'component') {
+      // log 提示引入、使用
+      this.info(`
+        引入方式：
+        {% include 'component/${filename || pageId}.html' %}
+        
+        ${demo}
+      `);
+    }
   }
 
   /**
    * 生成 vue
    */
-  async renderVue(dirPath, pageId, renderContext = {}) {
+  async renderVue(dirPath, type, pageId, filename, renderContext = {}) {
   // 写文件前确认是否覆盖
-    const filepath = `./app/view/page/${pageId}.html`;
+    const filepath = `./app/view/${type}/${filename || pageId}.html`;
     if (fs.existsSync(filepath)) {
       const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
       if (overwrite !== 'y' && overwrite !== 'Y') {

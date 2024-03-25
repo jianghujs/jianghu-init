@@ -175,13 +175,13 @@ module.exports = class CommandBase {
   /**
    * 从 example 配置文件 config.local.example.js 中读取数据库连接配置
    */
-  readDbPrefixFromFile() {
+  readDbPrefixFromFile(systemDir = 'user_app_management') {
     const configData = fs.readFileSync('./config/config.local.example.js').toString();
     const regStr = 'database: [\'\"](.*)[\'\"],?';
     const reg = new RegExp(regStr);
     const matchResult = configData.match(reg);
     // console.log(regStr, configData, matchResult);
-    return matchResult[1].replace('user_app_management', '');
+    return matchResult[1].replace(systemDir, '');
   }
 
   info(msg) {

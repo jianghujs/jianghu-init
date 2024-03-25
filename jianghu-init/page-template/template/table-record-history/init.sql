@@ -1,0 +1,2 @@
+-- 创建 resource
+INSERT INTO `_resource` (`accessControlTable`,`resourceHook`,`pageId`,`actionId`,`desc`,`resourceType`,`appDataSchema`,`resourceData`,`requestDemo`,`responseDemo`,`operation`,`operationByUserId`,`operationByUser`,`operationAt`) SELECT NULL,NULL,'{{pageId}}','tableRecordHistory-selectItemList','✅查询列表','sql','{}','{ \"table\": \"_record_history\", \"operation\": \"select\" }',NULL,NULL,'insert',NULL,NULL,NULL FROM DUAL WHERE NOT EXISTS (SELECT `pageId` FROM `_resource` WHERE `pageId`='{{pageId}}' AND `actionId`='tableRecordHistory-selectItemList');
