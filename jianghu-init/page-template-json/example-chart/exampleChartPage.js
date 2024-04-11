@@ -7,18 +7,15 @@ const content = {
       operation: "jhUpdate",
     } },
   ],
-  // 自定义抽屉列表
-  drawerList: [
-  ],
   includeList: [
     { type: 'script', path: "/<$ ctx.app.config.appId $>/public/lib/echarts.min.js" },
     { type: 'script', path: "/<$ ctx.app.config.appId $>/public/lib/vue-echarts.min.js" },
-    { type: 'include', path: "component/exampleChart/lineChart.html" },
-    { type: 'include', path: "component/exampleChart/pieChart.html" },
-    { type: 'include', path: "component/exampleChart/barChart.html" },
-    { type: 'include', path: "component/exampleChart/saleDataChart.html" },
-    { type: 'include', path: "component/exampleChart/gaugeChart.html" },
-    { type: 'include', path: "component/classList.html" },
+    { type: 'html', path: "component/exampleChart/lineChart.html" },
+    { type: 'html', path: "component/exampleChart/pieChart.html" },
+    { type: 'html', path: "component/exampleChart/barChart.html" },
+    { type: 'html', path: "component/exampleChart/saleDataChart.html" },
+    { type: 'html', path: "component/exampleChart/gaugeChart.html" },
+    { type: 'html', path: "component/classList.html" },
   ],
   common: {
     data: {
@@ -40,20 +37,22 @@ const content = {
         ],
       },
       tableSelected: [],
+      serverSearchWhere: { month: '' }
     },
     watch: {},
     methods: {
     }
   },
-  headContent: {
-    helpDrawer: {}, // 自动初始化md文件
-    serverSearchList: [
-      { tag: "v-date-picker", label: "日期", model: "serverSearchWhere.month",  attrs: { type: "month" } },
-    ],
-    serverSearchWhere: { month: "" },
-    searchBtn: false
-    // serverSearchWhereLike: { className: null },
-  },
+  headContent: [
+    { tag: 'jh-page-title', value: "仪表盘静态演示页面", attrs: {}, helpBtn: true, slot: [] },
+    { 
+      tag: 'jh-search', 
+      value: [
+        { tag: "v-date-picker", model: "serverSearchWhere.month",  attrs: { type: "month", prefix: '日期' }},
+      ], 
+      searchBtn: false
+    }
+  ],
   pageContent: {
     tag: 'v-row',
     attrs:{

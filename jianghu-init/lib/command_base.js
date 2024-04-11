@@ -7,6 +7,7 @@ const fs = require('fs');
 const inquirer = require('inquirer');
 const assert = require('assert');
 const Knex = require('knex');
+const path = require('path');
 
 /**
  * 基本类，包括一些操作 DB 的命令
@@ -97,16 +98,56 @@ module.exports = class CommandBase {
     const configData = fs.readFileSync('./config/config.local.js').toString();
     const setting = {};
     // 去除注释
-    const fileContent = configData.replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
+    let fileContent = configData.replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
+    // 匹配到 connection 配置的块
+    fileContent = fileContent.match(/connection: {[\s\S]*?}/)[0];
     [ 'host', 'port', 'user', 'password', 'database' ].forEach(key => {
-      const regStr = `${key}:\s?(.*),`;
+      const regStr = `${key}:\s?(.*)`;
       const reg = new RegExp(regStr);
       const matchResult = fileContent.match(reg);
       setting[key] = matchResult[1].replace(/'/g, '').replace(/\s+/g, '').replace(/,/g, '')
         .replace(/"/g, '');
     });
     setting.dbPrefix = this.tryGetDbPrefix();
+
+    // 如果配置文件中包含 process.env 则需要读取 .env 文件
+    if (Object.values(setting).join('').includes('process.env')) {
+      const dotenvRequire = configData.match(/require\('dotenv'\).config\({path:\s*(.*)}\)/);
+      const envContent = dotenvRequire ? this.loadDotEnv(dotenvRequire[1]) : {};
+      for (const key in setting) {
+        if (setting[key].includes('process.env')) {
+          const k = setting[key].split('.').pop();
+          setting[key] = envContent[k] || setting[key];
+        }
+      }
+    }
+
+    // 如果配置中仍包含 process.env 则说明配置文件中的配置不正确
+    if (Object.values(setting).join('').includes('process.env')) {
+      this.error('请检查配置文件 config.local.js 中的数据库连接配置是否正确');
+      process.exit();
+    }
     return setting;
+  }
+
+  loadDotEnv(file) {
+    // 切换到 config 目录下读取 .env 文件
+    // 记录 pwd
+    const oldPath = process.cwd();
+    process.chdir('config');
+
+    // eslint-disable-next-line no-eval
+    const data = fs.readFileSync(eval(file.replace('__dirname', '\'' + process.cwd() + '\'')), 'utf-8');
+    const lines = data.split('\n');
+    const env = {};
+    for (const line of lines) {
+      const [ key, value ] = line.split('=');
+      if (key && value) {
+        env[key] = value;
+      }
+    }
+    process.chdir(oldPath);
+    return env;
   }
 
   tryGetDbPrefix() {
@@ -134,13 +175,13 @@ module.exports = class CommandBase {
   /**
    * 从 example 配置文件 config.local.example.js 中读取数据库连接配置
    */
-  readDbPrefixFromFile() {
+  readDbPrefixFromFile(systemDir = 'user_app_management') {
     const configData = fs.readFileSync('./config/config.local.example.js').toString();
     const regStr = 'database: [\'\"](.*)[\'\"],?';
     const reg = new RegExp(regStr);
     const matchResult = configData.match(reg);
     // console.log(regStr, configData, matchResult);
-    return matchResult[1].replace('user_app_management', '');
+    return matchResult[1].replace(systemDir, '');
   }
 
   info(msg) {

@@ -1,0 +1,142 @@
+<script type="text/x-template" id="vue-json-editor">
+  <div>
+    <div class="jsoneditor-vue" :style="{height}"></div>
+  </div>
+</script>
+
+<script>
+  Vue.component("vue-json-editor", {
+    template: "#vue-json-editor",
+    props: {
+      value: [String, Number, Object, Array],
+      expandedOnStart: {
+        type: Boolean,
+        default: false
+      },
+      mode: {
+        type: String,
+        default: "code"
+      },
+      modes: {
+        type: Array,
+        default: function () {
+          return ["tree", "code", "form", "text", "view"];
+        }
+      },
+      // Add the totalHeight prop
+      height: {
+        type: String,
+        default: 'calc(100vh - 240px)'
+      },
+    },
+    watch: {
+      value: {
+        immediate: true,
+        async handler(val) {
+          if (!this.internalChange) {
+            await this.setEditor();
+
+            this.error = false;
+            this.expandAll();
+          }
+        },
+        deep: true
+      }
+    },
+    data() {
+      return {
+        editor: null,
+        error: false,
+        internalChange: false,
+        expandedModes: ["tree", "view", "form"],
+      };
+    },
+    computed: {
+      formatValue: {
+        get() {
+          const type = typeof this.value;
+          if (type === "string" || this.value) {
+            return JSON.parse(this.value);
+          }
+          return this.value;
+        },
+        set(val) {
+          const type = typeof this.value;
+          if (type === "string" || !this.value) {
+            this.value = JSON.stringify(val);
+          } else {
+            this.value = val;
+          }
+        }
+      },
+      valType() {
+        return typeof this.value;
+      }
+    },
+    mounted() {
+      this.$emit("has-error", false);
+      this.init();
+    },
+    methods: {
+      init() {
+        let _this = this;
+
+        let options = {
+          mode: this.mode,
+          modes: this.modes, // allowed modes
+          // theme: "bootstrap4",
+          themeColor: "#007bff",
+          onChange() {
+            try {
+              let json = _this.editor.get();
+              _this.formatValue = json;
+              _this.error = false;
+              _this.$emit("has-error", false);
+              _this.internalChange = true;
+              _this.$emit("input", _this.value);
+              _this.$nextTick(function () {
+                _this.internalChange = false;
+              });
+            } catch (e) {
+              _this.error = true;
+              _this.$emit("has-error", true);
+            }
+          },
+          onModeChange() {
+            _this.expandAll();
+          }
+        };
+        this.editor = new JSONEditor(
+          _this.$el.querySelector(".jsoneditor-vue"),
+          options,
+          _this.formatValue
+        );
+      },
+      expandAll() {
+        if (
+          this.expandedOnStart &&
+          this.expandedModes.includes(this.editor.getMode())
+        ) {
+          this.editor.expandAll();
+        }
+      },
+
+      async setEditor() {
+        if (this.editor) this.editor.set(this.formatValue);
+      }
+    }
+  });
+</script>
+
+<style scoped>
+  .jsoneditor-menu a.jsoneditor-poweredBy {
+    display: none !important;
+  }
+  .jsoneditor-menu {
+    background-color: #4caf50 !important;
+    border-bottom: 1px solid #4caf50 !important;
+  }
+  .jsoneditor {
+    border: thin solid #4caf50 !important;
+  }
+</style>
