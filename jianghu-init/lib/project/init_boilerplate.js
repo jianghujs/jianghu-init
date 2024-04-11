@@ -339,7 +339,7 @@ module.exports = class InitBoilerplate {
         mkdirp.sync(to);
       } else if (stats.isFile()) {
         const content = fs.readFileSync(from);
-        this.log('write to %s', to);
+        // this.log('write to %s', to);
 
         // check if content is a text file
         const result = isTextOrBinary.isTextSync(from, content)
