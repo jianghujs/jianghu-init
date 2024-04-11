@@ -8,9 +8,10 @@
     "framework": "@jianghujs/jianghu"
   },
   "dependencies": {
+    "@jianghujs/jianghu": "5.1.13",
     "dayjs": "^1.10.5",
+    "dotenv": "^16.3.1",
     "egg": "^2.15.1",
-    "@jianghujs/jianghu": "4.1.4",
     "egg-scripts": "^2.11.0",
     "lodash": "^4.17.21",
     "md5-node": "^1.0.1"
