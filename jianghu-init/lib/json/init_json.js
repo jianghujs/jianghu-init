@@ -338,7 +338,7 @@ module.exports = class InitJson extends CommandBase {
       value: [
         { tag: "v-text-field", model: "serverSearchWhereLike.className", attrs: {prefix: '前缀'} },
       ], 
-      searchBtn: {}
+      searchBtn: true
     }
   ],
   pageContent: ${pageContent},

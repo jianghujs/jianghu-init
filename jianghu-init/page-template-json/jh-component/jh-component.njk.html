@@ -42,12 +42,12 @@
             <=%- endfor %=>  
             <=%- if content.searchBtn is undefined or content.searchBtn != false %=>
             <div class="jh-backend-search-btn ml-2">
-              <=%- if content.searchBtn %=>
-              <=$ content.searchBtn | tagFormat(10) $=>
-              <=%- else %=>
+              <=%- if content.searchBtn == true %=>
               <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
                 查询
               </v-btn>
+              <=%- else %=>
+              <=$ content.searchBtn | tagFormat(10) $=>
               <=%- endif %=>
             </div>
             <=%- endif %=>
@@ -419,7 +419,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       this.isTableLoading = true;
       const where = {};
       const whereLike = {};
-      //===// <=%- if headContent.serverSearchWhere %=>
+      //===// <=%- if common.data and common.data.serverSearchWhere %=>
       //===// for (const fieldKey in this.serverSearchWhere) {
       //===//   const fieldValue = this.serverSearchWhere[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
@@ -427,7 +427,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===//   }
       //===// }
       //===// <=%- endif %=>
-      //===// <=%- if headContent.serverSearchWhereLike %=>
+      //===// <=%- if common.data and common.data.serverSearchWhereLike %=>
       //===// for (const fieldKey in this.serverSearchWhereLike) {
       //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
