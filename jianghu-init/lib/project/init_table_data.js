@@ -65,7 +65,14 @@ module.exports = class InitTableData extends CommandBase {
     if (fs.existsSync('sql/extend.sql')) {
       await importer.import('sql/extend.sql');
     }
-    await importer.import('sql/init.sql');
+    if (fs.existsSync('sql/1.init.sql')) {
+      await importer.import('sql/1.init.sql');
+      return true;
+    }
+    if (fs.existsSync('sql/init.sql')) {
+      await importer.import('sql/init.sql');
+      return true;
+    }
     return true;
   }
 
