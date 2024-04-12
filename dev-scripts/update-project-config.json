@@ -2,29 +2,10 @@
   {
     "projectName": "basic",
     "replaceList": [
-      {
-        "from": "jianghujs-basic",
-        "to": "__name__"
-      },
-      {
-        "from": "jianghujs_basic",
-        "to": "__database__"
-      }
+      { "from": "jianghujs-basic", "to": "__name__" },
+      { "from": "jianghujs_basic", "to": "__database__" },
+      { "from": "keys: '.*_jianghu',", "to": "keys: '__keys__'," }
     ],
     "repositoryUrl": "git@github.com:jianghujs/jianghujs-basic.git"
-  },
-  {
-    "projectName": "advanced",
-    "replaceList": [
-      {
-        "from": "jianghujs-advanced",
-        "to": "__name__"
-      },
-      {
-        "from": "jianghujs_advanced",
-        "to": "__database__"
-      }
-    ],
-    "repositoryUrl": "git@github.com:jianghujs/jianghujs-advanced.git"
   }
 ]

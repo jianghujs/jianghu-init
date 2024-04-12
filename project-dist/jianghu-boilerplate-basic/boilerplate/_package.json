@@ -30,6 +30,6 @@
     "type": "git",
     "url": "https://github.com/jianghujs/{{name}}.git"
   },
-  "author": "jianghujs.org",
+  "author": "{{author}}",
   "license": "Apache-2.0"
 }
