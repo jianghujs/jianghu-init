@@ -117,15 +117,15 @@
               <v-divider class="jh-divider"></v-divider>
               <!-- 抽屉表单主体 -->
               <v-row class="mt-0 px-4">
-                <v-col cols="12" sm="12" md="4">
+                //===// <=% for f in fields %=>
+                <=% if f.COLUMN_NAME == filePath %=><v-col cols="12" sm="12" md="4">
                   <span class="inputLabel">文件</span>
                   <v-file-input v-model="createItem.file" class="jh-v-input" dense filled single-line chips label="请选择文件" ></v-file-input>
-                </v-col>
-                //===// <=% for f in fields %=>
-                <v-col cols="12" sm="12" md="4">
+                </v-col><=% endif %=><=% if f.COLUMN_NAME != filePath %=><v-col cols="12" sm="12" md="4">
                   <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
                   <v-text-field class="jh-v-input " dense filled single-line v-model="createItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
-                </v-col>//===// <=% endfor %=>
+                </v-col><=% endif %=>
+                //===// <=% endfor %=>
               </v-row>
               <!-- 抽屉操作按钮 -->
               <v-row class="justify-end mx-0 my-8 px-4">
@@ -152,10 +152,15 @@
               <!-- 抽屉表单 -->
               <v-row class="mt-0 px-4">
                 //===// <=% for f in fields %=>
-                <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+                <=% if f.COLUMN_NAME == filePath %=><v-col cols="12" sm="12" md="4">
+                  <span class="inputLabel">文件</span>
+                  <v-file-input v-model="createItem.file" class="jh-v-input" dense filled single-line chips label="请选择文件" ></v-file-input>
+                </v-col><=% endif %=><=% if f.COLUMN_NAME != filePath %=><v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
                   <span class="inputLabel"><=$ f.COLUMN_COMMENT.split(';')[0] $=></span>
                   <v-text-field class="jh-v-input " dense filled single-line v-model="updateItem['<=$ f.COLUMN_NAME $=>']"></v-text-field>
-                </v-col>//===// <=% endfor %=>
+                </v-col><=% endif %=>
+
+                //===// <=% endfor %=>
               </v-row>
               <!-- 抽屉操作按钮 -->
               <v-row class="justify-end mx-0 my-8 px-4">
@@ -248,7 +253,6 @@
       tableData: [],
       headers: [
         {text: "ID", value: "id", width: 120, required: true, class: 'fixed', cellClass: 'fixed'},
-        {text: "文件", value: "<=$ filePath $=>", width: 250},
           //===// <=% for f in fields %=>
         {text: "<=$ f.COLUMN_COMMENT $=>", value: "<=$ f.COLUMN_NAME $=>", width: 120},//===// <=% endfor %=>
         {text: "操作人", value: "operationByUser", width: 90},

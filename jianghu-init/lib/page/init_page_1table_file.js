@@ -193,11 +193,10 @@ module.exports = class InitPage1TableFile extends CommandBase {
       TABLE_NAME: table,
     });
 
-    const defaultColumn = ['operation', 'operationByUserId', 'operationByUser', 'operationAt', 'filePath'];
+    const defaultColumn = ['operation', 'operationByUserId', 'operationByUser', 'operationAt'];
     for (const column of defaultColumn) {
       await knex.schema.hasColumn(table, column).then(exists => {
         if (!exists) {
-          result.push({COLUMN_NAME: 'filePath', COLUMN_COMMENT: '文件'});
           return knex.schema.table(table, t => {
             this.info(`创建依赖字段：${column}`);
             t.string(column);
@@ -207,7 +206,7 @@ module.exports = class InitPage1TableFile extends CommandBase {
     }
 
     return result.filter(column => {
-      return ![...defaultColumn, 'id', 'filePath'].includes(column.COLUMN_NAME);
+      return ![...defaultColumn, 'id'].includes(column.COLUMN_NAME);
     }).map(column => {
       return {
         COLUMN_NAME: column.COLUMN_NAME,
