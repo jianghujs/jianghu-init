@@ -273,8 +273,8 @@ const content = {
             }
           }, 
         },
-        { label: "操作记录", type: "component", componentPath: "recordHistory" },
-        { label: "学生列表", type: "component", componentPath: "example/studentOfClass", bind: ['classId'] },
+        { label: "操作记录", type: "component", componentPath: "recordHistory", attrs: { table: 'class', pageId: 'exampleClass', ':id': 'updateItem.id' } },
+        { label: "学生列表", type: "component", componentPath: "example/studentOfClass", attrs: { classId: 'updateItem.classId' } },
       ]
     },
     {

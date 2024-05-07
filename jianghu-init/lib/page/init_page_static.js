@@ -48,7 +48,7 @@ module.exports = class InitPagePublic extends CommandBase {
   /**
    * 生成 crud
    */
-  async generateCrud({ type, pageId: defaultPageId, filename, path, queryPageId = true, demo }) {
+  async generateCrud({ type, pageId: defaultPageId, filename, path, queryPageId = true, demo, y }) {
 
     this.info('开始生成 CRUD');
     let pageId = defaultPageId;
@@ -67,7 +67,7 @@ module.exports = class InitPagePublic extends CommandBase {
     this.info(`开始生成 ${pageId} 的 CRUD`);
 
     // 生成 vue
-    if (await this.renderVue(path, type, pageId, filename, { pageId })) {
+    if (await this.renderVue(path, type, pageId, filename, { pageId }, y)) {
       this.success(`生成 ${pageId} 的 vue 文件完成`);
     }
     // 生成 sql
@@ -75,7 +75,7 @@ module.exports = class InitPagePublic extends CommandBase {
       this.success(`生成 ${pageId} 的 sql 文件完成`);
     }
     // 生成 service
-    if (await this.renderService(path, { pageId })) {
+    if (await this.renderService(path, { pageId }, y)) {
       this.success(`生成 ${pageId} 的 service 文件完成`);
     }
 
@@ -93,10 +93,11 @@ module.exports = class InitPagePublic extends CommandBase {
   /**
    * 生成 vue
    */
-  async renderVue(dirPath, type, pageId, filename, renderContext = {}) {
+  async renderVue(dirPath, type, pageId, filename, renderContext = {}, y) {
   // 写文件前确认是否覆盖
     const filepath = `./app/view/${type}/${filename || pageId}.html`;
-    if (fs.existsSync(filepath)) {
+
+    if (fs.existsSync(filepath) && !y) {
       const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
       if (overwrite !== 'y' && overwrite !== 'Y') {
         this.warning(`跳过 ${filepath} 的生成`);
@@ -170,7 +171,7 @@ module.exports = class InitPagePublic extends CommandBase {
   /**
    * 生成 service
    */
-  async renderService(dirPath, { pageId }) {
+  async renderService(dirPath, { pageId }, y) {
     const templatePath = `${path.join(__dirname, '../../')}page-template`;
     if (fs.existsSync(`${templatePath}/${dirPath}/service.js`)) {
       let service = fs.readFileSync(`${templatePath}/${dirPath}/service.js`).toString();
@@ -178,7 +179,7 @@ module.exports = class InitPagePublic extends CommandBase {
         service = service.replace(/\{\{pageId}}/g, pageId.slice(0, 1).toUpperCase() + pageId.slice(1));
         const servicePath = `./app/service/${pageId}.js`;
         if (fs.existsSync(servicePath)) {
-          const overwrite = await this.readlineMethod(`文件 ${servicePath} 已经存在，是否覆盖?(y/N)`, 'n');
+          const overwrite = y ? 'y' : await this.readlineMethod(`文件 ${servicePath} 已经存在，是否覆盖?(y/N)`, 'n');
           if (overwrite !== 'y' && overwrite !== 'Y') {
             this.warning(`跳过 ${servicePath} 的生成`);
             return false;

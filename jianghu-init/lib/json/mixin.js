@@ -466,10 +466,10 @@ const mixin = {
      * sqlMap - 组件 sqlMap
      */
     const componentMap = {
-      recordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}Item.id' }, sqlMap: { table, pageId } },
-      tableRecordHistory: { filename: 'tableRecordHistory', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}Item.id' }, sqlMap: { table, pageId } },
+      recordHistory: { filename: 'tableRecordHistory', bind: { table, pageId, ':id': '{{key}}Item.id' }, sqlMap: { table, pageId } },
+      tableRecordHistory: { filename: 'tableRecordHistory', bind: { table, pageId, ':id': '{{key}}Item.id' }, sqlMap: { table, pageId } },
       vueJsonEditor: { filename: 'vueJsonEditor', model: '', bind: { mode: 'code', expandedOnStart: false } },
-      jhFile: { filename: 'jhFile', bind: { table: `'${table}'`, pageId: `'${pageId}'`, id: '{{key}}Item.id', fileType: '[]', fileSubType: '[]' }, sqlMap: { table, pageId, insertBeforeHook: '' } },
+      tableAttachment: { filename: 'tableAttachment', bind: { table, pageId, ':id': '{{key}}Item.id', fileType: '[]', fileSubType: '[]' }, sqlMap: { table, pageId, insertBeforeHook: '' } },
     };
 
     const processContentList = (contentList, itemKey = 'updateItem') => {
@@ -485,7 +485,8 @@ const mixin = {
                 return obj;
               }, {});
             }
-            item.bind = Object.assign({}, _.cloneDeep(bind), item.bind);
+
+            item.bind = Object.assign({}, _.cloneDeep(bind), item.bind || {}, item.attrs || {});
             _.forEach(item.bind, (value, key) => {
               item.bind[key] = value.replace(/"/g, '\'').replace(/\{\{key\}\}/g, itemKey);
             });
@@ -499,7 +500,7 @@ const mixin = {
                 }
               });
             }
-            item.bind = bind;
+            item.bind = Object.assign({}, bind, item.attrs || {});
             item.componentPath = item.componentPath;
           }
           componentList.push(item);
@@ -549,6 +550,11 @@ const mixin = {
   // 初始化table依赖字段，检测依赖字段是否存在，不存在则创建
   async checkTableFields(table, idGenerate) {
     const knex = await this.getKnex();
+    // 判断 table 是 table 还是 view
+    const tableInfo = await knex('information_schema.tables').where({ table_name: table, table_schema: this.dbSetting.database }).first();
+    if (!tableInfo || tableInfo.TABLE_TYPE === 'VIEW') {
+      return;
+    }
     const columnList = await knex(table).columnInfo();
 
     const defaultColumn = [ 'operation', 'operationByUserId', 'operationByUser', 'operationAt' ];

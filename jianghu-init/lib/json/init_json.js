@@ -176,8 +176,8 @@ module.exports = class InitJson extends CommandBase {
         const fieldKey = field.COLUMN_NAME;
         const fieldName = field.COLUMN_COMMENT;
         if (excludeColumn.includes(fieldKey)) return;
-        if (index === 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
-        if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", type: "v-text-field", width: 80, sortable: true },\n`;
+        if (index === 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
+        if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", width: 80, sortable: true },\n`;
         createItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
         updateItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
         space = ' '.repeat(8);
@@ -261,7 +261,7 @@ module.exports = class InitJson extends CommandBase {
             }
           }],
         },
-        { label: "操作记录", type: "component", componentPath: "recordHistory" },
+        { label: "操作记录", type: "component", componentPath: "recordHistory", attrs: { table: '${table}', pageId: '${pageId}', id: 'updateItem.id' } },
       ]
     },
   ]`;

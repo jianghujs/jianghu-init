@@ -244,7 +244,10 @@
               <v-btn class="elevation-0 ml-2" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false" small>取消</v-btn>
             </v-row>
             <=%- elif content.type == "component" %=>
-            <<=$ content.componentPath.split('/').pop() | camelToKebab $=> v-bind="{<=% for key, value in content.bind %=>'<=$ key $=>': <=$ value $=>, <=%- endfor %=>}"/>
+            <<=$ content.componentPath.split('/').pop() | camelToKebab $=> 
+            <=%- for attr, value in content.bind %=>
+            <=$ attr | tagAttr(value) $=>
+            <=%- endfor %=>/>
             <=%- else %=>
             <=$ content | tagFormat(12) $=>
             <=%- endif %=>
@@ -651,17 +654,12 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
     //===// <=%- endif %=>
 
-    //===// <=%- if common and common.methods %=> 
-    // ---------- Custom uiAction >>>>>>>>>>>> --------
-    //===// <=%- for key, value in common.methods %=> 
-    //===// <=$ value | variableToVar(key) | safe $=>,
-    //===// <=%- endfor %=>
-    // ---------- <<<<<<<<<<< Custom uiAction ---------
-    //===// <=%- endif %=>
-
     // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
     //===// <=%- for drawer in actionContent %=>
     //===// <=%- if drawer.tag == 'jh-drawer' %=>
+    //===// async prepare<=$ drawer.key | ucfirst $=>Data(funObj) {
+    //===//   this.<=$ drawer.key $=>Item = _.cloneDeep(funObj);
+    //===// },
     //===// async open<=$ drawer.key | ucfirst $=>Drawer() {
     //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = true;
     //===// },
@@ -673,6 +671,14 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// },
     //===// <=%- endif %=>
     //===// <=%- endfor %=>
+
+    //===// <=%- if common and common.methods %=>
+    // ---------- Custom uiAction >>>>>>>>>>>> --------
+    //===// <=%- for key, value in common.methods %=>
+    //===// <=$ value | variableToVar(key) | safe $=>,
+    //===// <=%- endfor %=>
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
+    //===// <=%- endif %=>
   }
 })
 </script>

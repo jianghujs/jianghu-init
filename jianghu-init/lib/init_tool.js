@@ -46,11 +46,11 @@ const pageTypes = [
   },
   {
     type: 'component',
-    value: 'attachment',
-    name: 'attachment-component - generate component from attachment',
+    value: 'table-attachment-component',
+    name: 'table-attachment-component - generate component from table-attachment',
     pageId: '',
-    filename: 'attachment',
-    path: 'template/attachment/',
+    filename: 'tableAttachment',
+    path: 'template/table-attachment/',
     demo: `/**
          * crud 附件上传组件
          * target-table {String} 关联表名
@@ -60,13 +60,14 @@ const pageTypes = [
          * imageCompression {Boolean} 是否压缩图片 - 需要引入 image-compression 资源
          * imageCompressionOptions {Object} 压缩图片配置 { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true }
          */
-        <attachment target-table="class" pageId="pageId" :target-id="updateItem.id" :file-type="['分类']" :file-subtype="['子类型']" />
+        <table-attachment target-table="class" pageId="pageId" :target-id="updateItem.id" :file-type="['分类']" :file-subtype="['子类型']" />
+        { label: "附件", type: "component", componentPath: "jhTableAttachment" }
     `,
   },
   {
     type: 'component',
-    value: 'tableRecordHistory',
-    name: 'tableRecordHistory-component - generate component from tableRecordHistory',
+    value: 'table-record-history-component',
+    name: 'table-record-history-component - generate component from table-record-history',
     pageId: '',
     filename: 'tableRecordHistory',
     path: 'template/table-record-history/',
@@ -77,6 +78,7 @@ const pageTypes = [
          * id     {String} 关联表id
          */
         <table-record-history table="class" :pageId="pageId" :id="updateItem.id" />
+        { label: "操作记录", type: "component", componentPath: "jhTableRecordHistory" }
     `,
   },
   {
@@ -113,8 +115,14 @@ module.exports = class InitToolCommand extends CommandBase {
       if (!pageType) {
         pageType = await this.askForPageType();
       }
+      const page = pageTypes.find(o => o.value === pageType);
+      if (this.argv.pageId) {
+        page.queryPageId = false;
+        page.pageId = this.argv.pageId;
+      }
+      page.y = this.argv.y;
 
-      await new InitPageStatic().run(process.cwd(), pageTypes.find(o => o.value === pageType));
+      await new InitPageStatic().run(process.cwd(), page);
       this.success('jianghu init tool is success');
     }
   }
