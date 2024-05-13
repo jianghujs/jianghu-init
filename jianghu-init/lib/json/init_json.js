@@ -216,7 +216,7 @@ module.exports = class InitJson extends CommandBase {
       tag: 'jh-create-drawer',
       key: "create",
       attrs: {},
-      title: '新增班级',
+      title: '新增',
       headSlot: [],
       contentList: [
         { 
@@ -242,7 +242,7 @@ module.exports = class InitJson extends CommandBase {
       tag: 'jh-update-drawer',
       key: "update",
       attrs: {},
-      title: '编辑班级',
+      title: '编辑',
       headSlot: [],
       contentList: [
         { 
