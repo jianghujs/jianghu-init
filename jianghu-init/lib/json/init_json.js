@@ -284,6 +284,8 @@ module.exports = class InitJson extends CommandBase {
       const templatePath = `${path.join(__dirname, '../../')}page-template-json/${pageType}`;
       const defaultResource = JSON.parse(fs.readFileSync(`${templatePath}/resource.json`));
       defaultResource.push(...otherResourceList);
+      // TODO：标记是init-json 生成的resource 
+      // defaultResource.forEach(item => { item.operationByUserId = `jianghu-init/${pageId}`; })
       const defaultResourceJSON = JSON.stringify(defaultResource, null, 2);
       resourceList = defaultResourceJSON
         .replace(/\{\{pageId}}/g, pageId)
