@@ -361,9 +361,10 @@ const mixin = {
         });
         if (!isDiff) continue;
         await knex('_resource').where({ id: resourceItem.id }).update(updateData);
-        continue;
+      } 
+      if (!resourceItem) {
+        await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr, operationByUserId });
       }
-      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr, operationByUserId });
     }
     // filter 数据库内有但是却没设置的 resource
     // const warningList = existResourceList.filter(e => !resourceList.some(r => r.actionId === e.actionId));
