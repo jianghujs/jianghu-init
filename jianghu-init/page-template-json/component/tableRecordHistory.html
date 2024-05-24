@@ -60,10 +60,6 @@
         type: String,
         default: ''
       },
-      pageId: {
-        type: String,
-        default: ''
-      },
       id: {
         type: String | Number,
         default: ''
@@ -97,7 +93,7 @@
         const rows = (await window.jianghuAxios({
           data: {
             appData: {
-              pageId: this.pageId,
+              pageId: 'jhRecordHistory',
               actionId: 'selectRecordHistory',
               actionData: {},
               where,
