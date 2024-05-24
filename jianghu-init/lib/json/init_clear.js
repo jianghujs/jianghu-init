@@ -27,14 +27,20 @@ module.exports = class InitClear extends CommandBase {
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
-    this.success('初始化数据库连接成功');
+    // this.success('初始化数据库连接成功');
     // generate crud
     await this.clear(jsonArgv);
   }
 
   async clear() {
     this.info('清除开始');
+    this.info("   - _page:                  operationByUserId='jianghu-init'");
+    this.info("   - _resource:              operationByUserId='jianghu-init'");
+    this.info("   - init-json/page/*,       pageId.html");
+    this.info("   - init-json/component/*,  componentPath.html");
+    
     // _page、_resource
+    
     const knex = await this.getKnex();
     await knex.raw('delete from _page where operationByUserId like "jianghu-init%"');
     await knex.raw('delete from _resource where operationByUserId like "jianghu-init%"');
