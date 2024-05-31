@@ -5,12 +5,17 @@ const CommandInitProject = require('./init_project');
 const CommandInitPage = require('./init_page');
 const CommandInitTool = require('./init_tool');
 const CommandInitByJson = require('./init_by_json');
+const CommandInitByUniappJson = require('./init_by_uniapp_json');
 
 
 const initTypes = [
   {
     value: 'json',
     name: 'json - init by json text',
+  },
+  {
+    value: 'uniapp-json',
+    name: 'uniapp-json - init by uniapp json text',
   },
   {
     value: 'project',
@@ -60,6 +65,9 @@ module.exports = class Entry {
         break;
       case 'json':
         await new CommandInitByJson().run(process.cwd(), passArgv);
+        break;
+      case 'uniapp-json':
+        await new CommandInitByUniappJson().run(process.cwd(), passArgv);
         break;
       default:
         this.errror('init type is not support');

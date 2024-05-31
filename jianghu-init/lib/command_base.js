@@ -35,6 +35,20 @@ module.exports = class CommandBase {
   }
 
   /**
+   * 检查路径 是否是在 uniapp 的根目录
+   */
+  async checkUniappPath() {
+    const checkDone = fs.existsSync('./pages.json') &&
+      fs.existsSync('./app.vue') &&
+      fs.existsSync('./main.js') &&
+      fs.existsSync('./manifest.json');
+    if (!checkDone) {
+      this.error('Please change to uniapp project path');
+      process.exit();
+    }
+  }
+
+  /**
    * 读取用户输入
    * @param message 提示信息
    * @param defValue 默认值
