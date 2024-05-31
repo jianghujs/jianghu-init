@@ -293,18 +293,19 @@ const mixin = {
     nunjucksEnv.addFilter('includeFormat', function(item) {
       if (!item) return '';
       if (_.isString(item)) return item; // 兼容原生代码
-      const { type, path } = item;
-      if ([ 'js', 'script' ].includes(type)) {
-        return `<script src="${path}"></script>`;
-      } else if ([ 'css', 'style' ].includes(type)) {
-        return `<link rel="stylesheet" href="${path}">`;
-      } else if ([ 'html', 'component', 'include' ].includes(type)) {
-        return `{% include "${path}" %}`;
-      } else if (type === 'vueComponent') {
-        return `Vue.component('${item.name}', ${item.component})`;
-      } else if (type === 'vueUse') {
-        return `Vue.use(${item.component})`;
-      }
+      return `import <=$ item.name $=> from '<=$ item.path $=>'`;
+      // const { type, path } = item;
+      // if ([ 'js', 'script' ].includes(type)) {
+      //   return `<script src="${path}"></script>`;
+      // } else if ([ 'css', 'style' ].includes(type)) {
+      //   return `<link rel="stylesheet" href="${path}">`;
+      // } else if ([ 'html', 'component', 'include' ].includes(type)) {
+      //   return `{% include "${path}" %}`;
+      // } else if (type === 'vueComponent') {
+      //   return `Vue.component('${item.name}', ${item.component})`;
+      // } else if (type === 'vueUse') {
+      //   return `Vue.use(${item.component})`;
+      // }
     });
 
     nunjucksEnv.addFilter('find', function(list, obj) {
@@ -403,11 +404,11 @@ const mixin = {
       jsonConfig.headContent = [];
       headContent = [];
     }
-    // if (!_.isArray(pageContent) && _.isObject(pageContent)) {
-    //   jsonConfig.pageContent = [ pageContent ];
-    //   pageContent = jsonConfig.pageContent;
-    // }
-    const findJhTable = pageContent.value.find(e => [ 'jhTable', 'jh-table' ].includes(e.tag));
+    if (!_.isArray(pageContent) && _.isObject(pageContent)) {
+      jsonConfig.pageContent = [ pageContent ];
+      pageContent = jsonConfig.pageContent;
+    }
+    const findJhTable = pageContent?.value?.find(e => [ 'jhTable', 'jh-table' ].includes(e.tag));
     if (findJhTable) {
       jsonConfig.hasJhTable = true;
       if (findJhTable.headActionList) {
@@ -721,6 +722,9 @@ const mixin = {
     }
     if (!hasUpdateSubmit) {
       delete defaultUiAction.updateItem;
+    }
+    if (!hasDelete) {
+      delete defaultUiAction.deleteItem;
     }
     for (const key in defaultUiAction) {
       if (common.doUiAction[key]) {
