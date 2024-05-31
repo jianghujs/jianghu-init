@@ -1,5 +1,5 @@
 const content = {
-  pageType: "jh-component", componentName: "example", 
+  pageType: "jh-page", pageId: "example/index", pageName: "page页面", 
   includeList: [], // 'import { xxx } from "xxx";', 'const xxx = xxx;',
   common: {
     data: {

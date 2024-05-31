@@ -48,7 +48,7 @@ module.exports = class InitJson extends CommandBase {
       name: 'filename',
       type: 'input',
       message: '请输入路径文件',
-      default: 'example/index',
+      default: pageType === 'jh-page' ? 'example/index' : 'example',
     });
     return { pageType, filename };
   }
@@ -58,7 +58,10 @@ module.exports = class InitJson extends CommandBase {
   async buildJson({ pageType, filename }) {
     // 检测创建文件夹
     const pathPrefix = filename.includes('/') ? filename.split('/')[0] : '';
-    const targetDir = './init-json/page' + (pathPrefix ? '/' + pathPrefix : '');
+    let targetDir = './init-json/page' + (pathPrefix ? '/' + pathPrefix : '');
+    if (pageType === 'jh-component') {
+      targetDir = './init-json/component/' + filename;
+    }
     // 判断目录不存在就创建
     try {
       fs.mkdirSync(targetDir, { recursive: true });
@@ -67,11 +70,14 @@ module.exports = class InitJson extends CommandBase {
         throw err;
       }
     }
-
-    this.getJhContent({ pageType, filename, targetDir });
+    if (pageType === 'jh-component') {
+      this.getJhComponentContent({ filename, targetDir });
+    } else if (pageType === 'jh-page') {
+      this.getJhPageContent({ pageType, filename, targetDir });
+    }
   }
 
-  getJhContent({ pageType, filename }) {
+  getJhPageContent({ pageType, filename }) {
     const templateDir = path.join(__dirname, '../../') + 'page-template-uni-json/jh-page';
     const pageTypeMap = {
       example: 'example.js',
@@ -85,6 +91,16 @@ module.exports = class InitJson extends CommandBase {
 
     // 复制文件到 targetDir
     fs.copyFileSync(`${templateDir}/${pageTypeMap[pageType]}`, `./init-json/page/${filename}.js`);
+  }
+
+  getJhComponentContent({ pageType, filename }) {
+    const templateDir = path.join(__dirname, '../../') + 'page-template-uni-json/jh-component';
+    const pageTypeMap = {
+      example: 'example.js',
+    };
+
+    // 复制文件到 targetDir
+    fs.copyFileSync(`${templateDir}/${pageTypeMap[pageType]}`, `./init-json/component/${filename}.js`);
   }
 
 };
