@@ -698,7 +698,7 @@ const mixin = {
     };
   },
 
-  basicUiAction({ common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasUpdateSubmit }) {
+  basicUiAction({ common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasUpdateSubmit, hasDelete }) {
     const defaultUiAction = {
       getTableData: [ 'getTableData' ],
       startCreateItem: [ 'prepareCreateFormData', 'openCreateDrawer' ],
