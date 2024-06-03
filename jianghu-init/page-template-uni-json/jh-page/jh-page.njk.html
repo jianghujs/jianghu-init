@@ -2,8 +2,8 @@
 <template>
   <view class="" > <!-- attrs for -->
     <=%- for content in pageContent %=>
-    <=%- if content.tag == 'jh-table' %=>
-
+    <=%- if content.template %=>
+    <=$ content | templateFormat $=>
     <=%- else %=>
     <=$ content | tagFormat(6) $=>
     <=%- endif %=>

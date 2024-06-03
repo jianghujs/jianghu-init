@@ -3,7 +3,12 @@ const nunjucks = require('nunjucks');
 const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
+const { promisify } = require('util');
 const { exec } = require('child_process');
+
+// 将 fs.readFile 转换为返回 Promise 的函数
+const readFileAsync = promisify(fs.readFile);
+const writeFileAsync = promisify(fs.writeFile);
 
 const checkClick = (obj, action) => {
   // /doUiAction\(['"]action['"]/
@@ -253,6 +258,18 @@ const mixin = {
         tag.push(result);
       }
       return tag.join('\n                    ');
+    });
+    nunjucksEnv.addFilter('templateFormat', (result, indent = 0) => {
+      const templatePath = `${path.join(__dirname, '../../')}page-template-uni-json/jh-template`;
+      const targetPath = `${templatePath}/${result.template}.html`;
+
+      try {
+        const data = fs.readFileSync(targetPath, 'utf8').toString();    
+        return data;
+      } catch (err) {
+        console.error('read jh-template Error:', err);
+        return '';
+      }
     });
     nunjucksEnv.addFilter('removeKey', function(data, keyList) {
       if (_.isArray(data)) {
