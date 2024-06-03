@@ -6,7 +6,13 @@ const fs = require('fs');
 const nunjucks = require('nunjucks');
 const _ = require('lodash');
 const path = require('path');
+const CJSON = require('comment-json')
+const { promisify } = require('util');
 const mixin = require('./mixin.js');
+
+// 将 fs.readFile 转换为返回 Promise 的函数
+const readFileAsync = promisify(fs.readFile);
+const writeFileAsync = promisify(fs.writeFile);
 
 /**
  * 根据 table 定义生成 crud 页面
@@ -71,45 +77,41 @@ module.exports = class InitPage1Table extends CommandBase {
     const { pageId, pageName } = jsonConfig;
     // 读取并解析 pages.json 文件
     const filePath = './pages.json';
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error('Error reading the file:', err);
-            return;
-        }
 
-        try {
-            const json = JSON.parse(data);
+    try {
+      // 读取 JSON 文件
+      const data = await readFileAsync(filePath, 'utf8');
 
-            // 要插入的页面对象
-            const newPage = {
-                "path": `pages/${pageId}`,
-                "style": {
-                    "navigationBarTitleText": pageName
-                }
-            };
+      // 解析 JSON
+      const jsonData = CJSON.parse(data.toString());
+              
+      // 要插入的页面对象
+      const pageConfig = {
+          "path": `pages/${pageId}`,
+          "style": {
+              "navigationBarTitleText": pageName
+          }
+      };
 
-            // 检查是否已存在相同的路径，避免重复插入
-            const exists = json.pages.some(page => page.path === newPage.path);
-            if (!exists) {
-                json.pages.push(newPage);
-            } else {
-                console.log('Page already exists in the JSON.');
-            }
+      // 检查是否已存在相同的路径，避免重复插入
+      const exists = jsonData.pages.some(page => page.path === pageConfig.path);
+      if (!exists) {
+          jsonData.pages.push(pageConfig);
+      } else {
+          const index = _.findIndex(jsonData.pages, {path: pageConfig.path})
+          jsonData.pages[index].style.navigationBarTitleText = pageName;
+      }
 
-            // 将修改后的 JSON 对象转换为字符串
-            const updatedData = JSON.stringify(json, null, 2);
+      // 将修改后的 JSON 对象转换为字符串
+      const updatedData = CJSON.stringify(jsonData, null, 2);
 
-            // 将字符串写回到 pages.json 文件
-            fs.writeFile(filePath, updatedData, 'utf8', (err) => {
-                if (err) {
-                    console.error('Error writing the file:', err);
-                    return;
-                }
-                console.log('Page added successfully.');
-            });
-        } catch (err) {
-            console.error('Error parsing JSON:', err);
-        }
-    });
+      // 将字符串写回到 pages.json 文件
+      await writeFileAsync(filePath, updatedData, 'utf8');
+
+      console.log('pages.json file has been updated successfully.');
+  
+    } catch (err) {
+        console.error('update pages.json file Error:', err);
+    }
   }
 };
