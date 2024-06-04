@@ -388,6 +388,7 @@ const mixin = {
     /**
      * njk 快捷判断变量
      * {hasJhTable} - 是否有 jh-table
+     * {hasJhScene} - 是否有 jh-scene
      * {hasCreateDrawer / hasCreateStart / hasCreateSubmit} - 是否有创建抽屉
      * {hasUpdateDrawer / hasUpdateStart / hasUpdateSubmit} - 是否有更新抽屉
      * {idGenerate} - 是否有业务id配置
@@ -421,6 +422,7 @@ const mixin = {
         jsonConfig.hasDelete = findJhTable.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
       }
     }
+
     const createDrawer = actionContent.find(e => e.tag === 'jh-create-drawer');
     if (createDrawer) {
       jsonConfig.hasCreateDrawer = createDrawer.contentList.length;
@@ -450,6 +452,9 @@ const mixin = {
 
     if (headContent.find(e => e.tag === 'jh-search')) {
       jsonConfig.hasSearch = true;
+    }
+    if (headContent.find(e => e.tag === 'jh-scene')) {
+      jsonConfig.hasJhScene = true;
     }
     Object.assign(jsonConfig, this.getBasicConfig(jsonConfig));
 
