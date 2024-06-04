@@ -1,0 +1,100 @@
+<script type="text/x-template" id="_tableColumnSettingBtn">
+   <div class="d-flex align-center">
+     <v-btn-toggle mandatory dense class="mr-2" color="success" v-model="selectedColumnGroup">
+        <v-btn small class="elevation-0" :value="key" v-for="(value, key) in columnSettingGroup">
+            {{key}}
+        </v-btn>
+        <v-menu max-height="350" :close-on-content-click="false" right offset-y>
+        <template v-slot:activator="{ on, attrs }">
+        <v-btn v-bind="attrs" v-on="on" small class="elevation-0">
+            列设置
+            <!-- 下拉icon -->
+            <v-icon size="14">mdi-chevron-down</v-icon>
+        </v-btn>
+        </template>
+        <v-list>
+            <v-list-item style="cursor: pointer;" v-for="item in headers" :key="item.value">
+                <v-list-item-action>
+                <v-checkbox :label="item.text" @change="changeHeaders" :value="item" v-model="selectedHeaders"></v-checkbox>
+                </v-list-item-action>
+            </v-list-item>
+        </v-list>
+    </v-menu>
+    </v-btn-toggle>
+    
+    
+   </div>
+</script>
+
+
+<script>
+    Vue.component("tableColumnSettingBtn", {
+        template: "#_tableColumnSettingBtn",
+        props: {
+            headers: {
+                type: Array,
+                default: () => {
+                    return []
+                }
+            },
+            columnSettingGroup: {
+                type: Object,
+                default: () => {
+                    return {}
+                }
+            },
+            selectedColumnGroup: {
+                type: String,
+                default: null,
+            },
+            selectedHeaders: {
+                type: Array,
+                default: () => {
+                    return []
+                }
+            }
+        },
+        data: () => ({
+        }),
+        watch: {
+            selectedColumnGroup(val) {
+                if (!val) return;
+                let newheaders = [...this.headers]
+                const currentColumn = this.columnSettingGroup[val]
+                newheaders.forEach(header=> {
+                    header.inTableShow = false
+                    if (currentColumn.includes(header.value)) {
+                        header.inTableShow = true
+                    }
+                })
+                newheaders = newheaders.filter(header=> header.inTableShow)
+                this.$emit('change', newheaders)
+            }
+        },
+        created() {
+            if (!this.selectedColumnGroup) {
+                // 取第一个,columnSettingGroup是个对象，取key
+                this.selectedColumnGroup = Object.keys(this.columnSettingGroup)[0]
+                if (!this.selectedColumnGroup) return;
+                this.selectedHeaders = this.headers.filter(item=> this.columnSettingGroup[this.selectedColumnGroup].includes(item.value))
+            }
+        },
+        computed: {
+        },
+        methods: {
+            changeHeaders() {
+                const newHeaders = []
+
+                this.headers.map(item => {
+                    if (this.selectedHeaders.map(row => row.value).includes(item.value)) {
+                        newHeaders.push(item)
+                    }
+                })
+                console.log('[changeHeaders]', newHeaders, this.selectedHeaders.map(row => row.value));
+                this.$emit('change', newHeaders)
+            }
+        },
+    })
+</script>
+<style>
+</style>

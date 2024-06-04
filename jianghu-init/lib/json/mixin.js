@@ -478,6 +478,7 @@ const mixin = {
       tableRecordHistory: { filename: 'tableRecordHistory', bind: { table, pageId, ':id': '{{key}}Item.id' }, sqlMap: { table, pageId } },
       vueJsonEditor: { filename: 'vueJsonEditor', model: '', bind: { mode: 'code', expandedOnStart: false } },
       tableAttachment: { filename: 'tableAttachment', bind: { table, pageId, ':id': '{{key}}Item.id', fileType: '[]', fileSubType: '[]' }, sqlMap: { table, pageId, insertBeforeHook: '' } },
+      tableColumnSettingBtn: { filename: 'tableColumnSettingBtn', bind: {} },
     };
 
     const processContentList = (contentList, itemKey = 'updateItem') => {
