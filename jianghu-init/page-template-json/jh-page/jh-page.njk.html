@@ -122,6 +122,10 @@
           <=%- for action in content.headActionList %=>
           <=$ action | tagFormat(10) $=>
           <=%- endfor %=>
+          <=%- if content.columnSettingGroup %=>
+          <v-spacer></v-spacer>
+          <table-column-setting-btn columnSettingGroup="<=$ content.columnSettingGroup | default({}) $=>" :headers="headers" @change="headers=$event" />
+          <=%- endif %=>
         </v-row>
         <=%- endif %=>
         <!-- 表格 -->
