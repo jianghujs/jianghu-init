@@ -16,7 +16,7 @@
     <=%- elif headContent %=>
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
-      <v-row class="align-center" dense>
+      <v-row class="align-center mt-2" dense>
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-page-title' %=>
         <v-col cols="12" xs="12" sm="12" md="4" xl="3" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
