@@ -1,1 +1,28 @@
-<view>图文</view>
+<navigator
+  url="<=$ content.param.url $=>"
+  class="flex px-2 py-2"
+>
+  <u-image
+    lazy-load
+    fit="cover"
+    width="169"
+    height="98"
+    src="<=$ content.param.imageUrl $=>"
+  ></u-image>
+  <div class="ml-2 flex-1 flex flex-col justify-between">
+    <div class="jh-line-2 text-md font-medium">
+      <u--text color="#333333" text="<=$ content.param.title $=>" size="14"></u--text>
+    </div>
+    <div>
+      <u--text color="<=$ content.param.tagColor $=>" text="<=$ content.param.tag $=>" size="12"></u--text>
+    </div>
+    <div class="flex text-xs justify-between items-center">
+      <div>
+        <u--text color="#999999" text="<=$ content.param.leftLabel $=>" size="10"></u--text>
+      </div>
+      <div class="text-gray-400">
+        <u--text color="#999999" text="<=$ content.param.rightLabel $=>" size="10"></u--text>
+      </div>
+    </div>
+  </div>
+</navigator>

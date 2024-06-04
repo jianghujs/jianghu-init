@@ -264,7 +264,12 @@ const mixin = {
       const targetPath = `${templatePath}/${result.template}.html`;
 
       try {
-        const data = fs.readFileSync(targetPath, 'utf8').toString();    
+        let data = fs.readFileSync(targetPath, 'utf8');    
+
+        // 使用正则表达式查找所有类似于 <=$ content.param.xxx $=> 的占位符
+        data = data.replace(/<=\s*\$ content\.param\.(\w+) \$\s*=>/g, (match, p1) => {
+          return result.param[p1] || '';
+        });
         return data;
       } catch (err) {
         console.error('read jh-template Error:', err);
