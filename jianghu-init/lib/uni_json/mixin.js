@@ -183,7 +183,7 @@ const mixin = {
       const lineBreak = value ? '\n' : '';
       return `${indentSpaces}<${tag} ${attrs}>${lineBreak}${value}${lineBreak}${value ? indentSpaces : ''}</${tag}>`;
     };
-    nunjucksEnv.addFilter('tagFormat', function(result, indent = 0) {
+    const tagFormat = (result, indent = 0) => {
       const tag = [];
       if (_.isArray(result)) {
         result.forEach(res => {
@@ -195,6 +195,20 @@ const mixin = {
         tag.push(result);
       }
       return tag.join('\n' + ' '.repeat(indent));
+    }
+    nunjucksEnv.addFilter('tagFormat', function(result, indent = 0) {
+      // const tag = [];
+      // if (_.isArray(result)) {
+      //   result.forEach(res => {
+      //     tag.push(tagItemFormat(res, indent).replace(/^\s+/, ''));
+      //   });
+      // } else if (_.isObject(result)) {
+      //   tag.push(tagItemFormat(result, indent).replace(/^\s+/, ''));
+      // } else {
+      //   tag.push(result);
+      // }
+      // return tag.join('\n' + ' '.repeat(indent));
+      return tagFormat(result, indent);
     });
     nunjucksEnv.addFilter('formItemFormat', function(result, drawerKey = 'updateItem') {
       const tag = [];
@@ -266,10 +280,17 @@ const mixin = {
       try {
         let data = fs.readFileSync(targetPath, 'utf8');    
 
-        // 使用正则表达式查找所有类似于 <=$ content.param.xxx $=> 的占位符
-        data = data.replace(/<=\s*\$ content\.param\.(\w+) \$\s*=>/g, (match, p1) => {
-          return result.param[p1] || '';
+        // 使用正则表达式匹配 <= $ slot.xxx $ => 和 <= $ endSlot $ => 之间的内容，并替换为 slot.xxx
+        data = data.replace(/<=\s*\$ slot\.(\w+) \$\s*=>[\s\S]*?<=\s*\$ endSlot \$\s*=>/g,  (match, p1) => {
+          return tagFormat(result.slot[p1], indent)  || '';
         });
+
+        // 使用正则表达式查找所有类似于 <=$ data.xxx $=> 的占位符
+        data = data.replace(/<=\s*\$ data\.(\w+) \$\s*=>/g, (match, p1) => {
+          // TODO: 兼容传入的是字符串，不是变量的情况
+          return `${result.param.data}.${p1}` || '';
+        });
+        
         return data;
       } catch (err) {
         console.error('read jh-template Error:', err);
