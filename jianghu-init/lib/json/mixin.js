@@ -321,13 +321,15 @@ const mixin = {
 
   async checkPage(jsonConfig) {
     const { pageId, pageName } = jsonConfig;
+    const operationByUserId = `jianghu-init/${pageId}`;
     const knex = await this.getKnex();
     const existPage = await knex('_page').where({ pageId }).first();
     const pageData = {
       pageId,
       pageName,
+      operationByUserId,
     };
-    if (existPage && existPage.pageName !== pageName) {
+    if (existPage && (existPage.pageName !== pageName || existPage.operationByUserId !== operationByUserId)) {
       console.log(`更新页面名称 ${existPage.pageName} => ${pageName}`);
       await knex('_page').where({ id: existPage.id }).update(pageData);
     } else if (!existPage) {
@@ -341,7 +343,7 @@ const mixin = {
     if (!resourceList || !pageId) return;
     const knex = this.knex;
     const existResourceList = await knex('_resource').where({ pageId });
-    for (const { actionId, resourceType, desc = null, resourceData, resourceHook = null } of resourceList) {
+    for (const { actionId, resourceType, desc = null, resourceData, resourceHook = null, operationByUserId = `jianghu-init/${pageId}` } of resourceList) {
       const resourceDataStr = _.isObject(resourceData) ? JSON.stringify(resourceData) : resourceData;
       const resourceHookStr = _.isObject(resourceHook) ? JSON.stringify(resourceHook) : resourceHook;
       // 比对是否存在，存在则更新，不存在则插入
@@ -350,7 +352,7 @@ const mixin = {
       if (resourceItem) {
         // 对比有差异再修改
         let isDiff = false;
-        const updateData = { actionId, pageId, resourceType, desc, resourceData: resourceDataStr, resourceHook: resourceHookStr };
+        const updateData = { actionId, pageId, resourceType, desc, resourceData: resourceDataStr, resourceHook: resourceHookStr, operationByUserId };
         _.forEach(updateData, (value, key) => {
           if ((value || null) !== (resourceItem[key] || null)) {
             isDiff = true;
@@ -359,9 +361,10 @@ const mixin = {
         });
         if (!isDiff) continue;
         await knex('_resource').where({ id: resourceItem.id }).update(updateData);
-        continue;
+      } 
+      if (!resourceItem) {
+        await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr, operationByUserId });
       }
-      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr });
     }
     // filter 数据库内有但是却没设置的 resource
     // const warningList = existResourceList.filter(e => !resourceList.some(r => r.actionId === e.actionId));

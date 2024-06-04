@@ -287,6 +287,9 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
   //===// <=$ common.props | variableToVar('props') $=>,
   //===// <=%- endif %=>
   data: () => ({
+
+    isMobile: window.innerWidth < 500,
+    
     serverSearchPropsWhere: {},
     serverSearchPropsWhereLike: {},
     //===// <=%- if hasHelpDrawer %=>

@@ -3,6 +3,7 @@ const yargs = require('yargs');
 const InitPage = require('./json/init_page');
 const InitComponent = require('./json/init_component');
 const InitJson = require('./json/init_json');
+const InitClear = require('./json/init_clear');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 const fs = require('fs');
@@ -28,6 +29,10 @@ const jsonTypes = [
   {
     value: 'example chart',
     name: 'init example chart component',
+  },
+  {
+    value: 'clear',
+    name: 'clear all init json data [ _page, _resource, /view/page, /view/component]',
   },
 ];
 const pageTypeList = [
@@ -113,6 +118,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
       }
     } else if (handleType === 'example chart') {
       await new InitJson().run(process.cwd(), Object.assign(this.argv, { chartPage: true, pageType: 'jh-component' }));
+    } else if (handleType === 'clear') {
+      await new InitClear().run(process.cwd(), this.argv);
     }
     // this.success('jianghu init by json is success');
     await this.enableDevMode(this.argv.dev);
