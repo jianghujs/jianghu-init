@@ -65,6 +65,44 @@
             <=%- endif %=>
           </v-row>
         </v-col>
+        <=%- elif content.tag=='jh-scene' %=>
+        <jh-scene :initFormData="serverSearchInput" :sceneListKey="localSceneListKey" currentSceneId="currentSceneId"
+          @useScene="doUiAction('useScene', $event)">
+          <template v-slot:form="{form}">
+              <v-row class="mt-0 px-4">
+                <=%- for formItem in content.formItemList %=>
+                  <v-col cols="12">
+                        <=%- if formItem.label %=>
+                          <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*
+                              </span><=%- endif %=>
+                                <=$ formItem.label $=></span>
+                          <=%- endif %=>
+                            <=%- if formItem.tag=="v-date-picker" %=>
+                              <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto" <=%- if
+                                formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
+                                  <template v-slot:activator="{on, attrs}">
+                                    <v-text-field v-bind="attrs" v-on="on"
+                                      v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"
+                                      :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
+                                      single-line filled readonly clearable></v-text-field>
+                                  </template>
+                                  <v-date-picker color="success" elevation="20"
+                                    v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in
+                                    formItem.attrs %=>
+                                    <=$ attr | tagAttr(value) $=>
+                                      <=% endfor %=>>
+                                  </v-date-picker>
+                              </v-menu>
+                            <=%- elif formItem.model is defined %=>
+                              <=$ formItem | formItemFormat(actionItem.key + 'Item' ) $=>
+                            <=%- else %=>
+                              <=$ formItem | tagFormat(16) $=>
+                            <=%- endif %=>
+                  </v-col>
+                <=%- endfor %=>
+              </v-row>
+          </template>
+        </jh-scene>
         <=%- else %=>
         <=$ content | tagFormat(12) $=>
         <=%- endif %=>
@@ -320,6 +358,9 @@
 <=%- if hasJhTable %=>
 {% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 <=%- endif %=>
+<=%- if hasJhScene %=>
+{% include 'component/jianghuJs/jhSceneV4.html' %}
+<=%- endif %=>
 <=%- for component in componentList %=>
 {% include 'component/<=$ component.componentPath $=>.html' %}
 <=%- endfor %=>
@@ -408,6 +449,13 @@ new Vue({
     //===// <=%- endif %=>
     //===// <=%- endfor %=>
 
+    //===// <=%- if hasJhScene %=>
+    //===// serverSearchInput: {},
+    //===// localSceneListKey: "<$ ctx.app.config.appId $>_<$ ctx.packagePage.pageId $>_<$ ctx.userInfo.userId $>",
+    //===// currentSceneId: null,
+    //===// <=%- endif %=>
+
+
   }),
   watch: {
     //===// <=%- if hasHelpDrawer %=>
@@ -473,6 +521,13 @@ new Vue({
           //===//   <=%- endfor %=>
           //===//   break;
           //===// <=%- endfor %=>
+          
+          //===// <=%- if hasJhScene %=>
+          //===// case 'useScene':
+          //===//   await this.useScene(uiActionData);
+          //===//   await this.doUiAction('getTableData');
+          //===//   break;
+          //===// <=%- endif %=>
 
 
           //===// <=%- for key, value in common.doUiAction %=>
@@ -750,6 +805,14 @@ new Vue({
     //===// <=%- endfor %=>
     // ---------- <<<<<<<<<<< Custom uiAction ---------
     //===// <=%- endif %=>
+
+    //===// <=%- if hasJhScene %=>
+    //===// useScene(funObj) {
+    //===//   this.currentSceneId = funObj.id;
+    //===//   this.serverSearchInput = _.cloneDeep(funObj.form);
+    //===//},
+    //===// <=%- endif %=>
+
   }
 })
 </script>
