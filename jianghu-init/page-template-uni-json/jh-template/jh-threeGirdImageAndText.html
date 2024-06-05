@@ -1,0 +1,24 @@
+<!-- jh-threeGirdImageAndText >>>>>>>>>>>>> -->
+<view class="jh-threeGirdImageAndText bg-white px-2 pt-2 acea-row flex justify-between box-border" v-if="<=$ data $=> && <=$ data.length > 0 $=>">
+  <view class="rounded-md bg-gray-100 w-32 min-h-full" :href="<=$ data[0].url $=>">
+    <view class="text-xs pt-2 text-center" v-text="<=$ data[0].title $=>"></view>
+    <view class="info line1" v-text="<=$ data[0].info $=>"></view>
+    <view class="mt-2 pictrue flex justify-center items-center">
+      <u-image lazy-load width="160upx" height="160upx" radius="4" :src="<=$ data[0].imageUrl $=>" />
+    </view>
+  </view>
+  <view class="right ml-2 flex-1" v-if="<=$ data.length > 1 $=>">
+    <template v-for="(activityItem, activityIndex) in <=$ data $=>" v-if="activityIndex > 0 && activityIndex < 3">
+      <view class="flex justify-between rounded-md items-center bg-gray-100 w-full py-2 px-3 box-border" :class="{'mt-2': activityIndex > 1}" :href="activityItem.url">
+        <view class="text">
+          <view class="text-xs line1" v-text="activityItem.title"></view>
+          <view class="text-xs line1" v-text="activityItem.info"></view>
+        </view>
+        <view class="pictrue">
+          <u-image lazy-load height="100upx" width="100upx" radius="4" fit="cover" :src="activityItem.imageUrl" />
+        </view>
+      </view>
+    </template>
+  </view>
+</view>
+<!-- <<<<<<<<<<<<< jh-threeGirdImageAndText -->

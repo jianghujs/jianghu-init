@@ -27,7 +27,7 @@ noticeBar: {
     }
   ]
 }
-// 三宫格图文
+// 三宫格图文 ✅
 { 
   template: "jh-threeGirdImageAndText",
   param: {
@@ -35,35 +35,33 @@ noticeBar: {
   },
   value: '',
   slot: {
-    text: `<div>自定义插槽</div>`,
+    title: `<div>自定义插槽</div>`,
     image:  { tag: 'div', value: '自定义插槽', attrs: { color: 'success' } }
   }
 }
-threeGirdImageAndText: {
-  data: [
-    {
-      text: '【特邀】多妈聊教育',
-      url: '/pages/course/list',
-      imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png'
-    },
-    {
-      text: '【特邀】以诺讲财务',
-      url: '/pages/course/list',
-      imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png'
-    },
-    {
-      text: '【特邀】旭哥学说话',
-      url: '/pages/course/list',
-      imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png'
-    }
-  ]
-}
+threeGirdImageAndText: [
+  {
+    title: '【特邀】多妈聊教育',
+    url: '/pages/course/list',
+    imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png'
+  },
+  {
+    title: '【特邀】以诺讲财务',
+    url: '/pages/course/list',
+    imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png'
+  },
+  {
+    title: '【特邀】旭哥学说话',
+    url: '/pages/course/list',
+    imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png'
+  }
+]
 // 轮播图文 - uview
-// 上下图文
+// 上下图文 ✅
 { 
-  template: "jh-ImageAndTexTB",
+  template: "jh-imageAndTexTB",
   param: {
-    data: 'ImageAndTexTB'
+    data: 'imageAndTexTB'
   },
   value: '',
   slot: {
@@ -73,16 +71,17 @@ threeGirdImageAndText: {
     image:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } }
   }
 }
-ImageAndTexTB: {
+imageAndTexTB: {
   url: '/pages/course/list',
   imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png',
   title: '知识付费考试',
   tag: ['学习', '文章'],
-  tagColor: '#FE2A2A',
+  tagColor: '#2C8EFF',
+  tagBgColor: '#F3F8FF',
   label: '免费',
   labelColor: '#FE2A2A'
 }
-//左右图文
+//左右图文 ✅
 { 
   template: "jh-imageAndTextLR",
   param: {

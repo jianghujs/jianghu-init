@@ -293,9 +293,9 @@ const mixin = {
         data = data.replace(/<=\s*\$ slot\.(\w+) \$\s*=>/g, '').replace(/<=\s*\$ endSlot \$\s*=>/g, '');
 
         // 使用正则表达式查找所有类似于 <=$ data.xxx $=> 的占位符
-        data = data.replace(/<=\s*\$ data\.(\w+) \$\s*=>/g, (match, p1) => {
+        data = data.replace(/<=\s*\$ data([^\$]*) \$\s*=>/g, (match, p1) => {
           // TODO: 兼容传入的是字符串，不是变量的情况 【先不处理】
-          return `${result.param.data}.${p1}` || '';
+          return `${result.param.data}${p1}` || '';
         });
 
         return data;
