@@ -279,18 +279,25 @@ const mixin = {
 
       try {
         let data = fs.readFileSync(targetPath, 'utf8');    
-
+ 
         // 使用正则表达式匹配 <= $ slot.xxx $ => 和 <= $ endSlot $ => 之间的内容，并替换为 slot.xxx
         data = data.replace(/<=\s*\$ slot\.(\w+) \$\s*=>[\s\S]*?<=\s*\$ endSlot \$\s*=>/g,  (match, p1) => {
-          return tagFormat(result.slot[p1], indent)  || '';
+          if (result.slot[p1]) {
+            return tagFormat(result.slot[p1], indent)  || '';
+          }else{
+            return match;
+          }
         });
+
+        // 如果插槽没有自定义，显示默认的内容，删除占位符
+        data = data.replace(/<=\s*\$ slot\.(\w+) \$\s*=>/g, '').replace(/<=\s*\$ endSlot \$\s*=>/g, '');
 
         // 使用正则表达式查找所有类似于 <=$ data.xxx $=> 的占位符
         data = data.replace(/<=\s*\$ data\.(\w+) \$\s*=>/g, (match, p1) => {
-          // TODO: 兼容传入的是字符串，不是变量的情况
+          // TODO: 兼容传入的是字符串，不是变量的情况 【先不处理】
           return `${result.param.data}.${p1}` || '';
         });
-        
+
         return data;
       } catch (err) {
         console.error('read jh-template Error:', err);
