@@ -465,7 +465,7 @@ const mixin = {
   },
 
   getConfigComponentList(jsonConfig) {
-    const { table, pageId, actionContent = [] } = jsonConfig;
+    const { table, pageId, actionContent = [], pageContent = [] } = jsonConfig;
     const componentList = [];
     /**
      * 组件映射表
@@ -523,7 +523,11 @@ const mixin = {
       });
     };
     const drawerList = actionContent.filter(e => [ 'jh-create-drawer', 'jh-update-drawer', 'jh-drawer' ].includes(e.tag));
-
+    const tableColumnSetting = pageContent.filter(e => [ 'jh-table' ].includes(e.tag)).filter(item=> item.showTableColumnSettingBtn);
+    
+    if (tableColumnSetting.length) {
+      componentList.push({type: 'component', componentPath: 'tableColumnSettingBtn'})
+    }
     drawerList.forEach(drawer => {
       processContentList(drawer.contentList, drawer.key);
     });
@@ -596,7 +600,7 @@ const mixin = {
 
   async modifyComponentResourceItem(templatePath, component) {
     const knex = await this.getKnex();
-    if (component.type === 'component' && ![ 'tableRecordHistory', 'jhFile' ].includes(component.componentPath)) return;
+    if (component.type === 'component' && ![ 'tableRecordHistory', 'jhFile'].includes(component.componentPath)) return;
     if (!fs.existsSync(`${templatePath}/${component.componentPath}.sql`)) return;
     let resourceSql = fs.readFileSync(`${templatePath}/${component.componentPath}.sql`).toString();
     _.forEach(component.sqlMap, (value, key) => {
@@ -625,7 +629,7 @@ const mixin = {
     for (const item of componentList) {
       // 检查文件存在则提示是否覆盖
       const targetFilePath = `./app/view/component/${item.componentPath}.html`;
-      if ([ 'tableRecordHistory', 'vueJsonEditor', 'jhFile' ].includes(item.componentPath)) {
+      if ([ 'tableRecordHistory', 'vueJsonEditor', 'jhFile', 'tableColumnSettingBtn' ].includes(item.componentPath)) {
         if (fs.existsSync(targetFilePath)) {
           if (devModel) continue;
           if (n) {
