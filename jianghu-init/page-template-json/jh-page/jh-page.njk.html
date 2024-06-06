@@ -163,7 +163,7 @@
           <=%- endfor %=>
           <=%- if content.showTableColumnSettingBtn %=>
           <v-spacer></v-spacer>
-          <table-column-setting-btn columnSettingGroup="<=$ content.columnSettingGroup | default({}) $=>" :headers="headers" @change="headers=$event" />
+          <table-column-setting-btn :columnSettingGroup="<=$ content.columnSettingGroup | default('{}') $=>" :headers="headers" @change="headers=$event" />
           <=%- endif %=>
         </v-row>
         <=%- endif %=>
@@ -403,6 +403,10 @@
 <=%- if hasJhTable %=>
 {% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 <=%- endif %=>
+<=%- if hasShowTableColumnSettingBtn %=>
+{% include 'component/tableColumnSettingBtn.html' %}
+<=%- endif %=>
+
 <=%- if hasJhScene %=>
 {% include 'component/jianghuJs/jhSceneV4.html' %}
 <=%- endif %=>

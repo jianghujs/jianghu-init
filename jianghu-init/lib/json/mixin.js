@@ -424,6 +424,9 @@ const mixin = {
         jsonConfig.hasUpdateStart = findJhTable.rowActionList.some(e => checkClick(e, 'startUpdateItem') || /doUiAction\(['"]startUpdateItem['"]/.test(e.click || ''));
         jsonConfig.hasDelete = findJhTable.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
       }
+      if (findJhTable.showTableColumnSettingBtn) {
+        jsonConfig.hasShowTableColumnSettingBtn = true
+      }
     }
 
     const createDrawer = actionContent.find(e => e.tag === 'jh-create-drawer');
