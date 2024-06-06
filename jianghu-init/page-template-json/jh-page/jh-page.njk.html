@@ -157,11 +157,11 @@
       <v-col cols="<=$ content.attrs.cols | default('12') $=>" sm="<=$ content.attrs.sm | default('12') $=>" md="<=$ content.attrs.md | default('12') $=>">
       <v-card class="rounded-lg">
         <=%- if content.headActionList %=>
-        <v-row class="ma-0 pa-4">
+        <v-row class="ma-0 pa-4 px-0">
           <=%- for action in content.headActionList %=>
           <=$ action | tagFormat(10) $=>
           <=%- endfor %=>
-          <=%- if content.columnSettingGroup %=>
+          <=%- if content.showTableColumnSettingBtn %=>
           <v-spacer></v-spacer>
           <table-column-setting-btn columnSettingGroup="<=$ content.columnSettingGroup | default({}) $=>" :headers="headers" @change="headers=$event" />
           <=%- endif %=>
