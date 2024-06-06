@@ -433,4 +433,12 @@ export default {
   <=%- if style %=>
   <=$ style $=>
   <=%- endif %=>
+
+  <=%- for content in pageContent %=>
+  <=%- if content.template %=>
+  <=$ content | templateStyle $=>
+  <=%- endif %=>
+  <=%- endfor %=>
 </style>
+
+

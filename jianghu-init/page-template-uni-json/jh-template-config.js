@@ -108,6 +108,8 @@ imageAndTextLR: {
 
 
 
+
+
 // ---------- 课程列表
 // 搜索 - uview
 // tabs - uview
@@ -118,8 +120,40 @@ imageAndTextLR: {
 
 
 // ---------- 课程详情
-// 上下图文 - 已定义
-// 数量概览
+// 轮播图 - uview
+// 课程信息 ✅
+{ 
+  template: "jh-goodInfo",
+  param: {
+    data: 'goodInfo'
+  },
+  value: '',
+  slot: {
+    title: `<div>自定义标题插槽</div>`,
+    tag:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } },
+    button:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } }
+  }
+}
+goodInfo: {
+  url: '/pages/course/list',
+  title: '知识付费考试',
+  tag: ['文章'],
+  tagColor: '#2C8EFF',
+  tagBgColor: '#F3F8FF',
+  button: [
+    {
+      text: '分享',
+      icon: 'share-square',
+      color: '#999999'
+    },
+    {
+      text: '收藏',
+      icon: 'heart-fill',
+      color: '#FF6B00'
+    }
+  ]
+}
+// 数量概览 - uview
 { 
   template: "jh-quantityOverview",
   param: {
@@ -145,7 +179,7 @@ quantityOverview: [
   },
 ]
 // tabs - uview
-// 课程列表
+// 课程列表 - uview
 { 
   template: "jh-courseList",
   param: {
@@ -167,11 +201,11 @@ courseList: [
   },
 ]
 // 富文本解析 - uview
-// 评价列表
+// 评价列表 ✅
 { 
-  template: "jh-evaluateList",
+  template: "jh-comment",
   param: {
-    data: 'evaluateList'
+    data: 'comment'
   },
   value: '',
   slot: {
@@ -181,14 +215,12 @@ courseList: [
     description:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } }
   }
 }
-evaluateList: [
-  {
-    imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png',
-    text: 'usernam0',
-    label: '2024-04-12 16:12',
-    description: '评论交流文字',
-  },
-]
+comment: {
+  imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png',
+  text: 'usernam0',
+  label: '2024-04-12 16:12',
+  description: '评论交流文字',
+}
 // 写评价 - uview
 // 底部导航栏 - uview
 
@@ -205,7 +237,7 @@ evaluateList: [
 
 
 // ---------- 个人中心
-// 个人信息 - uview
+// 个人信息 🟠
 // 图片 - uview
 // 宫格菜单 - uview
 // 宫格菜单 - uview
@@ -220,7 +252,8 @@ evaluateList: [
 
 
 // ---------- 商品详情
-// 上下图文 - 已定义
+// 轮播图 - uview
+// 商品信息 🟠
 // 富文本解析 - uview
 // 评价列表 - 已定义
 // 底部导航栏 - uview
@@ -231,7 +264,7 @@ evaluateList: [
 
 // ---------- 商品购买
 // 地址信息 - uview
-// 选择地址
+// 选择地址 - uview
 { 
   template: "jh-chooseAddress",
   param: {
@@ -254,14 +287,16 @@ chooseAddress: [
 ]
 // 左右图文 - 已定义
 // 备注 - uview
-// 底部导航栏 - uview
+// 底部导航栏 🟠
+//  左：首页、客服按钮；自定义配置，插槽
+//  右：按钮，可定义大小，按钮可配置多个
 
 
 
 
 
 // ---------- 地址列表
-// 地址列表
+// 地址列表 🟠
 { 
   template: "jh-addressList",
   param: {
@@ -295,7 +330,7 @@ addressList: [
 
 // ---------- 订单列表
 // tabs - uview
-// 订单信息 card
+// 订单信息 card 🟠
 { 
   template: "jh-orderInfo",
   param: {
@@ -329,4 +364,4 @@ orderInfo: [
 // 订单信息 card - 已定义
 // 订单信息项 - uview
 // 申请退款 - uview
-// 底部操作栏 - uview
+// 底部操作栏 - 已定义

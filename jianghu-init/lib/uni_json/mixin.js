@@ -298,9 +298,26 @@ const mixin = {
           return `${result.param.data}${p1}` || '';
         });
 
+        // 使用正则表达式查找所有类似于 <=$ action.xxx $=> 的占位符
+        data = data.replace(/<=\s*\$ action\.([^\$]*) \$\s*=>/g, (match, p1) => {
+          return result.action ? result.action[p1] : '';
+        });
+
         return data;
       } catch (err) {
         console.error('read jh-template Error:', err);
+        return '';
+      }
+    });
+    nunjucksEnv.addFilter('templateStyle', (result, indent = 0) => {
+      const templatePath = `${path.join(__dirname, '../../')}page-template-uni-json/jh-template-css`;
+      const targetPath = `${templatePath}/${result.template}.css`;
+      
+      try {
+        let data = fs.readFileSync(targetPath, 'utf8');    
+        return data;
+      } catch (err) {
+        // console.error('read jh-template-css Error:', err);
         return '';
       }
     });
