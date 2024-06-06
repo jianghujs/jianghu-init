@@ -4,22 +4,23 @@
          <v-btn small class="elevation-0" :value="key" v-for="(value, key) in columnSettingGroup">
              {{key}}
          </v-btn>
+         
          <v-menu max-height="350" :close-on-content-click="false" right offset-y>
-         <template v-slot:activator="{ on, attrs }">
-         <v-btn v-bind="attrs" v-on="on" small class="elevation-0">
-             列设置
-             <!-- 下拉icon -->
-             <v-icon size="14">mdi-chevron-down</v-icon>
-         </v-btn>
-         </template>
-         <v-list>
-             <v-list-item style="cursor: pointer;" v-for="item in headersFull" :key="item.value">
-                 <v-list-item-action>
-                 <v-checkbox :label="item.text" @change="changeHeaders" :value="item" v-model="selectedHeaders"></v-checkbox>
-                 </v-list-item-action>
-             </v-list-item>
-         </v-list>
-     </v-menu>
+            <template v-slot:activator="{ on, attrs }">
+            <v-btn v-bind="attrs" v-on="on" small class="elevation-0">
+                列设置
+                <!-- 下拉icon -->
+                <v-icon size="14">mdi-chevron-down</v-icon>
+            </v-btn>
+            </template>
+            <v-list>
+                <v-list-item style="cursor: pointer;" v-for="item in headersFull" :key="item.value">
+                    <v-list-item-action>
+                    <v-checkbox :label="item.text" @change="changeHeaders" :value="item" v-model="selectedHeaders"></v-checkbox>
+                    </v-list-item-action>
+                </v-list-item>
+            </v-list>
+        </v-menu>
      </v-btn-toggle>
      
      
