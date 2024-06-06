@@ -114,6 +114,7 @@
 
     <!-- 页面内容 >>>>>>>>>>>>> -->
     <div class="jh-page-body-container px-8">
+      <v-row no-gutters>
       <=%- for content in pageContent %=>
       <=%- if content.tag == 'jh-search' %=>
       <v-card class="rounded-lg"> 
@@ -153,6 +154,7 @@
       </v-card>
 
       <=%- elseif content.tag == 'jh-table' %=>
+      <v-col cols="<=$ content.attrs.cols | default('12') $=>" sm="<=$ content.attrs.sm | default('12') $=>" md="<=$ content.attrs.md | default('12') $=>">
       <v-card class="rounded-lg">
         <=%- if content.headActionList %=>
         <v-row class="ma-0 pa-4">
@@ -249,10 +251,12 @@
           </template>
         </v-data-table>
       </v-card>
+    </v-col>
       <=%- else %=>
       <=$ content | tagFormat(6) $=>
       <=%- endif %=>
       <=%- endfor %=>
+    </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 页面内容 -->
     <=%- for actionItem in actionContent %=>
