@@ -278,10 +278,14 @@ const mixin = {
       const targetPath = `${templatePath}/${result.template}.html`;
 
       try {
-        let data = fs.readFileSync(targetPath, 'utf8');    
+        let data = fs.readFileSync(targetPath, 'utf8'); 
+
+        // 使用正则表达式匹配 <template> 标签之间的内容
+        let matches = data.match(/<template>([\s\S]*?)<\/template>/);
+        let templateData = matches ? matches[1] : '';
  
         // 使用正则表达式匹配 <= $ slot.xxx $ => 和 <= $ endSlot $ => 之间的内容，并替换为 slot.xxx
-        data = data.replace(/<=\s*\$ slot\.(\w+) \$\s*=>[\s\S]*?<=\s*\$ endSlot \$\s*=>/g,  (match, p1) => {
+        templateData = templateData.replace(/<=\s*\$ slot\.(\w+) \$\s*=>[\s\S]*?<=\s*\$ endSlot \$\s*=>/g,  (match, p1) => {
           if (result.slot[p1]) {
             return tagFormat(result.slot[p1], indent)  || '';
           }else{
@@ -290,34 +294,39 @@ const mixin = {
         });
 
         // 如果插槽没有自定义，显示默认的内容，删除占位符
-        data = data.replace(/<=\s*\$ slot\.(\w+) \$\s*=>/g, '').replace(/<=\s*\$ endSlot \$\s*=>/g, '');
+        templateData = templateData.replace(/<=\s*\$ slot\.(\w+) \$\s*=>/g, '').replace(/<=\s*\$ endSlot \$\s*=>/g, '');
 
         // 使用正则表达式查找所有类似于 <=$ data.xxx $=> 的占位符
-        data = data.replace(/<=\s*\$ data([^\$]*) \$\s*=>/g, (match, p1) => {
+        templateData = templateData.replace(/<=\s*\$ data([^\$]*) \$\s*=>/g, (match, p1) => {
           // TODO: 兼容传入的是字符串，不是变量的情况 【先不处理】
           return `${result.param.data}${p1}` || '';
         });
 
         // 使用正则表达式查找所有类似于 <=$ action.xxx $=> 的占位符
-        data = data.replace(/<=\s*\$ action\.([^\$]*) \$\s*=>/g, (match, p1) => {
+        templateData = templateData.replace(/<=\s*\$ action\.([^\$]*) \$\s*=>/g, (match, p1) => {
           return result.action ? result.action[p1] : '';
         });
 
-        return data;
+        return templateData;
       } catch (err) {
         console.error('read jh-template Error:', err);
         return '';
       }
     });
     nunjucksEnv.addFilter('templateStyle', (result, indent = 0) => {
-      const templatePath = `${path.join(__dirname, '../../')}page-template-uni-json/jh-template-css`;
-      const targetPath = `${templatePath}/${result.template}.css`;
+      const templatePath = `${path.join(__dirname, '../../')}page-template-uni-json/jh-template`;
+      const targetPath = `${templatePath}/${result.template}.html`;
       
       try {
-        let data = fs.readFileSync(targetPath, 'utf8');    
-        return data;
+        let data = fs.readFileSync(targetPath, 'utf8');   
+        
+        // 使用正则表达式匹配 <style> 标签之间的内容
+        let matches = data.match(/<style>([\s\S]*?)<\/style>/);
+        let styleData = matches ? matches[1] : '';
+
+        return styleData;
       } catch (err) {
-        // console.error('read jh-template-css Error:', err);
+        console.error('read jh-template Error:', err);
         return '';
       }
     });

@@ -2,7 +2,7 @@
 // 搜索 - uview
 // 图片 - uview
 // 宫格菜单 - uview
-// 新闻简报 ❌ => uview
+// 新闻简报 => uview
 { 
   template: "jh-noticeBar",
   param: {

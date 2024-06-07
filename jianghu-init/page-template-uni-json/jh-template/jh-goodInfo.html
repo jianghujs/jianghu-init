@@ -1,18 +1,20 @@
-<!-- jh-goodInfo >>>>>>>>>>>>> -->
-<view class="jh-goodInfo px-2 py-2">
-  <div @click="<=$ action.click $=>">
-    <div class="mt-2">{{ <=$ data.title $=> }}</div>
-      <div class="flex text-xs justify-between items-center mt-2">
-        <div class="flex justify-start items-center">
-          <u-tag class="mr-2" v-for="(item, index) in <=$ data.tag $=>" :key="index" :text="item" size="mini" :borderColor="<=$ data.tagBgColor $=>" :bgColor="<=$ data.tagBgColor $=>" :color="<=$ data.tagColor $=>"> </u-tag>
-        </div>
-        <div class="flex justify-start items-center">
-          <div class="mr-2 flex flex-col items-center" v-for="(item, index) in <=$ data.button $=>" :key="index">
-            <u-icon :name="item.icon" :color="item.color" size="20"></u-icon>
-            <u--text :color="item.color" :text="item.text" size="12"></u--text>
+<template>
+  <!-- jh-goodInfo >>>>>>>>>>>>> -->
+  <view class="jh-goodInfo px-2 py-2">
+    <div @click="<=$ action.click $=>">
+      <div class="mt-2">{{ <=$ data.title $=> }}</div>
+        <div class="flex text-xs justify-between items-center mt-2">
+          <div class="flex justify-start items-center">
+            <u-tag class="mr-2" v-for="(item, index) in <=$ data.tag $=>" :key="index" :text="item" size="mini" :borderColor="<=$ data.tagBgColor $=>" :bgColor="<=$ data.tagBgColor $=>" :color="<=$ data.tagColor $=>"> </u-tag>
+          </div>
+          <div class="flex justify-start items-center">
+            <div class="mr-2 flex flex-col items-center" v-for="(item, index) in <=$ data.button $=>" :key="index">
+              <u-icon :name="item.icon" :color="item.color" size="20"></u-icon>
+              <u--text :color="item.color" :text="item.text" size="12"></u--text>
+            </div>
           </div>
         </div>
-      </div>
-  </div>
-</view>
-<!-- <<<<<<<<<<<<< jh-goodInfo -->
+    </div>
+  </view>
+  <!-- <<<<<<<<<<<<< jh-goodInfo -->
+</template>

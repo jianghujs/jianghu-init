@@ -1,20 +1,22 @@
-<!-- jh-imageAndTexTB >>>>>>>>>>>>> -->
-<view class="jh-imageAndTexTB px-2 py-2">
-  <div @click="<=$ action.click $=>">
-    <div>
-      <u-image radius="4" lazy-load fit="cover" width="100%" :src="<=$ data.imageUrl $=>"></u-image>
-    </div>
-    <div>
-      <div class="mt-2">{{ <=$ data.title $=> }}</div>
-      <div class="flex text-xs justify-between items-center mt-2">
-        <div class="flex justify-start items-center">
-          <u-tag class="mr-2" v-for="(item, index) in <=$ data.tag $=>" :key="index" :text="item" size="mini" :borderColor="<=$ data.tagBgColor $=>" :bgColor="<=$ data.tagBgColor $=>" :color="<=$ data.tagColor $=>"> </u-tag>
-        </div>
-        <div class="text-gray-400">
-          <u--text :color="<=$ data.labelColor $=>" :text="<=$ data.label $=>" size="12"></u--text>
+<template>
+  <!-- jh-imageAndTexTB >>>>>>>>>>>>> -->
+  <view class="jh-imageAndTexTB px-2 py-2">
+    <div @click="<=$ action.click $=>">
+      <div>
+        <u-image radius="4" lazy-load fit="cover" width="100%" :src="<=$ data.imageUrl $=>"></u-image>
+      </div>
+      <div>
+        <div class="mt-2">{{ <=$ data.title $=> }}</div>
+        <div class="flex text-xs justify-between items-center mt-2">
+          <div class="flex justify-start items-center">
+            <u-tag class="mr-2" v-for="(item, index) in <=$ data.tag $=>" :key="index" :text="item" size="mini" :borderColor="<=$ data.tagBgColor $=>" :bgColor="<=$ data.tagBgColor $=>" :color="<=$ data.tagColor $=>"> </u-tag>
+          </div>
+          <div class="text-gray-400">
+            <u--text :color="<=$ data.labelColor $=>" :text="<=$ data.label $=>" size="12"></u--text>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</view>
-<!-- <<<<<<<<<<<<< jh-imageAndTexTB -->
+  </view>
+  <!-- <<<<<<<<<<<<< jh-imageAndTexTB -->
+</template>
