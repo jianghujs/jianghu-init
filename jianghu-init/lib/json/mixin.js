@@ -12,6 +12,23 @@ const checkClick = (obj, action) => {
   return obj && obj.attrs && obj.attrs['@click'] && reg.test(obj.attrs['@click']);
 };
 
+function copyDir(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+
+  let entries = fs.readdirSync(src, { withFileTypes: true });
+
+  for (let entry of entries) {
+      let srcPath = path.join(src, entry.name);
+      let destPath = path.join(dest, entry.name);
+
+      if (entry.isDirectory()) {
+          copyDir(srcPath, destPath);
+      } else {
+          fs.copyFileSync(srcPath, destPath);
+      }
+  }
+}
+
 // 1table-page / 1table-component 共用方法
 const mixin = {
   handleNunjucksEnv(templateTargetPath) {
@@ -659,7 +676,13 @@ const mixin = {
         await this.modifyComponentResourceItem(componentPath, item);
       }
     }
+
+    // 复制通用样式和组件
+    copyDir(`${path.join(__dirname, '../../')}page-template-json/component/jianghuJs`, './app/view/component/jianghuJs');
+    copyDir(`${path.join(__dirname, '../../')}page-template-json/common/jianghuJs`, './app/view/common/jianghuJs');
   },
+
+ 
 
   // 生成 service
   async renderService(jsonConfig, dev = false) {

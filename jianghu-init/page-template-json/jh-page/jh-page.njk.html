@@ -1,6 +1,6 @@
 {% block htmlHead %}
 <style>
-  /* css */
+/* css */
 </style>
 {% endblock %}
 
@@ -33,7 +33,7 @@
         <v-col cols="12" xs="12" sm="12" md="8" xl="9" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <v-row class="jh-backend-form-container justify-end ma-0 py-3">
             <=%- for search in content.value %=>
-          <=%- if search.tag == "v-date-picker" %=>
+            <=%- if search.tag == "v-date-picker" %=>
             <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 pt-2 pt-sm-0" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
@@ -51,12 +51,11 @@
               <=$ search | tagFormat(14) $=>
             </v-col>
             <=%- endif %=>
-            
             <=%- endfor %=>
             <=%- if content.searchBtn is undefined or content.searchBtn != false %=>
-            <div class="jh-backend-search-btn">
+            <div class="jh-backend-search-btn ml-2">
               <=%- if content.searchBtn == true %=>
-              <v-btn class="elevation-0 float-right mt-2 ml-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
+              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
                 查询
               </v-btn>
               <=%- else %=>
@@ -104,7 +103,6 @@
               </v-row>
           </template>
         </jh-scene>
-
         <=%- else %=>
         <=$ content | tagFormat(12) $=>
         <=%- endif %=>
@@ -167,7 +165,7 @@
           <=%- endfor %=>
           <=%- if content.showTableColumnSettingBtn %=>
           <v-spacer></v-spacer>
-          <table-column-setting-btn :columnSettingGroup="<=$ content.columnSettingGroup | default('{}') $=>" :headers="headers" @change="headers=$event" />
+          <table-column-setting-btn :columnSettingGroup="columnSettingGroup" :headers="headers" @change="headers=$event" />
           <=%- endif %=>
         </v-row>
         <=%- endif %=>
@@ -188,6 +186,9 @@
           <=%- endfor %=>
           class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
         >
+
+          <=$ content.slots | tagFormat(12) $=>
+
           <=%- for key, slot  in content.slot %=>
           <template v-slot:<=$ key $=>="slotProps">
             <=$ slot | tagFormat(12) $=>
@@ -405,490 +406,493 @@
 
 {% block vueScript %}
 <=%- if hasJhTable %=>
-  {% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+<=%- endif %=>
+
+<=%- if hasJhScene %=>
+{% include 'component/jianghuJs/jhSceneV4.html' %}
+<=%- endif %=>
+<=%- for component in componentList %=>
+{% include 'component/<=$ component.componentPath $=>.html' %}
+<=%- endfor %=>
+<=%- for item in includeList %=>
+<=%- if item.type != 'vueComponent' and item.type != 'vueUse' %=>
+<=$ item | includeFormat | safe $=>
+<=%- endif %=>
+<=%- endfor %=>
+
+<script type="module">
+//===// <=%- for item in includeList %=>
+//===// <=%- if item.type == 'vueComponent' or item.type == 'vueUse' %=>
+//===// <=$ item | includeFormat $=>
+//===// <=%- endif %=>
+//===// <=%- endfor %=>
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+
+    isMobile: window.innerWidth < 500,
+
+    //===// <=%- if hasHelpDrawer %=>
+    //===// isHelpPageDrawerShown: false,
+    //===// isHelpPageDrawerLoaded: false,
+    //===// <=%- endif %=>
+
+    //===// <=%- if hasJhScene %=>
+    //===// serverSearchInput: {},
+    //===// localSceneListKey: "<$ ctx.app.config.appId $>_<$ ctx.packagePage.pageId $>_<$ ctx.userInfo.userId $>",
+    //===// currentSceneId: null,
+    //===// defaultSceneList: [],
+    //===// <=%- endif %=>
+
+    //===// <=%- if hasJhTable %=>
+    // ================================ 表格相关 ================================
+    //===// <=$ (pageContent | find({tag: 'jh-table'})).value | removeKey(['formatter']) | listToVar('headers') $=>,
+    //===// tableData: [],
+    //===// isTableLoading: false,
+    //===// searchInput: null,
+    //===// columnSettingGroup: {},
+    //===// <=%- endif %=>
+
+    //===// <=%- if hasCreateDrawer %=>
+    // ================================ 新建抽屉 ================================
+    //===// isCreateDrawerShown: false,
+    //===// createItem: {},
+    //===// <=%- if hasCreateSubmit %=>
+    //===// createActionData: {},
+    //===// <=%- endif %=>
+    //===// <=%- if hasCreateDrawer > 1 %=>
+    //===// createDrawerTab: 0,
+    //===// <=%- endif %=>
+    //===// <=%- endif %=>
+
+    //===// <=%- if hasUpdateDrawer %=>
+    // ================================ 编辑抽屉 ================================
+    //===// isUpdateDrawerShown: false,
+    //===// updateItem: {},
+    //===// updateItemId: null,
+    //===// <=%- if hasUpdateSubmit %=>
+    //===// updateActionData: {},
+    //===// <=%- endif %=>
+    //===// <=%- if hasUpdateDrawer > 1 %=>
+    //===// updateDrawerTab: 0,
+    //===// <=%- endif %=>
+    //===// <=%- endif %=>
+
+    //===// <=%- if hasDelete %=>
+    // ================================ 删除 ================================
+    //===// deleteItem: {},
+    //===// deleteItemId: null,
+    //===// <=%- endif %=>
+
+    // ================================ common ================================
+    //===// <=%- if common and common.data %=>
+    //===// <=%- for key, value in common.data %=>
+    //===// <=$ value | variableToVar(key, 4) $=>,
+    //===// <=%- endfor %=>
+    //===// <=%- endif %=>
+    //===// <=%- if common and common.dataExpression %=>
+    //===// <=%- for key, value in common.dataExpression %=>
+    //===// <=$ value | expressionToVar(key, 4) $=>,
+    //===// <=%- endfor %=>
+    //===// <=%- endif %=>
+
+    // ================================ 其他抽屉列表 ================================
+    //===// <=%- for drawer in actionContent %=>
+    //===// <=%- if drawer.tag == 'jh-drawer' %=>
+    //===// is<=$ drawer.key | ucfirst $=>DrawerShown: false,
+    //===// <=$ drawer.key | lcfirst $=>Item: {},
+    //===// <=%- if drawer.contentList.length > 1 %=>
+    //===// <=$ drawer.key | lcfirst $=>DrawerTab: 0,
+    //===// <=%- endif %=>
+    //===// <=%- endif %=>
+    //===// <=%- endfor %=>
+
+    
+
+
+  }),
+  watch: {
+    //===// <=%- if hasHelpDrawer %=>
+    isHelpPageDrawerShown(val) {
+      if (val && !this.isHelpPageDrawerLoaded) {
+        this.isHelpPageDrawerLoaded = true;
+      }
+    },
+    //===// <=%- endif %=>
+    //===// <=%- for key, item in common.watch %=>
+    //===// <=$ item | variableToVar(key) $=>,
+    //===// <=%- endfor %=>
+  },
+  computed: {
+    tableDataComputed() {
+      if(this.filterMap) {
+        return this.tableData.filter(row => {
+          for (const key in this.filterMap) {
+            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+              return false;
+            }
+          }
+          return true;
+        });
+      } else {
+        return this.tableData;
+      }
+    },
+    //===// <=%- for key, item in common.computed %=>
+    //===// <=$ item | variableToVar(key) $=>,
+    //===// <=%- endfor %=>
+  },
+  //===// <=%- if not common.created %=>
+  async created() {
+    //===// <=%- if common.createdString %=>
+    //===// <=$ common.createdString $=>
+    //===// <=%- else %=>
+    //===// <=%- if hasJhTable %=>
+    this.doUiAction('getTableData');
+    //===// <=%- endif %=>
+
+     //===// <=%- if hasJhScene %=>
+     this.setDefaultSceneData()
+    //===// <=%- endif %=>
+
+    //===// <=%- endif %=>
+  },
+  //===// <=%- endif %=>
+  //===// <=% for key, item in common %=>
+  //===// <=%- if key == 'mounted' or key == 'created' %=>
+  //===// <=$ item | variableToVar(key) $=>,
+  //===// <=%- endif %=>
+  //===// <=%- endfor %=>
+
+  //===// <=%- if common.mountedString %=>
+  async mounted() {
+  //===// <=$ common.createString | stringToVar $=>
+  },
+  //===// <=%- endif %=>
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      try {
+        switch (uiActionId) {
+          //===// <=%- for key, value in basicUiActionConfig %=>
+          //===// case '<=$ key $=>':
+          //===//   <=%- for method in value %=>
+          //===//   await this.<=$ method $=>(uiActionData);
+          //===//   <=%- endfor %=>
+          //===//   break;
+          //===// <=%- endfor %=>
+          
+
+          //===// <=%- for key, value in common.doUiAction %=>
+          //===// case '<=$ key $=>':
+          //===//   <=%- for method in value %=>
+          //===//   await this.<=$ method $=>(uiActionData);
+          //===//   <=%- endfor %=>
+          //===//   break;
+          //===// <=%- endfor %=>
+
+
+          //===// <=%- for drawer in actionContent %=>
+          //===// <=%- if drawer.tag == 'jh-drawer' %=>
+          //===// case 'view<=$ drawer.key | ucfirst $=>':
+          //===//   await this.prepare<=$ drawer.key | ucfirst $=>Data(uiActionData);
+          //===//   await this.open<=$ drawer.key | ucfirst $=>Drawer(uiActionData);
+          //===//   break;
+          //===// <=%- endif %=>
+          //===// <=%- endfor %=>
+
+          //===// <=%- if hasJhScene %=>
+          //===// case 'useScene':
+          //===//   await this.useScene(uiActionData);
+          //===//   await this.doUiAction('getTableData');
+          //===//   break;
+          //===// <=%- endif %=>
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      } catch (error) {
+        throw error;
+      } finally {
+        window.jhMask && window.jhMask.hide();
+      }
+    },
+
+    //===// <=%- if hasJhTable %=>
+    // ---------- 获取表格数据 uiAction >>>>>>>>>> --------
+    async getTableData() {
+      this.isTableLoading = true;
+      const where = {};
+      const whereLike = {};
+      //===// <=%- if common.data and common.data.serverSearchWhere %=>
+      //===// for (const fieldKey in this.serverSearchWhere) {
+      //===//   const fieldValue = this.serverSearchWhere[fieldKey];
+      //===//   if(!!fieldValue && fieldValue != '全部') {
+      //===//     where[fieldKey] = fieldValue;
+      //===//   }
+      //===// }
+      //===// <=%- endif %=>
+      //===// <=%- if common.data and common.data.serverSearchWhereLike %=>
+      //===// for (const fieldKey in this.serverSearchWhereLike) {
+      //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
+      //===//   if(!!fieldValue && fieldValue != '全部') {
+      //===//     whereLike[fieldKey] = fieldValue;
+      //===//   }
+      //===// }
+      //===// <=%- endif %=>
+
+      const rows = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: '<=$ pageId $=>',
+            actionId: 'selectItemList',
+            actionData: {},
+            where,
+            whereLike,
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      })).data.appData.resultData.rows;
+      this.tableData = this.formatTableData(rows);
+      this.isTableLoading = false;
+    },
+    //===// <=%- if not common.methods.formatTableData %=>
+    formatTableData(rows) {
+      rows.forEach(row => {
+        row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+      });
+      return rows;
+    },
+    //===// <=%- endif %=>
+    // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
+    //===// <=%- endif %=>
+
+    //===// <=%- if hasCreateDrawer %=>
+    // ---------- 新增数据 uiAction >>>>>>>>>> --------
+    //===// async prepareCreateFormData() {
+    //===//   this.createItem = {
+    //===//     <=%- for formItem in createFormItemList %=>
+    //===//     <=%- if formItem.default is defined %=>
+    //===//     <=$ formItem.model $=>: <=$ formItem.default $=>,
+    //===//     <=%- endif %=>
+    //===//     <=%- endfor %=>
+    //===//   };
+    //===// },
+    //===// async openCreateDrawer() {
+    //===//   this.isCreateDrawerShown = true;
+    //===// },
+    //===// async prepareCreateValidate() {
+    //===//   if (await this.$refs.createForm.validate()) {
+    //===//     return true;
+    //===//   }
+    //===//   throw new Error("请完善表单信息")
+    //===// },
+    //===// async confirmCreateItemDialog() {
+    //===//   if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+    //===//     throw new Error("[confirmCreateFormDialog] 否");
+    //===//   }
+    //===// },
+    //===// prepareDoCreateItem() {
+    //===//   const {id, ...data} = this.createItem;
+    //===//   this.createActionData = {
+    //===//     <=%- for formItem in createFormItemList %=>
+    //===//     <=%- if formItem.model %=>
+    //===//     <=%- if formItem.valueType === 'json' %=>
+    //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
+    //===//     <=%- else %=>
+    //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endif %=>
+    //===//     <=%- endif %=>
+    //===//     <=%- endfor %=>
+    //===//   };
+    //===// },
+    //===// async doCreateItem() {
+    //===//   await window.jhMask.show();
+    //===//   await window.vtoast.loading("新增数据");
+    //===//   await window.jianghuAxios({
+    //===//     data: {
+    //===//       appData: {
+    //===//         pageId: '<=$ pageId $=>',
+    //===//         actionId: 'insertItem',
+    //===//         <=%- if idGenerate %=>
+    //===//         bizIdGenerate: {
+    //===//           type: "idSequence",
+    //===//           prefix: "<=$ idGenerate.prefix $=>",
+    //===//           bizId: "<=$ idGenerate.bizId $=>",
+    //===//           tableName: "<=$ table $=>",
+    //===//           startValue: <=$ idGenerate.startValue $=>,
+    //===//         },
+    //===//         <=%- endif %=>
+    //===//         actionData: this.createActionData
+    //===//       }
+    //===//     }
+    //===//   })
+    //===//   await window.jhMask.hide();
+    //===//   await window.vtoast.success("新增数据成功");
+    //===// },
+    //===// async closeCreateDrawer() {
+    //===//   this.isCreateDrawerShown = false;
+    //===//   this.createItem = {};
+    //===//   this.createActionData = null;
+    //===//   <=%- if hasCreateDrawer > 1 %=>
+    //===//   this.updateDrawerTab = 0;
+    //===//   <=%- endif %=>
+    //===// },
+    // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
+    //===// <=%- endif %=>
+
+    //===// <=%- if hasUpdateDrawer %=>
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    //===// async prepareUpdateFormData(funObj) {
+    //===//   this.updateItem = _.cloneDeep(funObj);
+    //===// },
+    //===// async openUpdateDrawer() {
+    //===//   this.isUpdateDrawerShown = true;
+    //===// },
+    //===// async prepareUpdateValidate() {
+    //===//   if (await this.$refs.updateForm.validate()) {
+    //===//     return true;
+    //===//   }
+    //===//   throw new Error("请完善表单信息")
+    //===// },
+    //===// async confirmUpdateItemDialog() {
+    //===//   if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+    //===//     throw new Error("[confirmUpdateItemDialog] 否");
+    //===//   }
+    //===// },
+    //===// async prepareDoUpdateItem() {
+    //===//   const {id, ...data} = this.updateItem;
+    //===//   this.updateItemId = id;
+    //===//   this.updateActionData = {
+    //===//     <=%- for formItem in updateFormItemList %=>
+    //===//     <=%- if formItem.model %=>
+    //===//     <=%- if formItem.valueType === 'json' %=>
+    //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
+    //===//     <=%- else %=>
+    //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+    //===//     <=%- endif %=>
+    //===//     <=%- endif %=>
+    //===//     <=%- endfor %=>
+    //===//   };
+    //===// },
+    //===// async doUpdateItem() {
+    //===//   await window.jhMask.show();
+    //===//   await window.vtoast.loading("修改数据");
+    //===//   await window.jianghuAxios({
+    //===//     data: {
+    //===//       appData: {
+    //===//         pageId: '<=$ pageId $=>',
+    //===//         actionId: 'updateItem',
+    //===//         actionData: this.updateActionData,
+    //===//         where: {id: this.updateItemId}
+    //===//       }
+    //===//     }
+    //===//   })
+    //===//   await window.jhMask.hide();
+    //===//   await window.vtoast.success("修改数据成功");
+    //===// },
+    //===// async closeUpdateDrawer() {
+    //===//   this.isUpdateDrawerShown = false;
+    //===//   this.updateItem = {};
+    //===//   this.updateActionData = null;
+    //===//   this.updateItemId = null;
+    //===//   <=%- if hasUpdateDrawer > 1 %=>
+    //===//   this.updateDrawerTab = 0;
+    //===//   <=%- endif %=>
+    //===// },
+    // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
+    //===// <=%- endif %=>
+
+    //===// <=%- if hasDelete %=>
+    // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+    //===// async prepareDeleteFormData(funObj) {
+    //===//   this.deleteItem = _.cloneDeep(funObj);
+    //===// },
+    //===// async confirmDeleteItemDialog() {
+    //===//   if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+    //===//     throw new Error("[confirmDeleteItemDialog] 否");
+    //===//   }
+    //===// },
+    //===// async prepareDoDeleteItem() {
+    //===//   const {id} = this.deleteItem;
+    //===//   this.deleteItemId = id;
+    //===// },
+    //===// async doDeleteItem() {
+    //===//   await window.vtoast.loading("删除数据");
+    //===//   await window.jianghuAxios({
+    //===//     data: {
+    //===//       appData: {
+    //===//         pageId: '<=$ pageId $=>',
+    //===//         actionId: 'deleteItem',
+    //===//         actionData: {},
+    //===//         where: {id: this.deleteItemId}
+    //===//       }
+    //===//     }
+    //===//   });
+    //===//   await window.vtoast.success("删除数据成功");
+    //===// },
+    //===// async clearDeleteItem() {
+    //===//   this.deleteItem = {};
+    //===//   this.deleteItemId = null;
+    //===// },
+    // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
+    //===// <=%- endif %=>
+
+    // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+    //===// <=%- for drawer in actionContent %=>
+    //===// <=%- if drawer.tag == 'jh-drawer' %=>
+    //===// async prepare<=$ drawer.key | ucfirst $=>Data(funObj) {
+    //===//   this.<=$ drawer.key $=>Item = _.cloneDeep(funObj);
+    //===// },
+    //===// async open<=$ drawer.key | ucfirst $=>Drawer() {
+    //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = true;
+    //===// },
+    //===// async close<=$ drawer.key | ucfirst $=>Drawer() {
+    //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = false;
+    //===//   <=%- if drawer.contentList.length > 1 %=>
+    //===//   this.<=$ drawer.key | lcfirst $=>DrawerTab = 0;
+    //===//   <=%- endif %=>
+    //===// },
+    //===// <=%- endif %=>
+    //===// <=%- endfor %=>
+
+    //===// <=%- if common and common.methods %=>
+    // ---------- Custom uiAction >>>>>>>>>>>> --------
+    //===// <=%- for key, value in common.methods %=>
+    //===// <=$ value | variableToVar(key) | safe $=>,
+    //===// <=%- endfor %=>
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
+    //===// <=%- endif %=>
+
+    //===// <=%- if hasJhScene %=>
+    //===// useScene(funObj) {
+    //===//   this.currentSceneId = funObj.id;
+    //===//   this.serverSearchInput = _.cloneDeep(funObj.form);
+    //===//},
+    //===// setDefaultSceneData() {
+    //===//   let localSceneList = localStorage.getItem(this.localSceneListKey);
+    //===//   if (localSceneList == null) localSceneList = '[]';
+    //===//   localSceneList = JSON.parse(localSceneList);
+    //===//   localSceneList = _.filter(localSceneList, function (sceneItem) {
+    //===//     return !sceneItem.system;
+    //===//   });
+    //===//   localSceneList = [
+    //===//     ...this.defaultSceneList,
+    //===//     ...localSceneList
+    //===//   ];
+    //===//   this.currentSceneId = 'scene-custom-all';
+    //===//   localStorage.setItem(this.localSceneListKey, JSON.stringify(localSceneList))
+    //===// },
+    //===// <=%- endif %=>
+
+  }
+})
+</script>
+
+<style scoped>
+  <=%- if style %=>
+  <=$ style $=>
   <=%- endif %=>
-
-    <=%- if hasJhScene %=>
-      {% include 'component/jianghuJs/jhSceneV4.html' %}
-      <=%- endif %=>
-        <=%- for component in componentList %=>
-          {% include 'component/<=$ component.componentPath $=>.html' %}
-            <=%- endfor %=>
-              <=%- for item in includeList %=>
-                <=%- if item.type !='vueComponent' and item.type !='vueUse' %=>
-                  <=$ item | includeFormat | safe $=>
-                    <=%- endif %=>
-                      <=%- endfor %=>
-
-                        <script type="module">
-                          //===// <=%- for item in includeList %=>
-                          //===// <=%- if item.type == 'vueComponent' or item.type == 'vueUse' %=>
-                          //===// <=$ item | includeFormat $=>
-                          //===// <=%- endif %=>
-                          //===// <=%- endfor %=>
-                          new Vue({
-                            el: '#app',
-                            template: '#app-template',
-                            vuetify: new Vuetify(),
-                            data: () => ({
-
-                              isMobile: window.innerWidth < 500,
-
-                              //===// <=%- if hasHelpDrawer %=>
-                              //===// isHelpPageDrawerShown: false,
-                              //===// isHelpPageDrawerLoaded: false,
-                              //===// <=%- endif %=>
-
-                              //===// <=%- if hasJhScene %=>
-                              //===// serverSearchInput: {},
-                              //===// localSceneListKey: "<$ ctx.app.config.appId $>_<$ ctx.packagePage.pageId $>_<$ ctx.userInfo.userId $>",
-                              //===// currentSceneId: null,
-                              //===// defaultSceneList: [],
-                              //===// <=%- endif %=>
-
-                              //===// <=%- if hasJhTable %=>
-                              // ================================ 表格相关 ================================
-                              //===// <=$ (pageContent | find({tag: 'jh-table'})).value | removeKey(['formatter']) | listToVar('headers') $=>,
-                              //===// tableData: [],
-                              //===// isTableLoading: false,
-                              //===// searchInput: null,
-                              //===// <=%- endif %=>
-
-                              //===// <=%- if hasCreateDrawer %=>
-                              // ================================ 新建抽屉 ================================
-                              //===// isCreateDrawerShown: false,
-                              //===// createItem: {},
-                              //===// <=%- if hasCreateSubmit %=>
-                              //===// createActionData: {},
-                              //===// <=%- endif %=>
-                              //===// <=%- if hasCreateDrawer > 1 %=>
-                              //===// createDrawerTab: 0,
-                              //===// <=%- endif %=>
-                              //===// <=%- endif %=>
-
-                              //===// <=%- if hasUpdateDrawer %=>
-                              // ================================ 编辑抽屉 ================================
-                              //===// isUpdateDrawerShown: false,
-                              //===// updateItem: {},
-                              //===// updateItemId: null,
-                              //===// <=%- if hasUpdateSubmit %=>
-                              //===// updateActionData: {},
-                              //===// <=%- endif %=>
-                              //===// <=%- if hasUpdateDrawer > 1 %=>
-                              //===// updateDrawerTab: 0,
-                              //===// <=%- endif %=>
-                              //===// <=%- endif %=>
-
-                              //===// <=%- if hasDelete %=>
-                              // ================================ 删除 ================================
-                              //===// deleteItem: {},
-                              //===// deleteItemId: null,
-                              //===// <=%- endif %=>
-
-                              // ================================ common ================================
-                              //===// <=%- if common and common.data %=>
-                              //===// <=%- for key, value in common.data %=>
-                              //===// <=$ value | variableToVar(key, 4) $=>,
-                              //===// <=%- endfor %=>
-                              //===// <=%- endif %=>
-                              //===// <=%- if common and common.dataExpression %=>
-                              //===// <=%- for key, value in common.dataExpression %=>
-                              //===// <=$ value | expressionToVar(key, 4) $=>,
-                              //===// <=%- endfor %=>
-                              //===// <=%- endif %=>
-
-                              // ================================ 其他抽屉列表 ================================
-                              //===// <=%- for drawer in actionContent %=>
-                              //===// <=%- if drawer.tag == 'jh-drawer' %=>
-                              //===// is<=$ drawer.key | ucfirst $=>DrawerShown: false,
-                              //===// <=$ drawer.key | lcfirst $=>Item: {},
-                              //===// <=%- if drawer.contentList.length > 1 %=>
-                              //===// <=$ drawer.key | lcfirst $=>DrawerTab: 0,
-                              //===// <=%- endif %=>
-                              //===// <=%- endif %=>
-                              //===// <=%- endfor %=>
-
-
-
-
-                            }),
-                            watch: {
-                              //===// <=%- if hasHelpDrawer %=>
-                              isHelpPageDrawerShown(val) {
-                                if (val && !this.isHelpPageDrawerLoaded) {
-                                  this.isHelpPageDrawerLoaded = true;
-                                }
-                              },
-                              //===// <=%- endif %=>
-                              //===// <=%- for key, item in common.watch %=>
-                              //===// <=$ item | variableToVar(key) $=>,
-                              //===// <=%- endfor %=>
-                            },
-                            computed: {
-                              tableDataComputed() {
-                                if (this.filterMap) {
-                                  return this.tableData.filter(row => {
-                                    for (const key in this.filterMap) {
-                                      if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
-                                        return false;
-                                      }
-                                    }
-                                    return true;
-                                  });
-                                } else {
-                                  return this.tableData;
-                                }
-                              },
-                              //===// <=%- for key, item in common.computed %=>
-                              //===// <=$ item | variableToVar(key) $=>,
-                              //===// <=%- endfor %=>
-                            },
-                            //===// <=%- if not common.created %=>
-                            async created() {
-                              //===// <=%- if common.createdString %=>
-                              //===// <=$ common.createdString $=>
-                              //===// <=%- else %=>
-                              //===// <=%- if hasJhTable %=>
-                              this.doUiAction('getTableData');
-                              //===// <=%- endif %=>
-
-                              //===// <=%- if hasJhScene %=>
-                              this.setDefaultSceneData()
-                              //===// <=%- endif %=>
-
-                              //===// <=%- endif %=>
-                            },
-                            //===// <=%- endif %=>
-                            //===// <=% for key, item in common %=>
-                            //===// <=%- if key == 'mounted' or key == 'created' %=>
-                            //===// <=$ item | variableToVar(key) $=>,
-                            //===// <=%- endif %=>
-                            //===// <=%- endfor %=>
-
-                            //===// <=%- if common.mountedString %=>
-                            async mounted() {
-                              //===// <=$ common.createString | stringToVar $=>
-                            },
-                            //===// <=%- endif %=>
-                            methods: {
-                              async doUiAction(uiActionId, uiActionData) {
-                                try {
-                                  switch (uiActionId) {
-                                    //===// <=%- for key, value in basicUiActionConfig %=>
-                                    //===// case '<=$ key $=>':
-                                    //===//   <=%- for method in value %=>
-                                    //===//   await this.<=$ method $=>(uiActionData);
-                                    //===//   <=%- endfor %=>
-                                    //===//   break;
-                                    //===// <=%- endfor %=>
-
-
-                                    //===// <=%- for key, value in common.doUiAction %=>
-                                    //===// case '<=$ key $=>':
-                                    //===//   <=%- for method in value %=>
-                                    //===//   await this.<=$ method $=>(uiActionData);
-                                    //===//   <=%- endfor %=>
-                                    //===//   break;
-                                    //===// <=%- endfor %=>
-
-
-                                    //===// <=%- for drawer in actionContent %=>
-                                    //===// <=%- if drawer.tag == 'jh-drawer' %=>
-                                    //===// case 'view<=$ drawer.key | ucfirst $=>':
-                                    //===//   await this.prepare<=$ drawer.key | ucfirst $=>Data(uiActionData);
-                                    //===//   await this.open<=$ drawer.key | ucfirst $=>Drawer(uiActionData);
-                                    //===//   break;
-                                    //===// <=%- endif %=>
-                                    //===// <=%- endfor %=>
-
-                                    //===// <=%- if hasJhScene %=>
-                                    //===// case 'useScene':
-                                    //===//   await this.useScene(uiActionData);
-                                    //===//   await this.doUiAction('getTableData');
-                                    //===//   break;
-                                    //===// <=%- endif %=>
-                                    default:
-                                      console.error("[doUiAction] uiActionId not find", { uiActionId });
-                                      break;
-                                  }
-                                } catch (error) {
-                                  throw error;
-                                } finally {
-                                  window.jhMask && window.jhMask.hide();
-                                }
-                              },
-
-                              //===// <=%- if hasJhTable %=>
-                              // ---------- 获取表格数据 uiAction >>>>>>>>>> --------
-                              async getTableData() {
-                                this.isTableLoading = true;
-                                const where = {};
-                                const whereLike = {};
-                                //===// <=%- if common.data and common.data.serverSearchWhere %=>
-                                //===// for (const fieldKey in this.serverSearchWhere) {
-                                //===//   const fieldValue = this.serverSearchWhere[fieldKey];
-                                //===//   if(!!fieldValue && fieldValue != '全部') {
-                                //===//     where[fieldKey] = fieldValue;
-                                //===//   }
-                                //===// }
-                                //===// <=%- endif %=>
-                                //===// <=%- if common.data and common.data.serverSearchWhereLike %=>
-                                //===// for (const fieldKey in this.serverSearchWhereLike) {
-                                //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
-                                //===//   if(!!fieldValue && fieldValue != '全部') {
-                                //===//     whereLike[fieldKey] = fieldValue;
-                                //===//   }
-                                //===// }
-                                //===// <=%- endif %=>
-
-                                const rows = (await window.jianghuAxios({
-                                  data: {
-                                    appData: {
-                                      pageId: '<=$ pageId $=>',
-                                      actionId: 'selectItemList',
-                                      actionData: {},
-                                      where,
-                                      whereLike,
-                                      orderBy: [{ column: 'operationAt', order: 'desc' }]
-                                    }
-                                  }
-                                })).data.appData.resultData.rows;
-                                this.tableData = this.formatTableData(rows);
-                                this.isTableLoading = false;
-                              },
-                              //===// <=%- if not common.methods.formatTableData %=>
-                              formatTableData(rows) {
-                                rows.forEach(row => {
-                                  row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
-                                });
-                                return rows;
-                              },
-                              //===// <=%- endif %=>
-                              // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
-                              //===// <=%- endif %=>
-
-                              //===// <=%- if hasCreateDrawer %=>
-                              // ---------- 新增数据 uiAction >>>>>>>>>> --------
-                              //===// async prepareCreateFormData() {
-                              //===//   this.createItem = {
-                              //===//     <=%- for formItem in createFormItemList %=>
-                              //===//     <=%- if formItem.default is defined %=>
-                              //===//     <=$ formItem.model $=>: <=$ formItem.default $=>,
-                              //===//     <=%- endif %=>
-                              //===//     <=%- endfor %=>
-                              //===//   };
-                              //===// },
-                              //===// async openCreateDrawer() {
-                              //===//   this.isCreateDrawerShown = true;
-                              //===// },
-                              //===// async prepareCreateValidate() {
-                              //===//   if (await this.$refs.createForm.validate()) {
-                              //===//     return true;
-                              //===//   }
-                              //===//   throw new Error("请完善表单信息")
-                              //===// },
-                              //===// async confirmCreateItemDialog() {
-                              //===//   if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
-                              //===//     throw new Error("[confirmCreateFormDialog] 否");
-                              //===//   }
-                              //===// },
-                              //===// prepareDoCreateItem() {
-                              //===//   const {id, ...data} = this.createItem;
-                              //===//   this.createActionData = {
-                              //===//     <=%- for formItem in createFormItemList %=>
-                              //===//     <=%- if formItem.model %=>
-                              //===//     <=%- if formItem.valueType === 'json' %=>
-                              //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
-                              //===//     <=%- else %=>
-                              //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
-                              //===//     <=%- endif %=>
-                              //===//     <=%- endif %=>
-                              //===//     <=%- endfor %=>
-                              //===//   };
-                              //===// },
-                              //===// async doCreateItem() {
-                              //===//   await window.jhMask.show();
-                              //===//   await window.vtoast.loading("新增数据");
-                              //===//   await window.jianghuAxios({
-                              //===//     data: {
-                              //===//       appData: {
-                              //===//         pageId: '<=$ pageId $=>',
-                              //===//         actionId: 'insertItem',
-                              //===//         <=%- if idGenerate %=>
-                              //===//         bizIdGenerate: {
-                              //===//           type: "idSequence",
-                              //===//           prefix: "<=$ idGenerate.prefix $=>",
-                              //===//           bizId: "<=$ idGenerate.bizId $=>",
-                              //===//           tableName: "<=$ table $=>",
-                              //===//           startValue: <=$ idGenerate.startValue $=>,
-                              //===//         },
-                              //===//         <=%- endif %=>
-                              //===//         actionData: this.createActionData
-                              //===//       }
-                              //===//     }
-                              //===//   })
-                              //===//   await window.jhMask.hide();
-                              //===//   await window.vtoast.success("新增数据成功");
-                              //===// },
-                              //===// async closeCreateDrawer() {
-                              //===//   this.isCreateDrawerShown = false;
-                              //===//   this.createItem = {};
-                              //===//   this.createActionData = null;
-                              //===//   <=%- if hasCreateDrawer > 1 %=>
-                              //===//   this.updateDrawerTab = 0;
-                              //===//   <=%- endif %=>
-                              //===// },
-                              // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
-                              //===// <=%- endif %=>
-
-                              //===// <=%- if hasUpdateDrawer %=>
-                              // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
-                              //===// async prepareUpdateFormData(funObj) {
-                              //===//   this.updateItem = _.cloneDeep(funObj);
-                              //===// },
-                              //===// async openUpdateDrawer() {
-                              //===//   this.isUpdateDrawerShown = true;
-                              //===// },
-                              //===// async prepareUpdateValidate() {
-                              //===//   if (await this.$refs.updateForm.validate()) {
-                              //===//     return true;
-                              //===//   }
-                              //===//   throw new Error("请完善表单信息")
-                              //===// },
-                              //===// async confirmUpdateItemDialog() {
-                              //===//   if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
-                              //===//     throw new Error("[confirmUpdateItemDialog] 否");
-                              //===//   }
-                              //===// },
-                              //===// async prepareDoUpdateItem() {
-                              //===//   const {id, ...data} = this.updateItem;
-                              //===//   this.updateItemId = id;
-                              //===//   this.updateActionData = {
-                              //===//     <=%- for formItem in updateFormItemList %=>
-                              //===//     <=%- if formItem.model %=>
-                              //===//     <=%- if formItem.valueType === 'json' %=>
-                              //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
-                              //===//     <=%- else %=>
-                              //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
-                              //===//     <=%- endif %=>
-                              //===//     <=%- endif %=>
-                              //===//     <=%- endfor %=>
-                              //===//   };
-                              //===// },
-                              //===// async doUpdateItem() {
-                              //===//   await window.jhMask.show();
-                              //===//   await window.vtoast.loading("修改数据");
-                              //===//   await window.jianghuAxios({
-                              //===//     data: {
-                              //===//       appData: {
-                              //===//         pageId: '<=$ pageId $=>',
-                              //===//         actionId: 'updateItem',
-                              //===//         actionData: this.updateActionData,
-                              //===//         where: {id: this.updateItemId}
-                              //===//       }
-                              //===//     }
-                              //===//   })
-                              //===//   await window.jhMask.hide();
-                              //===//   await window.vtoast.success("修改数据成功");
-                              //===// },
-                              //===// async closeUpdateDrawer() {
-                              //===//   this.isUpdateDrawerShown = false;
-                              //===//   this.updateItem = {};
-                              //===//   this.updateActionData = null;
-                              //===//   this.updateItemId = null;
-                              //===//   <=%- if hasUpdateDrawer > 1 %=>
-                              //===//   this.updateDrawerTab = 0;
-                              //===//   <=%- endif %=>
-                              //===// },
-                              // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
-                              //===// <=%- endif %=>
-
-                              //===// <=%- if hasDelete %=>
-                              // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
-                              //===// async prepareDeleteFormData(funObj) {
-                              //===//   this.deleteItem = _.cloneDeep(funObj);
-                              //===// },
-                              //===// async confirmDeleteItemDialog() {
-                              //===//   if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
-                              //===//     throw new Error("[confirmDeleteItemDialog] 否");
-                              //===//   }
-                              //===// },
-                              //===// async prepareDoDeleteItem() {
-                              //===//   const {id} = this.deleteItem;
-                              //===//   this.deleteItemId = id;
-                              //===// },
-                              //===// async doDeleteItem() {
-                              //===//   await window.vtoast.loading("删除数据");
-                              //===//   await window.jianghuAxios({
-                              //===//     data: {
-                              //===//       appData: {
-                              //===//         pageId: '<=$ pageId $=>',
-                              //===//         actionId: 'deleteItem',
-                              //===//         actionData: {},
-                              //===//         where: {id: this.deleteItemId}
-                              //===//       }
-                              //===//     }
-                              //===//   });
-                              //===//   await window.vtoast.success("删除数据成功");
-                              //===// },
-                              //===// async clearDeleteItem() {
-                              //===//   this.deleteItem = {};
-                              //===//   this.deleteItemId = null;
-                              //===// },
-                              // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
-                              //===// <=%- endif %=>
-
-                              // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
-                              //===// <=%- for drawer in actionContent %=>
-                              //===// <=%- if drawer.tag == 'jh-drawer' %=>
-                              //===// async prepare<=$ drawer.key | ucfirst $=>Data(funObj) {
-                              //===//   this.<=$ drawer.key $=>Item = _.cloneDeep(funObj);
-                              //===// },
-                              //===// async open<=$ drawer.key | ucfirst $=>Drawer() {
-                              //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = true;
-                              //===// },
-                              //===// async close<=$ drawer.key | ucfirst $=>Drawer() {
-                              //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = false;
-                              //===//   <=%- if drawer.contentList.length > 1 %=>
-                              //===//   this.<=$ drawer.key | lcfirst $=>DrawerTab = 0;
-                              //===//   <=%- endif %=>
-                              //===// },
-                              //===// <=%- endif %=>
-                              //===// <=%- endfor %=>
-
-                              //===// <=%- if common and common.methods %=>
-                              // ---------- Custom uiAction >>>>>>>>>>>> --------
-                              //===// <=%- for key, value in common.methods %=>
-                              //===// <=$ value | variableToVar(key) | safe $=>,
-                              //===// <=%- endfor %=>
-                              // ---------- <<<<<<<<<<< Custom uiAction ---------
-                              //===// <=%- endif %=>
-
-                              //===// <=%- if hasJhScene %=>
-                              //===// useScene(funObj) {
-                              //===//   this.currentSceneId = funObj.id;
-                              //===//   this.serverSearchInput = _.cloneDeep(funObj.form);
-                              //===//},
-                              //===// setDefaultSceneData() {
-                              //===//   let localSceneList = localStorage.getItem(this.localSceneListKey);
-                              //===//   if (localSceneList == null) localSceneList = '[]';
-                              //===//   localSceneList = JSON.parse(localSceneList);
-                              //===//   localSceneList = _.filter(localSceneList, function (sceneItem) {
-                              //===//     return !sceneItem.system;
-                              //===//   });
-                              //===//   localSceneList = [
-                              //===//     ...this.defaultSceneList,
-                              //===//     ...localSceneList
-                              //===//   ];
-                              //===//   this.currentSceneId = 'scene-custom-all';
-                              //===//   localStorage.setItem(this.localSceneListKey, JSON.stringify(localSceneList))
-                              //===// },
-                              //===// <=%- endif %=>
-
-                            }
-                          })
-                        </script>
-
-                        <style scoped>
-                          <=%- if style %=><=$ style $=><=%- endif %=>
-                        </style>{% endblock %}
+</style>{% endblock %}
