@@ -1,0 +1,43 @@
+<template>
+  <!-- jh-addressList >>>>>>>>>>>>> -->
+  <view class="jh-addressList px-2 py-2">
+    <u-radio-group v-model="<=$ param.addresValue $=>" customStyle="{width: '100%'}" v-if="<=$ data $=> && <=$ data.length $=>">
+      <view class="p-4 w-full border">
+        <div class="bg-white rounded mb-4 w-full" v-for="(item, index) in <=$ data $=>" :key="index">
+          <div class="p-4 border-b border-gray-200">
+            <div class="font-medium">联系人：{{ item.username }} {{ item.tel }}</div>
+            <div>
+              收货地址：{{ item.address }}
+            </div>
+          </div>
+          <div class="p-2 px-4 text-sm flex justify-between">
+           
+            <u-radio
+              :name="item.id"
+              label="设为默认"
+              @change="<=$ action.setDefault $=>"
+            />
+            
+            <div class="flex">
+              <navigator
+                class="flex items-center mr-2"
+                @click="<=$ action.editClick $=>"
+                >
+                <u-icon name="edit-pen" size="20"></u-icon>
+                编辑
+              </navigator>
+              <div
+                url="javascript:;"
+                class="flex items-center text-red-500"
+                @click="<=$ action.delClick $=>"
+                >
+                <u-icon name="trash" size="20" color="#ef4444"></u-icon>
+              删除</div >
+            </div>
+          </div>
+        </div>
+      </view>
+    </u-radio-group>
+  </view>
+  <!-- <<<<<<<<<<<<< jh-addressList -->
+</template>

@@ -1,0 +1,15 @@
+<template>
+  <!-- jh-userInfo >>>>>>>>>>>>> -->
+  <view class="jh-userInfo px-2 py-2">
+    <u-cell :url="<=$ data.url $=>" :border="false" isLink :title="<=$ data.text $=>">
+      <div class="flex" slot="title">
+        {{ <=$ data.text $=> || '请登录' }}
+      </div>
+      <div slot="icon">
+        <u-avatar lazy-load round size="60" shape="circle"
+          :src="<=$ data.imageUrl $=>" class="mr-2"></u-avatar>
+      </div>
+    </u-cell>
+  </view>
+  <!-- <<<<<<<<<<<<< jh-userInfo -->
+</template>

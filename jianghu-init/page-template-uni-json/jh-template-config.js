@@ -237,7 +237,24 @@ comment: {
 
 
 // ---------- 个人中心
-// 个人信息 🟠
+// 个人信息 ✅
+{ 
+  template: "jh-userInfo",
+  param: {
+    data: 'userInfo'
+  },
+  value: '',
+  slot: {
+    image: `<div>自定义标题插槽</div>`,
+    title: `<div>自定义标题插槽</div>`,
+    icon:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } },
+  }
+}
+userInfo: {
+  url: '',
+  imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png',
+  text: 'usernam0'
+}
 // 图片 - uview
 // 宫格菜单 - uview
 // 宫格菜单 - uview
@@ -253,7 +270,29 @@ comment: {
 
 // ---------- 商品详情
 // 轮播图 - uview
-// 商品信息 🟠
+// 商品信息 ✅
+{ 
+  template: "jh-goodInfo2",
+  param: {
+    data: 'goodInfo2'
+  },
+  value: '',
+  slot: {
+    title1: `<div>自定义标题插槽</div>`,
+    title2:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } },
+    label1:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } },
+    label2:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } },
+    label3:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } }
+  }
+}
+goodInfo2: {
+  url: '/pages/course/list',
+  title1: '66.00',
+  title2: '知识付费考试',
+  label1: '划线价：¥99.00',
+  label2: '库存：0件',
+  label3: '销量：113件'
+}
 // 富文本解析 - uview
 // 评价列表 - 已定义
 // 底部导航栏 - uview
@@ -287,37 +326,90 @@ chooseAddress: [
 ]
 // 左右图文 - 已定义
 // 备注 - uview
-// 底部导航栏 🟠
+// 底部导航栏 ✅
 //  左：首页、客服按钮；自定义配置，插槽
 //  右：按钮，可定义大小，按钮可配置多个
+{ 
+  template: "jh-bottomBar",
+  param: {
+    data: 'bottomBar'
+  },
+  value: '',
+  slot: {
+    left: `<div>自定义标题插槽</div>`,
+    right: `<div>自定义标题插槽</div>`,
+  }
+}
+bottomBar: {
+  leftButton:[
+    {
+      text: '首页',
+      icon: 'share-square',
+      color: '#999999',
+      click: ''
+    },
+    {
+      text: '客服',
+      icon: 'share-square',
+      color: '#999999',
+      click: ''
+    }
+  ]
+  rightButton: [
+    {
+      text: '立即购买',
+      color: '#2C8EFF',
+      click: 'shop'
+    },
+    {
+      text: '结算',
+      color: '#2C8EFF',
+      click: 'payment'
+    }
+  ]
+}
+
 
 
 
 
 
 // ---------- 地址列表
-// 地址列表 🟠
+// 地址列表 ✅
 { 
   template: "jh-addressList",
   param: {
-    data: 'addressList'
+    data: 'addressList',
+    addresValue: 'addresValue',
   },
   value: '',
   slot: {
-    action: `<div>自定义标题插槽</div>`,
-    title: `<div>自定义标题插槽</div>`,
-    label:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } }
+    username: `<div>自定义标题插槽</div>`,
+    address:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } },
+    setDefault:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } },
+    edit:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } },
+    del:  { tag: 'div', value: '自定义tag插槽', attrs: { color: 'success' } }
+  },
+  action: {
+    setDefault: '',
+    editClick: '',
+    delClick: ''
   }
 }
 addressList: [
   {
+    id: 1,
     username: '苏清',
     tel: '17432423444',
-    address: '北京市海淀区家新家园',
-    isDefault: false
+    address: '北京市海淀区家新家园'
   },
+  {
+    id: 2,
+    username: '苏清222',
+    tel: '17432423444',
+    address: '北京市海淀区家新家园'
+  }
 ]
-
 
 
 
@@ -330,7 +422,7 @@ addressList: [
 
 // ---------- 订单列表
 // tabs - uview
-// 订单信息 card 🟠
+// 订单信息 card ✅
 { 
   template: "jh-orderInfo",
   param: {
@@ -343,17 +435,28 @@ addressList: [
     action: `<div>自定义标题插槽</div>`,
   }
 }
-orderInfo: [
-  {
-    orderNo: 'SP1699542658535271374',
-    imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png',
-    title: '孙子兵法',
-    price: 9,
-    number: 1,
-    totalPrice: 9,
-    status: '待发货'
-  },
-]
+orderInfo: {
+  orderId: 'SP1699542658535271374',
+  orderStatus: '待发货',
+  url: '',
+  imageUrl: 'https://demo.jianghujs.org/jufeng-student/upload/teacher/articleMaterial/56160/1666540566136_微信图片_20221023215307.png',
+  title: '孙子兵法',
+  price: 9,
+  number: 1,
+  totalPrice: 9,
+  button: [
+    {
+      text: '立即付款',
+      color: '#2C8EFF',
+      click: 'payment'
+    },
+    {
+      text: '查看详情',
+      color: '#2C8EFF',
+      click: 'orderDetail'
+    }
+  ]
+}
 
 
 

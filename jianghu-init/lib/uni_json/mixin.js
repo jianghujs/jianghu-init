@@ -307,6 +307,12 @@ const mixin = {
           return result.action ? result.action[p1] : '';
         });
 
+        // 使用正则表达式查找所有类似于 <=$ param.xxx $=> 的占位符
+        templateData = templateData.replace(/<=\s*\$ param\.([^\$]*) \$\s*=>/g, (match, p1) => {
+          // TODO: 兼容传入的是字符串，不是变量的情况 【先不处理】
+          return result.param[p1] || '';
+        });
+
         return templateData;
       } catch (err) {
         console.error('read jh-template Error:', err);
