@@ -463,7 +463,6 @@ const mixin = {
     const hasJhScene = headContent.find(e => e.tag === 'jh-scene')
     if (hasJhScene) {
       jsonConfig.hasJhScene = true;
-      window.defaultSceneList = hasJhScene.value
     }
     Object.assign(jsonConfig, this.getBasicConfig(jsonConfig));
 
