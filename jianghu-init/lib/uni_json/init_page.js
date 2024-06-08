@@ -55,8 +55,8 @@ module.exports = class InitPage1Table extends CommandBase {
     this.handleNunjucksEnv(templateTargetPath);
     this.handleJsonConfig(jsonConfig);
 
-    const componentList = this.getConfigComponentList(jsonConfig);
-    const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign(jsonConfig, { componentList }));
+    // const componentList = this.getConfigComponentList(jsonConfig);
+    const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign(jsonConfig, { componentList: jsonConfig.componentList }));
 
     if (pageId.includes('/')) {
       const pageIdArr = pageId.split('/');

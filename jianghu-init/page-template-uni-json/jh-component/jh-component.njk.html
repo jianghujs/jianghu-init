@@ -1,24 +1,24 @@
 
 <template>
-  <view>
-    <view class="" > <!-- attrs for -->
-      <=%- for content in pageContent.value %=>
-      <!-- jh-swpier -->
-      <=$ content | tagFormat(6) $=>
-      <=%- endfor %=>
-    </view> 
-    <jh-toast />
-    <jh-mask />
-    <jh-confirm-dialog />
-  </view>
+  <=%- for content in pageContent %=>
+  <=%- if content.template %=>
+  <=$ content | templateFormat $=>
+  <=%- else %=>
+  <=$ content | tagFormat(6) $=>
+  <=%- endif %=>
+  <=%- endfor %=>
 </template>
 
 <script>
-import jianghu from '@/jianghu';
 //===// <=%- for item in includeList %=>
-//===// <=$ item $=>
+//===// import <=$ item.name $=> from '<=$ item.path $=>';
 //===// <=%- endfor %=>
 export default {
+  //===// <=%- if common.props | isArray %=> 
+  //===// props: <=$ common.props | dump $=>,
+  //===// <=%- elif common.props | isObject %=>
+  //===// <=$ common.props | variableToVar('props') $=>,
+  //===// <=%- endif %=>
   data: () => ({
 
     //===// <=%- if hasHelpDrawer %=>
@@ -420,8 +420,14 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
   <=%- if style %=>
   <=$ style $=>
   <=%- endif %=>
+
+  <=%- for content in pageContent %=>
+  <=%- if content.template %=>
+  <=$ content | templateStyle $=>
+  <=%- endif %=>
+  <=%- endfor %=>
 </style>

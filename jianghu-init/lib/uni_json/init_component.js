@@ -31,10 +31,8 @@ module.exports = class InitComponent extends CommandBase {
 
   // 生成 vue
   async renderVue(jsonConfig) {
-
-    const { component, pageType } = jsonConfig;
-    // const filepath = `./app/view/component/${componentPath}.html`;
-    const filepath = `./components/${component}/${component}.vue`;
+    const { componentPath, pageType } = jsonConfig;
+    const filepath = `./components/${componentPath}.vue`;
     const templatePath = `${path.join(__dirname, '../../')}page-template-uni-json/jh-component`;
     const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath)
@@ -49,11 +47,14 @@ module.exports = class InitComponent extends CommandBase {
     const componentList = this.getConfigComponentList(jsonConfig);
     const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign(jsonConfig, { componentList }));
 
-    // fs.writeFileSync(filepath, htmlUser);
-    const componentPathArr = component.split('/');
-    if (componentPathArr.length > 1) {
+    if (componentPath.includes('/')) {
+      const componentPathArr = componentPath.split('/');
       const componentDir = componentPathArr.slice(0, componentPathArr.length - 1).join('/');
-      if (!fs.existsSync(`./app/view/component/${componentDir}`)) fs.mkdirSync(`./app/view/component/${componentDir}`);
+
+      const componentDirPath = `./components/${componentDir}`;
+      if (!fs.existsSync(componentDirPath)) {
+        fs.mkdirSync(componentDirPath);
+      }
     }
 
     // fs.writeFileSync(filepath, htmlUser);
