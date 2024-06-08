@@ -272,6 +272,26 @@
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
+          <v-spacer></v-spacer>
+          
+          <!-- 抽屉操作按钮 -->
+         
+          <=%- for content in actionItem.contentList %=>
+          <v-row class="justify-end mx-0 px-4" v-if="
+          <=%- if actionItem.contentList.length === 1 %=>
+          true
+          <=%- else %=>
+          <=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
+          <=%- endif %=>
+          ">
+            <=%- if content.action %=>
+            <=$ content.action | tagFormat(14) $=>
+            <=%- endif %=>
+            <v-btn class="elevation-0 ml-2" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false" small>取消</v-btn>
+          </v-row>
+          <=%- endfor %=>
+         
+
         </v-row>
         <v-divider class="jh-divider"></v-divider>
         <=%- endif %=>
@@ -290,7 +310,7 @@
             color="success"
           >
             <=%- for content in actionItem.contentList %=>
-            <v-tab key="<=$ content.label $=>">
+            <v-tab key="<=$ loop.index - 1 $=>">
               <=$ content.label $=>
             </v-tab>
             <=%- endfor %=>
@@ -303,7 +323,7 @@
           <=%- for content in actionItem.contentList %=>
           <=%- if actionItem.contentList.length > 1 %=>
           <v-tab-item
-            key="<=$ content.label $=>"
+            key="<=$ loop.index - 1 $=>"
           >
           <=%- endif %=>
 
@@ -334,13 +354,7 @@
               <=%- endfor %=>
             </v-row>
 
-            <!-- 抽屉操作按钮 -->
-            <v-row class="justify-end mx-0 my-8 px-4">
-              <=%- if content.action %=>
-              <=$ content.action | tagFormat(14) $=>
-              <=%- endif %=>
-              <v-btn class="elevation-0 ml-2" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false" small>取消</v-btn>
-            </v-row>
+            
             <=%- elif content.type == "component" %=>
             <<=$ content.componentPath.split('/').pop() | camelToKebab $=> 
             <=%- for attr, value in content.bind %=>
