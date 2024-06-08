@@ -76,7 +76,7 @@ module.exports = class InitPage1Table extends CommandBase {
   }
 
   async modifyTable(jsonConfig) {
-    const { table, pageId, pageName = '', idGenerate = false } = jsonConfig;
+    const { table, pageId, pageName = '', pageHook = {}, idGenerate = false } = jsonConfig;
 
     if (table) {
       await this.checkTableFields(table, idGenerate);
@@ -85,7 +85,7 @@ module.exports = class InitPage1Table extends CommandBase {
       // await this.executeSql('check_resource.sql', { pageId, pageName, table, insertBeforeHook });
     }
     if (pageId) {
-      await this.executeSql('check_page.sql', { pageId, pageName });
+      await this.executeSql('check_page.sql', { pageId, pageName, pageHook });
     }
   }
 
