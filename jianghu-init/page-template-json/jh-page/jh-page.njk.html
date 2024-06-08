@@ -66,12 +66,12 @@
          
         <=%- elif content.tag=='jh-scene' %=>
         
-        <jh-scene class="py-2 py-md-0" :initFormData="serverSearchInput" :sceneListKey="localSceneListKey" currentSceneId="currentSceneId"
+        <jh-scene class="py-2 py-md-0" :initFormData="serverSearchInput" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId"
           @useScene="doUiAction('useScene', $event)">
           <template v-slot:form="{form}">
               <v-row class="mt-0 px-4">
                 <=%- for formItem in content.formItemList %=>
-                  <v-col cols="12">
+                  <v-col cols="12" class="px-0">
                         <=%- if formItem.label %=>
                           <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*
                               </span><=%- endif %=>
@@ -891,7 +891,6 @@ new Vue({
     //===//     ...this.defaultSceneList,
     //===//     ...localSceneList
     //===//   ];
-    //===//   this.currentSceneId = 'scene-custom-all';
     //===//   localStorage.setItem(this.localSceneListKey, JSON.stringify(localSceneList))
     //===// },
     //===// <=%- endif %=>
