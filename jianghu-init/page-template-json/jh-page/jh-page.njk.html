@@ -187,13 +187,8 @@
           class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
         >
 
-          <=$ content.slots | tagFormat(12) $=>
+          <=$ content.slot | tagFormat(12) $=>
 
-          <=%- for key, slot  in content.slot %=>
-          <template v-slot:<=$ key $=>="slotProps">
-            <=$ slot | tagFormat(12) $=>
-          </template>
-          <=%- endfor %=>
           <=%- for header in content.value %=>
           <=%- if header.formatter %=>
           <template v-slot:item.<=$ header.value $=>="{item, index}">
