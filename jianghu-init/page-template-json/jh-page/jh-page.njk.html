@@ -30,6 +30,7 @@
           </div>
         </v-col>
         <=%- elif content.tag == 'jh-search' %=>
+        <!-- 服务端搜索 -->
         <v-col cols="12" xs="12" sm="12" md="8" xl="9" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <v-row class="jh-backend-form-container justify-end ma-0 py-3">
             <=%- for search in content.value %=>
@@ -65,7 +66,7 @@
             <=%- endif %=>
          
         <=%- elif content.tag=='jh-scene' %=>
-        
+        <!-- 场景搜索 -->
         <jh-scene class="py-2 py-md-0" :initFormData="serverSearchInput" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId"
           @useScene="doUiAction('useScene', $event)">
           <template v-slot:form="{form}">
@@ -104,6 +105,7 @@
           </template>
         </jh-scene>
         <=%- else %=>
+        <!-- 自定义搜索内容 -->
         <=$ content | tagFormat(12) $=>
         <=%- endif %=>
         <=%- endfor %=>
@@ -119,6 +121,7 @@
       <v-row class="pa-0">
       <=%- for content in pageContent %=>
       <=%- if content.tag == 'jh-search' %=>
+      <!-- 全局搜索块 -->
       <v-card class="rounded-lg"> 
         <v-row class="pa-4 mb-4 align-center items-center">
           <=%- for search in content.value %=>
@@ -157,7 +160,8 @@
 
       <=%- elseif content.tag == 'jh-table' %=>
       <v-col cols="<=$ content.attrs.cols | default('12') $=>" sm="<=$ content.attrs.sm | default('12') $=>" md="<=$ content.attrs.md | default('12') $=>">
-      <v-card class="rounded-lg">
+        <!-- 表格顶部栏 -->
+        <v-card class="rounded-lg">
         <=%- if content.headActionList %=>
         <v-row class="ma-0 pb-4 pa-0 px-4 px-md-0">
           <=%- for action in content.headActionList %=>
@@ -187,8 +191,10 @@
           class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
         >
 
+          <!-- 表格插槽 -->
           <=$ content.slot | tagFormat(12) $=>
 
+          <!-- 自定义渲染列 -->
           <=%- for header in content.value %=>
           <=%- if header.formatter %=>
           <template v-slot:item.<=$ header.value $=>="{item, index}">
@@ -275,7 +281,6 @@
           <v-spacer></v-spacer>
           
           <!-- 抽屉操作按钮 -->
-         
           <=%- for content in actionItem.contentList %=>
           <v-row class="justify-end mx-0 px-4" v-if="
           <=%- if actionItem.contentList.length === 1 %=>
@@ -295,6 +300,7 @@
         </v-row>
         <v-divider class="jh-divider"></v-divider>
         <=%- endif %=>
+        <!-- 抽屉内容 -->
         <=%- if actionItem.otherActionList %=>
         <v-row>
           <v-col cols="12" class="px-6 pt-0">
@@ -327,8 +333,9 @@
           >
           <=%- endif %=>
 
+            <!-- 抽屉内容form -->
             <=%- if content.type == "form" %=>
-            <v-row class="mt-0 px-4">
+            <v-row class="mt-0 px-4 pb-4">
               <=%- for formItem in content.formItemList %=>
               <=%- if not formItem.hidden %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
@@ -354,13 +361,14 @@
               <=%- endfor %=>
             </v-row>
 
-            
+             <!-- 抽屉内容组件 -->
             <=%- elif content.type == "component" %=>
             <<=$ content.componentPath.split('/').pop() | camelToKebab $=> 
             <=%- for attr, value in content.bind %=>
             <=$ attr | tagAttr(value) $=>
             <=%- endfor %=>/>
             <=%- else %=>
+             <!-- 抽屉内容自定义 -->
             <=$ content | tagFormat(12) $=>
             <=%- endif %=>
 
@@ -381,10 +389,9 @@
     <=%- else %=>
     <=$ actionItem | tagFormat(4) $=>
     <=%- endif %=>
-
     <=%- endfor %=>
 
-
+    <!-- 组件列表 -->
     <=%- for item in includeList %=>
     <=%- if (item.includeType === 'auto') %=>
     <<=$ item.path | componentName $=> ref="<=$ item.path | componentHumpName $=>Ref" />
