@@ -169,7 +169,7 @@
           <=%- endfor %=>
           <=%- if content.showTableColumnSettingBtn %=>
           <v-spacer></v-spacer>
-          <table-column-setting-btn :columnSettingGroup="columnSettingGroup" :headers="headers" @change="headers=$event" />
+          <table-column-setting-btn :selectedColumnGroup.sync="selectedColumnGroup" :columnSettingGroup="columnSettingGroup" :headers="headers" @change="headers=$event" />
           <=%- endif %=>
         </v-row>
         <=%- endif %=>
@@ -340,7 +340,7 @@
               <=%- if not formItem.hidden %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
-                <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                <span class="jh-input-label"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
                 <=%- endif %=>
                 <=%- if formItem.tag == "v-date-picker" %=>
                 <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
@@ -470,6 +470,7 @@ new Vue({
     //===// isTableLoading: false,
     //===// searchInput: null,
     //===// columnSettingGroup: {},
+    //===// selectedColumnGroup: null,
     //===// <=%- endif %=>
 
     //===// <=%- if hasCreateDrawer %=>
@@ -691,7 +692,7 @@ new Vue({
     //===//   this.createItem = {
     //===//     <=%- for formItem in createFormItemList %=>
     //===//     <=%- if formItem.default is defined %=>
-    //===//     <=$ formItem.model $=>: <=$ formItem.default $=>,
+    //===//     <=$ formItem.model $=>: "<=$ formItem.default $=>",
     //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };

@@ -71,6 +71,8 @@
                  })
                  newheaders = newheaders.filter(header=> header.inTableShow)
                  this.$emit('change', newheaders)
+                 this.$emit('update:selectedColumnGroup', val)
+
              }
          },
          created() {
@@ -99,6 +101,7 @@
                  })
                  console.log('[changeHeaders]', newHeaders, this.selectedHeaders.map(row => row.value));
                  this.$emit('change', newHeaders)
+                 this.$emit('update:selectedColumnGroup', this.selectedColumnGroup)
              }
          },
      })

@@ -261,7 +261,7 @@ module.exports = class InitJson extends CommandBase {
             }
           }],
         },
-        { label: "操作记录", type: "component", componentPath: "recordHistory", attrs: { table: '${table}', pageId: '${pageId}', id: 'updateItem.id' } },
+        { label: "操作记录", type: "component", componentPath: "recordHistory", attrs: { table: '${table}', pageId: '${pageId}', ':id': 'updateItem.id' } },
       ]
     },
   ]`;
