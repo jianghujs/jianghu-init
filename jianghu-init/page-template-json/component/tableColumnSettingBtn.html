@@ -5,7 +5,7 @@
              {{key}}
          </v-btn>
          
-         <v-menu max-height="350" :close-on-content-click="false" right offset-y>
+         <v-menu max-height="350" min-width="150" :close-on-content-click="false" right offset-y>
             <template v-slot:activator="{ on, attrs }">
             <v-btn v-bind="attrs" v-on="on" small class="elevation-0">
                 列设置
@@ -16,7 +16,7 @@
             <v-list>
                 <v-list-item style="cursor: pointer;" v-for="item in headersFull" :key="item.value">
                     <v-list-item-action>
-                    <v-checkbox :label="item.text" @change="changeHeaders" :value="item" v-model="selectedHeaders"></v-checkbox>
+                    <v-checkbox :label="item.text" :disabled="item.disabled" @change="changeHeaders" :value="item" v-model="selectedHeaders"></v-checkbox>
                     </v-list-item-action>
                 </v-list-item>
             </v-list>
@@ -60,16 +60,16 @@
          }),
          watch: {
              selectedColumnGroup(val) {
-                 if (!val) return;
-                 let newheaders = [...this.headersFull]
+                 if (!val || !isNaN(val)) return;
+                 let newheaders = []
                  const currentColumn = this.columnSettingGroup[val]
-                 newheaders.forEach(header=> {
-                     header.inTableShow = false
-                     if (currentColumn.includes(header.value)) {
-                         header.inTableShow = true
+
+                 currentColumn.forEach(key=> {
+                    const item = this.headersFull.find(item=> item.value == key)
+                     if (item) {
+                         newheaders.push(item)
                      }
                  })
-                 newheaders = newheaders.filter(header=> header.inTableShow)
                  this.$emit('change', newheaders)
                  this.$emit('update:selectedColumnGroup', val)
 
@@ -93,9 +93,10 @@
          methods: {
              changeHeaders() {
                  const newHeaders = []
- 
-                 this.headersFull.map(item => {
-                     if (this.selectedHeaders.map(row => row.value).includes(item.value)) {
+                
+                 this.headersFull.map(header => {
+                    const item = this.selectedHeaders.find(item=> item.value == header.value)
+                     if (item) {
                          newHeaders.push(item)
                      }
                  })
