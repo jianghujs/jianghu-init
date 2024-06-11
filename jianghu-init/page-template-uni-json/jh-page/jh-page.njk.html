@@ -127,7 +127,7 @@ export default {
   },
   //===// <=%- endif %=>
   //===// <=% for key, item in common %=>
-  //===// <=%- if key == 'mounted' or key == 'created' %=>
+  //===// <=%- if ['onLoad', 'onShow', 'onReady', 'onHide', 'onHide', 'onUnload', 'mounted', 'created'] | includes(key) %=>
   //===// <=$ item | variableToVar(key) $=>,
   //===// <=%- endif %=>
   //===// <=%- endfor %=>

@@ -78,6 +78,7 @@ const mixin = {
           return value;
         }, 2)
           .replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '')
+          .replace(/\\t/g, '  ')
           .replace(/\\r\\n/g, '\n')
           .replace(/\\n {4}/g, '\n')
           .replace(/\\n/g, '\n')
@@ -146,6 +147,9 @@ const mixin = {
 
       return `${key}="${value.toString().replace(/"/g, '\'')}"`;
     };
+    nunjucksEnv.addFilter('includes', function(arr, val) {
+      return arr.includes(val);
+    });
     nunjucksEnv.addFilter('tagAttr', function(key, value, tag) {
       return tagAttr(key, value, tag);
     });
