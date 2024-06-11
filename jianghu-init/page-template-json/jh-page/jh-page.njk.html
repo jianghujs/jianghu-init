@@ -1,6 +1,7 @@
 {% block htmlHead %}
 <style>
 /* css */
+<=$ style $=>
 </style>
 {% endblock %}
 
@@ -337,7 +338,7 @@
             <=%- if content.type == "form" %=>
             <v-row class="mt-0 px-4 pb-4">
               <=%- for formItem in content.formItemList %=>
-              <=%- if not formItem.hidden %=>
+              <=%- if (not formItem.hidden or formItem.model) %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
                 <span class="jh-input-label"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
@@ -357,6 +358,8 @@
                 <=$ formItem | tagFormat(16) $=>
                 <=%- endif %=>
               </v-col>
+              <=%- else %=>
+              <=$ attr | tagAttr(value) $=>
               <=%- endif %=>
               <=%- endfor %=>
             </v-row>
