@@ -1,5 +1,5 @@
 <!-- <=$ componentPath.split('/').pop() $=>.html start -->
-<template id="<=$ componentPath.split('/').pop() | camelToKebab $=>">
+<script type="text/x-template" id="<=$ componentPath.split('/').pop() | camelToKebab $=>">
   <div>
     <=%- if headContent %=> 
     <!-- 头部内容 >>>>>>>>>>>>> -->
@@ -160,9 +160,9 @@
     <=%- endfor %=>
     <!-- <<<<<<<<<<<<< 页面内容 -->
 
-    <=%- for actionItem in actionContent %=> 
+    <=%- for actionItem in actionContent %=>
 
-    <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' %=> 
+    <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' %=>
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
     <v-navigation-drawer v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" :permanent="is<=$ actionItem.key | ucfirst $=>DrawerShown" fixed temporary right width="80%" class="elevation-24" <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
@@ -173,13 +173,33 @@
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
+          <v-spacer></v-spacer>
+          
+          <!-- 抽屉操作按钮 -->
+          <=%- for content in actionItem.contentList %=>
+          <v-row class="justify-end mx-0 px-4" v-if="
+          <=%- if actionItem.contentList.length === 1 %=>
+          true
+          <=%- else %=>
+          <=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
+          <=%- endif %=>
+          ">
+            <=%- if content.action %=>
+            <=$ content.action | tagFormat(14) $=>
+            <=%- endif %=>
+            <v-btn class="elevation-0 ml-2" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false" small>取消</v-btn>
+          </v-row>
+          <=%- endfor %=>
+         
+
         </v-row>
         <v-divider class="jh-divider"></v-divider>
         <=%- endif %=>
-        <=%- if actionItem.otherActionList %=> 
+        <!-- 抽屉内容 -->
+        <=%- if actionItem.otherActionList %=>
         <v-row>
           <v-col cols="12" class="px-6 pt-0">
-            <=% for actionItem in actionItem.otherActionList %=> 
+            <=% for actionItem in actionItem.otherActionList %=>
             <=$ actionItem.tag | tagFormat $=><=% endfor %=>
           </v-col>
         </v-row>
@@ -191,34 +211,34 @@
             color="success"
           >
             <=%- for content in actionItem.contentList %=>
-            <v-tab key="<=$ content.label $=>">
+            <v-tab key="<=$ loop.index - 1 $=>" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <=$ content.label $=>
             </v-tab>
             <=%- endfor %=>
           </v-tabs>
         </div>
         <=%- endif %=>
-       
         <=%- if actionItem.contentList.length > 1 %=>
         <v-tabs-items v-model="<=$ actionItem.key $=>DrawerTab">
         <=%- endif %=>
           <=%- for content in actionItem.contentList %=>
           <=%- if actionItem.contentList.length > 1 %=>
           <v-tab-item
-            key="<=$ content.label $=>"
+            key="<=$ loop.index - 1 $=>"
           >
           <=%- endif %=>
 
+            <!-- 抽屉内容form -->
             <=%- if content.type == "form" %=>
-            <v-row class="mt-0 px-4">
+            <v-row class="mt-0 px-4 pb-4">
               <=%- for formItem in content.formItemList %=>
-              <=%- if not formItem.hidden %=>
+              <=%- if (not formItem.hidden or formItem.model) %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
-                <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                <span class="jh-input-label"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
                 <=%- endif %=>
                 <=%- if formItem.tag == "v-date-picker" %=>
-                <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
+                <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
                     <template v-slot:activator="{on, attrs}">
                     <v-text-field v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly clearable></v-text-field>
                     </template>
@@ -232,23 +252,20 @@
                 <=$ formItem | tagFormat(16) $=>
                 <=%- endif %=>
               </v-col>
+              <=%- else %=>
+              <=$ attr | tagAttr(value) $=>
               <=%- endif %=>
               <=%- endfor %=>
             </v-row>
 
-            <!-- 抽屉操作按钮 -->
-            <v-row class="justify-end mx-0 my-8 px-4">
-              <=%- if content.action %=>
-              <=$ content.action | tagFormat(14) $=>
-              <=%- endif %=>
-              <v-btn class="elevation-0 ml-2" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false" small>取消</v-btn>
-            </v-row>
+             <!-- 抽屉内容组件 -->
             <=%- elif content.type == "component" %=>
             <<=$ content.componentPath.split('/').pop() | camelToKebab $=> 
             <=%- for attr, value in content.bind %=>
             <=$ attr | tagAttr(value) $=>
             <=%- endfor %=>/>
             <=%- else %=>
+             <!-- 抽屉内容自定义 -->
             <=$ content | tagFormat(12) $=>
             <=%- endif %=>
 
@@ -269,10 +286,9 @@
     <=%- else %=>
     <=$ actionItem | tagFormat(4) $=>
     <=%- endif %=>
-
     <=%- endfor %=>
   </div>
-</template>
+</script>
 <=%- for item in includeList %=>
 <=$ item | includeFormat $=>
 <=%- endfor %=>
@@ -281,6 +297,10 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
   template: '#<=$ componentPath.split('/').pop() | camelToKebab $=>',
   vuetify: new Vuetify(),
   name: '<=$ componentPath.split('/').pop() | camelToKebab $=>',
+  //===// <=%- if common.model | isObject %=> 
+  //===// <=$ common.model | variableToVar('model') $=>,
+  //===// <=%- endif %=>
+
   //===// <=%- if common.props | isArray %=> 
   //===// props: <=$ common.props | dump $=>,
   //===// <=%- elif common.props | isObject %=>
