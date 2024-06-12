@@ -300,12 +300,6 @@ const mixin = {
         // 如果插槽没有自定义，显示默认的内容，删除占位符
         templateData = templateData.replace(/<=\s*\$ slot\.(\w+) \$\s*=>/g, '').replace(/<=\s*\$ endSlot \$\s*=>/g, '');
 
-        // 使用正则表达式查找所有类似于 <=$ data.xxx $=> 的占位符
-        templateData = templateData.replace(/<=\s*\$ data([^\$]*) \$\s*=>/g, (match, p1) => {
-          // TODO: 兼容传入的是字符串，不是变量的情况 【先不处理】
-          return `${result.param.data}${p1}` || '';
-        });
-
         // 使用正则表达式查找所有类似于 <=$ action.xxx $=> 的占位符
         templateData = templateData.replace(/<=\s*\$ action\.([^\$]*) \$\s*=>/g, (match, p1) => {
           return result.action ? result.action[p1] : '';
@@ -313,9 +307,18 @@ const mixin = {
 
         // 使用正则表达式查找所有类似于 <=$ param.xxx $=> 的占位符
         templateData = templateData.replace(/<=\s*\$ param\.([^\$]*) \$\s*=>/g, (match, p1) => {
-          // TODO: 兼容传入的是字符串，不是变量的情况 【先不处理】
-          return result.param[p1] || '';
+          // TODO key
+          let data = '';
+          if(_.startsWith(p1, ':')){
+            data = `${result.param}${p1}`;
+          }else{
+            data = _.isString(result.param[p1]) ? result.param[p1] : _.get(result.param, p1)
+          }
+          return data;
         });
+
+        // 使用正则表达式查找所有类似于 <=$ dataPrefix $=> 的占位符
+        templateData = templateData.replace(/<=\s*\$ dataPrefix \$\s*=>/g, _.has(result.param, ':data') ? ':' : '');
 
         return templateData;
       } catch (err) {
