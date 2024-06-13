@@ -2,10 +2,9 @@
   <!-- jh-imageAndTextLR >>>>>>>>>>>>> -->
   <navigator
   <=$ dataPrefix $=>url="<=$ param.data.url $=>"
-    class="flex px-2 py-2"
+    class="flex px-2 py-2 <=$ param.containerClass $=>"
     @click="<=$ action.click $=>"
     v-if="<=$ param.isShown $=>"
-    :class="<=$ param.containerClass $=>"
     <=$ param.containerAttr $=>
   >
     <u-image

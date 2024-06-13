@@ -307,13 +307,33 @@ const mixin = {
 
         // 使用正则表达式查找所有类似于 <=$ param.xxx $=> 的占位符
         templateData = templateData.replace(/<=\s*\$ param\.([^\$]*) \$\s*=>/g, (match, p1) => {
-          // TODO key
-          let data = '';
-          if(_.startsWith(p1, ':')){
-            data = `${result.param}${p1}`;
-          }else{
-            data = _.isString(result.param[p1]) ? result.param[p1] : _.get(result.param, p1)
+          // data.xxx，输出'data'
+          const key = p1.match(/^[^.]+/)[0];
+          // data、data.title.xxx、data.name，输出''、.title.xxx、.name
+          let endExpression = p1.match(/\.(.*?)(?:\s|$)/);
+          endExpression = endExpression ? endExpression[0] : '';
+
+          // 处理自定义key
+          if(key === 'data'){
+            // data、data.title.xxx、data.name，输出''、title、name
+            const dataKey = p1.match(/\.(\w+)(?:\.|$|\s)/);
+            const customKey = `${dataKey ? dataKey[1] : ''}Key`;
+            if(result.param[customKey]){
+              // data、data.title.xxx、data.name，输出''、.xxx、''
+              endExpression = p1.match(/^[^.]*\.[^.]*\.(.*?)(?:\s|$)/);
+              endExpression = endExpression ? endExpression[0].substring(endExpression[0].lastIndexOf('.')) : '';
+              endExpression = `.${result.param[customKey]}${endExpression}`
+            }
           }
+
+          // 处理动态数据、静态数据
+          let data = '';
+          if(_.has(result.param, `:${key}`)){
+            data = `${result.param[`:${key}`]}${endExpression}`;
+          }else{
+            data = _.isString(result.param[key]) ? result.param[key] : _.get(result.param, `${key}${endExpression}`) || '';
+          }
+
           return data;
         });
 
