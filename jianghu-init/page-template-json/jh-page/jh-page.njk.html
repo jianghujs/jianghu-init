@@ -124,7 +124,7 @@
       <=%- if content.tag == 'jh-search' %=>
       <!-- 全局搜索块 -->
       <v-card class="rounded-lg"> 
-        <v-row class="pa-4 mb-4 align-center items-center">
+        <v-row class="pa-4 mx-md-n3 mx-0 align-center items-center">
           <=%- for search in content.value %=>
           <=%- if search.tag == "v-date-picker" %=>
           <v-col cols="12" sm="4" md="2" xl="2" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
@@ -225,10 +225,13 @@
             <!-- 手机端 -->
             <v-menu offset-y v-if="isMobile">
               <template v-slot:activator="{ on, attrs }">
+                
+                <=%- if  not (content.rowActionList | find({tag: 'div'})).value %=>
                 <span role="button" class="success--text font-weight-medium font-size-2"
                   v-bind="attrs" v-on="on">
                   操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
                 </span>
+                <=%- endif %=>
               </template>
               <v-list dense>
                 <=%- for action in content.rowActionList %=>
@@ -274,7 +277,7 @@
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
-        <v-row no-gutters align="center">
+        <v-row class="jh-drawer-header" no-gutters align="center">
           <span class="text-h7 font-weight-bold pa-4"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
@@ -283,7 +286,7 @@
           
           <!-- 抽屉操作按钮 -->
           <=%- for content in actionItem.contentList %=>
-          <v-row class="justify-end mx-0 px-4" v-if="
+          <v-row class="justify-end mx-0 px-4 jh-drawer-action-btn-group" v-if="
           <=%- if actionItem.contentList.length === 1 %=>
           true
           <=%- else %=>
