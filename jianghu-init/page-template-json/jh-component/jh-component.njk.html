@@ -164,11 +164,11 @@
 
     <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' %=>
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
-    <v-navigation-drawer v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" :permanent="is<=$ actionItem.key | ucfirst $=>DrawerShown" fixed temporary right width="80%" class="elevation-24" <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+    <v-navigation-drawer v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" :permanent="is<=$ actionItem.key | ucfirst $=>DrawerShown" fixed temporary right width="90%" class="elevation-24" <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
-        <v-row no-gutters align="center">
+        <v-row class="jh-drawer-header" no-gutters align="center">
           <span class="text-h7 font-weight-bold pa-4"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
@@ -177,7 +177,7 @@
           
           <!-- 抽屉操作按钮 -->
           <=%- for content in actionItem.contentList %=>
-          <v-row class="justify-end mx-0 px-4" v-if="
+          <v-row class="justify-end mx-0 px-4 jh-drawer-action-btn-group" v-if="
           <=%- if actionItem.contentList.length === 1 %=>
           true
           <=%- else %=>
@@ -187,7 +187,7 @@
             <=%- if content.action %=>
             <=$ content.action | tagFormat(14) $=>
             <=%- endif %=>
-            <v-btn class="elevation-0 ml-2" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false" small>取消</v-btn>
+            <v-btn class="elevation-0 ml-2" @click="close<=$ actionItem.key | ucfirst $=>Drawer" small>取消</v-btn>
           </v-row>
           <=%- endfor %=>
          
@@ -278,7 +278,7 @@
         <=%- endif %=>
       </v-form>
       <!-- 抽屉关闭按钮 -->
-      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false">
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>Drawer">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>
@@ -373,6 +373,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- if drawer.tag == 'jh-drawer' %=>
     //===// is<=$ drawer.key | ucfirst $=>DrawerShown: false,
     //===// <=$ drawer.key | lcfirst $=>Item: {},
+    //===// <=$ drawer.key | lcfirst $=>ItemOrigin: {},
     //===// <=%- if drawer.contentList.length > 1 %=>
     //===// <=$ drawer.key | lcfirst $=>DrawerTab: 0,
     //===// <=%- endif %=>
@@ -682,11 +683,19 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- if drawer.tag == 'jh-drawer' %=>
     //===// async prepare<=$ drawer.key | ucfirst $=>Data(funObj) {
     //===//   this.<=$ drawer.key $=>Item = _.cloneDeep(funObj);
+    //===//   this.<=$ drawer.key $=>ItemOrigin = _.cloneDeep(funObj);
     //===// },
     //===// async open<=$ drawer.key | ucfirst $=>Drawer() {
     //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = true;
     //===// },
     //===// async close<=$ drawer.key | ucfirst $=>Drawer() {
+    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+   //===//      const isConfrim = await window.confirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (isConfrim) {
+    //===//       try { await this.doUiAction('save<=$ drawer.key | ucfirst $=>DrawerData')  } catch {}
+    //===//     }
+    //===//  }
+ 
     //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = false;
     //===//   <=%- if drawer.contentList.length > 1 %=>
     //===//   this.<=$ drawer.key | lcfirst $=>DrawerTab = 0;
