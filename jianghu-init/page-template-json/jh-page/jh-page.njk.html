@@ -30,6 +30,10 @@
             <=%- endif %=>
           </div>
         </v-col>
+        <=%- elif content.tag == 'jh-table-search' %=>
+        <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-md-2" >
+          <v-text-field v-model="searchInput" prefix="筛选" append-icon="mdi-magnify" class="jh-v-input" dense single-line filled></v-text-field>
+        </v-col>
         <=%- elif content.tag == 'jh-search' %=>
         <!-- 服务端搜索 -->
         <v-col cols="12" xs="12" sm="12" md="8" xl="9" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
@@ -164,7 +168,7 @@
         <!-- 表格顶部栏 -->
         <v-card class="rounded-lg">
         <=%- if content.headActionList %=>
-        <v-row class="ma-0 pb-4 pa-0 px-4 px-md-0">
+        <v-row class="ma-0 pb-4 pa-0 px-3 px-md-0">
           <=%- for action in content.headActionList %=>
           <=$ action | tagFormat(10) $=>
           <=%- endfor %=>
@@ -273,7 +277,7 @@
 
     <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' %=>
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
-    <v-navigation-drawer v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" :permanent="is<=$ actionItem.key | ucfirst $=>DrawerShown" fixed temporary right width="80%" class="elevation-24" <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+    <v-navigation-drawer v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" :permanent="is<=$ actionItem.key | ucfirst $=>DrawerShown" fixed temporary right width="90%" class="elevation-24" <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
@@ -349,7 +353,7 @@
                 <=%- if formItem.tag == "v-date-picker" %=>
                 <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
                     <template v-slot:activator="{on, attrs}">
-                    <v-text-field v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly clearable></v-text-field>
+                    <v-text-field v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled clearable></v-text-field>
                     </template>
                     <v-date-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-date-picker>
                 </v-menu>
@@ -400,7 +404,7 @@
     <!-- 组件列表 -->
     <=%- for item in includeList %=>
     <=%- if (item.includeType === 'auto') %=>
-    <<=$ item.path | componentName $=> ref="<=$ item.path | componentHumpName $=>Ref" <=% for attr, value in item.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=> />
+    <<=$ item.path | componentUlName $=> ref="<=$ item.path | componentHumpName $=>Ref" <=% for attr, value in item.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=> />
     <=%- endif %=>
     <=%- endfor %=>
 

@@ -209,19 +209,21 @@
         body .v-application .v-navigation-drawer__content .jh-drawer-header {
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 20;
             background: #fff;
         }
         body .v-application .v-navigation-drawer__content .jh-drawer-action-btn-group {
             position: fixed;
             bottom: 0;
-            padding: 10px 0 20px;
             background: #fff;
             border-top: 1px solid #eee;
             left: 0;
             right: 0;
+            padding-bottom: 20px;
         }
-
+        body .v-application .v-navigation-drawer__content .jh-drawer-action-btn-group .v-btn {
+            margin-top: 10px;
+        }
         /* 抽屉 除了系统菜单抽屉 */
         body .v-application .v-navigation-drawer:not(.jh-page-nav-bar) {
             width: 100% !important;
@@ -229,6 +231,7 @@
 
         body .v-application .v-navigation-drawer__content {
             position: relative !important;
+            padding-bottom: 60px;
         }
         /* <<<<< 抽屉 */
 
@@ -236,6 +239,9 @@
         /* table >>>>>> */
         .v-data-footer {
             flex-wrap: nowrap;
+        }
+        .jh-fixed-table-height {
+            margin: 15px;
         }
 
         .v-data-footer__pagination {
