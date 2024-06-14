@@ -1,5 +1,5 @@
 'use strict';
-const CommandBase = require('../command_base');
+const CommandBase = require('../command_base.js');
 
 require('colors');
 const fs = require('fs');
@@ -11,7 +11,7 @@ const mixin = require('./mixin.js');
 /**
  * 根据 table 定义生成 crud 页面
  */
-module.exports = class InitPage1Table extends CommandBase {
+module.exports = class InitClear extends CommandBase {
   constructor() {
     super();
     Object.assign(this, mixin);
@@ -20,9 +20,6 @@ module.exports = class InitPage1Table extends CommandBase {
   async run(cwd, jsonArgv, argv) {
     this.argv = argv;
     this.cwd = cwd;
-    // TODO: ajv库检查 jsonArgv
-    // 检查配置 && 生成json配置中缺省的默认配置
-    // const finalJsonConfig = this.checkAndGenerateDefaultConfig(jsonArgv);
     // 检查当前目录是否是在项目中
     await this.checkPath();
     // 初始化数据库连接
@@ -30,9 +27,76 @@ module.exports = class InitPage1Table extends CommandBase {
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
-    this.success('初始化数据库连接成功');
+    // this.success('初始化数据库连接成功');
     // generate crud
-    await this.generateCrud(jsonArgv);
+    await this.clear(jsonArgv);
+  }
+
+  async clear() {
+    this.info('清除开始');
+    this.info("   - _page:                  operationByUserId='jianghu-init'");
+    this.info("   - _resource:              operationByUserId='jianghu-init'");
+    this.info("   - init-json/page/*,       pageId.html");
+    this.info("   - init-json/component/*,  componentPath.html");
+    
+    // _page、_resource
+    
+    const knex = await this.getKnex();
+    await knex.raw('delete from _page where operationByUserId like "jianghu-init%"');
+    await knex.raw('delete from _resource where operationByUserId like "jianghu-init%"');
+
+    // component of init
+    const componentOfInitList = ['./app/view/component/vueJsonEditor.html', './app/view/component/jhFile.html', './app/view/component/tableRecordHistory.html']
+    for (const filePath of componentOfInitList) {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    // page of /init-json/page/**
+    const fileList = await this.findJsFiles('./app/view/init-json/page');
+    for (const file of fileList) {
+      // eslint-disable-next-line no-eval
+      const fileObj = eval(fs.readFileSync('./' + file).toString());
+      const { pageId } = fileObj;
+      const pagePath = `./app/view/page/${pageId}.html`;
+      if (pageId && fs.existsSync(pagePath)) {
+        fs.unlinkSync(pagePath);
+      }
+    }
+
+    // component of /init-json/component/**
+    const componentList = await this.findJsFiles('./app/view/init-json/component');
+    for (const component of componentList) {
+      // eslint-disable-next-line no-eval
+      const fileObj = eval(fs.readFileSync('./' + component).toString());
+      const { pageId, componentPath } = fileObj;
+      const componentPathNew = `./app/view/component/${componentPath}.html`;
+      if (componentPathNew && fs.existsSync(componentPathNew)) {
+        fs.unlinkSync(componentPathNew);
+      }
+    }
+    
+    this.info('清除完成');
+  }
+
+
+  findJsFiles(dir) {
+    let files = [];
+    const items = fs.readdirSync(dir);
+
+    for (const item of items) {
+      const fullPath = path.join(dir, item);
+      const stats = fs.statSync(fullPath);
+
+      if (stats.isDirectory()) {
+        files = files.concat(this.findJsFiles(fullPath)); // 如果是目录，则递归搜索
+      } else if (path.extname(item) === '.js') {
+        files.push(fullPath); // 如果是 .js 文件，则添加到文件列表
+      }
+    }
+
+    return files;
   }
 
   // 生成 crud
@@ -49,7 +113,6 @@ module.exports = class InitPage1Table extends CommandBase {
       console.log('modifyTable');
       await this.modifyTable(jsonConfig);
       await this.handleOtherResource(jsonConfig);
-
       // 生成组件
       await this.renderComponent(jsonConfig);
       // 生成 service
@@ -76,7 +139,7 @@ module.exports = class InitPage1Table extends CommandBase {
   }
 
   async modifyTable(jsonConfig) {
-    const { table, pageId, pageName = '', pageHook = {}, idGenerate = false } = jsonConfig;
+    const { table, pageId, pageName = '', idGenerate = false } = jsonConfig;
 
     if (table) {
       await this.checkTableFields(table, idGenerate);
@@ -85,7 +148,7 @@ module.exports = class InitPage1Table extends CommandBase {
       // await this.executeSql('check_resource.sql', { pageId, pageName, table, insertBeforeHook });
     }
     if (pageId) {
-      await this.executeSql('check_page.sql', { pageId, pageName, pageHook });
+      await this.executeSql('check_page.sql', { pageId, pageName });
     }
   }
 

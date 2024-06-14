@@ -12,6 +12,23 @@ const checkClick = (obj, action) => {
   return obj && obj.attrs && obj.attrs['@click'] && reg.test(obj.attrs['@click']);
 };
 
+function copyDir(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+
+  let entries = fs.readdirSync(src, { withFileTypes: true });
+
+  for (let entry of entries) {
+      let srcPath = path.join(src, entry.name);
+      let destPath = path.join(dest, entry.name);
+
+      if (entry.isDirectory()) {
+          copyDir(srcPath, destPath);
+      } else {
+          fs.copyFileSync(srcPath, destPath);
+      }
+  }
+}
+
 // 1table-page / 1table-component 共用方法
 const mixin = {
   handleNunjucksEnv(templateTargetPath) {
@@ -321,13 +338,15 @@ const mixin = {
 
   async checkPage(jsonConfig) {
     const { pageId, pageName } = jsonConfig;
+    const operationByUserId = `jianghu-init/${pageId}`;
     const knex = await this.getKnex();
     const existPage = await knex('_page').where({ pageId }).first();
     const pageData = {
       pageId,
       pageName,
+      operationByUserId,
     };
-    if (existPage && existPage.pageName !== pageName) {
+    if (existPage && (existPage.pageName !== pageName || existPage.operationByUserId !== operationByUserId)) {
       console.log(`更新页面名称 ${existPage.pageName} => ${pageName}`);
       await knex('_page').where({ id: existPage.id }).update(pageData);
     } else if (!existPage) {
@@ -341,7 +360,7 @@ const mixin = {
     if (!resourceList || !pageId) return;
     const knex = this.knex;
     const existResourceList = await knex('_resource').where({ pageId });
-    for (const { actionId, resourceType, desc = null, resourceData, resourceHook = null } of resourceList) {
+    for (const { actionId, resourceType, desc = null, resourceData, resourceHook = null, operationByUserId = `jianghu-init/${pageId}` } of resourceList) {
       const resourceDataStr = _.isObject(resourceData) ? JSON.stringify(resourceData) : resourceData;
       const resourceHookStr = _.isObject(resourceHook) ? JSON.stringify(resourceHook) : resourceHook;
       // 比对是否存在，存在则更新，不存在则插入
@@ -350,7 +369,7 @@ const mixin = {
       if (resourceItem) {
         // 对比有差异再修改
         let isDiff = false;
-        const updateData = { actionId, pageId, resourceType, desc, resourceData: resourceDataStr, resourceHook: resourceHookStr };
+        const updateData = { actionId, pageId, resourceType, desc, resourceData: resourceDataStr, resourceHook: resourceHookStr, operationByUserId };
         _.forEach(updateData, (value, key) => {
           if ((value || null) !== (resourceItem[key] || null)) {
             isDiff = true;
@@ -359,9 +378,10 @@ const mixin = {
         });
         if (!isDiff) continue;
         await knex('_resource').where({ id: resourceItem.id }).update(updateData);
-        continue;
+      } 
+      if (!resourceItem) {
+        await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr, operationByUserId });
       }
-      await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr });
     }
     // filter 数据库内有但是却没设置的 resource
     // const warningList = existResourceList.filter(e => !resourceList.some(r => r.actionId === e.actionId));
@@ -388,6 +408,7 @@ const mixin = {
     /**
      * njk 快捷判断变量
      * {hasJhTable} - 是否有 jh-table
+     * {hasJhScene} - 是否有 jh-scene
      * {hasCreateDrawer / hasCreateStart / hasCreateSubmit} - 是否有创建抽屉
      * {hasUpdateDrawer / hasUpdateStart / hasUpdateSubmit} - 是否有更新抽屉
      * {idGenerate} - 是否有业务id配置
@@ -420,7 +441,11 @@ const mixin = {
         jsonConfig.hasUpdateStart = findJhTable.rowActionList.some(e => checkClick(e, 'startUpdateItem') || /doUiAction\(['"]startUpdateItem['"]/.test(e.click || ''));
         jsonConfig.hasDelete = findJhTable.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
       }
+      if (findJhTable.showTableColumnSettingBtn) {
+        jsonConfig.hasShowTableColumnSettingBtn = true
+      }
     }
+
     const createDrawer = actionContent.find(e => e.tag === 'jh-create-drawer');
     if (createDrawer) {
       jsonConfig.hasCreateDrawer = createDrawer.contentList.length;
@@ -451,13 +476,18 @@ const mixin = {
     if (headContent.find(e => e.tag === 'jh-search')) {
       jsonConfig.hasSearch = true;
     }
+
+    const hasJhScene = headContent.find(e => e.tag === 'jh-scene')
+    if (hasJhScene) {
+      jsonConfig.hasJhScene = true;
+    }
     Object.assign(jsonConfig, this.getBasicConfig(jsonConfig));
 
 
   },
 
   getConfigComponentList(jsonConfig) {
-    const { table, pageId, actionContent = [] } = jsonConfig;
+    const { table, pageId, actionContent = [], pageContent = [] } = jsonConfig;
     const componentList = [];
     /**
      * 组件映射表
@@ -470,6 +500,7 @@ const mixin = {
       tableRecordHistory: { filename: 'tableRecordHistory', bind: { table, pageId, ':id': '{{key}}Item.id' }, sqlMap: { table, pageId } },
       vueJsonEditor: { filename: 'vueJsonEditor', model: '', bind: { mode: 'code', expandedOnStart: false } },
       tableAttachment: { filename: 'tableAttachment', bind: { table, pageId, ':id': '{{key}}Item.id', fileType: '[]', fileSubType: '[]' }, sqlMap: { table, pageId, insertBeforeHook: '' } },
+      tableColumnSettingBtn: { filename: 'tableColumnSettingBtn', bind: {} },
     };
 
     const processContentList = (contentList, itemKey = 'updateItem') => {
@@ -514,7 +545,11 @@ const mixin = {
       });
     };
     const drawerList = actionContent.filter(e => [ 'jh-create-drawer', 'jh-update-drawer', 'jh-drawer' ].includes(e.tag));
-
+    const tableColumnSetting = pageContent.filter(e => [ 'jh-table' ].includes(e.tag)).filter(item=> item.showTableColumnSettingBtn);
+    
+    if (tableColumnSetting.length) {
+      componentList.push({type: 'component', componentPath: 'tableColumnSettingBtn'})
+    }
     drawerList.forEach(drawer => {
       processContentList(drawer.contentList, drawer.key);
     });
@@ -587,7 +622,7 @@ const mixin = {
 
   async modifyComponentResourceItem(templatePath, component) {
     const knex = await this.getKnex();
-    if (component.type === 'component' && ![ 'tableRecordHistory', 'jhFile' ].includes(component.componentPath)) return;
+    if (component.type === 'component' && ![ 'tableRecordHistory', 'jhFile'].includes(component.componentPath)) return;
     if (!fs.existsSync(`${templatePath}/${component.componentPath}.sql`)) return;
     let resourceSql = fs.readFileSync(`${templatePath}/${component.componentPath}.sql`).toString();
     _.forEach(component.sqlMap, (value, key) => {
@@ -616,7 +651,7 @@ const mixin = {
     for (const item of componentList) {
       // 检查文件存在则提示是否覆盖
       const targetFilePath = `./app/view/component/${item.componentPath}.html`;
-      if ([ 'tableRecordHistory', 'vueJsonEditor', 'jhFile' ].includes(item.componentPath)) {
+      if ([ 'tableRecordHistory', 'vueJsonEditor', 'jhFile', 'tableColumnSettingBtn' ].includes(item.componentPath)) {
         if (fs.existsSync(targetFilePath)) {
           if (devModel) continue;
           if (n) {
@@ -641,7 +676,13 @@ const mixin = {
         await this.modifyComponentResourceItem(componentPath, item);
       }
     }
+
+    // 复制通用样式和组件
+    copyDir(`${path.join(__dirname, '../../')}page-template-json/component/jianghuJs`, './app/view/component/jianghuJs');
+    copyDir(`${path.join(__dirname, '../../')}page-template-json/common/jianghuJs`, './app/view/common/jianghuJs');
   },
+
+ 
 
   // 生成 service
   async renderService(jsonConfig, dev = false) {
