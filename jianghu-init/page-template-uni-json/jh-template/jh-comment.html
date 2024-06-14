@@ -1,14 +1,15 @@
 <template>
   <!-- jh-comment >>>>>>>>>>>>> -->
-  <view class="jh-comment px-2 py-2">
+  <view class="jh-comment px-2 py-2 <=$ param.containerClass $=>" v-if="<=$ param.isShown $=>"
+    <=$ param.containerAttr $=>>
     <div class="flex justify-between">
       <view class="flex">
-        <u-avatar size="28" :src="<=$ data.imageUrl $=>" :alt="<=$ data.imageUrl $=>"></u-avatar>
-        <div class="ml-2">{{ <=$ data.text $=> }}</div>
+        <u-avatar size="28" <=$ dataPrefix $=>src="<=$ param.data.imageUrl $=>" <=$ dataPrefix $=>alt="<=$ param.data.imageUrl $=>"></u-avatar>
+        <div class="ml-2">{{ <=$ param.data.text $=> }}</div>
       </view>
-      <div class="text-xs text-gray-500">{{ <=$ data.label $=> }}</div>
+      <div class="text-xs text-gray-500">{{ <=$ param.data.label $=> }}</div>
     </div>
-    <div class="pl-9 pt-2">{{ <=$ data.description $=> || '无评价内容' }}</div>
+    <div class="pl-9 pt-2">{{ <=$ param.data.description $=> || '无评价内容' }}</div>
   </view>
   <!-- <<<<<<<<<<<<< jh-comment -->
 </template>

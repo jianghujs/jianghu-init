@@ -1,13 +1,14 @@
 <template>
   <!-- jh-userInfo >>>>>>>>>>>>> -->
-  <view class="jh-userInfo px-2 py-2">
-    <u-cell :url="<=$ data.url $=>" :border="false" isLink :title="<=$ data.text $=>">
+  <view class="jh-userInfo px-2 py-2 <=$ param.containerClass $=>" v-if="<=$ param.isShown $=>"
+    <=$ param.containerAttr $=>>
+    <u-cell <=$ dataPrefix $=>url="<=$ param.data.url $=>" <=$ dataPrefix $=>border="false" isLink <=$ dataPrefix $=>title="<=$ param.data.text $=>">
       <div class="flex" slot="title">
-        {{ <=$ data.text $=> || '请登录' }}
+        {{ <=$ param.data.text $=> || '请登录' }}
       </div>
       <div slot="icon">
         <u-avatar lazy-load round size="60" shape="circle"
-          :src="<=$ data.imageUrl $=>" class="mr-2"></u-avatar>
+          <=$ dataPrefix $=>src="<=$ param.data.imageUrl $=>" class="mr-2"></u-avatar>
       </div>
     </u-cell>
   </view>

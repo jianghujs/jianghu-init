@@ -1,9 +1,10 @@
 <template>
   <!-- jh-bottomBar >>>>>>>>>>>>> -->
-  <view class="jh-bottomBar">
+  <view class="jh-bottomBar <=$ param.containerClass $=>" v-if="<=$ param.isShown $=>"
+    <=$ param.containerAttr $=>>
     <div class="fixed bottom-0 left-0 w-full bg-white py-1 pl-2 box-border px-4">
 			<view class="flex items-center">
-				<view class="flex flex-col items-center w-1_6" @click="item.click" v-for="(item, index) in <=$ data.leftButton $=>" :key="index">
+				<view class="flex flex-col items-center w-1_6" @click="item.click" v-for="(item, index) in <=$ param.data.leftButton $=>" :key="index">
 					<u-icon :name="item.icon" :color="item.color" size="20"></u-icon>
 					<text :color="item.color" :text="item.text" class="text-xs">{{ item.text }}</text>
 				</view>
@@ -12,7 +13,7 @@
             <u-button
               shape="circle"
               :color="item.color"
-              v-for="(item, index) in <=$ data.rightButton $=>"
+              v-for="(item, index) in <=$ param.data.rightButton $=>"
               :key="index"
               class="ml-2"
               @click="item.click"

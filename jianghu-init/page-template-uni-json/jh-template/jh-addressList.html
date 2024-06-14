@@ -1,9 +1,10 @@
 <template>
   <!-- jh-addressList >>>>>>>>>>>>> -->
-  <view class="jh-addressList px-2 py-2">
-    <u-radio-group v-model="<=$ param.addresValue $=>" customStyle="{width: '100%'}" v-if="<=$ data $=> && <=$ data.length $=>">
+  <view class="jh-addressList px-2 py-2 <=$ param.containerClass $=>" v-if="<=$ param.isShown $=>"
+    <=$ param.containerAttr $=>>
+    <u-radio-group v-model="<=$ param.addresValue $=>" customStyle="{width: '100%'}" v-if="<=$ param.data.list $=> && <=$ param.data.list.length $=>">
       <view class="p-4 w-full">
-        <div class="border border-slate-200 bg-white rounded mb-4 w-full" v-for="(item, index) in <=$ data $=>" :key="index">
+        <div class="border border-slate-200 bg-white rounded mb-4 w-full" v-for="(item, index) in <=$ param.data.list $=>" :key="index">
           <div class="p-4 border-b border-gray-200">
             <div class="font-medium">联系人：{{ item.username }} {{ item.tel }}</div>
             <div>

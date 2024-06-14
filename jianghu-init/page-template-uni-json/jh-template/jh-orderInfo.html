@@ -1,14 +1,15 @@
 <template>
   <!-- jh-orderInfo >>>>>>>>>>>>> -->
-  <view class="jh-orderInfo px-2 py-2">
+  <view class="jh-orderInfo px-2 py-2 <=$ param.containerClass $=>" v-if="<=$ param.isShown $=>"
+    <=$ param.containerAttr $=>>
     <div class="bg-white m-4 border border-slate-200" >
       <div class="flex justify-between px-4 py-2 border-b border-gray-200">
-        <div>订单号：{{ <=$ data.orderId $=> }}</div>
-        <div>{{ <=$ data.orderStatus $=> }}</div>
+        <div>订单号：{{ <=$ param.data.orderId $=> }}</div>
+        <div>{{ <=$ param.data.orderStatus $=> }}</div>
       </div>
       <div class="goods-group p-4">
         <navigator
-          :url="<=$ data.url $=>"
+          <=$ dataPrefix $=>url="<=$ param.data.url $=>"
           class="goods flex"
         >
           <div class="image">
@@ -16,28 +17,28 @@
               lazy-load
               width="120"
               height="80"
-              :src="<=$ data.imageUrl $=>"
+              <=$ dataPrefix $=>src="<=$ param.data.imageUrl $=>"
             />
           </div>
           <div class="text ml-4 flex-1">
-            <div class="name flex-1" v-text="<=$ data.title $=>"></div>
+            <div class="name flex-1" v-text="<=$ param.data.title $=>"></div>
             <div class="money mt-4 text-gray-400">
-              <div class="price">￥{{ <=$ data.price $=> }}</div>
+              <div class="price">￥{{ <=$ param.data.price $=> }}</div>
             </div>
           </div>
-          <div class="num text-gray-400">x{{ <=$ data.number $=> }}</div>
+          <div class="num text-gray-400">x{{ <=$ param.data.number $=> }}</div>
         </navigator>
         <div class="sum text-right">
-          共{{ <=$ data.number $=> }}件商品，总金额
-          <span>￥{{ <=$ data.totalPrice $=> }}</span>
+          共{{ <=$ param.data.number $=> }}件商品，总金额
+          <span>￥{{ <=$ param.data.totalPrice $=> }}</span>
         </div>
       </div>
       <div class="button-group flex justify-end text-right border-t border-gray-200 p-4" >
         <u-button
           round
           size="small"
-          :color="item.color"
-          v-for="(item, index) in <=$ data.button $=>"
+          <=$ dataPrefix $=>color="item.color"
+          v-for="(item, index) in <=$ param.data.button $=>"
           :key="index"
           class="ml-2"
           @click="item.click"
