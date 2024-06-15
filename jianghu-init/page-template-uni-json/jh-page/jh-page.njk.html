@@ -22,6 +22,9 @@ import dayjs from 'dayjs';
 //===// <=%- for item in includeList %=>
 //===// import <=$ item.name $=> from '<=$ item.path $=>';
 //===// <=%- endfor %=>
+//===// <=%- for item in customScript %=>
+//===// <=$ item $=>
+//===// <=%- endfor %=>
 export default {
   components: {
     //===// <=%- for component in componentList %=>
@@ -132,7 +135,7 @@ export default {
   },
   //===// <=%- endif %=>
   //===// <=% for key, item in common %=>
-  //===// <=%- if ['onLoad', 'onShow', 'onReady', 'onHide', 'onHide', 'onUnload', 'mounted', 'created'] | includes(key) %=>
+  //===// <=%- if ['onLoad', 'onShow', 'onReady', 'onHide', 'onHide', 'onUnload', 'mounted', 'created', 'onShareAppMessage'] | includes(key) %=>
   //===// <=$ item | variableToVar(key) $=>,
   //===// <=%- endif %=>
   //===// <=%- endfor %=>
