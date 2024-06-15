@@ -2,7 +2,7 @@
   <!-- jh-imageAndTextLR >>>>>>>>>>>>> -->
   <navigator
   <=$ dataPrefix $=>url="<=$ param.data.url $=>"
-    class="flex px-2 py-2 <=$ param.containerClass $=>"
+    class="flex p-2 <=$ param.containerClass $=>"
     @click="<=$ action.click $=>"
     v-if="<=$ param.isShown $=>"
     <=$ param.containerAttr $=>
@@ -15,23 +15,27 @@
       <=$ dataPrefix $=>src="<=$ param.data.imageUrl $=>"
     ></u-image>
     <div class="ml-2 flex-1 flex flex-col justify-between">
-      <div class="jh-line-2 text-md font-medium">
+      <div class="jh-line-2 text-md font-medium flex-1">
         <=$ slot.title $=>
-        <u--text color="#333333" <=$ dataPrefix $=>text="<=$ param.data.title $=>" size="14" class="text-[#333333]"></u--text>
+        <u--text color="#333333" <=$ dataPrefix $=>text="<=$ param.data.title $=>" size="18" class="text-[#333333]"></u--text>
         <=$ endSlot $=>
       </div>
-      <div>
+      <div class="mb-3">
         <=$ slot.tag $=>
         <u--text <=$ dataPrefix $=>color="<=$ param.data.tagColor $=>" <=$ dataPrefix $=>text="<=$ param.data.tag $=>" size="12"></u--text>
         <=$ endSlot $=>
       </div>
-      <div class="flex text-xs justify-between items-center">
+      <div class="flex text-xs justify-between items-center text-gray-400">
+        <=$ slot.bottomLeft $=>
         <div>
           <u--text color="#999999" <=$ dataPrefix $=>text="<=$ param.data.leftLabel $=>" size="10"></u--text>
         </div>
+        <=$ endSlot $=>
+        <=$ slot.bottomRight $=>
         <div class="text-gray-400">
           <u--text color="#999999" <=$ dataPrefix $=>text="<=$ param.data.rightLabel $=>" size="10"></u--text>
         </div>
+        <=$ endSlot $=>
       </div>
     </div>
   </navigator>

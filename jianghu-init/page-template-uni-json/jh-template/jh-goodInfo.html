@@ -6,13 +6,17 @@
       <div class="mt-2">{{ <=$ param.data.title $=> }}</div>
         <div class="flex text-xs justify-between items-center mt-2">
           <div class="flex justify-start items-center">
+            <=$ slot.bottomLeft $=>
             <u-tag class="mr-2" v-for="(item, index) in <=$ param.data.tag $=>" :key="index" :text="item" size="mini" <=$ dataPrefix $=>borderColor="<=$ param.data.tagBgColor $=>" <=$ dataPrefix $=>bgColor="<=$ param.data.tagBgColor $=>" <=$ dataPrefix $=>color="<=$ param.data.tagColor $=>"> </u-tag>
+            <=$ endSlot $=>
           </div>
           <div class="flex justify-start items-center">
+            <=$ slot.bottomRight $=>
             <div class="mr-2 flex flex-col items-center" v-for="(item, index) in <=$ param.data.button $=>" :key="index">
               <u-icon :name="item.icon" :color="item.color" size="20"></u-icon>
               <u--text :color="item.color" :text="item.text" size="12"></u--text>
             </div>
+            <=$ endSlot $=>
           </div>
         </div>
     </div>
