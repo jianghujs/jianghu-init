@@ -122,7 +122,7 @@
               <template v-slot:activator="{ on, attrs }">
                 <span role="button" class="success--text font-weight-medium font-size-2"
                   v-bind="attrs" v-on="on">
-                  操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                  <v-icon size="20" class="success--text">mdi-chevron-down</v-icon>
                 </span>
               </template>
               <v-list dense>
@@ -184,10 +184,11 @@
           <=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
           <=%- endif %=>
           ">
+          <v-btn class="elevation-0 grey lighten-4" @click="close<=$ actionItem.key | ucfirst $=>Drawer" small>取消</v-btn>
+
             <=%- if content.action %=>
             <=$ content.action | tagFormat(14) $=>
             <=%- endif %=>
-            <v-btn class="elevation-0 ml-2" @click="close<=$ actionItem.key | ucfirst $=>Drawer" small>取消</v-btn>
           </v-row>
           <=%- endfor %=>
          
