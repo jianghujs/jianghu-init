@@ -10,8 +10,15 @@
 </template>
 
 <script>
+const App = getApp();
+import jianghu from '@/jianghu';
+import config from '@/jianghu/config';
+import dayjs from 'dayjs';
 //===// <=%- for item in includeList %=>
 //===// import <=$ item.name $=> from '<=$ item.path $=>';
+//===// <=%- endfor %=>
+//===// <=%- for item in customScript %=>
+//===// <=$ item $=>
 //===// <=%- endfor %=>
 export default {
   //===// name: '<=$ componentName $=>',
@@ -20,6 +27,11 @@ export default {
   //===// <=%- elif common.props | isObject %=>
   //===// <=$ common.props | variableToVar('props') $=>,
   //===// <=%- endif %=>
+  filters: {
+    //===// <=%- for key, value in common.filters %=>
+    //===// <=$ value | variableToVar(key) | safe $=>,
+    //===// <=%- endfor %=>
+  },
   data: () => ({
 
     //===// <=%- if hasHelpDrawer %=>
