@@ -680,6 +680,11 @@ const mixin = {
         await this.modifyComponentResourceItem(componentPath, item);
       }
     }
+    // 如果没有jianghuJs 目录，则创建
+    if (!fs.existsSync('./app/view/common/jianghuJs')) fs.mkdirSync('./app/view/common/jianghuJs');
+    if (!fs.existsSync('./app/view/component/jianghuJs')) fs.mkdirSync('./app/view/component/jianghuJs');
+    console.log('copyDir jianghuJs');
+
 
     // 复制通用样式和组件
     copyDir(`${path.join(__dirname, '../../')}page-template-json/component/jianghuJs`, './app/view/component/jianghuJs');
