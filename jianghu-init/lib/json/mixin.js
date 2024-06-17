@@ -306,6 +306,10 @@ const mixin = {
       const componentName = path.split('/').pop().split('.')[0];
       return _.camelCase(componentName);
     });
+    nunjucksEnv.addFilter('componentUlName', function(path) {
+      const componentName = path.split('/').pop().split('.')[0];
+      return componentName.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/([A-Z])([A-Z][a-z])/g, '$1-$2').toLowerCase();
+    });
 
     nunjucksEnv.addFilter('includeFormat', function(item) {
       if (!item) return '';
