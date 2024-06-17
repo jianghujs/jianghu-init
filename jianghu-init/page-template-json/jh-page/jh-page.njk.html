@@ -459,6 +459,10 @@ new Vue({
   el: '#app',
   template: '#app-template',
   vuetify: new Vuetify(),
+  //===// <=%- if common and common.mixins %=>
+  //===// mixins: <=$ common.mixins $=>,
+  //===// <=%- endif %=>
+  
   data: () => ({
 
     isMobile: window.innerWidth < 500,
@@ -932,6 +936,7 @@ new Vue({
     //===// useScene(funObj) {
     //===//   this.currentSceneId = funObj.id;
     //===//   this.serverSearchInput = _.cloneDeep(funObj.form);
+    //===//   this.serverSearchWhere = _.cloneDeep(funObj.form);
     //===//},
     //===// setDefaultSceneData() {
     //===//   let localSceneList = localStorage.getItem(this.localSceneListKey);
