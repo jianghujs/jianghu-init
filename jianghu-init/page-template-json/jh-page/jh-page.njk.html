@@ -298,7 +298,7 @@
           <=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
           <=%- endif %=>
           ">
-          <v-btn class="elevation-0 grey lighten-4" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false" small>取消</v-btn>
+          <v-btn class="elevation-0 grey lighten-4" @click="close<=$ actionItem.key | ucfirst $=>Drawer" small>取消</v-btn>
 
             <=%- if content.action %=>
             <=$ content.action | tagFormat(14) $=>
@@ -393,7 +393,7 @@
         <=%- endif %=>
       </v-form>
       <!-- 抽屉关闭按钮 -->
-      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false">
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>Drawer">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>
@@ -489,6 +489,7 @@ new Vue({
     // ================================ 新建抽屉 ================================
     //===// isCreateDrawerShown: false,
     //===// createItem: {},
+    //===// createItemOrigin: {},
     //===// <=%- if hasCreateSubmit %=>
     //===// createActionData: {},
     //===// <=%- endif %=>
@@ -501,6 +502,7 @@ new Vue({
     // ================================ 编辑抽屉 ================================
     //===// isUpdateDrawerShown: false,
     //===// updateItem: {},
+    //===// updateItemOrigin: {},
     //===// updateItemId: null,
     //===// <=%- if hasUpdateSubmit %=>
     //===// updateActionData: {},
@@ -533,6 +535,7 @@ new Vue({
     //===// <=%- if drawer.tag == 'jh-drawer' %=>
     //===// is<=$ drawer.key | ucfirst $=>DrawerShown: false,
     //===// <=$ drawer.key | lcfirst $=>Item: {},
+    //===// <=$ drawer.key | lcfirst $=>ItemOrigin: {},
     //===// <=%- if drawer.contentList.length > 1 %=>
     //===// <=$ drawer.key | lcfirst $=>DrawerTab: 0,
     //===// <=%- endif %=>
@@ -708,6 +711,7 @@ new Vue({
     //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
+    //===//   this.createItemOrigin = _.cloneDeep(this.createItem);
     //===// },
     //===// async openCreateDrawer() {
     //===//   this.isCreateDrawerShown = true;
@@ -762,6 +766,15 @@ new Vue({
     //===//   await window.vtoast.success("新增数据成功");
     //===// },
     //===// async closeCreateDrawer() {
+    //===//   <=%- set drawer = (actionContent | find({key: 'create'})) %=>
+    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+    //===//     const isConfrim = await window.confirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (isConfrim) {
+    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+    //===//     }
+    //===//  }
+    //===//   <=%- endif %=>
     //===//   this.isCreateDrawerShown = false;
     //===//   this.createItem = {};
     //===//   this.createActionData = null;
@@ -776,6 +789,7 @@ new Vue({
     // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
     //===// async prepareUpdateFormData(funObj) {
     //===//   this.updateItem = _.cloneDeep(funObj);
+    //===//   this.updateItemOrigin = _.cloneDeep(funObj);
     //===// },
     //===// async openUpdateDrawer() {
     //===//   this.isUpdateDrawerShown = true;
@@ -823,6 +837,15 @@ new Vue({
     //===//   await window.vtoast.success("修改数据成功");
     //===// },
     //===// async closeUpdateDrawer() {
+    //===//   <=%- set drawer = (actionContent | find({key: 'update'})) %=>
+    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+    //===//     const isConfrim = await window.confirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (isConfrim) {
+    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+    //===//     }
+    //===//  }
+    //===//   <=%- endif %=>
     //===//   this.isUpdateDrawerShown = false;
     //===//   this.updateItem = {};
     //===//   this.updateActionData = null;
@@ -874,11 +897,21 @@ new Vue({
     //===// <=%- if drawer.tag == 'jh-drawer' %=>
     //===// async prepare<=$ drawer.key | ucfirst $=>Data(funObj) {
     //===//   this.<=$ drawer.key $=>Item = _.cloneDeep(funObj);
+    //===//   this.<=$ drawer.key $=>ItemOrigin = _.cloneDeep(funObj);
     //===// },
     //===// async open<=$ drawer.key | ucfirst $=>Drawer() {
     //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = true;
     //===// },
     //===// async close<=$ drawer.key | ucfirst $=>Drawer() {
+    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+    //===//     const isConfrim = await window.confirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (isConfrim) {
+    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+    //===//     }
+    //===//  }
+    //===//   <=%- endif %=>
+ 
     //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = false;
     //===//   <=%- if drawer.contentList.length > 1 %=>
     //===//   this.<=$ drawer.key | lcfirst $=>DrawerTab = 0;
