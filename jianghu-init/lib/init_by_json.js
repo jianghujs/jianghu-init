@@ -221,6 +221,36 @@ module.exports = class InitByJsonCommand extends CommandBase {
     return answer.jsonType;
   }
 
+  copyDir(src, dest) {
+    fs.mkdirSync(dest, { recursive: true });
+  
+    let entries = fs.readdirSync(src, { withFileTypes: true });
+  
+    for (let entry of entries) {
+        let srcPath = path.join(src, entry.name);
+        let destPath = path.join(dest, entry.name);
+  
+        if (entry.isDirectory()) {
+            this.copyDir(srcPath, destPath);
+        } else {
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+  }
+
+  // 复制jianghuJs公共组件和样式
+  async copyJianghuJs() {
+    // 如果没有jianghuJs 目录，则创建
+    if (!fs.existsSync('./app/view/common/jianghuJs')) fs.mkdirSync('./app/view/common/jianghuJs');
+    if (!fs.existsSync('./app/view/component/jianghuJs')) fs.mkdirSync('./app/view/component/jianghuJs');
+
+
+    // 复制通用样式和组件
+    this.copyDir(`${path.join(__dirname, '../')}page-template-json/component/jianghuJs`, './app/view/component/jianghuJs');
+    this.copyDir(`${path.join(__dirname, '../')}page-template-json/common/jianghuJs`, './app/view/common/jianghuJs');
+ }
+
+
   async enableDevMode(dev) {
     if (!dev) return;
     const lockFilePath = path.join('./', 'jianghu-init.dev.lock');
@@ -236,6 +266,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
     }
 
     await lockfile.lock(lockFilePath);
+
+    await this.copyJianghuJs();
 
     // 默认渲染 ./app/view/init-json 内的递归所有文件
     const fileList = await this.findJsFiles('./app/view/init-json');
