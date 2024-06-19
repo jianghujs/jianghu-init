@@ -236,6 +236,10 @@ const mixin = {
           if (key === 'v-model' && !value.includes('.')) {
             val = drawerKey + '.' + value;
           }
+          if (key === 'v-model') {
+            // 替换this.
+            val = val ? val.replace(/this\./g, '') : val;
+          }
           return tagAttr(key, val, res.tag);
         }).join(' ');
         if (res.value) {
