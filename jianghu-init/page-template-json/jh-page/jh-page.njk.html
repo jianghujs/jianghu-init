@@ -162,7 +162,7 @@
       </v-card>
 
       <=%- elseif content.tag == 'jh-table' %=>
-      <v-col cols="<=$ content.attrs.cols | default('12') $=>" sm="<=$ content.attrs.sm | default('12') $=>" md="<=$ content.attrs.md | default('12') $=>">
+      <v-col cols="<=$ content.attrs.cols | default('12') $=>" sm="<=$ content.attrs.sm | default('12') $=>" md="<=$ content.attrs.md | default('12') $=>" class="pb-0">
         <!-- 表格顶部栏 -->
         <v-card class="rounded-lg">
         <=%- if content.headActionList %=>
