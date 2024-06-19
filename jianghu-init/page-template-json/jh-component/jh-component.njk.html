@@ -8,12 +8,10 @@
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-page-title' %=>
         <v-col cols="12" xs="12" sm="12" md="4" xl="3" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-          <div class="py-4 text-body-1 font-weight-bold d-flex align-center"><=$ content.value $=>
+          <div class="py-4 text-body-1 font-weight-bold align-center d-flex align-center"><=$ content.value $=>
             <=%- if content.helpBtn %=> 
             <!-- 帮助页按钮 -->
-            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
-              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
-            </span>
+            <v-icon size="15" class="black--text ml-1" @click="isHelpPageDrawerShown = true">mdi-help-circle</v-icon>
             <=%- endif %=>
           </div>
         </v-col>
@@ -68,7 +66,7 @@
     <div class="jh-page-body-container px-4">
       <v-card class="rounded-lg">
         <=%- if content.headActionList %=>
-        <v-row class="ma-0 pa-4">
+        <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0">
           <=%- for action in content.headActionList %=>
           <=$ action | tagFormat(10) $=>
           <=%- endfor %=>
