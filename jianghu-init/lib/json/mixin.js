@@ -75,11 +75,14 @@ const mixin = {
           return value;
         }, 2)
           .replace(/"__FUNC_START__/g, '').replace(/__FUNC_END__"/g, '')
+          .replace(/\\\\/g, '|||')
+          // 处理换行符和缩进
           .replace(/\\r\\n/g, '\n')
           .replace(/\\n {4}/g, '\n')
           .replace(/\\n/g, '\n')
           .replace(/\\(?!n)/g, '')
-          .replace(/\n/g, '\n' + ' '.repeat(indent));
+          .replace(/\n/g, '\n' + ' '.repeat(indent))
+          .replace(/\|\|\|/g, '\\');
       } else {
         content = obj;
       }
@@ -96,7 +99,11 @@ const mixin = {
           content = k + ': ' + content;
         }
         if (typeof obj === 'object') {
-          content = k + ': ' + content;
+          if (k.includes('.')) {
+            content = '\'' + k + '\': ' + content;
+          } else {
+            content = k + ': ' + content;
+          }
         }
         if (_.isBoolean(obj)) {
           content = k + ': ' + content;
@@ -413,6 +420,12 @@ const mixin = {
       jsonConfig.actionContent = [];
       actionContent = [];
     }
+    // 默认 headSlot 加入分隔符
+    for (const content of jsonConfig.actionContent) {
+      if (!_.isString(content) && (!content.headSlot || !content.headSlot.length)) {
+        content.headSlot = [ '<v-spacer></v-spacer>' ];
+      }
+    }
     if (!headContent) {
       jsonConfig.headContent = [];
       headContent = [];
@@ -476,7 +489,24 @@ const mixin = {
     }
     Object.assign(jsonConfig, this.getBasicConfig(jsonConfig));
 
-
+    // 拼接 doUiAction, 支持环节添加 doUiAction 配置
+    if (jsonConfig.common.doUiAction) {
+      for (const key in jsonConfig.common.doUiAction) {
+        const uiAction = jsonConfig.common.doUiAction[key];
+        for (const [ index, item ] of uiAction.entries()) {
+          const patt = /\((.*)\)/;
+          if (item.startsWith('doUiAction.')) {
+            jsonConfig.common.doUiAction[key][index] = 'doUiAction(\'' + item.replace(/doUiAction\./, '') + '\', uiActionData)';
+          } else {
+            if (patt.test(item)) {
+              jsonConfig.common.doUiAction[key][index] = item.replace(/\(.*\)/, '') + '(' + patt.exec(item)[1] + ', uiActionData)';
+            } else {
+              jsonConfig.common.doUiAction[key][index] = item + '(uiActionData)';
+            }
+          }
+        }
+      }
+    }
   },
 
   getConfigComponentList(jsonConfig) {

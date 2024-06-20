@@ -216,7 +216,9 @@ const content = {
       key: "create",
       attrs: {},
       title: '新增班级',
-      headSlot: [],
+      headSlot: [
+        { tag: 'v-spacer'}
+      ],
       contentList: [
         { 
           label: "新增", 
