@@ -217,7 +217,9 @@ module.exports = class InitJson extends CommandBase {
       key: "create",
       attrs: {},
       title: '新增',
-      headSlot: [],
+      headSlot: [
+        { tag: 'v-spacer'}
+      ],
       contentList: [
         { 
           label: "新增", 
@@ -243,7 +245,9 @@ module.exports = class InitJson extends CommandBase {
       key: "update",
       attrs: {},
       title: '编辑',
-      headSlot: [],
+      headSlot: [
+        { tag: 'v-spacer'}
+      ],
       contentList: [
         { 
           label: "编辑", 
