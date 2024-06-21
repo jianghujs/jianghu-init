@@ -1,8 +1,4 @@
 {% block htmlHead %}
-<style>
-/* css */
-<=$ style $=>
-</style>
 {% endblock %}
 
 {% extends 'template/jhTemplateV4.html'%}
@@ -121,49 +117,11 @@
 
     <!-- 页面内容 >>>>>>>>>>>>> -->
     <div class="jh-page-body-container px-8">
+      <v-row class="pa-0 ma-0">
       <=%- for content in pageContent %=>
-      <=%- if content.tag == 'jh-search' %=>
-      <v-row class="pa-0">
-      <!-- 全局搜索块 -->
-      <v-card class="rounded-lg"> 
-        <v-row class="pa-4 mx-md-n3 mx-0 align-center items-center">
-          <=%- for search in content.value %=>
-          <=%- if search.tag == "v-date-picker" %=>
-          <v-col cols="12" sm="4" md="2" xl="2" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
-            <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
-              <template v-slot:activator="{on, attrs}">
-                <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>：" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
-              </template>
-              <v-date-picker color="success" elevation="20" v-model="<=$ search.model $=>" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>></v-date-picker>
-            </v-menu>
-          </v-col>
-          <=%- elif search.model is defined %=>
-          <v-col cols="12" sm="4" md="2" xl="2" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
-            <=$ search | formItemFormat $=>
-          </v-col>
-          <=%- else %=>
-          <v-col cols="12" sm="4" md="2" xl="2" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
-            <=$ search | tagFormat(14) $=>
-          </v-col>
-          <=%- endif %=>
-          <=%- endfor %=>
-          <=%- if content.searchBtn is undefined or content.searchBtn != false %=>
-          <div class="jh-backend-search-btn ml-2">
-            <=%- if content.searchBtn == true %=>
-            <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
-              查询
-            </v-btn>
-            <=%- else %=>
-            <=$ content.searchBtn | tagFormat(10) $=>
-            <=%- endif %=>
-          </div>
-          <=%- endif %=>
-        </v-row>
-      </v-card>
-      </v-row>
-      <=%- elseif content.tag == 'jh-table' %=>
-      <v-row class="pa-0">
-      <v-col cols="<=$ content.attrs.cols | default('12') $=>" sm="<=$ content.attrs.sm | default('12') $=>" md="<=$ content.attrs.md | default('12') $=>" class="pb-0">
+      
+      <=%- if content.tag == 'jh-table' %=>
+      <v-col <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=> class="pa-0">
         <!-- 表格顶部栏 -->
         <v-card class="rounded-lg">
         <=%- if content.headActionList %=>
@@ -196,10 +154,10 @@
         >
 
           <!-- 表格插槽 -->
-          <=$ content.slot | tagFormat(12) $=>
+          <=$ content.value | tagFormat(12) $=>
 
           <!-- 自定义渲染列 -->
-          <=%- for header in content.value %=>
+          <=%- for header in content.headers %=>
           <=%- if header.formatter %=>
           <template v-slot:item.<=$ header.value $=>="{item, index}">
             <=$ header.formatter | tagFormat(12) $=>
@@ -265,11 +223,11 @@
         </v-data-table>
       </v-card>
     </v-col>
-    </v-row>
     <=%- else %=>
     <=$ content | tagFormat(6) $=>
     <=%- endif %=>
     <=%- endfor %=>
+    </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 页面内容 -->
     <=%- for actionItem in actionContent %=>
@@ -471,7 +429,7 @@ new Vue({
 
     //===// <=%- if hasJhTable %=>
     // ================================ 表格相关 ================================
-    //===// <=$ (pageContent | find({tag: 'jh-table'})).value | removeKey(['formatter']) | listToVar('headers') $=>,
+    //===// <=$ (pageContent | find({tag: 'jh-table'})).headers | removeKey(['formatter']) | listToVar('headers') $=>,
     //===// tableData: [],
     //===// isTableLoading: false,
     //===// searchInput: null,
