@@ -102,7 +102,7 @@ const mixin = {
           if (k.includes('.')) {
             content = '\'' + k + '\': ' + content;
           } else {
-            content = k + ': ' + content;
+            content = k + ': ' + content.replace(/"(\w+)":/g, '$1:');
           }
         }
         if (_.isBoolean(obj)) {
@@ -116,7 +116,8 @@ const mixin = {
         }
       }
       content = content.replace(/'__FUN__\(/gm, '').replace(/\)__FUN__'/gm, '');
-      return content.replace(/"(\w+)":/g, '$1:');
+      return content;
+      // return content.replace(/(?<!case\s+)"(\w+)":/g, '$1:');
     });
 
     nunjucksEnv.addFilter('stringToVar', function(obj) {
