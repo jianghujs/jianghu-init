@@ -121,9 +121,9 @@
 
     <!-- 页面内容 >>>>>>>>>>>>> -->
     <div class="jh-page-body-container px-8">
-      <v-row class="pa-0">
       <=%- for content in pageContent %=>
       <=%- if content.tag == 'jh-search' %=>
+      <v-row class="pa-0">
       <!-- 全局搜索块 -->
       <v-card class="rounded-lg"> 
         <v-row class="pa-4 mx-md-n3 mx-0 align-center items-center">
@@ -160,8 +160,9 @@
           <=%- endif %=>
         </v-row>
       </v-card>
-
+      </v-row>
       <=%- elseif content.tag == 'jh-table' %=>
+      <v-row class="pa-0">
       <v-col cols="<=$ content.attrs.cols | default('12') $=>" sm="<=$ content.attrs.sm | default('12') $=>" md="<=$ content.attrs.md | default('12') $=>" class="pb-0">
         <!-- 表格顶部栏 -->
         <v-card class="rounded-lg">
@@ -264,11 +265,11 @@
         </v-data-table>
       </v-card>
     </v-col>
-      <=%- else %=>
-      <=$ content | tagFormat(6) $=>
-      <=%- endif %=>
-      <=%- endfor %=>
     </v-row>
+    <=%- else %=>
+    <=$ content | tagFormat(6) $=>
+    <=%- endif %=>
+    <=%- endfor %=>
     </div>
     <!-- <<<<<<<<<<<<< 页面内容 -->
     <=%- for actionItem in actionContent %=>
