@@ -437,6 +437,26 @@ const mixin = {
     }
     const findJhTable = pageContent.find(e => [ 'jhTable', 'jh-table' ].includes(e.tag));
     if (findJhTable) {
+      // 旧版 jh-table value 兼容
+      jsonConfig.pageContent.forEach(content => {
+        if (content.tag === 'jh-table') {
+          if (content.value && _.isArray(content.value) && content.value.find(e => e.text && e.value && e.width)) {
+            console.log('旧版key vlaue');
+            content.headers = content.value;
+            // todo 提示 使用新版key
+          }
+          if (content.slot) {
+            content.value = content.slot;
+          }
+          const defaultColAttrs = {
+            cols: 12,
+          };
+          if (!content.colAttrs) {
+            content.colAttrs = Object.assign({}, defaultColAttrs, content.colAttrs);
+          }
+        }
+      });
+
       jsonConfig.hasJhTable = true;
       if (findJhTable.headActionList) {
         if (findJhTable.headActionList.some(e => checkClick(e, 'startCreateItem'))) {

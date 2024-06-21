@@ -89,7 +89,12 @@
           <=%- endfor %=>
           class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
         >
-          <=%- for header in content.value %=>
+
+          <!-- 表格插槽 -->
+          <=$ content.value | tagFormat(12) $=>
+
+          <!-- 自定义渲染列 -->
+          <=%- for header in content.headers %=>
           <=%- if header.formatter %=>
           <template v-slot:item.<=$ header.value $=>="{item, index}">
             <=$ header.formatter | tagFormat(12) $=>
@@ -319,7 +324,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
 
     //===// <=%- if hasJhTable %=>
     // ================================ 表格相关 ================================
-    //===// <=$ (pageContent | find({tag: 'jh-table'})).value | removeKey(['formatter']) | listToVar('headers') $=>,
+    //===// <=$ (pageContent | find({tag: 'jh-table'})).headers | removeKey(['formatter']) | listToVar('headers') $=>,
     //===// tableData: [],
     //===// isTableLoading: false,
     //===// searchInput: null,
