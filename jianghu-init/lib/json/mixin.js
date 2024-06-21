@@ -490,7 +490,6 @@ const mixin = {
     }
     Object.assign(jsonConfig, this.getBasicConfig(jsonConfig));
 
-    
     // 拼接 doUiAction, 支持环节添加 doUiAction 配置
     if (jsonConfig.common.doUiAction) {
       for (const key in jsonConfig.common.doUiAction) {
