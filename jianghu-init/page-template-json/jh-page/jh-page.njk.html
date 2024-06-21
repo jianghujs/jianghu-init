@@ -121,7 +121,7 @@
       <=%- for content in pageContent %=>
       
       <=%- if content.tag == 'jh-table' %=>
-      <v-col <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=> class="pa-0">
+      <v-col class="pa-0" <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
         <!-- 表格顶部栏 -->
         <v-card class="rounded-lg">
         <=%- if content.headActionList %=>
@@ -243,18 +243,20 @@
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
-          <v-btn class="elevation-0 grey lighten-4" @click="close<=$ actionItem.key | ucfirst $=>Drawer" small>取消</v-btn>
-          <!-- 抽屉操作按钮 -->
-          <=%- for content in actionItem.contentList %=>
-          <=%- if content.action %=>
-          <template v-if="
-          <=%- if actionItem.contentList.length === 1 %=>true
-          <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
-          <=%- endif %=>">
-            <=$ content.action | tagFormat(12) $=>
-          </template>
-          <=%- endif %=>
-          <=%- endfor %=>
+          <div class="jh-drawer-action-btn-group">
+            <v-btn class="elevation-0 grey lighten-4" @click="close<=$ actionItem.key | ucfirst $=>Drawer" small>取消</v-btn>
+            <!-- 抽屉操作按钮 -->
+            <=%- for content in actionItem.contentList %=>
+            <=%- if content.action %=>
+            <template v-if="
+            <=%- if actionItem.contentList.length === 1 %=>true
+            <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
+            <=%- endif %=>">
+              <=$ content.action | tagFormat(12) $=>
+            </template>
+            <=%- endif %=>
+            <=%- endfor %=>
+          </div>
         </v-row>
         <v-divider class="jh-divider"></v-divider>
         <=%- endif %=>
