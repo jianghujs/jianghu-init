@@ -65,7 +65,7 @@
     <=%- if content.tag == 'jh-table' %=>
     <div class="jh-page-body-container px-4">
       <v-card class="rounded-lg">
-        <=%- if content.headActionList %=>
+        <=%- if content.headActionList.length %=>
         <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0">
           <=%- for action in content.headActionList %=>
           <=$ action | tagFormat(10) $=>
@@ -308,6 +308,9 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
   //===// <=$ common.model | variableToVar('model') $=>,
   //===// <=%- endif %=>
 
+  //===// <=%- if common and common.filters %=>
+  //===// filters: <=$ common.filters | variableToVar(key) $=>,
+  //===// <=%- endif %=>
   //===// <=%- if common.props | isArray %=> 
   //===// props: <=$ common.props | dump $=>,
   //===// <=%- elif common.props | isObject %=>

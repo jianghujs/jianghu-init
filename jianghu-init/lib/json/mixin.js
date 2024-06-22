@@ -454,11 +454,14 @@ const mixin = {
           if (!content.colAttrs) {
             content.colAttrs = Object.assign({}, defaultColAttrs, content.colAttrs);
           }
+          if ((!content.headActionList || !content.headActionList.length) && content.showTableColumnSettingBtn) {
+            content.headActionList = [{ tag: 'v-spacer' }];
+          }
         }
       });
 
       jsonConfig.hasJhTable = true;
-      if (findJhTable.headActionList) {
+      if (findJhTable.headActionList && findJhTable.headActionList.length) {
         if (findJhTable.headActionList.some(e => checkClick(e, 'startCreateItem'))) {
           jsonConfig.hasCreateStart = true;
         }
