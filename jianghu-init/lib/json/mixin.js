@@ -90,6 +90,9 @@ const mixin = {
         content = content.replace(new RegExp(`"${key}":\\s*?replace_this_key`, 'g'), '');
       });
       if (k) {
+        if (k.includes('.')) {
+          k = '\'' + k + '\'';
+        }
         // 匿名同步格式
         if (/^function\s*?\(/.test(content) || /^\(/.test(content)) {
           content = k + ': ' + content;
@@ -99,11 +102,7 @@ const mixin = {
           content = k + ': ' + content;
         }
         if (typeof obj === 'object') {
-          if (k.includes('.')) {
-            content = '\'' + k + '\': ' + content;
-          } else {
-            content = k + ': ' + content.replace(/"(\w+)":/g, '$1:');
-          }
+          content = k + ': ' + content.replace(/"(\w+)":/g, '$1:');
         }
         if (_.isBoolean(obj)) {
           content = k + ': ' + content;
