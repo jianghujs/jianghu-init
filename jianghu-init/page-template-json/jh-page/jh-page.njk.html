@@ -22,6 +22,12 @@
             <!-- 帮助页按钮 -->
             <v-icon size="15" class="black--text ml-1" @click="isHelpPageDrawerShown = true">mdi-help-circle</v-icon>
             <=%- endif %=>
+            <=%- if content.backBtn %=>
+            <!-- 返回按钮 -->
+            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-1" <=% for attr, value in content.backBtn %=><=$ attr | tagAttr(value) $=> <=% endfor %=> >
+              <v-icon size="13" class="success--text">mdi-arrow-left-top-bold</v-icon>返回
+            </span>
+            <=%- endif %=>
           </div>
         </v-col>
         <=%- elif content.tag == 'jh-table-search' %=>
@@ -190,7 +196,7 @@
                 <=%- if  not (content.rowActionList | find({tag: 'div'})).value %=>
                 <span role="button" class="success--text font-weight-medium font-size-2"
                   v-bind="attrs" v-on="on">
-                  <v-icon size="20" class="success--text">mdi-chevron-down</v-icon>
+                  <v-icon size="20" class="success--text">mdi-chevron-down</v-icon>操作
                 </span>
                 <=%- endif %=>
               </template>
