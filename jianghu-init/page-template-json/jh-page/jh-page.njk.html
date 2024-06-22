@@ -120,9 +120,9 @@
       <=%- for content in pageContent %=>
       
       <=%- if content.tag == 'jh-table' %=>
-      <v-col class="pa-0" <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+      <v-col class="pa-0"<=% for attr, value in content.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
         <!-- 表格顶部栏 -->
-        <v-card class="rounded-lg">
+        <v-card class="rounded-lg"<=% for attr, value in content.cardAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
         <=%- if content.headActionList.length %=>
         <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0">
           <=%- for action in content.headActionList %=>
