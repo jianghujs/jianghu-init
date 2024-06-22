@@ -352,7 +352,7 @@
         border-right: 1px solid #EEEEEE;
     }
 
-    body .theme--light.v-data-table.v-data-table--fixed-header thead th {
+    body .theme--light.v-data-table.v-data-table--fixed-header thead th, body .theme--light.v-data-table>.v-data-table__wrapper>table>thead>tr>th {
         background-color: #ebecf0 !important;
     }
 
@@ -423,7 +423,7 @@
         flex-direction: column;
     }
 
-    .jh-fixed-table-height:not(.not-fixed-wrapper-height) .v-data-table__wrapper,
+    .v-data-table__wrapper,
     .fixed-table-wrapper-height .v-data-table__wrapper {
         flex: auto;
         border: 1px solid #E6E6E6;

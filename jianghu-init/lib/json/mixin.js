@@ -453,6 +453,12 @@ const mixin = {
           if (!content.colAttrs) {
             content.colAttrs = Object.assign({}, defaultColAttrs, content.colAttrs);
           }
+          const defaultCardAttrs = {
+            class: 'rounded-lg',
+          };
+          if (!content.cardAttrs) {
+            content.cardAttrs = Object.assign({}, defaultCardAttrs, content.cardAttrs);
+          }
           if ((!content.headActionList || !content.headActionList.length) && content.showTableColumnSettingBtn) {
             content.headActionList = [{ tag: 'v-spacer' }];
           }
