@@ -90,6 +90,9 @@ const mixin = {
         content = content.replace(new RegExp(`"${key}":\\s*?replace_this_key`, 'g'), '');
       });
       if (k) {
+        if (k.includes('.')) {
+          k = '\'' + k + '\'';
+        }
         // 匿名同步格式
         if (/^function\s*?\(/.test(content) || /^\(/.test(content)) {
           content = k + ': ' + content;
@@ -99,11 +102,7 @@ const mixin = {
           content = k + ': ' + content;
         }
         if (typeof obj === 'object') {
-          if (k.includes('.')) {
-            content = '\'' + k + '\': ' + content;
-          } else {
-            content = k + ': ' + content.replace(/"(\w+)":/g, '$1:');
-          }
+          content = k + ': ' + content.replace(/"(\w+)":/g, '$1:');
         }
         if (_.isBoolean(obj)) {
           content = k + ': ' + content;
@@ -454,11 +453,14 @@ const mixin = {
           if (!content.colAttrs) {
             content.colAttrs = Object.assign({}, defaultColAttrs, content.colAttrs);
           }
+          if ((!content.headActionList || !content.headActionList.length) && content.showTableColumnSettingBtn) {
+            content.headActionList = [{ tag: 'v-spacer' }];
+          }
         }
       });
 
       jsonConfig.hasJhTable = true;
-      if (findJhTable.headActionList) {
+      if (findJhTable.headActionList && findJhTable.headActionList.length) {
         if (findJhTable.headActionList.some(e => checkClick(e, 'startCreateItem'))) {
           jsonConfig.hasCreateStart = true;
         }

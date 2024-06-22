@@ -7,13 +7,13 @@
 <div>
 <v-app mobile-breakpoint="sm">
   <jh-menu />
-  <v-main class="mt-15">
+  <v-main class="mt-13">
     <=%- if headContentStudio %=>
     <=$ headContentStudio | tagFormat(4) $=>
     <=%- elif headContent %=>
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
-      <v-row class="align-center" dense>
+      <v-row class="align-center" no-gutters>
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-page-title' %=>
         <v-col cols="12" xs="12" sm="12" md="4" xl="3" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
@@ -31,16 +31,16 @@
           </div>
         </v-col>
         <=%- elif content.tag == 'jh-table-search' %=>
-        <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-md-2 mb-2 mb-md-0" >
+        <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 mb-2 mb-md-0" >
           <v-text-field v-model="searchInput" prefix="筛选" append-icon="mdi-magnify" class="jh-v-input" dense single-line filled></v-text-field>
         </v-col>
         <=%- elif content.tag == 'jh-search' %=>
         <!-- 服务端搜索 -->
-        <v-col cols="12" xs="12" sm="12" md="8" xl="9" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-          <v-row class="jh-backend-form-container justify-end ma-0 py-3">
+        <v-col cols="12" xs="12" sm="12" md="8" xl="9" class="pl-md-2 mb-2 mb-md-0" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+          <v-row class="jh-backend-form-container justify-end py-md-3" no-gutters>
             <=%- for search in content.value %=>
             <=%- if search.tag == "v-date-picker" %=>
-            <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 pt-2 pt-sm-0" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
                   <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prepend-inner-icon="mdi-calendar-range" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>：" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
@@ -49,11 +49,11 @@
               </v-menu>
             </v-col>
             <=%- elif search.model is defined %=>
-            <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <=$ search | formItemFormat $=>
             </v-col>
             <=%- else %=>
-            <v-col cols="12" sm="4" md="3" xl="2" class="pa-0 pr-0 pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <=$ search | tagFormat(14) $=>
             </v-col>
             <=%- endif %=>
@@ -68,54 +68,53 @@
               <=$ content.searchBtn | tagFormat(10) $=>
               <=%- endif %=>
             </div>
-            <=%- endif %=>
+          </v-row>
+          <=%- endif %=>
          
-        <=%- elif content.tag=='jh-scene' %=>
-        <!-- 场景搜索 -->
-        <jh-scene class="py-2 py-md-0" :initFormData="serverSearchInput" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId"
-          @useScene="doUiAction('useScene', $event)">
-          <template v-slot:form="{form}">
-              <v-row class="mt-0 px-4">
-                <=%- for formItem in content.formItemList %=>
-                  <v-col cols="12" class="px-0">
-                        <=%- if formItem.label %=>
-                          <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*
-                              </span><=%- endif %=>
-                                <=$ formItem.label $=></span>
-                          <=%- endif %=>
-                            <=%- if formItem.tag=="v-date-picker" %=>
-                              <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto" <=%- if
-                                formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
-                                  <template v-slot:activator="{on, attrs}">
-                                    <v-text-field prepend-inner-icon="mdi-calendar-range"  v-bind="attrs" v-on="on"
-                                      v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"
-                                      :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
-                                      single-line filled readonly clearable></v-text-field>
-                                  </template>
-                                  <v-date-picker color="success" elevation="20"
-                                    v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in
-                                    formItem.attrs %=>
-                                    <=$ attr | tagAttr(value) $=>
-                                      <=% endfor %=>>
-                                  </v-date-picker>
-                              </v-menu>
-                            <=%- elif formItem.model is defined %=>
-                              <=$ formItem | formItemFormat(actionItem.key + 'Item' ) $=>
-                            <=%- else %=>
-                              <=$ formItem | tagFormat(16) $=>
+          <=%- elif content.tag=='jh-scene' %=>
+          <!-- 场景搜索 -->
+          <jh-scene class="py-2 py-md-0" :initFormData="serverSearchInput" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId"
+            @useScene="doUiAction('useScene', $event)">
+            <template v-slot:form="{form}">
+                <v-row class="mt-0 px-4">
+                  <=%- for formItem in content.formItemList %=>
+                    <v-col cols="12" class="px-0">
+                          <=%- if formItem.label %=>
+                            <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*
+                                </span><=%- endif %=>
+                                  <=$ formItem.label $=></span>
                             <=%- endif %=>
-                  </v-col>
-                <=%- endfor %=>
-              </v-row>
-          </template>
-        </jh-scene>
-        <=%- else %=>
-        <!-- 自定义搜索内容 -->
-        <=$ content | tagFormat(12) $=>
-        <=%- endif %=>
-        <=%- endfor %=>
-         </v-row>
-        </v-col>
+                              <=%- if formItem.tag=="v-date-picker" %=>
+                                <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto" <=%- if
+                                  formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
+                                    <template v-slot:activator="{on, attrs}">
+                                      <v-text-field prepend-inner-icon="mdi-calendar-range"  v-bind="attrs" v-on="on"
+                                        v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"
+                                        :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
+                                        single-line filled readonly clearable></v-text-field>
+                                    </template>
+                                    <v-date-picker color="success" elevation="20"
+                                      v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in
+                                      formItem.attrs %=>
+                                      <=$ attr | tagAttr(value) $=>
+                                        <=% endfor %=>>
+                                    </v-date-picker>
+                                </v-menu>
+                              <=%- elif formItem.model is defined %=>
+                                <=$ formItem | formItemFormat(actionItem.key + 'Item' ) $=>
+                              <=%- else %=>
+                                <=$ formItem | tagFormat(16) $=>
+                              <=%- endif %=>
+                    </v-col>
+                  <=%- endfor %=>
+                </v-row>
+            </template>
+          </jh-scene>
+          <=%- else %=>
+          <!-- 自定义搜索内容 -->
+          <=$ content | tagFormat(12) $=>
+          <=%- endif %=>
+          <=%- endfor %=>
       </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
@@ -127,16 +126,15 @@
       <=%- for content in pageContent %=>
       
       <=%- if content.tag == 'jh-table' %=>
-      <v-col class="pa-0" <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+      <v-col class="pa-0"<=% for attr, value in content.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
         <!-- 表格顶部栏 -->
-        <v-card class="rounded-lg">
-        <=%- if content.headActionList %=>
+        <v-card class="rounded-lg"<=% for attr, value in content.cardAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
+        <=%- if content.headActionList.length %=>
         <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0">
           <=%- for action in content.headActionList %=>
           <=$ action | tagFormat(10) $=>
           <=%- endfor %=>
           <=%- if content.showTableColumnSettingBtn %=>
-          <v-spacer></v-spacer>
           <table-column-setting-btn :selectedColumnGroup.sync="selectedColumnGroup" :columnSettingGroup="columnSettingGroup" :headers="headers" @change="headers=$event" />
           <=%- endif %=>
         </v-row>
@@ -418,7 +416,9 @@ new Vue({
   //===// <=%- if common and common.mixins %=>
   //===// mixins: <=$ common.mixins $=>,
   //===// <=%- endif %=>
-
+  //===// <=%- if common and common.filters %=>
+  //===// filters: <=$ common.filters | variableToVar(key) $=>,
+  //===// <=%- endif %=>
   data: () => ({
 
     isMobile: window.innerWidth < 500,
