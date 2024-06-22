@@ -53,54 +53,53 @@
               <=$ content.searchBtn | tagFormat(10) $=>
               <=%- endif %=>
             </div>
-            <=%- endif %=>
+          </v-row>
+          <=%- endif %=>
          
-            <=%- elif content.tag=='jh-scene' %=>
-            <!-- 场景搜索 -->
-            <jh-scene class="py-2 py-md-0" :initFormData="serverSearchInput" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId"
-              @useScene="doUiAction('useScene', $event)">
-              <template v-slot:form="{form}">
-                  <v-row class="mt-0 px-4">
-                    <=%- for formItem in content.formItemList %=>
-                      <v-col cols="12" class="px-0">
-                            <=%- if formItem.label %=>
-                              <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*
-                                  </span><=%- endif %=>
-                                    <=$ formItem.label $=></span>
+          <=%- elif content.tag=='jh-scene' %=>
+          <!-- 场景搜索 -->
+          <jh-scene class="py-2 py-md-0" :initFormData="serverSearchInput" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId"
+            @useScene="doUiAction('useScene', $event)">
+            <template v-slot:form="{form}">
+                <v-row class="mt-0 px-4">
+                  <=%- for formItem in content.formItemList %=>
+                    <v-col cols="12" class="px-0">
+                          <=%- if formItem.label %=>
+                            <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*
+                                </span><=%- endif %=>
+                                  <=$ formItem.label $=></span>
+                            <=%- endif %=>
+                              <=%- if formItem.tag=="v-date-picker" %=>
+                                <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto" <=%- if
+                                  formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
+                                    <template v-slot:activator="{on, attrs}">
+                                      <v-text-field prepend-inner-icon="mdi-calendar-range"  v-bind="attrs" v-on="on"
+                                        v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"
+                                        :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
+                                        single-line filled readonly clearable></v-text-field>
+                                    </template>
+                                    <v-date-picker color="success" elevation="20"
+                                      v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in
+                                      formItem.attrs %=>
+                                      <=$ attr | tagAttr(value) $=>
+                                        <=% endfor %=>>
+                                    </v-date-picker>
+                                </v-menu>
+                              <=%- elif formItem.model is defined %=>
+                                <=$ formItem | formItemFormat(actionItem.key + 'Item' ) $=>
+                              <=%- else %=>
+                                <=$ formItem | tagFormat(16) $=>
                               <=%- endif %=>
-                                <=%- if formItem.tag=="v-date-picker" %=>
-                                  <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto" <=%- if
-                                    formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
-                                      <template v-slot:activator="{on, attrs}">
-                                        <v-text-field prepend-inner-icon="mdi-calendar-range"  v-bind="attrs" v-on="on"
-                                          v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"
-                                          :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
-                                          single-line filled readonly clearable></v-text-field>
-                                      </template>
-                                      <v-date-picker color="success" elevation="20"
-                                        v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in
-                                        formItem.attrs %=>
-                                        <=$ attr | tagAttr(value) $=>
-                                          <=% endfor %=>>
-                                      </v-date-picker>
-                                  </v-menu>
-                                <=%- elif formItem.model is defined %=>
-                                  <=$ formItem | formItemFormat(actionItem.key + 'Item' ) $=>
-                                <=%- else %=>
-                                  <=$ formItem | tagFormat(16) $=>
-                                <=%- endif %=>
-                      </v-col>
-                    <=%- endfor %=>
-                  </v-row>
-              </template>
-            </jh-scene>
-            <=%- else %=>
-            <!-- 自定义搜索内容 -->
-            <=$ content | tagFormat(12) $=>
-            <=%- endif %=>
-            <=%- endfor %=>
-         </v-row>
-        </v-col>
+                    </v-col>
+                  <=%- endfor %=>
+                </v-row>
+            </template>
+          </jh-scene>
+          <=%- else %=>
+          <!-- 自定义搜索内容 -->
+          <=$ content | tagFormat(12) $=>
+          <=%- endif %=>
+          <=%- endfor %=>
       </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
