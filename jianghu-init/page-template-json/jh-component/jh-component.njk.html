@@ -222,7 +222,7 @@
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
           <div class="jh-drawer-action-btn-group">
-            <v-btn class="elevation-0 grey lighten-4" @click="close<=$ actionItem.key | ucfirst $=>Drawer" small>取消</v-btn>
+            <v-btn class="elevation-0 grey lighten-4" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck" small>取消</v-btn>
             <!-- 抽屉操作按钮 -->
             <=%- for content in actionItem.contentList %=>
             <=%- if content.action %=>
@@ -321,7 +321,7 @@
         <=%- endif %=>
       </v-form>
       <!-- 抽屉关闭按钮 -->
-      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>Drawer">
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>
@@ -750,17 +750,18 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// async open<=$ drawer.key | ucfirst $=>Drawer() {
     //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = true;
     //===// },
-    //===// async close<=$ drawer.key | ucfirst $=>Drawer() {
+    //===// async close<=$ drawer.key | ucfirst $=>DrawerCheck() {
     //===//   <=%- if drawer.isCheckFormBeforeClose %=>
     //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
     //===//     const isConfrim = await window.confirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
     //===//     if (isConfrim) {
     //===//       await this.<=$ drawer.onCheckFormConfirm $=>
-    //===//       this.<=$ drawer.key $=>ItemOrigin = _.cloneDeep(this.<=$ drawer.key $=>Item);
     //===//     }
     //===//  }
     //===//   <=%- endif %=>
- 
+    //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
+    //===// },
+    //===// async close<=$ drawer.key | ucfirst $=>Drawer() {
     //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = false;
     //===//   <=%- if drawer.contentList.length > 1 %=>
     //===//   this.<=$ drawer.key | lcfirst $=>DrawerTab = 0;
