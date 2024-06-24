@@ -522,11 +522,26 @@ const mixin = {
     if (jsonConfig.common.doUiAction) {
       for (const key in jsonConfig.common.doUiAction) {
         const uiAction = jsonConfig.common.doUiAction[key];
-        for (const [ index, item ] of uiAction.entries()) {
-          const patt = /\((.*)\)/;
-          if (item.startsWith('doUiAction.')) {
-            jsonConfig.common.doUiAction[key][index] = 'doUiAction(\'' + item.replace(/doUiAction\./, '') + '\', uiActionData)';
+        for (let [ index, item ] of uiAction.entries()) {
+          if (item.startsWith('async.')) {
+            jsonConfig.common.doUiAction[key][index] = item.replace(/async\./, 'this.');
+          } else if (item.startsWith('await.')) {
+            jsonConfig.common.doUiAction[key][index] = item.replace(/await\./, 'await this.');
           } else {
+            jsonConfig.common.doUiAction[key][index] = 'await this.' + item;
+          }
+          item = jsonConfig.common.doUiAction[key][index];
+          if (item.includes('doUiAction.')) {
+            const prefixKey = item.includes('await ') ? 'await ' : '';
+            console.log('item', item);
+            item = item.
+              replace(/\(.*\)/, '').
+              replace(/(await\s+)?this\./, '').
+              replace(/doUiAction\./, '') + '\', uiActionData)';
+            console.log('item2', item);
+            jsonConfig.common.doUiAction[key][index] = prefixKey + 'this.doUiAction(\'' + item;
+          } else {
+            const patt = /\((.*)\)/;
             if (patt.test(item)) {
               jsonConfig.common.doUiAction[key][index] = item.replace(/\(.*\)/, '') + '(' + patt.exec(item)[1] + ', uiActionData)';
             } else {
