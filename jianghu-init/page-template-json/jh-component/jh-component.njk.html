@@ -146,7 +146,7 @@
           </template>
           <=%- endif %=>
           <=%- endfor %=>
-            
+          <=%- if content.rowActionList and  content.rowActionList.length %=>
           <!-- 表格操作按钮 -->
           <template v-slot:item.action="{ item }">
             <=%- for action in content.rowActionList %=>
@@ -184,6 +184,7 @@
               </v-list>
             </v-menu>
           </template>
+          <=%- endif %=>
           <!-- 没有数据 -->
           <template v-slot:loading>
             <div class="jh-no-data">数据加载中</div>
