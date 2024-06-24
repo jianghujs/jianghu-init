@@ -532,13 +532,11 @@ const mixin = {
 
   processUiActionItem(item) {
     // 统一替换前缀
-    console.log(item);
     item = item.replace(/this\./, '').replace(/^async\./, 'this.').replace(/^await\./, 'await this.');
     if (!item.includes('this.')) {
       item = 'await this.' + item;
     }
   
-    console.log('22', item);
     // 处理doUiAction的特殊情况
     if (item.includes('doUiAction.')) {
       const prefixKey = item.includes('await ') ? 'await ' : '';
