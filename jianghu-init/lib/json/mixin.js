@@ -522,20 +522,36 @@ const mixin = {
     if (jsonConfig.common.doUiAction) {
       for (const key in jsonConfig.common.doUiAction) {
         const uiAction = jsonConfig.common.doUiAction[key];
-        for (const [ index, item ] of uiAction.entries()) {
-          const patt = /\((.*)\)/;
-          if (item.startsWith('doUiAction.')) {
-            jsonConfig.common.doUiAction[key][index] = 'doUiAction(\'' + item.replace(/doUiAction\./, '') + '\', uiActionData)';
-          } else {
-            if (patt.test(item)) {
-              jsonConfig.common.doUiAction[key][index] = item.replace(/\(.*\)/, '') + '(' + patt.exec(item)[1] + ', uiActionData)';
-            } else {
-              jsonConfig.common.doUiAction[key][index] = item + '(uiActionData)';
-            }
-          }
+        for (let [ index, item ] of uiAction.entries()) {
+          item = this.processUiActionItem(item);
+          jsonConfig.common.doUiAction[key][index] = item;
         }
       }
     }
+  },
+
+  processUiActionItem(item) {
+    // 统一替换前缀
+    item = item.replace(/this\./, '').replace(/^async\./, 'this.').replace(/^await\./, 'await this.');
+    if (!item.includes('this.')) {
+      item = 'await this.' + item;
+    }
+  
+    // 处理doUiAction的特殊情况
+    if (item.includes('doUiAction.')) {
+      const prefixKey = item.includes('await ') ? 'await ' : '';
+      item = item.replace(/\(.*\)/, '').replace(/(await\s+)?this\./, '').replace(/doUiAction\./, '') + '\', uiActionData)';
+      item = `${prefixKey}this.doUiAction('${item}`;
+    } else {
+      // 处理参数添加uiActionData
+      const patt = /\((.*)\)/;
+      if (patt.test(item)) {
+        item = item.replace(/\(.*\)/, '') + '(' + patt.exec(item)[1] + ', uiActionData)';
+      } else {
+        item = item + '(uiActionData)';
+      }
+    }
+    return item;
   },
 
   getConfigComponentList(jsonConfig) {
