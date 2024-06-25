@@ -341,6 +341,7 @@ module.exports = class InitJson extends CommandBase {
   },
   headContent: [
     { tag: 'jh-page-title', value: "${pageId}", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
+    { tag: 'v-spacer' },
     { 
       tag: 'jh-search', 
       attrs: { cols: 12, sm: 6, md:8 },
