@@ -12,7 +12,7 @@
     <=$ headContentStudio | tagFormat(4) $=>
     <=%- elif headContent %=>
     <!-- 头部内容 >>>>>>>>>>>>> -->
-    <div class="jh-page-second-bar px-8">
+    <div class="jh-page-second-bar px-3 px-sm-8">
       <v-row class="align-center" no-gutters>
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-page-title' %=>
@@ -121,7 +121,7 @@
     <=%- endif %=>
 
     <!-- 页面内容 >>>>>>>>>>>>> -->
-    <div class="jh-page-body-container px-8">
+    <div class="jh-page-body-container px-sm-8">
       <v-row class="pa-0 ma-0">
       <=%- for content in pageContent %=>
       
