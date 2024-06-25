@@ -189,9 +189,14 @@ module.exports = class InitJson extends CommandBase {
     {
       tag: 'jh-table',
       attrs: {  },
+      colAttrs: { clos: 12 },
+      cardAttrs: { class: 'rounded-lg elevation-0' },
       headers: [
         ${columnStr}
         // width 表达式需要使用字符串包裹
+      ],
+      value: [
+        // vuetify table custom slot
       ],
       headActionList: [
         { tag: 'v-btn', value: '新增', attrs: { color: 'success', class: 'mr-2', '@click': 'doUiAction("startCreateItem")', small: true } },
