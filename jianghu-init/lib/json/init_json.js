@@ -189,7 +189,7 @@ module.exports = class InitJson extends CommandBase {
     {
       tag: 'jh-table',
       attrs: {  },
-      value: [
+      headers: [
         ${columnStr}
         // width 表达式需要使用字符串包裹
       ],
