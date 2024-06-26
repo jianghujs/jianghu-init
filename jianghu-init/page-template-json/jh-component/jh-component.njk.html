@@ -637,6 +637,18 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//   await window.jhMask.hide();
     //===//   await window.vtoast.success("新增数据成功");
     //===// },
+    //===// async closeCreateDrawerCheck() {
+    //===//   <=%- set drawer = (actionContent | find({key: 'create'})) %=>
+    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+    //===//     const isConfrim = await window.confirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (isConfrim) {
+    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+    //===//     }
+    //===//  }
+    //===//   <=%- endif %=>
+    //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
+    //===// },
     //===// async closeCreateDrawer() {
     //===//   this.isCreateDrawerShown = false;
     //===//   this.createItem = {};
@@ -702,6 +714,18 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//   })
     //===//   await window.jhMask.hide();
     //===//   await window.vtoast.success("修改数据成功");
+    //===// },
+    //===// async closeUpdateDrawerCheck() {
+    //===//   <=%- set drawer = (actionContent | find({key: 'update'})) %=>
+    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+    //===//     const isConfrim = await window.confirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (isConfrim) {
+    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+    //===//     }
+    //===//  }
+    //===//   <=%- endif %=>
+    //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
     //===// },
     //===// async closeUpdateDrawer() {
     //===//   this.isUpdateDrawerShown = false;
