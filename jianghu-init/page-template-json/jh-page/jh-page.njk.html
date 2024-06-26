@@ -31,7 +31,7 @@
           </div>
         </v-col>
         <=%- elif content.tag == 'jh-table-search' %=>
-        <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 mb-2 mb-md-0" >
+        <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 mb-2 mb-md-0" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <v-text-field v-model="searchInput" prefix="筛选" append-icon="mdi-magnify" class="jh-v-input" dense single-line filled></v-text-field>
         </v-col>
         <=%- elif content.tag == 'jh-search' %=>
@@ -74,7 +74,7 @@
           <=%- elif content.tag=='jh-scene' %=>
           <!-- 场景搜索 -->
           <jh-scene class="py-2 py-md-0" :initFormData="serverSearchInput" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId"
-            @useScene="doUiAction('useScene', $event)">
+            @useScene="doUiAction('useScene', $event)" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
             <template v-slot:form="{form}">
                 <v-row class="mt-0 px-4">
                   <=%- for formItem in content.formItemList %=>
@@ -332,9 +332,7 @@
              <!-- 抽屉内容组件 -->
             <=%- elif content.type == "component" %=>
             <<=$ content.componentPath.split('/').pop() | camelToKebab $=> 
-            <=%- for attr, value in content.bind %=>
-            <=$ attr | tagAttr(value) $=>
-            <=%- endfor %=>/>
+            <=% for attr, value in item.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>
             <=%- else %=>
              <!-- 抽屉内容自定义 -->
             <=$ content | tagFormat(12) $=>
