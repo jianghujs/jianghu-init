@@ -568,6 +568,12 @@ new Vue({
   //===// <=%- endif %=>
   //===// <=%- endfor %=>
 
+  //===// <=% for key, item in common %=>
+  //===// <=%- if ['beforeDestroy'] | includes(key) %=>
+  //===// <=$ item | variableToVar(key) $=>,
+  //===// <=%- endif %=>
+  //===// <=%- endfor %=>
+
   //===// <=%- if common.mountedString %=>
   async mounted() {
   //===// <=$ common.createString | stringToVar $=>

@@ -333,6 +333,9 @@ const mixin = {
     nunjucksEnv.addFilter('isString', function(item) {
       return _.isString(item);
     });
+    nunjucksEnv.addFilter('includes', function(arr, val) {
+      return arr.includes(val);
+    });
     return nunjucksEnv;
   },
 
