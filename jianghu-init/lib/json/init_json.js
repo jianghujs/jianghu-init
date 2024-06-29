@@ -191,13 +191,6 @@ module.exports = class InitJson extends CommandBase {
       attrs: {  },
       colAttrs: { clos: 12 },
       cardAttrs: { class: 'rounded-lg elevation-0' },
-      headers: [
-        ${columnStr}
-        // width 表达式需要使用字符串包裹
-      ],
-      value: [
-        // vuetify table custom slot
-      ],
       headActionList: [
         { tag: 'v-btn', value: '新增', attrs: { color: 'success', class: 'mr-2', '@click': 'doUiAction("startCreateItem")', small: true } },
         { tag: 'v-spacer' },
@@ -209,6 +202,13 @@ module.exports = class InitJson extends CommandBase {
             { tag: 'v-text-field', attrs: {prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true} },
           ],
         }
+      ],
+      headers: [
+        ${columnStr}
+        // width 表达式需要使用字符串包裹
+      ],
+      value: [
+        // vuetify table custom slot
       ],
       rowActionList: [
         { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: 'doUiAction("startUpdateItem", item)' }, // 简写支持 pc 和 移动端折叠
@@ -312,7 +312,20 @@ module.exports = class InitJson extends CommandBase {
     return `const content = {
   pageType: "${pageType}", pageId: "${pageId}", ${tableStr} pageName: "${pageId}页面", ${componentPath}
   resourceList: ${resourceList}, // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
-  drawerList: [], // { key: '', title: '', contentList: [] }
+  headContent: [
+    { tag: 'jh-page-title', value: "${pageId}", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
+    { tag: 'v-spacer' },
+    { 
+      tag: 'jh-search', 
+      attrs: { cols: 12, sm: 6, md:8 },
+      value: [
+        { tag: "v-text-field", model: "serverSearchWhereLike.className", attrs: {prefix: '前缀'} },
+      ], 
+      searchBtn: true
+    }
+  ],
+  pageContent: ${pageContent},
+  ${actionContent},
   includeList: [], // { type: < js | css | html | vueComponent >, path: ''}
   common: { 
     ${propsStr}
@@ -339,20 +352,6 @@ module.exports = class InitJson extends CommandBase {
     doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
     methods: {}
   },
-  headContent: [
-    { tag: 'jh-page-title', value: "${pageId}", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
-    { tag: 'v-spacer' },
-    { 
-      tag: 'jh-search', 
-      attrs: { cols: 12, sm: 6, md:8 },
-      value: [
-        { tag: "v-text-field", model: "serverSearchWhereLike.className", attrs: {prefix: '前缀'} },
-      ], 
-      searchBtn: true
-    }
-  ],
-  pageContent: ${pageContent},
-  ${actionContent}
   ${style}
 };
 
@@ -586,15 +585,14 @@ module.exports = content;
 const content = {
   pageType: "${pageType}", ${pageIdStr}pageName: "${chartType}图表", componentPath: "${pageId || 'chart/' + chartType}Chart",
   resourceList: [], // 额外resource { actionId, resourceType, resourceData }
-  drawerList: [], // 抽屉列表 { key, title, contentList }
+  pageContent: {
+    ${pageContent}
+  },
   includeList: [
     ${includeList.map(item => `'${item}'`).join(',\n    ')}
   ], // 其他资源引入
   common: {
     data: ${JSON.stringify(this.getChartData(chartType), null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, '\n    ')},
-  },
-  pageContent: {
-    ${pageContent}
   },
 };
 
