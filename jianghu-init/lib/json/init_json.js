@@ -325,7 +325,7 @@ module.exports = class InitJson extends CommandBase {
     }
   ],
   pageContent: ${pageContent},
-  ${actionContent}
+  ${actionContent},
   includeList: [], // { type: < js | css | html | vueComponent >, path: ''}
   common: { 
     ${propsStr}
