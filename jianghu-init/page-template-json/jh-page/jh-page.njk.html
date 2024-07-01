@@ -331,8 +331,7 @@
 
              <!-- 抽屉内容组件 -->
             <=%- elif content.type == "component" %=>
-            <<=$ content.componentPath.split('/').pop() | camelToKebab $=> 
-            <=% for attr, value in item.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>
+            <<=$ content.componentPath.split('/').pop() | camelToKebab $=> <=%- for attr, value in content.bind %=> <=$ attr | tagAttr(value) $=><=%- endfor %=>/>
             <=%- else %=>
              <!-- 抽屉内容自定义 -->
             <=$ content | tagFormat(12) $=>
