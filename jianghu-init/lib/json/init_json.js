@@ -346,8 +346,19 @@ module.exports = class InitJson extends CommandBase {
     watch: {},
     computed: {
       tableDataComputed() {
-        return this.tableData;
-      }
+        if(this.filterMap) {
+          return this.tableData.filter(row => {
+            for (const key in this.filterMap) {
+              if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+                return false;
+              }
+            }
+            return true;
+          });
+        } else {
+          return this.tableData;
+        }
+      },
     },
     doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
     methods: {}

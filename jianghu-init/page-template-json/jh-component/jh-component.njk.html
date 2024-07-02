@@ -120,7 +120,7 @@
         <!-- 表格 -->
         <v-data-table
           :headers="headers"
-          :items="tableData"
+          :items="tableDataComputed"
           :search="searchInput"
           :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
           :items-per-page="-1"
