@@ -332,6 +332,10 @@
     <=%- endif %=>
     <=%- endfor %=>
 
+    <=%- if (actionContent | find({isCheckFormBeforeClose: true})) %=>
+    <jh-save-confirm-dialog />
+    <=%- endif %=>
+
     <!-- 组件列表 -->
     <=%- for item in includeList %=>
     <=%- if (item.includeType === 'auto') %=>
@@ -340,6 +344,10 @@
     <=%- endfor %=>
   </div>
 </script>
+<=%- if (actionContent | find({isCheckFormBeforeClose: true})) %=>
+{% include 'component/jianghuJs/jhSaveConfirmDialog.html' %}
+<=%- endif %=>
+
 <=%- for item in includeList %=>
 <=%- if item.type != 'vueComponent' and item.type != 'vueUse' %=>
 <=$ item | includeFormat | safe $=>
@@ -641,10 +649,14 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//   <=%- set drawer = (actionContent | find({key: 'create'})) %=>
     //===//   <=%- if drawer.isCheckFormBeforeClose %=>
     //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
-    //===//     const isConfrim = await window.confirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
-    //===//     if (isConfrim) {
+    //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (confirmDialogStatus === 'save') {
     //===//       await this.<=$ drawer.onCheckFormConfirm $=>
     //===//     }
+    //===//     if (confirmDialogStatus === 'notSave') {
+    //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
+    //===//     }
+    //===//     return;
     //===//  }
     //===//   <=%- endif %=>
     //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
@@ -719,10 +731,14 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===//   <=%- set drawer = (actionContent | find({key: 'update'})) %=>
     //===//   <=%- if drawer.isCheckFormBeforeClose %=>
     //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
-    //===//     const isConfrim = await window.confirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
-    //===//     if (isConfrim) {
+    //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (confirmDialogStatus === 'save') {
     //===//       await this.<=$ drawer.onCheckFormConfirm $=>
     //===//     }
+    //===//     if (confirmDialogStatus === 'notSave') {
+    //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
+    //===//     }
+    //===//     return;
     //===//  }
     //===//   <=%- endif %=>
     //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
@@ -787,10 +803,14 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// async close<=$ drawer.key | ucfirst $=>DrawerCheck() {
     //===//   <=%- if drawer.isCheckFormBeforeClose %=>
     //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
-    //===//     const isConfrim = await window.confirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
-    //===//     if (isConfrim) {
+    //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (confirmDialogStatus === 'save') {
     //===//       await this.<=$ drawer.onCheckFormConfirm $=>
     //===//     }
+    //===//     if (confirmDialogStatus === 'notSave') {
+    //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
+    //===//     }
+    //===//     return;
     //===//  }
     //===//   <=%- endif %=>
     //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
