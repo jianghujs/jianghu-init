@@ -120,7 +120,7 @@
         <!-- 表格 -->
         <v-data-table
           :headers="headers"
-          :items="tableData"
+          :items="tableDataComputed"
           :search="searchInput"
           :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
           :items-per-page="-1"
@@ -537,7 +537,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===// <=%- if common.data and common.data.serverSearchWhereIn %=>
       //===// for (const fieldKey in this.serverSearchWhereIn) {
       //===//   const fieldValue = this.serverSearchWhereIn[fieldKey];
-      //===//   if(!!fieldValue && fieldValue != '全部') {
+      //===//   if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
       //===//     whereIn[fieldKey] = fieldValue;
       //===//   }
       //===// }
