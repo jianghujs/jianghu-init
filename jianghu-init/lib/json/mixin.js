@@ -167,7 +167,8 @@ const mixin = {
       const attrs = Object.entries(item.attrs || {})
         .map(([ key, value ]) => tagAttr(key, value, tag))
         .join(' ');
-
+      let quickAttrs = (item.quickAttrs || []).join(' ');
+      quickAttrs = quickAttrs ? ' ' + quickAttrs : '';
       let value = '';
       if (typeof item.value === 'string') {
         value = ' '.repeat(indent + 2) + item.value;
@@ -185,7 +186,7 @@ const mixin = {
 
       const indentSpaces = ' '.repeat(indent);
       const lineBreak = value ? '\n' : '';
-      return `${indentSpaces}<${tag} ${attrs}>${lineBreak}${value}${lineBreak}${value ? indentSpaces : ''}</${tag}>`;
+      return `${indentSpaces}<${tag} ${attrs}${quickAttrs}>${lineBreak}${value}${lineBreak}${value ? indentSpaces : ''}</${tag}>`;
     };
     nunjucksEnv.addFilter('tagFormat', function(result, indent = 0) {
       const tag = [];

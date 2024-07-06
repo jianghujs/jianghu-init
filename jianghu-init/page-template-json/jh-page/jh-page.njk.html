@@ -573,13 +573,13 @@ new Vue({
     //===// <=%- endif %=>
   },
   //===// <=%- endif %=>
-  //===// <=% for key, item in common %=>
+  //===// <=%- for key, item in common %=>
   //===// <=%- if key == 'mounted' or key == 'created' %=>
   //===// <=$ item | variableToVar(key) $=>,
   //===// <=%- endif %=>
   //===// <=%- endfor %=>
 
-  //===// <=% for key, item in common %=>
+  //===// <=%- for key, item in common %=>
   //===// <=%- if ['beforeDestroy'] | includes(key) %=>
   //===// <=$ item | variableToVar(key) $=>,
   //===// <=%- endif %=>
