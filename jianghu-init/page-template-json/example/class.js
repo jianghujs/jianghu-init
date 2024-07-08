@@ -226,7 +226,7 @@ const content = {
           formItemList: [
             { label: "班级ID", model: "classId", tag: "v-text-field", idGenerate: { prefix: "C", startValue: 10001, bizId: "classId" }, attrs: { disabled: true, placeholder: "规则自动生成" }, hidden: true },
             { label: "班级名称", model: "className", tag: "v-text-field", rules: "validationRules.requireRules", required: true },
-            { label: "班级类型", model: "classType", tag: "v-select", rules: "validationRules.requireRules", required: true, default: "'普通班'", attrs: { ':items': 'constantObj.classType' }  },
+            { label: "班级类型", model: "classType", tag: "v-select", rules: "validationRules.requireRules", required: true, default: "普通班", attrs: { ':items': 'constantObj.classType' }  },
             { label: "备注", model: "remarks", tag: "v-text-field",   },
 
           ], 
