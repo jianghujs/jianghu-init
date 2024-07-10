@@ -241,9 +241,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
   // 复制jianghuJs公共组件和样式
   async copyJianghuJs() {
     // 如果没有jianghuJs 目录，则创建
-    if (!fs.existsSync('./app/view/common')) fs.mkdirSync('./app/view/common');
-    if (!fs.existsSync('./app/view/common/jianghuJs')) fs.mkdirSync('./app/view/common/jianghuJs');
-    if (!fs.existsSync('./app/view/component/jianghuJs')) fs.mkdirSync('./app/view/component/jianghuJs');
+    fs.mkdirSync('./app/view/common/jianghuJs', { recursive: true });
+    fs.mkdirSync('./app/view/component/jianghuJs', { recursive: true });
 
     // 复制通用样式和组件
     this.copyDir(`${path.join(__dirname, '../')}page-template-json/component/jianghuJs`, './app/view/component/jianghuJs');
@@ -388,7 +387,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
         this.warning(warningMessage);
 
         Object.keys(duplicateGroup).forEach(key => {
-          const fileList = duplicateGroup[key].map(item => item.file);
+          const fileList = _.uniq(duplicateGroup[key].map(item => item.file));
           this.warning(`${property}: ${key}  [ ${fileList.join(', ')} ]`);
         });
       }

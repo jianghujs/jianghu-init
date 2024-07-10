@@ -134,7 +134,7 @@ module.exports = class InitComponent extends CommandBase {
     const componentPathArr = componentPath.split('/');
     if (componentPathArr.length > 1) {
       const componentDir = componentPathArr.slice(0, componentPathArr.length - 1).join('/');
-      if (!fs.existsSync(`./app/view/component/${componentDir}`)) fs.mkdirSync(`./app/view/component/${componentDir}`);
+      fs.mkdirSync(`./app/view/component/${componentDir}`, { recursive: true });
     }
 
     // fs.writeFileSync(filepath, htmlUser);

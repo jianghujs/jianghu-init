@@ -143,9 +143,7 @@ module.exports = class InitPage1Table extends CommandBase {
       const pageIdDir = pageIdArr.slice(0, pageIdArr.length - 1).join('/');
       [ 'page', 'pageDoc' ].forEach(dir => {
         const pageIdDirPath = `./app/view/${dir}/${pageIdDir}`;
-        if (!fs.existsSync(pageIdDirPath)) {
-          fs.mkdirSync(pageIdDirPath);
-        }
+        fs.mkdirSync(pageIdDirPath, { recursive: true });
       });
     }
 
@@ -153,7 +151,7 @@ module.exports = class InitPage1Table extends CommandBase {
     if (jsonConfig.headContent && jsonConfig.headContent.helpDrawer) {
       const mdPath = './app/view/pageDoc';
       if (!fs.existsSync(`${mdPath}/${pageId}.md`)) {
-        if (!fs.existsSync(mdPath)) fs.mkdirSync(mdPath);
+        fs.mkdirSync(mdPath, { recursive: true });
         fs.writeFileSync(`${mdPath}/${pageId}.md`, `# ${pageId}页面`);
       }
     }
