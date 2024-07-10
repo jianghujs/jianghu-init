@@ -197,7 +197,7 @@ module.exports = class InitJson extends CommandBase {
         // 默认筛选
         {
           tag: 'v-col',
-          attrs: { cols: '12', sm: '6', md: '4', class: 'pa-0' },
+          attrs: { cols: '12', sm: '6', md: '3', xs: 8, class: 'pa-0' },
           value: [
             { tag: 'v-text-field', attrs: {prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true} },
           ],
