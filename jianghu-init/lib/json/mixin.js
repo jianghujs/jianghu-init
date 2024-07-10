@@ -239,6 +239,10 @@ const mixin = {
           }
           delete res.attrs.items;
         }
+
+        let quickAttrs = (res.quickAttrs || []).join(' ');
+        quickAttrs = quickAttrs ? ' ' + quickAttrs : '';
+
         tagStr += _.map(res.attrs, (value, key) => {
           let val = value;
           if (key === 'v-model' && !value.includes('.')) {
@@ -251,9 +255,9 @@ const mixin = {
           return tagAttr(key, val, res.tag);
         }).join(' ');
         if (res.value) {
-          tagStr += `>${res.value}</${res.tag}>`;
+          tagStr += `${quickAttrs}>${res.value}</${res.tag}>`;
         } else {
-          tagStr += `></${res.tag}>`;
+          tagStr += `${quickAttrs}></${res.tag}>`;
         }
         return tagStr;
       };
@@ -717,7 +721,7 @@ const mixin = {
     if (!componentList.length) return;
 
     const componentPath = `${path.join(__dirname, '../../')}page-template-json/component`;
-    if (!fs.existsSync('./app/view/component')) fs.mkdirSync('./app/view/component');
+    fs.mkdirSync('./app/view/component', { recursive: true });
 
     const { y, n } = this.argv || {};
     for (const item of componentList) {
@@ -763,7 +767,7 @@ const mixin = {
       const templateTargetPath = `${templatePath}/common.js`;
 
       const servicePath = './app/service';
-      if (!fs.existsSync(servicePath)) fs.mkdirSync(servicePath);
+      fs.mkdirSync(servicePath, { recursive: true });
 
       // 检查 service 是否存在
       const serviceFilePath = `${servicePath}/common.js`;

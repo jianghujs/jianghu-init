@@ -731,7 +731,7 @@ new Vue({
     //===//     <=%- if formItem.model %=>
     //===//     <=%- if formItem.valueType === 'json' %=>
     //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
-    //===//     <=%- else %=>
+    //===//     <=%- elif formItem.model and formItem.model.search('\\.') == -1 and formItem.model.search('\\[') == -1 %=>
     //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
     //===//     <=%- endif %=>
     //===//     <=%- endif %=>
@@ -817,7 +817,7 @@ new Vue({
     //===//     <=%- if formItem.model %=>
     //===//     <=%- if formItem.valueType === 'json' %=>
     //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
-    //===//     <=%- else %=>
+    //===//     <=%- elif formItem.model and formItem.model.search('\\.') == -1 and formItem.model.search('\\[') == -1 %=>
     //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
     //===//     <=%- endif %=>
     //===//     <=%- endif %=>

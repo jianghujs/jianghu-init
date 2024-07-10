@@ -109,9 +109,9 @@ module.exports = class InitJson extends CommandBase {
   // 生成 json
   async buildJson({ table, pageId, pageType, chartType, filename }) {
     // 检测创建文件夹
-    if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
     const generateFileDir = [ '1table-page', 'jh-page' ].includes(pageType) ? './app/view/init-json/page' : './app/view/init-json/component';
-    if (!fs.existsSync(generateFileDir)) fs.mkdirSync(generateFileDir);
+    fs.mkdirSync(generateFileDir, { recursive: true });
+
 
     const fields = table ? await this.getTableFields(table) : [];
     let content;
@@ -140,7 +140,7 @@ module.exports = class InitJson extends CommandBase {
 
     if (fileName.includes('/')) {
       const dir = fileName.split('/').slice(0, -1).join('/');
-      if (!fs.existsSync(`${generateFileDir}/${dir}`)) fs.mkdirSync(`${generateFileDir}/${dir}`);
+      fs.mkdirSync(`${generateFileDir}/${dir}`, { recursive: true });
     }
 
     // 生成文件
@@ -197,7 +197,7 @@ module.exports = class InitJson extends CommandBase {
         // 默认筛选
         {
           tag: 'v-col',
-          attrs: { cols: '12', sm: '6', md: '4', class: 'pa-0' },
+          attrs: { cols: '12', sm: '6', md: '3', xs: 8, class: 'pa-0' },
           value: [
             { tag: 'v-text-field', attrs: {prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true} },
           ],
@@ -614,7 +614,7 @@ module.exports = content;
 
   checkStaticChartFile() {
     const chartDir = './app/public/lib';
-    if (!fs.existsSync(chartDir)) fs.mkdirSync(chartDir);
+    fs.mkdirSync(chartDir, { recursive: true });
     const echartsFile = `${chartDir}/echarts.min.js`;
     const vueEchartsFile = `${chartDir}/vue-echarts.min.js`;
 
@@ -674,9 +674,8 @@ module.exports = content;
     const examplePageFilePath = examplePath + '/class.js';
     const exampleComponentFilePath = examplePath + '/studentOfClass.js';
     // 检测创建文件夹
-    if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
-    if (!fs.existsSync('./app/view/init-json/page')) fs.mkdirSync('./app/view/init-json/page');
-    if (!fs.existsSync('./app/view/init-json/component')) fs.mkdirSync('./app/view/init-json/component');
+    fs.mkdirSync('./app/view/init-json/page', { recursive: true });
+    fs.mkdirSync('./app/view/init-json/component', { recursive: true });
     // 把样例文件复制到项目中
     fs.copyFileSync(examplePageFilePath, './app/view/init-json/page/exampleClass.js');
     fs.copyFileSync(exampleComponentFilePath, './app/view/init-json/component/exampleStudentOfClass.js');
@@ -712,9 +711,8 @@ module.exports = content;
     ];
 
     // 检测创建文件夹
-    if (!fs.existsSync('./app/view/init-json')) fs.mkdirSync('./app/view/init-json');
-    if (!fs.existsSync('./app/view/init-json/page')) fs.mkdirSync('./app/view/init-json/page');
-    if (!fs.existsSync('./app/view/init-json/component')) fs.mkdirSync('./app/view/init-json/component');
+    fs.mkdirSync('./app/view/init-json/page', { recursive: true });
+    fs.mkdirSync('./app/view/init-json/component', { recursive: true });
     // 把样例文件复制到项目中
     for (const fileItem of fileList) {
       if (fileItem.checkPath) {
@@ -723,7 +721,7 @@ module.exports = content;
         let dir = './app/view/init-json';
         for (const pathItem of pathArr) {
           dir += '/' + pathItem;
-          if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+          fs.mkdirSync(dir, { recursive: true });
         }
       }
       fs.copyFileSync(`${examplePath}/${fileItem.file}.js`, `./app/view/init-json/${fileItem.path}/${fileItem.file}.js`);
