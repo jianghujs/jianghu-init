@@ -134,10 +134,9 @@ module.exports = class CommandBase {
     // 切换到 config 目录下读取 .env 文件
     // 记录 pwd
     const oldPath = process.cwd();
-    process.chdir('config');
 
     // eslint-disable-next-line no-eval
-    const data = fs.readFileSync(eval(file.replace('__dirname', '\'' + process.cwd() + '\'')), 'utf-8');
+    const data = fs.readFileSync(eval(file.replace('__dirname', '\'' + oldPath + '\\config\'')), 'utf-8');
     const lines = data.split('\n');
     const env = {};
     for (const line of lines) {
