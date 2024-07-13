@@ -130,13 +130,16 @@ module.exports = class CommandBase {
     return setting;
   }
 
-  loadDotEnv(file) {
+  loadDotEnv(dotenvRequire) {
     // 切换到 config 目录下读取 .env 文件
     // 记录 pwd
     const oldPath = process.cwd();
+    const configDir = path.resolve(oldPath, 'config');
+    const dotenvAbsolutePath = dotenvRequire.match(/['"](.*)['"]/);
+    const envFilePath = path.resolve(configDir, dotenvAbsolutePath[1]);
 
     // eslint-disable-next-line no-eval
-    const data = fs.readFileSync(eval(file.replace('__dirname', '\'' + oldPath + '\\config\'')), 'utf-8');
+    const data = fs.readFileSync(envFilePath, 'utf-8');
     const lines = data.split('\n');
     const env = {};
     for (const line of lines) {
