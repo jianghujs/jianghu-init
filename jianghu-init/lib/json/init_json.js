@@ -336,9 +336,10 @@ module.exports = class InitJson extends CommandBase {
           v => !!v || '必填',
         ],
       },
-      testString: '测试字符串',
-      serverSearchWhereLike: { className: '' },
-      filterMap: {},
+      serverSearchWhereLike: { className: '' }, // 服务端like查询
+      serverSearchWhere: { }, // 服务端查询
+      serverSearchWhereIn: { }, // 服务端 in 查询
+      filterMap: {}, // 结果筛选条件
     },
     dataExpression: {
       isMobile: 'window.innerWidth < 500'
