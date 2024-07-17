@@ -306,7 +306,8 @@
             <=%- if content.type == "form" %=>
             <v-row class="mt-0 px-4 pb-4">
               <=%- for formItem in content.formItemList %=>
-              <=%- if (not formItem.hidden or formItem.model) %=>
+              <=%- if not formItem.hidden %=>
+              <=%- if formItem.model is defined %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
                 <span class="jh-input-label"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
@@ -320,14 +321,13 @@
                 </v-menu>
                 <=%- elif formItem.tag == "jh-json-editor" %=>
                 <vue-json-editor v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></vue-json-editor>
-                <=%- elif formItem.model is defined %=>
-                <=$ formItem | formItemFormat(actionItem.key + 'Item') $=>
                 <=%- else %=>
-                <=$ formItem | tagFormat(16) $=>
+                <=$ formItem | formItemFormat(actionItem.key + 'Item') $=>
                 <=%- endif %=>
               </v-col>
               <=%- else %=>
-              <=$ attr | tagAttr(value) $=>
+              <=$ formItem | tagFormat(value) $=>
+              <=%- endif %=>
               <=%- endif %=>
               <=%- endfor %=>
             </v-row>
