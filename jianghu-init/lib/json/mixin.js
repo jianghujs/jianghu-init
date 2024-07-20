@@ -474,6 +474,7 @@ const mixin = {
       });
 
       jsonConfig.hasJhTable = true;
+      jsonConfig.jhTable = findJhTable;
       if (findJhTable.headActionList && findJhTable.headActionList.length) {
         if (findJhTable.headActionList.some(e => checkClick(e, 'startCreateItem'))) {
           jsonConfig.hasCreateStart = true;

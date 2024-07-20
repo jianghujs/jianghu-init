@@ -678,7 +678,11 @@ new Vue({
             where,
             whereLike,
             whereIn,
+            //===// <=%- if jhTable.orderBy %=>
+            //===// <=$ jhTable.orderBy | variableToVar('orderBy', 12) $=>,
+            //===// <=%- else %=>
             orderBy: [{column: 'operationAt', order: 'desc'}]
+            //===// <=%- endif %=>
           }
         }
       })).data.appData.resultData.rows;
