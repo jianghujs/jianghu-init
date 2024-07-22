@@ -513,12 +513,40 @@ const mixin = {
       }
     }
 
+    if (createDrawer || updateDrawer) {
+      // 统一转换 contentList 内 type 是 form 的 formItemList 内的 item colsAttrs -> colAttrs
+      for (const drawer of jsonConfig.actionContent) {
+        if (drawer.tag === 'jh-update-drawer' || drawer.tag === 'jh-create-drawer') {
+          for (const content of drawer.contentList) {
+            if (content.type === 'form') {
+              content.formItemList.forEach(item => {
+                if (item.colsAttrs) {
+                  item.colAttrs = item.colsAttrs;
+                }
+              });
+            }
+          }
+        }
+      }
+    }
+
     if ((headContent.find(e => e.tag === 'jh-page-title') || {}).helpBtn) {
       jsonConfig.hasHelpDrawer = true;
     }
 
     if (headContent.find(e => e.tag === 'jh-search')) {
       jsonConfig.hasSearch = true;
+
+      // 统一转换 jh-search 的 formItemList 内的 item colsAttrs -> colAttrs
+      for (const content of headContent) {
+        if (content.tag === 'jh-search' && content.value) {
+          content.value.forEach(item => {
+            if (item.colsAttrs) {
+              item.colAttrs = item.colsAttrs;
+            }
+          });
+        }
+      }
     }
 
     const hasJhScene = headContent.find(e => e.tag === 'jh-scene')

@@ -25,7 +25,7 @@
           <v-row class="jh-backend-form-container justify-end py-md-3" no-gutters>
             <=%- for search in content.value %=>
             <=%- if search.tag == "v-date-picker" %=>
-            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                 <template v-slot:activator="{on, attrs}">
                   <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prepend-inner-icon="mdi-calendar-range" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>：" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
@@ -34,11 +34,11 @@
               </v-menu>
             </v-col>
             <=%- elif search.model is defined %=>
-            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <=$ search | formItemFormat $=>
             </v-col>
             <=%- else %=>
-            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <=$ search | tagFormat(14) $=>
             </v-col>
             <=%- endif %=>
@@ -277,7 +277,7 @@
             <v-row class="mt-0 px-4 pb-4">
               <=%- for formItem in content.formItemList %=>
               <=%- if not formItem.hidden %=>
-              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colsAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
                 <span class="jh-input-label"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
                 <=%- endif %=>
