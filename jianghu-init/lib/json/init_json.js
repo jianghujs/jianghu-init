@@ -310,7 +310,7 @@ module.exports = class InitJson extends CommandBase {
 
   getBasicContent({ pageId, pageType, tableStr = '', componentPath = '', resourceList = '[]', propsStr = '', pageContent = '[]', actionContent, style }) {
     return `const content = {
-  pageType: "${pageType}", pageId: "${pageId}", ${tableStr} pageName: "${pageId}页面", ${componentPath}
+  pageType: "${pageType}", pageId: "${pageId}", pageName: "${pageId}页面", ${componentPath}
   resourceList: ${resourceList}, // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
   headContent: [
     { tag: 'jh-page-title', value: "${pageId}", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
