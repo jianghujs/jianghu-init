@@ -1,5 +1,5 @@
 const content = {
-  pageType: "jh-component", pageId: "exampleClass", table: "example_student", pageName: "班级学生列表", componentPath: "example/studentOfClass",
+  pageType: "jh-component", pageId: "exampleClass", componentPath: "example/studentOfClass",
   resourceList: [
     {
       actionId: "exampleStudent-selectItemList",
@@ -50,48 +50,7 @@ const content = {
       }
     }
   ], // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
-  includeList: [], // { type: < js | css | html >, path: ''}
-  common: {
-    props: {
-      classId: {
-        type: String,
-        required: true,
-        default: ''
-      },
-    },
-    data: {
-      constantObj: {
-        gender: ["全部", "男", "女"],
-      },
-      validationRules: { 
-          requireRules: [
-              v => !!v || '此项必填',
-          ],
-          phoneRules: [
-              v => !!v || '此项必填',
-              v => /^1[3456789]d{9}$/.test(v) || '手机号格式错误',
-          ],
-      },
-      testString: '测试字符串', // 字符串变量需要使用双层引号包裹
-      tableSelected: [],
-      serverSearchWhereLike: {},
-      serverSearchWhere: {},
-    },
-    dataExpression: {
-      isMobile: 'window.innerWidth < 500', // data 表达式
-    },
-    watch: {
-      classId: {
-        immediate: true,
-        handler(val) {
-          if (!val) return;
-          this.serverSearchPropsWhere.classId = val;
-          this.doUiAction('getTableData');
-        }
-      }
-    },
-    computed: {},
-  },
+
   headContent: [
     { tag: 'jh-page-title', value: "班级学生页面", attrs: {}, helpBtn: true, slot: [] },
     { 
@@ -222,7 +181,49 @@ const content = {
         { label: "操作记录", type: "component", componentPath: "recordHistory" },
       ]
     },
-  ]
+  ],
+  includeList: [], // { type: < js | css | html >, path: ''}
+  common: {
+    props: {
+      classId: {
+        type: String,
+        required: true,
+        default: ''
+      },
+    },
+    data: {
+      constantObj: {
+        gender: ["全部", "男", "女"],
+      },
+      validationRules: { 
+          requireRules: [
+              v => !!v || '此项必填',
+          ],
+          phoneRules: [
+              v => !!v || '此项必填',
+              v => /^1[3456789]d{9}$/.test(v) || '手机号格式错误',
+          ],
+      },
+      testString: '测试字符串', // 字符串变量需要使用双层引号包裹
+      tableSelected: [],
+      serverSearchWhereLike: {},
+      serverSearchWhere: {},
+    },
+    dataExpression: {
+      isMobile: 'window.innerWidth < 500', // data 表达式
+    },
+    watch: {
+      classId: {
+        immediate: true,
+        handler(val) {
+          if (!val) return;
+          this.serverSearchPropsWhere.classId = val;
+          this.doUiAction('getTableData');
+        }
+      }
+    },
+    computed: {},
+  },
 };
 
 module.exports = content;

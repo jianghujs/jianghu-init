@@ -1,5 +1,5 @@
 const content = {
-  pageType: "jh-page", pageId: "exampleClass", table: "example_class", pageName: "班级页面", 
+  pageType: "jh-page", pageId: "exampleClass", pageName: "班级页面", 
   // 1table 外需要添加的其他 resource
   resourceList: [
     {
@@ -51,81 +51,6 @@ const content = {
       }
     }
   ],
-  includeList: [], // { type: < js | css | html >, path: ''}
-  common: {
-    data: {
-      constantObj: {
-        classType: ["普通班", "重点班", "特长班"],
-        classTypeColor: {
-          "普通班": "success",
-          "重点班": "warning",
-          "特长班": "blue",
-        }
-      },
-      validationRules: { 
-          requireRules: [
-              v => !!v || '此项必填',
-          ],
-          phoneRules: [
-              v => !!v || '此项必填',
-              v => /^1[3456789]d{9}$/.test(v) || '手机号格式错误',
-          ],
-      },
-      testString: '测试字符串', // 字符串变量需要使用双层引号包裹
-      tableSelected: [],
-      serverSearchWhereLike: { className: '' },
-      serverSearchWhere: { classType: '' },
-    },
-    dataExpression: {
-      isMobile: 'window.innerWidth < 500', // data 表达式
-    },
-    doUiAction: {
-      'startUpdateBalance': ['prepareUpdateBalanceData', 'openUpdateBalanceDrawer'],
-      'updateBalance': ['prepareUpdateBalanceValidate', 'confirmUpdateBalanceDialog', 'doUpdateBalance', 'closeUpdateBalanceDrawer', 'getTableData'],
-      'batchConsole': ['batchConsole'],
-      'viewClassStudentList': ['prepareClassStudentData', 'openClassStudentDrawer', ],
-    },
-    watch: {},
-    methods: {
-      prepareUpdateBalanceData(item) {
-        this.updateBalance = _.cloneDeep(item);
-      },
-      async prepareUpdateBalanceValidate() {
-        if (await this.$refs.updateBalance.validate()) {
-          return true;
-        }
-        throw new Error("请完善表单信息")
-      },
-      async confirmUpdateBalanceDialog() {
-        if (await window.confirmDialog({title: "修改班费", content: "确定修改班费吗？"}) === false) {
-          throw new Error("[confirmUpdateBalanceDialog] 否");
-        }
-      },
-      async doUpdateBalance(uiActionData) {
-        const {classBalance, id} = this.updateBalance;
-        await window.jhMask.show();
-        await window.vtoast.loading("修改数据");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'classManagement',
-              actionId: 'balance-updateItem',
-              actionData: {classBalance},
-              where: {id}
-            }
-          }
-        })
-        await window.jhMask.hide();
-        await window.vtoast.success("修改数据成功");
-      },
-      async prepareClassStudentData(item) {
-        this.classStudent = _.cloneDeep(item);
-      },
-      async batchConsole() {
-        console.log(this.tableSelected);
-      },
-    }
-  },
   headContent: [
     { tag: 'jh-page-title', value: "班级页面", attrs: {}, helpBtn: true, slot: [] },
     { 
@@ -310,6 +235,81 @@ const content = {
       ]
     },
   ],
+  includeList: [], // { type: < js | css | html >, path: ''}
+  common: {
+    data: {
+      constantObj: {
+        classType: ["普通班", "重点班", "特长班"],
+        classTypeColor: {
+          "普通班": "success",
+          "重点班": "warning",
+          "特长班": "blue",
+        }
+      },
+      validationRules: { 
+          requireRules: [
+              v => !!v || '此项必填',
+          ],
+          phoneRules: [
+              v => !!v || '此项必填',
+              v => /^1[3456789]d{9}$/.test(v) || '手机号格式错误',
+          ],
+      },
+      testString: '测试字符串', // 字符串变量需要使用双层引号包裹
+      tableSelected: [],
+      serverSearchWhereLike: { className: '' },
+      serverSearchWhere: { classType: '' },
+    },
+    dataExpression: {
+      isMobile: 'window.innerWidth < 500', // data 表达式
+    },
+    doUiAction: {
+      'startUpdateBalance': ['prepareUpdateBalanceData', 'openUpdateBalanceDrawer'],
+      'updateBalance': ['prepareUpdateBalanceValidate', 'confirmUpdateBalanceDialog', 'doUpdateBalance', 'closeUpdateBalanceDrawer', 'getTableData'],
+      'batchConsole': ['batchConsole'],
+      'viewClassStudentList': ['prepareClassStudentData', 'openClassStudentDrawer', ],
+    },
+    watch: {},
+    methods: {
+      prepareUpdateBalanceData(item) {
+        this.updateBalance = _.cloneDeep(item);
+      },
+      async prepareUpdateBalanceValidate() {
+        if (await this.$refs.updateBalance.validate()) {
+          return true;
+        }
+        throw new Error("请完善表单信息")
+      },
+      async confirmUpdateBalanceDialog() {
+        if (await window.confirmDialog({title: "修改班费", content: "确定修改班费吗？"}) === false) {
+          throw new Error("[confirmUpdateBalanceDialog] 否");
+        }
+      },
+      async doUpdateBalance(uiActionData) {
+        const {classBalance, id} = this.updateBalance;
+        await window.jhMask.show();
+        await window.vtoast.loading("修改数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'classManagement',
+              actionId: 'balance-updateItem',
+              actionData: {classBalance},
+              where: {id}
+            }
+          }
+        })
+        await window.jhMask.hide();
+        await window.vtoast.success("修改数据成功");
+      },
+      async prepareClassStudentData(item) {
+        this.classStudent = _.cloneDeep(item);
+      },
+      async batchConsole() {
+        console.log(this.tableSelected);
+      },
+    }
+  },
   style: '',
 };
 

@@ -19,7 +19,7 @@
       <v-row class="align-center" no-gutters>
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-page-title' %=>
-        <v-col cols="12" xs="12" sm="12" md="4" xl="3" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+        <v-col cols="12" sm="12" md="4" xl="3" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <div class="py-4 text-body-1 font-weight-bold align-center d-flex align-center"><=$ content.value $=>
             <=%- if content.helpBtn %=>
             <!-- 帮助页按钮 -->
