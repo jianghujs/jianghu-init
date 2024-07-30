@@ -205,7 +205,7 @@
               <v-list dense>
                 <=%- for action in content.rowActionList %=>
                 <=%- if not action.tag %=>
-                <v-list-item @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+                <v-list-item @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=><=% for attr in action.quickAttrs %=><=$ attr $=> <=% endfor %=>>
                   <v-list-item-title><=$ action.text $=></v-list-item-title>
                 </v-list-item>
                 <=%- endif %=>
