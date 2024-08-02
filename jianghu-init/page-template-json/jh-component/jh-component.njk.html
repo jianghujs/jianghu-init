@@ -381,7 +381,9 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
 
     //===// <=%- if hasJhTable %=>
     // ================================ 表格相关 ================================
+    //===// <=%- if (pageContent | find({tag: 'jh-table'})).headers %=>
     //===// <=$ (pageContent | find({tag: 'jh-table'})).headers | removeKey(['formatter']) | listToVar('headers') $=>,
+    //===// <=%- endif %=>
     //===// tableData: [],
     //===// isTableLoading: false,
     //===// searchInput: null,
