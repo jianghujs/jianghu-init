@@ -1,6 +1,7 @@
 'use strict';
 const yargs = require('yargs');
 const InitPage = require('./json/init_page');
+const InitMobilePage = require('./json/init_mobile_page');
 const InitComponent = require('./json/init_component');
 const InitJson = require('./json/init_json');
 const InitClear = require('./json/init_clear');
@@ -51,6 +52,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.cwd = cwd;
     this.jhComponent = new InitComponent();
     this.jhPage = new InitPage();
+    this.jhMobilePage = new InitMobilePage();
 
     await this.enableDevMode(args.includes('dev'));
 
@@ -90,6 +92,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
           case '1table-page':
             await this.jhPage.run(process.cwd(), jsonArgv, this.argv);
             break;
+          case 'jh-mobile-page':
+            await this.jhMobilePage.run(process.cwd(), jsonArgv, this.argv);
+            break;
           default:
             this.error(`不存在的 pageType: ${pageType}`);
             break;
@@ -110,6 +115,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
           case 'jh-page':
           case '1table-page':
             await this.jhPage.run(process.cwd(), jsonArgvItem, this.argv);
+            break;
+          case 'jh-mobile-page':
+            await this.jhMobilePage.run(process.cwd(), jsonArgvItem, this.argv);
             break;
           default:
             this.error(`不存在的 pageType: ${pageType}`);
@@ -243,11 +251,15 @@ module.exports = class InitByJsonCommand extends CommandBase {
     // 如果没有jianghuJs 目录，则创建
     fs.mkdirSync('./app/view/common/jianghuJs', { recursive: true });
     fs.mkdirSync('./app/view/component/jianghuJs', { recursive: true });
+    fs.mkdirSync('./app/view/template', { recursive: true });
 
     // 复制通用样式和组件
     this.copyDir(`${path.join(__dirname, '../')}page-template-json/component/jianghuJs`, './app/view/component/jianghuJs');
     this.copyDir(`${path.join(__dirname, '../')}page-template-json/common/jianghuJs`, './app/view/common/jianghuJs');
- }
+    // page-template-json/common/jhMobileTemplateV4.html -> ./app/view/teamplate/jhMobileTemplateV4.html'
+
+    fs.copyFileSync(`${path.join(__dirname, '../')}page-template-json/common/jhMobileTemplateV4.html`, './app/view/template/jhMobileTemplateV4.html');
+  }
 
 
   async enableDevMode(dev) {
@@ -343,6 +355,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
         case '1table-page':
           await this.jhPage.renderContent(fileObj, true);
           break;
+        case 'jh-mobile-page':
+          await this.jhMobilePage.renderContent(fileObj, true);
+          break;
         default:
           this.error(`不存在的 pageType: ${fileObj.pageType}`);
           break;
@@ -377,7 +392,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     if (!this.allConfigFileList) {
       this.allConfigFileList = configFileList || [];
     }
-    const pageConfigList = this.allConfigFileList.filter(item => [ 'jh-page', '1table-page' ].includes(item.pageType));
+    const pageConfigList = this.allConfigFileList.filter(item => [ 'jh-page', '1table-page', 'jh-mobile-page' ].includes(item.pageType));
     const componentConfigList = this.allConfigFileList.filter(item => [ 'jh-component', '1table-component' ].includes(item.pageType));
 
     const checkDuplicate = (configList, property, warningMessage) => {
@@ -441,7 +456,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     // 检查 this.allConfigFileList 内是否有除了 fileObj 的其他重复项, 有则检查提示重复, 没有则添加
     this.allConfigFileList = this.allConfigFileList || [];
     let duplicateList = [];
-    if ([ 'jh-page', '1table-page' ].includes(fileObj.pageType)) {
+    if ([ 'jh-page', '1table-page', 'jh-mobile-page' ].includes(fileObj.pageType)) {
       duplicateList = this.allConfigFileList.filter(item => item.pageType.includes('-page') && item.pageId === fileObj.pageId && item.file !== file);
     } else {
       duplicateList = this.allConfigFileList.filter(item => item.pageType.includes('-component') && item.componentPath === fileObj.componentPath && item.file !== file);

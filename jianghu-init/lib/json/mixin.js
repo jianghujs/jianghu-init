@@ -272,6 +272,77 @@ const mixin = {
       }
       return tag.join('\n                    ');
     });
+    nunjucksEnv.addFilter('mobileFormItemFormat', function(result, drawerKey = 'updateItem') {
+      const tag = [];
+      const tagItemFormat = res => {
+        if (!res.tag) {
+          return '';
+        }
+        if (!res.attrs) {
+          res.attrs = { ':reverse': true };
+        } else {
+          res.attrs[':reverse'] = true;
+        }
+        // class="jh-v-input" dense single-line filled
+        if (!res.attrs.class) res.attrs.class = 'jh-v-input mt-0 pt-0';
+
+        let tagStr = `<${res.tag} `;
+        if (res.model) {
+          res.attrs['v-model'] = res.model.includes('.') ? res.model : drawerKey + '.' + res.model;
+        }
+        if (res.rules) {
+          res.attrs.rules = res.rules;
+        }
+        if (res.attrs[':items'] && !_.isString(res.attrs[':items'])) {
+          if (_.isFunction(res.attrs[':items'])) {
+            res.attrs[':items'] = res.attrs[':items'].toString().replace(/"/g, '\'');
+          } else {
+            res.attrs[':items'] = JSON.stringify(res.attrs[':items']);
+          }
+        }
+        if (res.attrs.items) {
+          if (_.isString(res.attrs.items)) {
+            res.attrs[':items'] = res.attrs.items.replace(/"/g, '\'');
+          } else if (_.isFunction(res.attrs.items)) {
+            res.attrs[':items'] = res.attrs.items.toString().replace(/"/g, '\'');
+          } else {
+            res.attrs[':items'] = JSON.stringify(res.attrs.items);
+          }
+          delete res.attrs.items;
+        }
+
+        let quickAttrs = (res.quickAttrs || []).join(' ');
+        quickAttrs = quickAttrs ? ' ' + quickAttrs : '';
+
+        tagStr += _.map(res.attrs, (value, key) => {
+          let val = value;
+          if (key === 'v-model' && !value.includes('.')) {
+            val = drawerKey + '.' + value;
+          }
+          if (key === 'v-model') {
+            // 替换this.
+            val = val ? val.replace(/this\./g, '') : val;
+          }
+          return tagAttr(key, val, res.tag);
+        }).join(' ');
+        if (res.value) {
+          tagStr += `${quickAttrs}>${res.value}</${res.tag}>`;
+        } else {
+          tagStr += `${quickAttrs}></${res.tag}>`;
+        }
+        return tagStr;
+      };
+      if (_.isArray(result)) {
+        result.forEach(res => {
+          tag.push(tagItemFormat(res));
+        });
+      } else if (_.isObject(result)) {
+        tag.push(tagItemFormat(result));
+      } else if (_.isString(result)) {
+        tag.push(result);
+      }
+      return tag.join('\n                    ');
+    });
     nunjucksEnv.addFilter('removeKey', function(data, keyList) {
       if (_.isArray(data)) {
         return _.map(data, function(item) {
@@ -345,16 +416,16 @@ const mixin = {
   },
 
   async checkPage(jsonConfig) {
-    const { pageId, pageName } = jsonConfig;
+    const { pageType, pageId, pageName } = jsonConfig;
     const operationByUserId = `jianghu-init/${pageId}`;
     const knex = await this.getKnex();
     const existPage = await knex('_page').where({ pageId }).first();
     const pageData = {
       pageId,
-      pageName,
+      pageName: pageType === 'jh-mobile-page' ? pageName + '（移动端）' : pageName,
       operationByUserId,
     };
-    if (existPage && (existPage.pageName !== pageName || existPage.operationByUserId !== operationByUserId)) {
+    if (existPage && (existPage.pageName !== pageData.pageName || existPage.operationByUserId !== operationByUserId)) {
       console.log(`更新页面名称 ${existPage.pageName} => ${pageName}`);
       await knex('_page').where({ id: existPage.id }).update(pageData);
     } else if (!existPage) {
@@ -412,6 +483,17 @@ const mixin = {
 
   // 处理配置文件数据
   handleJsonConfig(jsonConfig) {
+
+    if (!jsonConfig.template) {
+      jsonConfig.template = 'jhTemplateV4';
+    }
+    if (!jsonConfig.actionContent) {
+      jsonConfig.actionContent = [];
+    }
+    if (!jsonConfig.headContent) {
+      jsonConfig.headContent = [];
+    }
+    
     let { actionContent, pageContent, headContent = [], common } = jsonConfig;
     /**
      * njk 快捷判断变量
@@ -424,19 +506,11 @@ const mixin = {
     if (!common.doUiAction) {
       common.doUiAction = [];
     }
-    if (!actionContent) {
-      jsonConfig.actionContent = [];
-      actionContent = [];
-    }
     // 默认 headSlot 加入分隔符
     for (const content of jsonConfig.actionContent) {
       if (!_.isString(content) && (!content.headSlot || !content.headSlot.length)) {
         content.headSlot = [ '<v-spacer></v-spacer>' ];
       }
-    }
-    if (!headContent) {
-      jsonConfig.headContent = [];
-      headContent = [];
     }
     if (!_.isArray(pageContent) && _.isObject(pageContent)) {
       jsonConfig.pageContent = [ pageContent ];
@@ -522,6 +596,15 @@ const mixin = {
               content.formItemList.forEach(item => {
                 if (item.colsAttrs) {
                   item.colAttrs = item.colsAttrs;
+                }
+                if (!item.colAttrs) item.colAttrs = {};
+                if (jsonConfig.pageType === 'jh-mobile-page' && !!item.model) {
+                  // border-b flex justify-between items-center py-2
+                  if (item.attrs && (item.attrs.disabled || item.attrs.readonly || item.attrs[':readonly'] || item.attrs[':disabled'])) {
+                    item.colAttrs.class = 'border-b flex justify-between items-center py-2' + (item.colAttrs.class ? ' ' + item.colAttrs.class : '');
+                  } else {
+                    item.colAttrs.class = (item.colAttrs.class ? ' ' + item.colAttrs.class : '');
+                  }
                 }
               });
             }

@@ -195,7 +195,7 @@
         body .v-application .v-navigation-drawer__content .jh-drawer-action-btn-group {
             display: flex;
             justify-content: end;
-            margin-right: 10px;
+            padding-right: 10px;
             position: fixed;
             bottom: 0;
             background: #fff;
@@ -210,6 +210,11 @@
         /* 抽屉 除了系统菜单抽屉 */
         body .v-application .v-navigation-drawer:not(.jh-page-nav-bar) {
             width: 100% !important;
+            border-left: none !important;
+        }
+
+        .theme--light.v-navigation-drawer:not(.v-navigation-drawer--floating) .v-navigation-drawer__border {
+            display: none !important;
         }
 
         body .v-application .v-navigation-drawer__content {
