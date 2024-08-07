@@ -231,7 +231,8 @@ new Vue({
   data: () => ({
 
     isMobile: window.innerWidth < 500,
-    ta
+    tableData: [],
+    isTableLoading: false,
 
     //===// <=%- if hasCreateDrawer %=>
     // ================================ 新建抽屉 ================================
@@ -352,6 +353,9 @@ new Vue({
     async doUiAction(uiActionId, uiActionData) {
       try {
         switch (uiActionId) {
+          case 'getTableData':
+            await this.getTableData();
+            break;
           //===// <=%- for key, value in basicUiActionConfig %=>
           //===// case '<=$ key $=>':
           //===//   <=%- for method in value %=>
