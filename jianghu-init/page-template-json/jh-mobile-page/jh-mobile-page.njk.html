@@ -38,6 +38,45 @@
           </v-col>
         </v-row>
       </v-col>
+      <=%- elif content.tag == 'jh-search' %=>
+      <!-- 顶部排序选择 -->
+      <v-col cols="12" class="flex pa-0 justify-between items-center">
+        <div class="flex <=%- if content.searchList.length > 0 %=> justify-between <=%- else %=> justify-start <=%- endif %=>bg-white py-2 px-4 flex-1">
+          <!-- 排序 下拉选择 -->
+          <=%- for search in content.searchList %=>
+          <div class="text-center order-menu">
+            <v-menu
+              v-model="<=$ search.model $=>Menu"
+              absolute
+              attach
+              nudge-bottom="<=$ content.bottom | default(30) $=>"
+              class="elevation-0"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <div 
+                  v-bind="attrs"
+                  v-on="on">
+                  {{ <=$ search.model $=> ? (<=$ search.items $=>.find(e => e.value == <=$ search.model $=>)?.text || '<=$ search.label $=>') : '<=$ search.label $=>' }}
+                  <v-icon small>{{ <=$ search.model $=>Menu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+                </div>
+              </template>
+
+              <div class="w-screen bg-white px-4 pb-2 rounded-b-lg">
+                <div v-for="(header, index) in <=$ search.items $=>" class="  text-left py-2" :class="{'border-b': (<=$ search.items $=>.length - 1) > index, 'text-green-500': <=$ search.model $=> == header.value }" @click="<=$ search.model $=> = header.value;doUiAction('getTableData')">{{ header.text }}</div>
+              </div>
+            </v-menu>
+          </div>
+          <=%- endfor %=>
+        </div>
+
+        <=%- if content.advSearchList.length > 0 %=>
+        <div class="px-3 border-l" :class="{'text-green-500': !!useAdvSearch}" @click="isAdvSearchDrawerShown = true">
+          筛选
+          <!-- icon -->
+          <v-icon small>mdi-filter-outline</v-icon>
+        </div>
+        <=%- endif %=>
+      </v-col>
       <=%- else %=>
       <=$ content | tagFormat(6) $=>
       <=%- endif %=>
@@ -195,6 +234,47 @@
     <=%- endif %=>
     <=%- endfor %=>
 
+    <=%- if hasAdvSearch %=>
+    <v-navigation-drawer v-if="isAdvSearchDrawerShown" v-model="isAdvSearchDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+      <div class="relative h-full">
+        <v-list-item style="z-index: 112;">
+          <v-list-item-content>
+            <v-list-item-title class="text-h6">
+              高级搜索
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+  
+        <v-divider></v-divider>
+
+        <v-row class="pa-0 ma-0" style="overflow: hidden; overflow-y: auto;">
+          <=%- for formItem in advSearchList %=>
+          <v-col cols="<=$ formItem.cols | default('12') $=>" <=% for attr, value in formItem.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+            <span class="jh-input-label"><=$ formItem.label $=></span>
+            <=%- if formItem.tag == "v-chip-group" %=>
+            <!-- 纸片组平铺/允许换行 -->
+            <v-chip-group column v-model="<=$ formItem.model $=>" active-class="success--text">
+              <v-chip small v-for="item in <=$ formItem.items $=>" :key="item" :value="item">
+                {{item}}
+              </v-chip>
+            </v-chip-group>
+            <=%- else %=>
+            <=$ formItem | formItemFormat $=>
+            <=%- endif %=>
+          </v-col>
+          <=%- endfor %=>
+        </v-row>
+        <div class="absolute bottom-0 flex justify-space-between w-full px-4">
+          <!-- 重置按钮 -->
+          <v-btn color="warning" @click="useAdvSearch = false;clearServerSearch">重置</v-btn>
+          <!-- 确认按钮 -->
+          <v-btn color="success" class="flex-1 ml-3" @click="useAdvSearch = true;isAdvSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+        </div>
+
+      </div>
+    </v-navigation-drawer>
+    <=%- endif %=>
+
     <=%- if (actionContent | find({isCheckFormBeforeClose: true})) %=>
     <jh-save-confirm-dialog />
     <=%- endif %=>
@@ -258,6 +338,21 @@ new Vue({
     isMobile: window.innerWidth < 500,
     tableData: [],
     isTableLoading: false,
+    tableDataOrder: [{column: 'operationAt', order: 'desc'}],
+
+
+    //===// <=%- if hasAdvSearch %=>
+    isAdvSearchDrawerShown: false,
+    useAdvSearch: false,
+    //===// <=%- endif %=>
+
+    //===// <=%- for content in headContent %=>
+    //===// <=%- if content.tag == 'jh-search' %=>
+    //===// <=%- for search in content.searchList %=>
+    //===// <=$ search.model $=>Menu: false,
+    //===// <=%- endfor %=>
+    //===// <=%- endif %=>
+    //===// <=%- endfor %=>
 
     //===// <=%- if hasDetailDrawer %=>
     // ================================ 详情抽屉 ================================
@@ -476,7 +571,7 @@ new Vue({
             //===// <=%- if jhTable.orderBy %=>
             //===// <=$ jhTable.orderBy | variableToVar('orderBy', 12) $=>,
             //===// <=%- else %=>
-            orderBy: [{column: 'operationAt', order: 'desc'}]
+            orderBy: this.tableDataOrder
             //===// <=%- endif %=>
           }
         }
@@ -769,6 +864,20 @@ new Vue({
     //===// },
     //===// <=%- endif %=>
 
+    //===// <=%- if hasAdvSearch %=>
+    clearServerSearch() {
+      for (const key in this.serverSearchWhere) {
+        this.serverSearchWhere[key] = '';
+      }
+      for (const key in this.serverSearchWhereLike) {
+        this.serverSearchWhereLike[key] = '';
+      }
+      for (const key in this.serverSearchWhereIn) {
+        this.serverSearchWhereIn[key] = [];
+      }
+    },
+    //===// <=%- endif %=>
+
     //===// <=%- if common and common.methods %=>
     // ---------- Custom uiAction >>>>>>>>>>>> --------
     //===// <=%- for key, value in common.methods %=>
@@ -782,6 +891,9 @@ new Vue({
 </script>
 
 <style scoped>
+  .v-navigation-drawer--bottom.v-navigation-drawer--is-mobile {
+    max-height: 80%;
+  }
   <=%- if style %=>
   <=$ style $=>
   <=%- endif %=>

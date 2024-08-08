@@ -634,9 +634,14 @@ const mixin = {
           });
         }
       }
+
+      if (jsonConfig.pageType === 'jh-mobile-page' && headContent.find(e => e.tag === 'jh-search').advSearchList) {
+        jsonConfig.hasAdvSearch = true;
+        jsonConfig.advSearchList = headContent.find(e => e.tag === 'jh-search').advSearchList;
+      }
     }
 
-    const hasJhScene = headContent.find(e => e.tag === 'jh-scene')
+    const hasJhScene = headContent.find(e => e.tag === 'jh-scene');
     if (hasJhScene) {
       jsonConfig.hasJhScene = true;
     }
