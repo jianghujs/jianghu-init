@@ -50,7 +50,7 @@
     <!-- <<<<<<<<<<<<< 页面内容 -->
     <=%- for actionItem in actionContent %=>
 
-    <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' %=>
+    <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' or actionItem.tag == 'jh-detail-drawer' %=>
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
     <v-navigation-drawer v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" :permanent="is<=$ actionItem.key | ucfirst $=>DrawerShown" fixed temporary right width="90%" class="elevation-24" <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
@@ -142,7 +142,32 @@
               <=%- endif %=>
               <=%- endfor %=>
             </v-row>
-
+            <=%- elif content.type == "preview" %=>
+            <v-row class="mt-0 px-3 pb-4">
+              <=%- for formItem in content.formItemList %=>
+              <=%- if not formItem.hidden %=>
+              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+                <=%- if formItem.label %=>
+                <span class="text-sm text-weight-bold w-28"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                <=%- endif %=>
+                <=%- if formItem.tag == "v-date-picker" %=>
+                <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
+                    <template v-slot:activator="{on, attrs}">
+                    <v-text-field  prepend-inner-icon="mdi-calendar-range" v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled clearable></v-text-field>
+                    </template>
+                    <v-date-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-date-picker>
+                </v-menu>
+                <=%- elif formItem.tag == "jh-json-editor" %=>
+                <vue-json-editor v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=> disabled></vue-json-editor>
+                <=%- elif formItem.model is defined %=>
+                <=$ formItem | formItemFormat(actionItem.key + 'Item') $=>
+                <=%- else %=>
+                <=$ formItem | tagFormat(value) $=>
+                <=%- endif %=>
+              </v-col>
+              <=%- endif %=>
+              <=%- endfor %=>
+            </v-row>
              <!-- 抽屉内容组件 -->
             <=%- elif content.type == "component" %=>
             <<=$ content.componentPath.split('/').pop() | camelToKebab $=> <=%- for attr, value in content.bind %=> <=$ attr | tagAttr(value) $=><=%- endfor %=>/>
@@ -233,6 +258,19 @@ new Vue({
     isMobile: window.innerWidth < 500,
     tableData: [],
     isTableLoading: false,
+
+    //===// <=%- if hasDetailDrawer %=>
+    // ================================ 详情抽屉 ================================
+    //===// isDetailDrawerShown: false,
+    //===// detailItem: {},
+    //===// detailItemOrigin: {},
+    //===// <=%- if hasDetailSubmit %=>
+    //===// detailActionData: {},
+    //===// <=%- endif %=>
+    //===// <=%- if hasDetailDrawer > 1 %=>
+    //===// detailDrawerTab: 0,
+    //===// <=%- endif %=>
+    //===// <=%- endif %=>
 
     //===// <=%- if hasCreateDrawer %=>
     // ================================ 新建抽屉 ================================
@@ -694,6 +732,42 @@ new Vue({
     //===// },
     //===// <=%- endif %=>
     //===// <=%- endfor %=>
+
+    //===// <=%- if hasDetailDrawer %=>
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    //===// async prepareDetailFormData(funObj) {
+    //===//   this.detailItem = _.cloneDeep(funObj);
+    //===//   this.detailItemOrigin = _.cloneDeep(funObj);
+    //===// },
+    //===// async openDetailDrawer() {
+    //===//   this.isDetailDrawerShown = true;
+    //===// },
+    //===// async closeDetailDrawerCheck() {
+    //===//   <=%- set drawer = (actionContent | find({key: 'detail'})) %=>
+    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+    //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (confirmDialogStatus === 'save') {
+    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+    //===//     }
+    //===//     if (confirmDialogStatus === 'notSave') {
+    //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
+    //===//     }
+    //===//     return;
+    //===//  }
+    //===//   <=%- endif %=>
+    //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
+    //===// },
+    //===// async closeDetailDrawer() {
+    //===//   this.isDetailDrawerShown = false;
+    //===//   this.detailItem = {};
+    //===//   this.detailActionData = null;
+    //===//   this.detailItemId = null;
+    //===//   <=%- if hasDetailDrawer > 1 %=>
+    //===//   this.detailDrawerTab = 0;
+    //===//   <=%- endif %=>
+    //===// },
+    //===// <=%- endif %=>
 
     //===// <=%- if common and common.methods %=>
     // ---------- Custom uiAction >>>>>>>>>>>> --------

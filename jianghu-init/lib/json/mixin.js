@@ -586,6 +586,10 @@ const mixin = {
         jsonConfig.hasUpdateSubmit = true;
       }
     }
+    const detailDrawer = actionContent.find(e => e.tag === 'jh-detail-drawer');
+    if (detailDrawer) {
+      jsonConfig.hasDetailDrawer = detailDrawer.contentList.length;
+    }
 
     if (createDrawer || updateDrawer) {
       // 统一转换 contentList 内 type 是 form 的 formItemList 内的 item colsAttrs -> colAttrs
@@ -601,7 +605,7 @@ const mixin = {
                 if (jsonConfig.pageType === 'jh-mobile-page' && !!item.model) {
                   // border-b flex justify-between items-center py-2
                   if (item.attrs && (item.attrs.disabled || item.attrs.readonly || item.attrs[':readonly'] || item.attrs[':disabled'])) {
-                    item.colAttrs.class = 'border-b flex justify-between items-center py-2' + (item.colAttrs.class ? ' ' + item.colAttrs.class : '');
+                    item.colAttrs.class = '' + (item.colAttrs.class ? ' ' + item.colAttrs.class : '');
                   } else {
                     item.colAttrs.class = (item.colAttrs.class ? ' ' + item.colAttrs.class : '');
                   }
@@ -924,13 +928,14 @@ const mixin = {
     };
   },
 
-  basicUiAction({ common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasUpdateSubmit }) {
+  basicUiAction({ common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasUpdateSubmit, hasDetailDrawer }) {
     const defaultUiAction = {
       getTableData: [ 'getTableData' ],
       startCreateItem: [ 'prepareCreateFormData', 'openCreateDrawer' ],
       createItem: [ 'prepareCreateValidate', 'confirmCreateItemDialog', 'prepareDoCreateItem', 'doCreateItem', 'closeCreateDrawer', 'getTableData' ],
       startUpdateItem: [ 'prepareUpdateFormData', 'openUpdateDrawer' ],
       updateItem: [ 'prepareUpdateValidate', 'confirmUpdateItemDialog', 'prepareDoUpdateItem', 'doUpdateItem', 'closeUpdateDrawer', 'getTableData' ],
+      startDetailItem: [ 'prepareDetailFormData', 'openDetailDrawer' ],
       deleteItem: [ 'prepareDeleteFormData', 'confirmDeleteItemDialog', 'prepareDoDeleteItem', 'doDeleteItem', 'getTableData' ],
     };
 
@@ -948,6 +953,9 @@ const mixin = {
     }
     if (!hasUpdateSubmit) {
       delete defaultUiAction.updateItem;
+    }
+    if (!hasDetailDrawer) {
+      delete defaultUiAction.startDetailItem;
     }
     for (const key in defaultUiAction) {
       if (common.doUiAction[key]) {
