@@ -41,10 +41,10 @@
       <=%- elif content.tag == 'jh-search' %=>
       <!-- 顶部排序选择 -->
       <v-col cols="12" class="flex pa-0 justify-between items-center">
-        <div class="flex <=%- if content.searchList.length > 0 %=> justify-between <=%- else %=> justify-start <=%- endif %=>bg-white py-2 px-4 flex-1">
+        <div class="flex <=% if content.searchList.length > 0 %=> justify-around <=% else %=> justify-start <=% endif %=>bg-white py-2 px-4 flex-1">
           <!-- 排序 下拉选择 -->
           <=%- for search in content.searchList %=>
-          <div class="text-center order-menu">
+          <div class="text-center order-menu jh-mobile-search-bar">
             <v-menu
               v-model="<=$ search.model.split('.').join('') $=>Menu"
               absolute
@@ -62,7 +62,7 @@
               </template>
 
               <div class="w-screen bg-white px-4 pb-2 rounded-b-lg">
-                <div v-for="(header, index) in <=$ search.items $=>" class="  text-left py-2" :class="{'border-b': (<=$ search.items $=>.length - 1) > index, 'text-green-500': <=$ search.model $=> == header.value }" @click="<=$ search.model $=> = header.value;doUiAction('getTableData')">{{ header.text }}</div>
+                <div v-for="(header, index) in <=$ search.items $=>" class="  text-left py-2" :class="{'border-b': (<=$ search.items $=>.length - 1) > index, 'text-green-500': <=$ search.model $=> == (header.value || header) }" @click="<=$ search.model $=> = (header.value || header);doUiAction('getTableData')">{{ (header.text || header) }}</div>
               </div>
             </v-menu>
           </div>

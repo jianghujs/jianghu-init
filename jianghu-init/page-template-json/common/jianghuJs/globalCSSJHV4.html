@@ -144,5 +144,31 @@
     .jh-page-second-bar span[role="button"] {
         min-width: 40px;
     }
+
+    /* 移动端table、搜索栏 */
+    .v-data-table.v-data-table--mobile>.v-data-table__wrapper>table>tbody>tr>td:first-child, .v-data-table.v-data-table--mobile>.v-data-table__wrapper>table>tfoot>tr>td:first-child, .v-data-table.v-data-table--mobile>.v-data-table__wrapper>table>thead>tr>th:first-child {
+    padding-left: 15px !important;
+    }
+    @media (max-width: 600px) {
+      .v-data-table>.v-data-table__wrapper>table>tbody>tr>td, .v-data-table>.v-data-table__wrapper>table>tbody>tr>th, .v-data-table>.v-data-table__wrapper>table>tfoot>tr>td, .v-data-table>.v-data-table__wrapper>table>tfoot>tr>th, .v-data-table>.v-data-table__wrapper>table>thead>tr>td, .v-data-table>.v-data-table__wrapper>table>thead>tr>th {
+          padding: 0 15px !important;
+      }
+    }
+    .v-data-table .v-data-table__mobile-table-row {
+      border-bottom: 5px solid rgb(243 244 246 / var(--tw-bg-opacity));
+    }
+    .v-data-table .v-data-table__mobile-table-row:last-child {
+      border-bottom: none;
+    }
+    .v-data-table-header.v-data-table-header-mobile {
+      display: none;
+    }
+
+    .jh-mobile-search-bar .v-menu__content {
+      background-color: rgba(0, 0, 0, 0.3);
+      height: calc(100vh - 96px);
+      box-shadow: none;
+      border-radius: 0;
+    }
 </style>
 <!-- <<<<<<<<<<<<< JH CSS -->
