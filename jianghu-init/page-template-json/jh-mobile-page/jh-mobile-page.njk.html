@@ -46,7 +46,7 @@
           <=%- for search in content.searchList %=>
           <div class="text-center order-menu">
             <v-menu
-              v-model="<=$ search.model $=>Menu"
+              v-model="<=$ search.model.split('.').join('') $=>Menu"
               absolute
               attach
               nudge-bottom="<=$ content.bottom | default(30) $=>"
@@ -350,7 +350,7 @@ new Vue({
     //===// <=%- for content in headContent %=>
     //===// <=%- if content.tag == 'jh-search' %=>
     //===// <=%- for search in content.searchList %=>
-    //===// <=$ search.model $=>Menu: false,
+    //===// <=$ search.model.split('.').join('') $=>Menu: false,
     //===// <=%- endfor %=>
     //===// <=%- endif %=>
     //===// <=%- endfor %=>
