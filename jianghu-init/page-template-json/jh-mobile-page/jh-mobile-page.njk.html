@@ -487,9 +487,6 @@ new Vue({
     async doUiAction(uiActionId, uiActionData) {
       try {
         switch (uiActionId) {
-          case 'getTableData':
-            await this.getTableData();
-            break;
           //===// <=%- for key, value in basicUiActionConfig %=>
           //===// case '<=$ key $=>':
           //===//   <=%- for method in value %=>
@@ -517,6 +514,9 @@ new Vue({
           //===// <=%- endif %=>
           //===// <=%- endfor %=>
 
+          case 'getTableData':
+            await this.getTableData();
+            break;
           default:
             console.error("[doUiAction] uiActionId not find", {uiActionId});
             break;
