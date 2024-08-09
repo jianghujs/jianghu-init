@@ -40,7 +40,7 @@
       </v-col>
       <=%- elif content.tag == 'jh-search' %=>
       <!-- 顶部排序选择 -->
-      <v-col cols="12" class="flex pa-0 justify-between items-center">
+      <v-col cols="12" class="flex pa-0 justify-between items-center h-9">
         <div class="flex <=% if content.searchList.length > 0 %=> justify-around <=% else %=> justify-start <=% endif %=>bg-white py-2 px-4 flex-1">
           <!-- 排序 下拉选择 -->
           <=%- for search in content.searchList %=>
@@ -49,7 +49,7 @@
               v-model="<=$ search.model.split('.').join('') $=>Menu"
               absolute
               attach
-              nudge-bottom="<=$ content.bottom | default(30) $=>"
+              nudge-bottom="<=$ content.bottom | default(36) $=>"
               class="elevation-0"
             >
               <template v-slot:activator="{ on, attrs }">
