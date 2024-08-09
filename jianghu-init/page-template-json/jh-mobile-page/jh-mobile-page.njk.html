@@ -266,7 +266,7 @@
         </v-row>
         <div class="absolute bottom-0 flex justify-space-between w-full px-4">
           <!-- 重置按钮 -->
-          <v-btn color="warning" @click="useAdvSearch = false;clearServerSearch">重置</v-btn>
+          <v-btn color="warning" @click="useAdvSearch = false;clearServerSearch()">重置</v-btn>
           <!-- 确认按钮 -->
           <v-btn color="success" class="flex-1 ml-3" @click="useAdvSearch = true;isAdvSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </div>
@@ -547,7 +547,7 @@ new Vue({
       //===// for (const fieldKey in this.serverSearchWhereLike) {
       //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
-      //===//     whereLike[fieldKey] = fieldValue;
+      //===//     whereLike[fieldKey] = '%' + fieldValue + '%';
       //===//   }
       //===// }
       //===// <=%- endif %=>
