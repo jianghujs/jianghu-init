@@ -56,7 +56,7 @@
                 <div 
                   v-bind="attrs"
                   v-on="on">
-                  {{ <=$ search.model $=> ? (<=$ search.items $=>.find(e => e.value == <=$ search.model $=>)?.text || '<=$ search.label $=>') : '<=$ search.label $=>' }}
+                  {{ <=$ search.model $=> ? getSearchItemText(<=$ search.model $=>, <=$ search.items $=>, '<=$ search.label $=>') : '<=$ search.label $=>' }}
                   <v-icon small>{{ <=$ search.model $=>Menu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
                 </div>
               </template>
@@ -865,6 +865,19 @@ new Vue({
     //===// },
     //===// <=%- endif %=>
 
+    getSearchItemText(searchItem, items, label) {
+      const item = items.find(item => {
+        if (_.isObject(searchItem) && _.isObject(item.value)) {
+          return _.isEqual(searchItem, item.value);
+        } else {
+          return item.value === searchItem || item === searchItem;
+        }
+      });
+      if (!item) {
+        return label;
+      }
+      return _.isString(item) ? item : item.text;
+    },
     //===// <=%- if hasAdvSearch %=>
     clearServerSearch() {
       for (const key in this.serverSearchWhere) {
