@@ -81,7 +81,9 @@
       </v-app-bar-nav-icon>
       <!-- 页面标题 -->
       <v-toolbar-title ref="toolbarTitle" class="mr-5 pl-0">
-        <span class="text-h7 font-weight-bold">{{ appTitle }}</span>
+        <span class="text-h7 font-weight-bold">
+          <slot name="title">{{ appTitle }}</slot>
+        </span>
       </v-toolbar-title>
       <!-- pc端菜单 >>>>>>>>>>>>> -->
       <v-tabs
@@ -145,15 +147,17 @@
       <div style="white-space: nowrap" class="d-flex align-center">
         <!-- PC端右上角菜单 -->
         <div class="d-flex d-lg-flex align-center">
-          <div class="d-flex align-center mr-2">
-            <div class="d-flex align-center ml-4 jh-right-menu" role="button" v-for="rightMenu of inRightMenuList" :key="rightMenu.path" @click="openUrl(rightMenu.path)">
-              <div v-if="rightMenu.icon" v-html='rightMenu.icon'></div>
-              <div :class="{'ml-1': rightMenu.icon}">{{rightMenu.title}}</div>
+          <slot name="action">
+            <div class="d-flex align-center mr-2">
+              <div class="d-flex align-center ml-4 jh-right-menu" role="button" v-for="rightMenu of inRightMenuList" :key="rightMenu.path" @click="openUrl(rightMenu.path)">
+                <div v-if="rightMenu.icon" v-html='rightMenu.icon'></div>
+                <div :class="{'ml-1': rightMenu.icon}">{{rightMenu.title}}</div>
+              </div>
             </div>
-          </div>
-          <v-divider vertical class="mx-3 jh-divider" v-if="inRightMenuList.length > 0"></v-divider>
+            <v-divider vertical class="mx-3 jh-divider" v-if="inRightMenuList.length > 0"></v-divider>
+          </slot>
         </div>
-        <v-menu offset-y v-model="isAvatarMenuShown">
+        <v-menu v-if="showAvatar" offset-y v-model="isAvatarMenuShown">
           <template v-slot:activator="{on, attrs}">
             <!-- pc端右上角用户信息 -->
             <div v-if="!isMobile" text v-bind="attrs" v-on="on" class="jh-avatar-menu-btn px-1">
@@ -213,6 +217,12 @@
     template: "#jh-menu",
     vueComponent: 'jh-menu',
     vuetify: new Vuetify(),
+    props: {
+      showAvatar: {
+        type: Boolean,
+        default: true
+      }
+    },
     data() {
       return {
         isMobile: window.innerWidth < 500,

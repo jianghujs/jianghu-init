@@ -9,7 +9,46 @@
 <script type="text/html" id="app-template">
 <div>
 <v-app mobile-breakpoint="sm">
-  <jh-menu />
+  <jh-menu :show-avatar="false">
+    <template v-slot:title >
+      <=$ menuSlot.title | tagFormat(6) $=>
+    </template>
+    <template v-slot:action >
+      <=%- if menuSlot.advSearch %=>
+      <div :class="{'text-green-500': !!useAdvSearch}" @click="isAdvSearchDrawerShown = true">
+        <!-- icon -->
+        <v-icon>mdi-filter-outline</v-icon>
+      </div>
+      <=%- endif %=>
+      <=%- if menuSlot.action %=>
+      <div class="pl-1">
+        <!-- icon -->
+        
+        <v-menu
+          nudge-bottom="<=$ content.bottom | default(36) $=>"
+          class="elevation-0"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <div 
+              v-bind="attrs"
+              v-on="on">
+              <v-icon>mdi-dots-vertical</v-icon>
+            </div>
+          </template>
+
+          <v-list>
+            <=%- for action in menuSlot.action %=>
+              <!-- <=$ action | formItemFormat(12) $=> -->
+            <v-list-item @click="<=$ action.click $=>">
+              <v-list-item-title><=$ action.label $=></v-list-item-title>
+            </v-list-item>
+            <=%- endfor %=>
+          </v-list>
+        </v-menu>
+      </div>
+      <=%- endif %=>
+    </template>
+  </jh-menu>  
   <v-main class="mt-13">
 
     <!-- 页面内容 >>>>>>>>>>>>> -->
@@ -234,45 +273,49 @@
     <=%- endif %=>
     <=%- endfor %=>
 
-    <=%- if hasAdvSearch %=>
-    <v-navigation-drawer v-if="isAdvSearchDrawerShown" v-model="isAdvSearchDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
-      <div class="relative h-full">
-        <v-list-item style="z-index: 112;">
-          <v-list-item-content>
-            <v-list-item-title class="text-h6">
-              高级搜索
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-  
-        <v-divider></v-divider>
-
-        <v-row class="pa-0 ma-0" style="overflow: hidden; overflow-y: auto;">
-          <=%- for formItem in advSearchList %=>
-          <v-col cols="<=$ formItem.cols | default('12') $=>" <=% for attr, value in formItem.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
-            <span class="jh-input-label"><=$ formItem.label $=></span>
-            <=%- if formItem.tag == "v-chip-group" %=>
-            <!-- 纸片组平铺/允许换行 -->
-            <v-chip-group column v-model="<=$ formItem.model $=>" active-class="success--text">
-              <v-chip small v-for="item in <=$ formItem.items $=>" :key="item" :value="item">
-                {{item}}
-              </v-chip>
-            </v-chip-group>
-            <=%- else %=>
-            <=$ formItem | formItemFormat $=>
-            <=%- endif %=>
-          </v-col>
-          <=%- endfor %=>
-        </v-row>
-        <div class="absolute bottom-0 flex justify-space-between w-full px-4">
-          <!-- 重置按钮 -->
-          <v-btn color="warning" @click="useAdvSearch = false;clearServerSearch()">重置</v-btn>
-          <!-- 确认按钮 -->
-          <v-btn color="success" class="flex-1 ml-3" @click="useAdvSearch = true;isAdvSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
-        </div>
-
-      </div>
-    </v-navigation-drawer>
+    <=%- if menuSlot.advSearch %=>
+    <v-bottom-sheet v-if="isAdvSearchDrawerShown" v-model="isAdvSearchDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
+        <!-- 标题 -->
+        <v-card-title>
+          <span class="text-base">高级搜索</span>
+        </v-card-title>
+        <v-card-text>
+          <!-- 单独 text field 搜索 -->
+            
+          <!-- 列表list容器 循环 -->
+          <div style="height: 250px; overflow: hidden; overflow-y: auto;">
+            <v-row>
+              <=%- for search in menuSlot.advSearch %=>
+              <=%- if search.tag == "v-date-picker" %=>
+              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+                <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
+                  <template v-slot:activator="{on, attrs}">
+                    <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prepend-inner-icon="mdi-calendar-range" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>：" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
+                  </template>
+                  <v-date-picker color="success" elevation="20" v-model="<=$ search.model $=>" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>></v-date-picker>
+                </v-menu>
+              </v-col>
+              <=%- elif search.model is defined %=>
+              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+                <=$ search | formItemFormat $=>
+              </v-col>
+              <=%- else %=>
+              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+                <=$ search | tagFormat(14) $=>
+              </v-col>
+              <=%- endif %=>
+              <=%- endfor %=>
+            </v-row>
+          </div>
+        </v-card-text>
+        <v-card-actions class="flex justify-space-around pb-8">
+          <v-btn color="warning" rounded @click="useAdvSearch = false;clearServerSearch()">重置</v-btn>
+          <v-btn color="success" rounded class="flex-1 ml-3" @click="useAdvSearch = true;isAdvSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+        </v-card-actions>
+      
+      </v-card>
+    </v-bottom-sheet>
     <=%- endif %=>
 
     <=%- if (actionContent | find({isCheckFormBeforeClose: true})) %=>
@@ -342,17 +385,13 @@ new Vue({
     tableDataOrder: [{column: 'operationAt', order: 'desc'}],
 
 
-    //===// <=%- if hasAdvSearch %=>
+    //===// <=%- if menuSlot.advSearch %=>
     isAdvSearchDrawerShown: false,
     useAdvSearch: false,
     //===// <=%- endif %=>
 
-    //===// <=%- for content in headContent %=>
-    //===// <=%- if content.tag == 'jh-search' %=>
-    //===// <=%- for search in content.searchList %=>
+    //===// <=%- for search in menuSlot.advSearch %=>
     //===// <=$ search.model.split('.').join('') $=>Menu: false,
-    //===// <=%- endfor %=>
-    //===// <=%- endif %=>
     //===// <=%- endfor %=>
 
     //===// <=%- if hasDetailDrawer %=>
@@ -878,7 +917,7 @@ new Vue({
       }
       return _.isString(item) ? item : item.text;
     },
-    //===// <=%- if hasAdvSearch %=>
+    //===// <=%- if menuSlot.advSearch %=>
     clearServerSearch() {
       for (const key in this.serverSearchWhere) {
         this.serverSearchWhere[key] = '';
