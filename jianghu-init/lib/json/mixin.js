@@ -589,6 +589,9 @@ const mixin = {
     const detailDrawer = actionContent.find(e => e.tag === 'jh-detail-drawer');
     if (detailDrawer) {
       jsonConfig.hasDetailDrawer = detailDrawer.contentList.length;
+      if (detailDrawer.contentList.find(e => e.type === 'preview' && e.action && (_.isObject(e.action) && checkClick(e.action, 'deleteItem')) || (_.isArray(e.action) && e.action.some(a => checkClick(a, 'deleteItem'))))) {
+        jsonConfig.hasDetailUpdate = true;
+      }
     }
 
     if (createDrawer || updateDrawer) {
