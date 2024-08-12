@@ -936,7 +936,7 @@ const mixin = {
     };
   },
 
-  basicUiAction({ common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasUpdateSubmit, hasDetailDrawer }) {
+  basicUiAction({ common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasDelete, hasUpdateSubmit, hasDetailDrawer }) {
     const defaultUiAction = {
       getTableData: [ 'getTableData' ],
       startCreateItem: [ 'prepareCreateFormData', 'openCreateDrawer' ],
@@ -964,6 +964,9 @@ const mixin = {
     }
     if (!hasDetailDrawer) {
       delete defaultUiAction.startDetailItem;
+    }
+    if (!hasDelete) {
+      delete defaultUiAction.deleteItem;
     }
     for (const key in defaultUiAction) {
       if (common.doUiAction[key]) {
