@@ -81,8 +81,16 @@
       </v-app-bar-nav-icon>
       <!-- 页面标题 -->
       <v-toolbar-title ref="toolbarTitle" class="mr-5 pl-0">
-        <span class="text-h7 font-weight-bold">
+        <span class="hidden-xs-only text-h7 font-weight-bold">
           <slot name="title">{{ appTitle }}</slot>
+        </span>
+        <span class="hidden-sm-and-up font-medium">
+          <div class="text-sm">{{ appTitle }}</div>
+          <div class="text-xs">
+            <slot name="title">
+              menuSlot.title
+            </slot>
+          </div>
         </span>
       </v-toolbar-title>
       <!-- pc端菜单 >>>>>>>>>>>>> -->

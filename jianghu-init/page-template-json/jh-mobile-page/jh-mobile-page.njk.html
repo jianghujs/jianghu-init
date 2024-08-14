@@ -9,119 +9,96 @@
 <script type="text/html" id="app-template">
 <div>
 <v-app mobile-breakpoint="sm">
-  <jh-menu :show-avatar="false">
-    <template v-slot:title >
-      <=$ menuSlot.title | tagFormat(6) $=>
-    </template>
-    <template v-slot:action >
-      <=%- if menuSlot.advSearch %=>
-      <div :class="{'text-green-500': !!useAdvSearch}" @click="isAdvSearchDrawerShown = true">
-        <!-- icon -->
-        <v-icon>mdi-filter-outline</v-icon>
-      </div>
+  <jh-menu>
+    <template v-slot:title>
+      <!-- 高级搜索 -->
+      <=%- if headContent %=>
+      <=$ (headContent | find({tag: 'jh-page-title'})).value $=>
       <=%- endif %=>
-      <=%- if menuSlot.action %=>
-      <div class="pl-1">
-        <!-- icon -->
-        
+    </template>
+  </jh-menu>
+  <v-main class="mt-13">
+    <!-- 头部内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-second-bar p-3 px-sm-8 bg-gray-100">
+      <v-row class="align-center" no-gutters>
+        <=%- for content in headContent %=>
+        <=%- if content.tag == 'jh-page-order' %=>
+        <!-- 排序 -->
+        <div class="inline-flex bg-white px-2 py-1 rounded-md" :class="{'text-green-600': !!usePageOrder}" @click="isPageOrderDrawerShown = true">
+          <=%- if content.icon %=>
+          <v-icon :color="usePageOrder ? 'primary' : ''" size="16" class="mr-1"><=$ content.icon $=></v-icon>
+          <=%- endif %=>
+          <=%- if content.title %=>
+          <span class="font-medium"><=$ content.title $=></span>
+          <=%- endif %=>
+        </div>
+      
+        <=%- elif content.tag == 'jh-page-search' %=>
+        <!-- 筛选 -->
+        <div class="ml-3 inline-flex bg-white px-2 py-1 rounded-md" :class="{'text-green-600': !!usePageSearch}" @click="isPageSearchDrawerShown = true">
+          <=%- if content.icon %=>
+          <v-icon :color="usePageSearch ? 'primary' : ''" size="16" class="mr-1"><=$ content.icon $=></v-icon>
+          <=%- endif %=>
+          <=%- if content.title %=>
+          <span class="font-medium"><=$ content.title $=></span>
+          <=%- endif %=>
+        </div>
+
+        <=%- elif content.tag == 'jh-page-mode' %=>
         <v-menu
           nudge-bottom="<=$ content.bottom | default(36) $=>"
           class="elevation-0"
         >
           <template v-slot:activator="{ on, attrs }">
             <div 
+              class="inline-flex bg-white px-2 py-1 rounded-md"
               v-bind="attrs"
               v-on="on">
-              <v-icon>mdi-dots-vertical</v-icon>
+              <=%- if content.icon %=>
+              <v-icon size="16" class="mr-1"><=$ content.icon $=></v-icon>
+              <=%- endif %=>
+              <=%- if content.title %=>
+              <span class="font-medium">{{ <=$ (headContent | find({tag: 'jh-page-mode'})).items $=>.find(e => e.value == <=$ (headContent | find({tag: 'jh-page-mode'})).model $=>).text }}</span>
+              <=%- endif %=>
             </div>
           </template>
 
-          <v-list>
-            <=%- for action in menuSlot.action %=>
+          <div class="flex flex-col p-2 pb-0">
               <!-- <=$ action | formItemFormat(12) $=> -->
-            <v-list-item @click="<=$ action.click $=>">
-              <v-list-item-title><=$ action.label $=></v-list-item-title>
-            </v-list-item>
-            <=%- endfor %=>
+            <v-btn small class="mb-2" v-for="action in <=$ (headContent | find({tag: 'jh-page-mode'})).items $=>" @click="<=$ (headContent | find({tag: 'jh-page-mode'})).model $=> = action.value" :class="{primary: <=$ (headContent | find({tag: 'jh-page-mode'})).model $=> == action.value, '!text-white': <=$ (headContent | find({tag: 'jh-page-mode'})).model $=> == action.value}">
+              <v-list-item-title>{{ action.text }}</v-list-item-title>
+            </v-btn>
           </v-list>
         </v-menu>
-      </div>
-      <=%- endif %=>
-    </template>
-  </jh-menu>  
-  <v-main class="mt-13">
+          
+        <=%- elif content.tag != 'jh-page-title' %=>
+        <!-- 自定义搜索内容 -->
+        <=$ content | tagFormat(12) $=>
+        <=%- endif %=>
+        <=%- endfor %=>
+      </v-row>
+    </div>
 
     <!-- 页面内容 >>>>>>>>>>>>> -->
     <div class="jh-page-body-container px-sm-8">
       <v-row class="pa-0 ma-0">
-      <=%- for content in headContent %=>
-      <=%- if content.tag == 'jh-table-search' %=>
-      <v-col cols="12" <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-        <!-- 手机端顶部 search 条 -->
-        <v-row class="pa-0 ma-0">
-          <v-col cols="12" class="pa-0 ma-0">
-            <v-row class="pa-0 ma-0">
-              <v-col cols="12" class="pa-0 ma-0">
-                <v-text-field
-                  v-model="searchInput"
-                  append-icon="mdi-magnify"
-                  label="搜索"
-                  single-line
-                  hide-details
-                  clearable
-                  dense
-                  filled
-                ></v-text-field>
-              </v-col>
-            </v-row>
-          </v-col>
-        </v-row>
-      </v-col>
-      <=%- elif content.tag == 'jh-search' %=>
-      <!-- 顶部排序选择 -->
-      <v-col cols="12" class="flex pa-0 justify-between items-center h-9">
-        <div class="flex <=% if content.searchList.length > 0 %=> justify-around <=% else %=> justify-start <=% endif %=>bg-white py-2 px-4 flex-1">
-          <!-- 排序 下拉选择 -->
-          <=%- for search in content.searchList %=>
-          <div class="text-center order-menu jh-mobile-search-bar">
-            <v-menu
-              v-model="<=$ search.model.split('.').join('') $=>Menu"
-              absolute
-              attach
-              nudge-bottom="<=$ content.bottom | default(36) $=>"
-              class="elevation-0"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <div 
-                  v-bind="attrs"
-                  v-on="on">
-                  {{ <=$ search.model $=> ? getSearchItemText(<=$ search.model $=>, <=$ search.items $=>, '<=$ search.label $=>') : '<=$ search.label $=>' }}
-                  <v-icon small>{{ <=$ search.model $=>Menu ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-                </div>
-              </template>
-
-              <div class="w-screen bg-white px-4 pb-2 rounded-b-lg">
-                <div v-for="(header, index) in <=$ search.items $=>" class="  text-left py-2" :class="{'border-b': (<=$ search.items $=>.length - 1) > index, 'text-green-500': <=$ search.model $=> == (header.value || header) }" @click="<=$ search.model $=> = (header.value || header);doUiAction('getTableData')">{{ (header.text || header) }}</div>
-              </div>
-            </v-menu>
-          </div>
-          <=%- endfor %=>
+      <=%- for content in pageContent %=>
+      <=%- if content.tag == 'jh-page-action' %=>
+      <!-- 操作按钮 -->
+      <div <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+        <=%- if content.actionList.length > 1 %=>
+        <div class="w-full h-full flex justify-center rounded-full items-center bg-green-600" @click="isPageActionDrawerShown = true">
+          <v-icon color="white" size="28">mdi-view-grid-outline</v-icon>
         </div>
-
-        <=%- if content.advSearchList.length > 0 %=>
-        <div class="px-3 border-l" :class="{'text-green-500': !!useAdvSearch}" @click="isAdvSearchDrawerShown = true">
-          筛选
-          <!-- icon -->
-          <v-icon small>mdi-filter-outline</v-icon>
+        <=%- else %=>
+        <div class="w-full h-full flex justify-center rounded-full items-center bg-green-600" @click="<=$ content.actionList[0].click $=>">
+          <v-icon color="white" size="28"><=$ content.actionList[0].icon $=></v-icon>
         </div>
         <=%- endif %=>
-      </v-col>
+      </div>
       <=%- else %=>
       <=$ content | tagFormat(6) $=>
       <=%- endif %=>
-      <=%- endfor %=>
-      <=%- for content in pageContent %=>
-      <=$ content | tagFormat(6) $=>
       <=%- endfor %=>
       </v-row>
     </div>
@@ -276,8 +253,8 @@
     <=%- endif %=>
     <=%- endfor %=>
 
-    <=%- if menuSlot.advSearch %=>
-    <v-bottom-sheet v-if="isAdvSearchDrawerShown" v-model="isAdvSearchDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+    <=%- if headContent | find({tag: 'jh-page-search'}) %=>
+    <v-bottom-sheet v-if="isPageSearchDrawerShown" v-model="isPageSearchDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
         <v-card-title>
@@ -289,7 +266,7 @@
           <!-- 列表list容器 循环 -->
           <div style="height: 250px; overflow: hidden; overflow-y: auto;">
             <v-row>
-              <=%- for search in menuSlot.advSearch %=>
+              <=%- for search in (headContent | find({tag: 'jh-page-search'})).searchList %=>
               <=%- if search.tag == "v-date-picker" %=>
               <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
@@ -313,10 +290,67 @@
           </div>
         </v-card-text>
         <v-card-actions class="flex justify-space-around pb-8">
-          <v-btn color="warning" rounded @click="useAdvSearch = false;clearServerSearch()">重置</v-btn>
-          <v-btn color="success" rounded class="flex-1 ml-3" @click="useAdvSearch = true;isAdvSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+          <v-btn rounded @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
+          <v-btn color="success" rounded class="flex-1 ml-3" @click="usePageSearch = true;isPageSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
+      </v-card>
+    </v-bottom-sheet>
+    <=%- endif %=>
+
+    <=%- if headContent | find({tag: 'jh-page-order'}) %=>
+    <v-bottom-sheet v-if="isPageOrderDrawerShown" v-model="isPageOrderDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
+        <!-- 标题 -->
+        <v-card-title>
+          <span class="text-base">排序</span>
+        </v-card-title>
+        <v-card-text>
+          <!-- 单独 text field 搜索 -->
+            
+          <!-- 列表list容器 循环 -->
+          <div style="height: 250px; overflow: hidden; overflow-y: auto;">
+            <v-row>
+              <v-col cols="12" class="pb-0" v-for="(item, index) in <=$ (headContent | find({tag: 'jh-page-order'})).items $=>">
+                <v-btn block class="p-3 rounded" :color="isEqual(tableDataOrder, item.value) ? 'primary' : 'gray'" @click="tableDataOrder = item.value">
+                  {{ item.text }}
+                </v-btn>
+              </v-col>
+            </v-row>
+          </div>
+        </v-card-text>
+        <v-card-actions class="flex justify-space-around pb-8">
+          <v-btn rounded @click="usePageOrder = false;tableDataOrder = <=$ (headContent | find({tag: 'jh-page-order'})).items $=>[0].value">重置</v-btn>
+          <v-btn color="success" rounded class="flex-1 ml-3" @click="usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+        </v-card-actions>
+      
+      </v-card>
+    </v-bottom-sheet>
+    <=%- endif %=>
+
+    <=%- if pageContent | find({tag: 'jh-page-action'}) %=>
+    <v-bottom-sheet v-if="isPageActionDrawerShown" v-model="isPageActionDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
+        <!-- 标题 -->
+        <v-card-title>
+          <span class="text-base">更多操作</span>
+        </v-card-title>
+        <v-card-text>
+          <!-- 单独 text field 搜索 -->
+            
+          <!-- 列表list容器 循环 -->
+          <div style="height: 250px; overflow: hidden; overflow-y: auto;">
+            <v-row>
+              <=%- for item in ((pageContent | find({tag: 'jh-page-action'})).actionList) %=>
+              <v-col cols="12" class="pb-0">
+                <v-btn block class="p-3 rounded" color="success" @click="<=$ item.click $=>; isPageActionDrawerShown = false">
+                  <=$ item.value $=>
+                </v-btn>
+              </v-col>
+              <=%- endfor %=>
+            </v-row>
+          </div>
+        </v-card-text>
       </v-card>
     </v-bottom-sheet>
     <=%- endif %=>
@@ -331,6 +365,17 @@
     <<=$ item.path | componentUlName $=> ref="<=$ item.path | componentHumpName $=>Ref" <=% for attr, value in item.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=> />
     <=%- endif %=>
     <=%- endfor %=>
+
+    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+    <=%- if hasHelpDrawer %=>
+    <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#<=$ pageId $=>.md`" width="100%" height="100%"></iframe>
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <=%- endif %=>
+    <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
 
   </v-main>
 </v-app>
@@ -381,6 +426,11 @@ new Vue({
   //===// <=%- endif %=>
   data: () => ({
 
+    //===// <=%- if hasHelpDrawer %=>
+    //===// isHelpPageDrawerShown: false,
+    //===// isHelpPageDrawerLoaded: false,
+    //===// <=%- endif %=>
+
     isMobile: window.innerWidth < 500,
     tableData: [],
     isTableLoading: false,
@@ -388,9 +438,18 @@ new Vue({
     tableDataOrder: [{column: 'operationAt', order: 'desc'}],
 
 
-    //===// <=%- if menuSlot.advSearch %=>
-    isAdvSearchDrawerShown: false,
-    useAdvSearch: false,
+    //===// <=%- if headContent | find({tag: 'jh-page-order'}) %=>
+    isPageOrderDrawerShown: false,
+    usePageOrder: false,
+    //===// <=%- endif %=>
+
+    //===// <=%- if headContent | find({tag: 'jh-page-search'}) %=>
+    isPageSearchDrawerShown: false,
+    usePageSearch: false,
+    //===// <=%- endif %=>
+
+    //===// <=%- if pageContent | find({tag: 'jh-page-action'}) %=>
+    isPageActionDrawerShown: false,
     //===// <=%- endif %=>
 
     //===// <=%- for search in menuSlot.advSearch %=>
@@ -472,6 +531,13 @@ new Vue({
 
   }),
   watch: {
+    //===// <=%- if hasHelpDrawer %=>
+    isHelpPageDrawerShown(val) {
+      if (val && !this.isHelpPageDrawerLoaded) {
+        this.isHelpPageDrawerLoaded = true;
+      }
+    },
+    //===// <=%- endif %=>
     //===// <=%- for key, item in common.watch %=>
     //===// <=%- if (item | typeof) == 'function' %=>
     //===// <=$ item | variableToVar(key) $=>,
@@ -933,6 +999,14 @@ new Vue({
       }
     },
     //===// <=%- endif %=>
+
+    // 判断是否相等的方法，兼容对象
+    isEqual(a, b) {
+      if (_.isObject(a) && _.isObject(b)) {
+        return _.isEqual(a, b);
+      }
+      return a === b;
+    },
 
     //===// <=%- if common and common.methods %=>
     // ---------- Custom uiAction >>>>>>>>>>>> --------
