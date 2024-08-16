@@ -86,7 +86,7 @@
       <v-row class="pa-0 ma-0">
       <=%- for content in pageContent %=>
       <=%- if content.tag == 'jh-list' %=>
-      <v-col :cols="12" @scroll="tableScroll" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+      <v-col :cols="12" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
         <div class="flex p-3 border-b relative items-center" v-for="item in tableDataComputed" @click="viewMode == 'simple' && doUiAction('startDetailItem', item)">
           
           <=%- if content.props.showSelect %=>
@@ -142,34 +142,25 @@
           </div>
         </div>
 
-        <div class="fixed bottom-9 h-6 leading-6 px-3 text-center bg-white border-t w-full" v-if="isTableLoading">
-          <v-progress-circular
-            width="2"
-            light
-            size="12"
-            indeterminate
-            color="primary"
-          ></v-progress-circular>
-          加载中...
-        </div>
         <div class="fixed bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
-          <div class=" flex justify-space-between">
-
+          <div class=" flex justify-space-between items-center">
+            每页 {{ tableQuery.limit }} 项，
             共 {{ tableQuery.totalCount }} 项
 
             <div>
               <!-- 上一页 icon -->
-              <v-icon v-if="tableQuery.page > 1" @click="tableData = []; tableQuery.page--; doUiAction('getTableData')">mdi-chevron-left</v-icon>
+              <v-icon v-if="tableQuery.page > 1" @click="tableQuery.page--; doUiAction('getTableData')">mdi-chevron-left</v-icon>
               <v-icon v-else color="#eaeaea">mdi-chevron-left</v-icon>
     
               <!-- 页码 -->
               <span><span class="primary--text font-weight-medium text-sm">{{ tableQuery.page }}</span> / {{ Math.ceil(tableQuery.totalCount / tableQuery.limit) }}</span>
     
               <!-- 下一页 icon -->
-              <v-icon v-if="tableQuery.totalCount > tableQuery.page * tableQuery.limit" @click="tableData = []; tableQuery.page++; doUiAction('getTableData')">mdi-chevron-right</v-icon>
+              <v-icon v-if="tableQuery.totalCount > tableQuery.page * tableQuery.limit" @click="tableQuery.page++; doUiAction('getTableData')">mdi-chevron-right</v-icon>
+              <v-icon v-else color="#eaeaea">mdi-chevron-right</v-icon>
             </div>
           </div>
-          <div class="safe-area-bottom"></div>
+          <div class="jh-safe-bottom"></div>
         </div>
         <!-- 暂无更多 -->
         <div class="text-center text-gray-500 py-2" v-if="tableDataComputed.length === 0">暂无更多</div>
@@ -391,7 +382,7 @@
         </v-card-text>
         <v-card-actions class="flex justify-space-around pb-8">
           <v-btn rounded @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
-          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableData = []; tableQuery.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableQuery.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
       </v-card>
@@ -421,7 +412,7 @@
         </v-card-text>
         <v-card-actions class="flex justify-space-around pb-8">
           <v-btn rounded @click="usePageOrder = false;tableDataOrder = <=$ (headContent | find({tag: 'jh-order'})).items $=>[0].value">重置</v-btn>
-          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableData = [];usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableQuery.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
       </v-card>
@@ -540,9 +531,7 @@ new Vue({
     tableQuery: {
       page: 1,
       //===// limit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(20) $=>,
-      loadend: false,
       totalCount: 0,
-      setTime: null,
     },
 
 
@@ -800,31 +789,8 @@ new Vue({
         }
       })).data.appData.resultData;
       this.tableQuery.totalCount = count || rows.length;
-      this.tableData = this.tableData.concat(this.formatTableData(rows));
+      this.tableData = this.formatTableData(rows);
       this.isTableLoading = false;
-      if (rows.length < this.tableQuery.limit || this.tableData.length === count) {
-        this.tableLoadend = true;
-      }
-    },
-    tableScroll(e){
-      // 计算滚动到第几个 item
-      const { page, limit, totalCount } = this.tableQuery;
-      const { scrollTop, clientHeight, scrollHeight } = e.target;
-      if ((scrollTop + clientHeight + 10) > scrollHeight) {
-        if (this.tableQuery.setTime) return;
-        if (page < (totalCount / limit)) {
-          this.isTableLoading = true;
-          this.tableQuery.setTime = setTimeout(() => {
-            this.tableQuery.page += 1;
-            this.tableLoadend = false
-            // 获取数据
-            this.getTableData();
-            this.tableQuery.setTime = null;
-          }, 200);
-        }else{
-          this.tableLoadend = true
-        }
-      }
     },
     //===// <=%- if not common.methods.formatTableData %=>
     formatTableData(rows) {
