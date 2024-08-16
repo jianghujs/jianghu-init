@@ -86,7 +86,7 @@
       <v-row class="pa-0 ma-0">
       <=%- for content in pageContent %=>
       <=%- if content.tag == 'jh-list' %=>
-      <v-col :cols="12" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+      <v-col :cols="12" @scroll="tableScroll" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
         <div class="flex p-3 border-b relative items-center" v-for="item in tableDataComputed" @click="viewMode == 'simple' && doUiAction('startDetailItem', item)">
           
           <=%- if content.props.showSelect %=>
@@ -153,7 +153,23 @@
           加载中...
         </div>
         <div class="fixed bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
+          <div class=" flex justify-space-between">
+
             共 {{ tableQuery.totalCount }} 项
+
+            <div>
+              <!-- 上一页 icon -->
+              <v-icon v-if="tableQuery.page > 1" @click="tableData = []; tableQuery.page--; doUiAction('getTableData')">mdi-chevron-left</v-icon>
+              <v-icon v-else color="#eaeaea">mdi-chevron-left</v-icon>
+    
+              <!-- 页码 -->
+              <span><span class="primary--text font-weight-medium text-sm">{{ tableQuery.page }}</span> / {{ Math.ceil(tableQuery.totalCount / tableQuery.limit) }}</span>
+    
+              <!-- 下一页 icon -->
+              <v-icon v-if="tableQuery.totalCount > tableQuery.page * tableQuery.limit" @click="tableData = []; tableQuery.page++; doUiAction('getTableData')">mdi-chevron-right</v-icon>
+            </div>
+          </div>
+          <div class="safe-area-bottom"></div>
         </div>
         <!-- 暂无更多 -->
         <div class="text-center text-gray-500 py-2" v-if="tableDataComputed.length === 0">暂无更多</div>
