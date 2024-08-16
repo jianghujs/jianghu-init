@@ -19,10 +19,11 @@
   </jh-menu>
   <v-main class="mt-13">
     <!-- 头部内容 >>>>>>>>>>>>> -->
+    <=%- if headContent.length %=>
     <div class="jh-page-second-bar p-3 px-sm-8 bg-gray-100">
       <v-row class="align-center" no-gutters>
         <=%- for content in headContent %=>
-        <=%- if content.tag == 'jh-page-order' %=>
+        <=%- if content.tag == 'jh-order' %=>
         <!-- 排序 -->
         <div class="inline-flex bg-white px-2 py-1 rounded-md" :class="{'text-green-600': !!usePageOrder}" @click="isPageOrderDrawerShown = true">
           <=%- if content.icon %=>
@@ -33,7 +34,7 @@
           <=%- endif %=>
         </div>
       
-        <=%- elif content.tag == 'jh-page-search' %=>
+        <=%- elif content.tag == 'jh-search' %=>
         <!-- 筛选 -->
         <div class="ml-3 inline-flex bg-white px-2 py-1 rounded-md" :class="{'text-green-600': !!usePageSearch}" @click="isPageSearchDrawerShown = true">
           <=%- if content.icon %=>
@@ -44,7 +45,7 @@
           <=%- endif %=>
         </div>
 
-        <=%- elif content.tag == 'jh-page-mode' %=>
+        <=%- elif content.tag == 'jh-mode' %=>
         <v-menu
           nudge-bottom="<=$ content.bottom | default(36) $=>"
           class="elevation-0"
@@ -58,14 +59,14 @@
               <v-icon size="16" class="mr-1"><=$ content.icon $=></v-icon>
               <=%- endif %=>
               <=%- if content.title %=>
-              <span class="font-medium">{{ <=$ (headContent | find({tag: 'jh-page-mode'})).items $=>.find(e => e.value == <=$ (headContent | find({tag: 'jh-page-mode'})).model $=>).text }}</span>
+              <span class="font-medium">{{ <=$ (headContent | find({tag: 'jh-mode'})).items $=>?.find(e => e.value == <=$ (headContent | find({tag: 'jh-mode'})).model $=>).text }}</span>
               <=%- endif %=>
             </div>
           </template>
 
           <div class="flex flex-col p-2 pb-0">
               <!-- <=$ action | formItemFormat(12) $=> -->
-            <v-btn small class="mb-2" v-for="action in <=$ (headContent | find({tag: 'jh-page-mode'})).items $=>" @click="<=$ (headContent | find({tag: 'jh-page-mode'})).model $=> = action.value" :class="{primary: <=$ (headContent | find({tag: 'jh-page-mode'})).model $=> == action.value, '!text-white': <=$ (headContent | find({tag: 'jh-page-mode'})).model $=> == action.value}">
+            <v-btn small class="mb-2" v-for="action in <=$ (headContent | find({tag: 'jh-mode'})).items $=>" @click="<=$ (headContent | find({tag: 'jh-mode'})).model $=> = action.value" :class="{primary: <=$ (headContent | find({tag: 'jh-mode'})).model $=> == action.value, '!text-white': <=$ (headContent | find({tag: 'jh-mode'})).model $=> == action.value}">
               <v-list-item-title>{{ action.text }}</v-list-item-title>
             </v-btn>
           </v-list>
@@ -78,12 +79,95 @@
         <=%- endfor %=>
       </v-row>
     </div>
+    <=%- endif %=>
 
     <!-- 页面内容 >>>>>>>>>>>>> -->
     <div class="jh-page-body-container px-sm-8">
       <v-row class="pa-0 ma-0">
       <=%- for content in pageContent %=>
-      <=%- if content.tag == 'jh-page-action' %=>
+      <=%- if content.tag == 'jh-list' %=>
+      <v-col :cols="12" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+        <div class="flex p-3 border-b relative items-center" v-for="item in tableDataComputed" @click="viewMode == 'simple' && doUiAction('startDetailItem', item)">
+          
+          <=%- if content.props.showSelect %=>
+          <v-checkbox
+            v-if="<=$ content.props.showSelect $=>"
+            v-model="tableSelected"
+            :value="item"
+            class="mt-0 pt-0"
+            hide-details
+            @change="event.stopPropagation();"
+          ></v-checkbox>
+          <=%- endif %=>
+          <div class="flex-1">
+            <=%- for header in content.headers %=>
+            <=%- if header.isSimpleMode %=>
+            <=%- if header.isTitle == true %=>
+            <div class="flex items-center items-center">
+              <span class="font-medium text-base">{{ item.<=$ header.value $=> }}</span>
+              <=$ header.slot | tagFormat(12) $=>
+            </div>
+            <=%- else %=>
+            <div v-if="<=$ header.isSimpleMode $=> && viewMode != 'detail'" class="text-gray-500 flex items-center" <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=$ header.text $=>：{{ item.<=$ header.value $=> }}</div>
+            <=%- endif %=>
+            <=%- endif %=>
+            <=%- endfor %=>
+            <div v-show="viewMode == 'detail'">
+              <=%- for header in content.headers %=>
+              <=%- if not header.isTitle %=>
+              <=%- if header.value == 'action' %=>
+              <div class="flex justify-end">
+                <=%- for action in content.rowActionList %=>
+                <=%- if not action.tag %=>
+                <span role="button" class="<=$ action.color | default('success') $=>--text font-weight-medium font-size-2 mr-2" @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=><=% for attr in action.quickAttrs %=><=$ attr $=> <=% endfor %=>>
+                  <=%- if action.icon %=>
+                  <v-icon size="16" class="<=$ action.color | default('success') $=>--text">mdi-<=$ action.icon.replace('mdi-', '') $=></v-icon><=%- endif %=><=$ action.text $=>
+                </span>
+                <=%- else %=>
+                <=$ action | tagFormat(12) $=>
+                <=%- endif %=>
+                <=%- endfor %=>
+              </div>
+              <=%- else %=>
+              <div class="text-gray-500 flex items-center" <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=$ header.text $=>：<=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
+              <=%- endif %=>
+              <=%- endif %=>
+              <=%- endfor %=>
+              <!-- action 操作按钮显示 -->
+            </div>
+          </div>
+          <div v-if="viewMode == 'simple'" class="h-full flex  absolute top-0 right-3 items-center text-gray-500">
+            <=$ content.props.rightArrowText $=>
+            <v-icon small>mdi-chevron-right</v-icon>
+          </div>
+        </div>
+
+        <div class="fixed bottom-9 h-6 leading-6 px-3 text-center bg-white border-t w-full" v-if="isTableLoading">
+          <v-progress-circular
+            width="2"
+            light
+            size="12"
+            indeterminate
+            color="primary"
+          ></v-progress-circular>
+          加载中...
+        </div>
+        <div class="fixed bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
+            共 {{ tableQuery.totalCount }} 项
+        </div>
+        <!-- 暂无更多 -->
+        <div class="text-center text-gray-500 py-2" v-if="tableDataComputed.length === 0">暂无更多</div>
+      </v-col>
+      
+      <!-- v-overlay -->
+      <v-overlay v-if="isTableLoading" :value="isTableLoading" opacity="0.1">
+        <v-progress-circular
+          light
+          indeterminate
+          color="primary"
+        ></v-progress-circular>
+      </v-overlay>
+      <=%- elif content.tag == 'jh-action' %=>
       <!-- 操作按钮 -->
       <div <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
         <=%- if content.actionList.length > 1 %=>
@@ -253,7 +337,7 @@
     <=%- endif %=>
     <=%- endfor %=>
 
-    <=%- if headContent | find({tag: 'jh-page-search'}) %=>
+    <=%- if headContent | find({tag: 'jh-search'}) %=>
     <v-bottom-sheet v-if="isPageSearchDrawerShown" v-model="isPageSearchDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
@@ -266,7 +350,7 @@
           <!-- 列表list容器 循环 -->
           <div style="height: 250px; overflow: hidden; overflow-y: auto;">
             <v-row>
-              <=%- for search in (headContent | find({tag: 'jh-page-search'})).searchList %=>
+              <=%- for search in (headContent | find({tag: 'jh-search'})).searchList %=>
               <=%- if search.tag == "v-date-picker" %=>
               <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
@@ -291,14 +375,14 @@
         </v-card-text>
         <v-card-actions class="flex justify-space-around pb-8">
           <v-btn rounded @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
-          <v-btn color="success" rounded class="flex-1 ml-3" @click="usePageSearch = true;isPageSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableData = []; tableQuery.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
       </v-card>
     </v-bottom-sheet>
     <=%- endif %=>
 
-    <=%- if headContent | find({tag: 'jh-page-order'}) %=>
+    <=%- if headContent | find({tag: 'jh-order'}) %=>
     <v-bottom-sheet v-if="isPageOrderDrawerShown" v-model="isPageOrderDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
@@ -311,7 +395,7 @@
           <!-- 列表list容器 循环 -->
           <div style="height: 250px; overflow: hidden; overflow-y: auto;">
             <v-row>
-              <v-col cols="12" class="pb-0" v-for="(item, index) in <=$ (headContent | find({tag: 'jh-page-order'})).items $=>">
+              <v-col cols="12" class="pb-0" v-for="(item, index) in <=$ (headContent | find({tag: 'jh-order'})).items $=>">
                 <v-btn block class="p-3 rounded" :color="isEqual(tableDataOrder, item.value) ? 'primary' : 'gray'" @click="tableDataOrder = item.value">
                   {{ item.text }}
                 </v-btn>
@@ -320,15 +404,15 @@
           </div>
         </v-card-text>
         <v-card-actions class="flex justify-space-around pb-8">
-          <v-btn rounded @click="usePageOrder = false;tableDataOrder = <=$ (headContent | find({tag: 'jh-page-order'})).items $=>[0].value">重置</v-btn>
-          <v-btn color="success" rounded class="flex-1 ml-3" @click="usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+          <v-btn rounded @click="usePageOrder = false;tableDataOrder = <=$ (headContent | find({tag: 'jh-order'})).items $=>[0].value">重置</v-btn>
+          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableData = [];usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
       </v-card>
     </v-bottom-sheet>
     <=%- endif %=>
 
-    <=%- if pageContent | find({tag: 'jh-page-action'}) %=>
+    <=%- if pageContent | find({tag: 'jh-action'}) %=>
     <v-bottom-sheet v-if="isPageActionDrawerShown" v-model="isPageActionDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
@@ -341,7 +425,7 @@
           <!-- 列表list容器 循环 -->
           <div style="height: 250px; overflow: hidden; overflow-y: auto;">
             <v-row>
-              <=%- for item in ((pageContent | find({tag: 'jh-page-action'})).actionList) %=>
+              <=%- for item in ((pageContent | find({tag: 'jh-action'})).actionList) %=>
               <v-col cols="12" class="pb-0">
                 <v-btn block class="p-3 rounded" color="success" @click="<=$ item.click $=>; isPageActionDrawerShown = false">
                   <=$ item.value $=>
@@ -436,19 +520,31 @@ new Vue({
     isTableLoading: false,
     tableDataOrderList: [],
     tableDataOrder: [{column: 'operationAt', order: 'desc'}],
+    //===// tableLimit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(20) $=>,
+    tableQuery: {
+      page: 1,
+      //===// limit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(20) $=>,
+      loadend: false,
+      totalCount: 0,
+      setTime: null,
+    },
 
 
-    //===// <=%- if headContent | find({tag: 'jh-page-order'}) %=>
+    //===// <=%- if headContent | find({tag: 'jh-mode'}) %=>
+    viewMode: 'simple',
+    //===// <=%- endif %=>
+
+    //===// <=%- if headContent | find({tag: 'jh-order'}) %=>
     isPageOrderDrawerShown: false,
     usePageOrder: false,
     //===// <=%- endif %=>
 
-    //===// <=%- if headContent | find({tag: 'jh-page-search'}) %=>
+    //===// <=%- if headContent | find({tag: 'jh-search'}) %=>
     isPageSearchDrawerShown: false,
     usePageSearch: false,
     //===// <=%- endif %=>
 
-    //===// <=%- if pageContent | find({tag: 'jh-page-action'}) %=>
+    //===// <=%- if pageContent | find({tag: 'jh-action'}) %=>
     isPageActionDrawerShown: false,
     //===// <=%- endif %=>
 
@@ -668,7 +764,7 @@ new Vue({
       //===// }
       //===// <=%- endif %=>
 
-      const rows = (await window.jianghuAxios({
+      const {rows, count} = (await window.jianghuAxios({
         data: {
           appData: {
             pageId: '<=$ pageId $=>',
@@ -677,6 +773,8 @@ new Vue({
             where,
             whereLike,
             whereIn,
+            limit: this.tableQuery.limit,
+            offset: (this.tableQuery.page - 1) * this.tableQuery.limit,
             //===// <=%- if jhTable.orderBy %=>
             //===// <=$ jhTable.orderBy | variableToVar('orderBy', 12) $=>,
             //===// <=%- else %=>
@@ -684,9 +782,33 @@ new Vue({
             //===// <=%- endif %=>
           }
         }
-      })).data.appData.resultData.rows;
-      this.tableData = this.formatTableData(rows);
+      })).data.appData.resultData;
+      this.tableQuery.totalCount = count || rows.length;
+      this.tableData = this.tableData.concat(this.formatTableData(rows));
       this.isTableLoading = false;
+      if (rows.length < this.tableQuery.limit || this.tableData.length === count) {
+        this.tableLoadend = true;
+      }
+    },
+    tableScroll(e){
+      // 计算滚动到第几个 item
+      const { page, limit, totalCount } = this.tableQuery;
+      const { scrollTop, clientHeight, scrollHeight } = e.target;
+      if ((scrollTop + clientHeight + 10) > scrollHeight) {
+        if (this.tableQuery.setTime) return;
+        if (page < (totalCount / limit)) {
+          this.isTableLoading = true;
+          this.tableQuery.setTime = setTimeout(() => {
+            this.tableQuery.page += 1;
+            this.tableLoadend = false
+            // 获取数据
+            this.getTableData();
+            this.tableQuery.setTime = null;
+          }, 200);
+        }else{
+          this.tableLoadend = true
+        }
+      }
     },
     //===// <=%- if not common.methods.formatTableData %=>
     formatTableData(rows) {
@@ -986,7 +1108,7 @@ new Vue({
       }
       return _.isString(item) ? item : item.text;
     },
-    //===// <=%- if menuSlot.advSearch %=>
+    //===// <=%- if headContent | find({'tag': 'jh-search'}) %=>
     clearServerSearch() {
       for (const key in this.serverSearchWhere) {
         this.serverSearchWhere[key] = '';

@@ -134,7 +134,11 @@ const mixin = {
     nunjucksEnv.addFilter('typeof', function(str) {
       return typeof str;
     });
-    const tagAttr = (key, value, tag = '') => {
+    const tagAttr = (keyStr, value, tag = '') => {
+      let key = keyStr;
+      if (!keyStr.startsWith(':') && !keyStr.startsWith('@')) {
+        key = _.kebabCase(keyStr);
+      }
       // vuetify 的缩略标签
       const preList = [ 'x-small', 'small', 'medium', 'large', 'x-large', 'disabled', 'readonly', 'active', 'fixed', 'absolute', 'top', 'bottom', 'left', 'right', 'tile', 'content', 'inset', 'dense', 'single-line', 'filled', 'v-else' ];
       if (tag.startsWith('v-') && (preList.includes(key) || preList.includes(key.replace(':', ''))) && value === true) {
@@ -147,7 +151,7 @@ const mixin = {
         }
         return `:${key}="${value.toString()}"`;
       }
-
+      // key 驼峰转 kebab
       return `${key}="${value.toString().replace(/"/g, '\'')}"`;
     };
     nunjucksEnv.addFilter('tagAttr', function(key, value, tag) {
@@ -560,8 +564,33 @@ const mixin = {
         jsonConfig.hasDelete = findJhTable.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
       }
       if (findJhTable.showTableColumnSettingBtn) {
-        jsonConfig.hasShowTableColumnSettingBtn = true
+        jsonConfig.hasShowTableColumnSettingBtn = true;
       }
+    }
+
+    const hasJhList = pageContent.find(e => e.tag === 'jh-list');
+    if (hasJhList) {
+      const index = hasJhList.headers.findIndex(e => !!e.isTitle);
+      jsonConfig.pageContent.forEach(content => {
+        if (content.tag === 'jh-list') {
+          if (index !== -1) {
+            content.headers.forEach((e, i) => {
+              if (index !== i) {
+                e.isTitle = false;
+              } else {
+                e.isSimpleMode = true;
+              }
+            });
+          } else {
+            content.headers[0].isTitle = true;
+            content.headers[0].isSimpleMode = true;
+          }
+        }
+      });
+      // 把 isTitle 为 true 的放到第一位
+      const titleIndex = hasJhList.headers.findIndex(e => e.isTitle);
+      const title = hasJhList.headers.splice(titleIndex, 1);
+      hasJhList.headers.unshift(title[0]);
     }
 
     const createDrawer = actionContent.find(e => e.tag === 'jh-create-drawer');
