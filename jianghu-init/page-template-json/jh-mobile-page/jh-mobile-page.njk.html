@@ -26,23 +26,15 @@
         <=%- if content.tag == 'jh-order' %=>
         <!-- 排序 -->
         <div class="inline-flex bg-white px-2 py-1 rounded-md" :class="{'text-green-600': !!usePageOrder}" @click="isPageOrderDrawerShown = true">
-          <=%- if content.icon %=>
-          <v-icon :color="usePageOrder ? 'primary' : ''" size="16" class="mr-1"><=$ content.icon $=></v-icon>
-          <=%- endif %=>
-          <=%- if content.title %=>
-          <span class="font-medium"><=$ content.title $=></span>
-          <=%- endif %=>
+          <v-icon :color="usePageOrder ? 'primary' : ''" size="16" class="mr-1"><=$ content.icon | default('mdi-sort-ascending') $=></v-icon>
+          <span class="font-medium"><=$ content.title | default('排序') $=></span>
         </div>
       
         <=%- elif content.tag == 'jh-search' %=>
         <!-- 筛选 -->
         <div class="ml-3 inline-flex bg-white px-2 py-1 rounded-md" :class="{'text-green-600': !!usePageSearch}" @click="isPageSearchDrawerShown = true">
-          <=%- if content.icon %=>
-          <v-icon :color="usePageSearch ? 'primary' : ''" size="16" class="mr-1"><=$ content.icon $=></v-icon>
-          <=%- endif %=>
-          <=%- if content.title %=>
-          <span class="font-medium"><=$ content.title $=></span>
-          <=%- endif %=>
+          <v-icon :color="usePageSearch ? 'primary' : ''" size="16" class="mr-1"><=$ content.icon | default('mdi-filter-multiple-outline') $=></v-icon>
+          <span class="font-medium"><=$ content.title | default('筛选') $=></span>
         </div>
 
         <=%- elif content.tag == 'jh-mode' %=>
@@ -96,6 +88,9 @@
             :value="item"
             class="mt-0 pt-0"
             hide-details
+            <=%- if content.props.disableSelect %=>
+            :disabled="<=$ content.props.disableSelect $=>"
+            <=%- endif %=>
             @change="event.stopPropagation();"
           ></v-checkbox>
           <=%- endif %=>
@@ -108,7 +103,7 @@
               <=$ header.slot | tagFormat(12) $=>
             </div>
             <=%- else %=>
-            <div v-if="<=$ header.isSimpleMode $=> && viewMode != 'detail'" class="text-gray-500 flex items-center" <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=$ header.text $=>：{{ item.<=$ header.value $=> }}</div>
+            <div v-if="<=$ header.isSimpleMode $=> && viewMode != 'detail'" class="text-gray-500 flex items-center" <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=$ header.text $=>：<=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
             <=%- endif %=>
             <=%- endif %=>
             <=%- endfor %=>
@@ -116,7 +111,7 @@
               <=%- for header in content.headers %=>
               <=%- if not header.isTitle %=>
               <=%- if header.value == 'action' %=>
-              <div class="flex justify-end">
+              <div class="flex justify-end items-center">
                 <=%- for action in content.rowActionList %=>
                 <=%- if not action.tag %=>
                 <span role="button" class="<=$ action.color | default('success') $=>--text font-weight-medium font-size-2 mr-2" @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=><=% for attr in action.quickAttrs %=><=$ attr $=> <=% endfor %=>>
@@ -142,7 +137,7 @@
           </div>
         </div>
 
-        <div class="fixed bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
+        <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
           <div class=" flex justify-space-between items-center">
             每页 {{ tableQuery.limit }} 项，
             共 {{ tableQuery.totalCount }} 项
