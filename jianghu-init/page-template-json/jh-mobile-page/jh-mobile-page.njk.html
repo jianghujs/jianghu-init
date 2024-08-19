@@ -20,19 +20,19 @@
   <v-main class="mt-13">
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <=%- if headContent.length %=>
-    <div class="jh-page-second-bar p-3 px-sm-8 bg-gray-100">
+    <div class="jh-page-second-bar <=%- if headContent.length == 1 and headContent[0].tag == 'jh-page-title' %=><=%- else %=> p-3<=%- endif %=> px-sm-8 bg-gray-100">
       <v-row class="align-center" no-gutters>
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-order' %=>
         <!-- 排序 -->
-        <div class="inline-flex bg-white px-2 py-1 rounded-md" :class="{'text-green-600': !!usePageOrder}" @click="isPageOrderDrawerShown = true">
+        <div class="inline-flex bg-white px-2 py-1 rounded-md mr-3" :class="{'text-green-600': !!usePageOrder}" @click="isPageOrderDrawerShown = true">
           <v-icon :color="usePageOrder ? 'primary' : ''" size="16" class="mr-1"><=$ content.icon | default('mdi-sort-ascending') $=></v-icon>
           <span class="font-medium"><=$ content.title | default('排序') $=></span>
         </div>
       
         <=%- elif content.tag == 'jh-search' %=>
         <!-- 筛选 -->
-        <div class="ml-3 inline-flex bg-white px-2 py-1 rounded-md" :class="{'text-green-600': !!usePageSearch}" @click="isPageSearchDrawerShown = true">
+        <div class="inline-flex bg-white px-2 py-1 rounded-md" :class="{'text-green-600': !!usePageSearch}" @click="isPageSearchDrawerShown = true">
           <v-icon :color="usePageSearch ? 'primary' : ''" size="16" class="mr-1"><=$ content.icon | default('mdi-filter-multiple-outline') $=></v-icon>
           <span class="font-medium"><=$ content.title | default('筛选') $=></span>
         </div>
@@ -137,6 +137,7 @@
           </div>
         </div>
 
+        <=%- if content.props.limit %=>
         <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
           <div class=" flex justify-space-between items-center">
             每页 {{ tableQuery.limit }} 项，
@@ -157,6 +158,8 @@
           </div>
           <div class="jh-safe-bottom"></div>
         </div>
+        <=%- endif %=>
+
         <!-- 暂无更多 -->
         <div class="text-center text-gray-500 py-2" v-if="tableDataComputed.length === 0">暂无更多</div>
       </v-col>
@@ -429,7 +432,8 @@
             <v-row>
               <=%- for item in ((pageContent | find({tag: 'jh-action'})).actionList) %=>
               <v-col cols="12" class="pb-0">
-                <v-btn block class="p-3 rounded" color="success" @click="<=$ item.click $=>; isPageActionDrawerShown = false">
+                <v-btn block class="p-3 rounded" color="<=%- if item.color %=><=$ item.color $=><=%- else %=>success<=%- endif %=>" @click="<=$ item.click $=>; isPageActionDrawerShown = false">
+                  <=%- if item.icon %=><v-icon size="16" dark><=$ item.icon $=></v-icon><=%- endif %=>
                   <=$ item.value $=>
                 </v-btn>
               </v-col>
