@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const typeList = [
   { value: 'jh-page', name: 'jh-page' },
+  { value: 'jh-mobile-page', name: 'jh-mobile-page' },
   { value: 'jh-component', name: 'jh-component' },
 ];
 
@@ -109,7 +110,7 @@ module.exports = class InitJson extends CommandBase {
   // 生成 json
   async buildJson({ table, pageId, pageType, chartType, filename }) {
     // 检测创建文件夹
-    const generateFileDir = [ '1table-page', 'jh-page' ].includes(pageType) ? './app/view/init-json/page' : './app/view/init-json/component';
+    const generateFileDir = [ '1table-page', 'jh-mobile-page', 'jh-page' ].includes(pageType) ? './app/view/init-json/page' : './app/view/init-json/component';
     fs.mkdirSync(generateFileDir, { recursive: true });
 
 
@@ -133,6 +134,8 @@ module.exports = class InitJson extends CommandBase {
       }
       content = this.getJhContent({ table, pageId, pageType, fields, filename: fileName });
     } else if (pageType === 'jh-page') {
+      content = this.getJhContent({ table, pageId, pageType, fields, filename: fileName });
+    } else if (pageType === 'jh-mobile-page') {
       content = this.getJhContent({ table, pageId, pageType, fields, filename: fileName });
     } else {
       this.error('pageType `1table-page` 已废弃，请使用 `jh-page`');
@@ -170,6 +173,7 @@ module.exports = class InitJson extends CommandBase {
     if (table) {
       let createItemListStr = '';
       let updateItemListStr = '';
+      let detailItemListStr = '';
       tableStr = `table: "${table}",`;
       const { excludeColumn = [] } = this.argv;
       fields.forEach((field, index) => {
@@ -180,6 +184,7 @@ module.exports = class InitJson extends CommandBase {
         if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", width: 80, sortable: true },\n`;
         createItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
         updateItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
+        detailItemListStr += actionSpace + `{ label: "${fieldName}", tag: "span", colAttrs: { class: 'border-b pb-2 flex justify-between' }, value: "{{detailItem.${fieldKey}}}"  },\n`;
         space = ' '.repeat(8);
         actionSpace = ' '.repeat(12);
       });
@@ -216,6 +221,28 @@ module.exports = class InitJson extends CommandBase {
       ],
     }
   ]`;
+      if (pageType === 'jh-mobile-page') {
+        pageContent = `[
+    {
+      tag: 'jh-list',
+      props: {
+        limit: 10,
+        rightArrowText: '指派跟进人',
+      },
+      attrs: { cols: 12, class: 'p-0 pb-7', style: 'height: calc(100vh - 140px); overflow-y: auto;overscroll-behavior: contain' },
+      headers: [
+        ${columnStr}
+        // width 表达式需要使用字符串包裹 
+        // 是否是标题 isTitle: true 
+        // 简单模式 isSimpleMode: true
+      ],
+      rowActionList: [
+        { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: 'doUiAction("startUpdateItem", item)' }, // 简写支持 pc 和 移动端折叠
+        { text: '删除', icon: 'mdi-trash-can-outline', color: 'error', click: 'doUiAction("deleteItem", item)' } // 简写支持 pc 和 移动端折叠
+      ],
+    }
+  ]`;
+      }
       actionContent = `actionContent: [
     {
       tag: 'jh-create-drawer',
@@ -273,6 +300,33 @@ module.exports = class InitJson extends CommandBase {
         { label: "操作记录", type: "component", componentPath: "recordHistory", attrs: { table: '${table}', pageId: '${pageId}', ':id': 'updateItem.id' } },
       ]
     },
+    ${pageType === 'jh-mobile-page' ? `{
+        tag: 'jh-detail-drawer',
+        key: "detail",
+        attrs: {},
+        title: '编辑',
+        headSlot: [
+          { tag: 'v-spacer'}
+        ],
+        contentList: [
+          { 
+            label: "编辑", 
+            type: "preview", 
+            formItemList: [
+              ${detailItemListStr}
+            ], 
+            action: [{
+              tag: "v-btn",
+              value: "编辑",
+              attrs: {
+                color: "success",
+                ':small': true,
+                '@click': "doUiAction('startUpdateItem', detailItem); closeDetailDrawer()"
+              }
+            }],
+          },
+        ]
+      }` : ''}
   ]`;
 
     } else {
@@ -305,7 +359,11 @@ module.exports = class InitJson extends CommandBase {
     const propsStr = pageType === 'jh-component' ? 'props: {},' : '';
     const componentPath = pageType === 'jh-component' ? `componentPath: "${filename}",` : '';
 
-    return this.getBasicContent({ pageId, pageType, tableStr, componentPath, resourceList, propsStr, pageContent, actionContent, style: '' });
+    if ([ 'jh-page', 'jh-component' ].includes(pageType)) {
+      return this.getBasicContent({ pageId, pageType, tableStr, componentPath, resourceList, propsStr, pageContent, actionContent, style: '' });
+    } else {
+      return this.getBasicMobileContent({ pageId, pageType, tableStr, componentPath, resourceList, propsStr, pageContent, actionContent, style: '' });
+    }
   }
 
   getBasicContent({ pageId, pageType, tableStr = '', componentPath = '', resourceList = '[]', propsStr = '', pageContent = '[]', actionContent, style }) {
@@ -369,6 +427,79 @@ module.exports = class InitJson extends CommandBase {
 
 module.exports = content;
 `;
+  }
+
+  getBasicMobileContent({ pageId, pageType, tableStr = '', componentPath = '', resourceList = '[]', propsStr = '', pageContent = '[]', actionContent, style }) {
+    return `const content = {
+  pageType: "${pageType}", pageId: "mobile/${pageId}", pageName: "${pageId}页面", template: "jhMobileTemplateV4", ${componentPath}
+  resourceList: ${resourceList}, // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
+  headContent: [
+    { tag: 'jh-page-title', value: "${pageId}", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
+
+    { 
+      tag: 'jh-search', 
+      attrs: { cols: 12, sm: 6, md:8 },
+      searchList: [
+        { tag: "v-text-field", model: "serverSearchWhereLike.className", attrs: {prefix: '前缀'} },
+      ], 
+    },
+    { tag: 'v-spacer'},
+    { tag: 'jh-mode', title: '简单模式', icon: 'mdi-view-carousel-outline', model: 'viewMode', items: 'constantObj.viewModeList' },
+  ],
+  pageContent: ${pageContent},
+  ${actionContent},
+  includeList: [], // { type: < js | css | html | vueComponent >, path: ''}
+  common: { 
+    ${propsStr}
+    data: {
+      constantObj: {
+        viewModeList: [
+          { text: "简洁模式", value: "simple" },
+          { text: "详细模式", value: "detail" }
+        ]
+      },
+      validationRules: {
+        requireRules: [
+          v => !!v || '必填',
+        ],
+      },
+      serverSearchWhereLike: { className: '' }, // 服务端like查询
+      serverSearchWhere: { }, // 服务端查询
+      serverSearchWhereIn: { }, // 服务端 in 查询
+      filterMap: {}, // 结果筛选条件
+    },
+    dataExpression: {
+      isMobile: 'window.innerWidth < 500'
+    }, // data 表达式
+    watch: {},
+    computed: {
+      tableDataComputed() {
+        if(this.filterMap) {
+          return this.tableData.filter(row => {
+            for (const key in this.filterMap) {
+              if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+                return false;
+              }
+            }
+            return true;
+          });
+        } else {
+          return this.tableData;
+        }
+      },
+    },
+    async created() {
+      await this.doUiAction('getTableData');
+    },
+    doUiAction: {}, // 额外uiAction { [key]: [action1, action2]}
+    methods: {}
+  },
+  ${style}
+};
+
+module.exports = content;
+`;
+
   }
 
   getChartData(chartType) {
