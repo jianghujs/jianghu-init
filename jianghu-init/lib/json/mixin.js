@@ -411,9 +411,26 @@ const mixin = {
       });
     });
     nunjucksEnv.addFilter('filter', function(list, obj) {
-      if (!list || !obj) return;
+      if (!list || !obj) return list; // 如果没有提供list或obj，直接返回原始list
       return list.filter(item => {
-        return _.isMatch(item, obj);
+        // 遍历obj的每个键值对，检查是否有取反条件
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            // 如果obj的值以"!"开头，表示这是一个取反条件
+            if (typeof obj[key] === 'string' && obj[key].startsWith('!')) {
+              // 检查item的属性值是否不等于obj中指定的取反值（去掉"!"后的部分）
+              if (item[key] === obj[key].substring(1)) {
+                return false; // 如果等于取反条件的值，则过滤掉这个item
+              }
+            } else {
+              // 对于非取反条件，使用_.isMatch进行匹配
+              if (!_.isMatch(item, { [key]: obj[key] })) {
+                return false; // 如果不匹配，则过滤掉这个item
+              }
+            }
+          }
+        }
+        return true; // 如果item通过了所有条件检查，则保留这个item
       });
     });
     nunjucksEnv.addFilter('isString', function(item) {

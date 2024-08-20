@@ -19,8 +19,8 @@
   </jh-menu>
   <v-main class="mt-13">
     <!-- 头部内容 >>>>>>>>>>>>> -->
-    <=%- if headContent.length %=>
-    <div class="jh-page-second-bar <=%- if headContent.length == 1 and headContent[0].tag == 'jh-page-title' %=><=%- else %=> p-3<=%- endif %=> px-sm-8 bg-gray-100">
+    <=%- if (headContent | filter({tag: '!jh-page-title'})).length %=>
+    <div class="jh-page-second-bar p-3 px-sm-8 bg-gray-100">
       <v-row class="align-center" no-gutters>
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-order' %=>
