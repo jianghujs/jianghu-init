@@ -467,6 +467,26 @@ module.exports = content;
       serverSearchWhere: { }, // 服务端查询
       serverSearchWhereIn: { }, // 服务端 in 查询
       filterMap: {}, // 结果筛选条件
+      tableDataOrder: [
+        {
+          column: "operationAt",
+          order: "desc"
+        }
+      ],
+      tableDataOrderList: [
+        { text: "更新时间↓", value: [
+          {
+            column: "operationAt",
+            order: "desc"
+          },
+        ] },
+        { text: "更新时间↑", value: [
+          {
+            column: "operationAt",
+            order: "asc"
+          },
+        ] },
+      ],
     },
     dataExpression: {
       isMobile: 'window.innerWidth < 500'
