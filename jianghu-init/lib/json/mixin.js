@@ -772,7 +772,7 @@ const mixin = {
 
             item.bind = Object.assign({}, _.cloneDeep(bind), item.bind || {}, item.attrs || {});
             _.forEach(item.bind, (value, key) => {
-              item.bind[key] = value.replace(/"/g, '\'').replace(/\{\{key\}\}/g, itemKey);
+              item.bind[key] = (value || '').replace(/"/g, '\'').replace(/\{\{key\}\}/g, itemKey);
             });
             item.sqlMap = sqlMap;
           } else {

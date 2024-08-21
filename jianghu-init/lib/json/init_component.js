@@ -39,10 +39,10 @@ module.exports = class InitComponent extends CommandBase {
   async generateCrud(jsonConfig) {
     const { pageId, table, componentPath } = jsonConfig;
     this.info('开始生成 CRUD');
-    if (!table) {
-      this.info('未配置table，流程结束');
-      return;
-    }
+    // if (!table) {
+    //   this.info('未配置table，流程结束');
+    //   return;
+    // }
     this.info(`开始生成 ${table} 的 CRUD`);
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);

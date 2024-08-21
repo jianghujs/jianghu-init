@@ -79,7 +79,7 @@
       <=%- for content in pageContent %=>
       <=%- if content.tag == 'jh-list' %=>
       <v-col :cols="12" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-        <div class="flex p-3 border-b relative items-center" v-for="item in tableDataComputed" @click="viewMode == 'simple' && doUiAction('startDetailItem', item)">
+        <div class="flex p-3 border-b relative items-center" v-for="(item, index) in tableDataComputed" @click="viewMode == 'simple' && doUiAction('startDetailItem', item)">
           
           <=%- if content.props.showSelect %=>
           <v-checkbox
@@ -99,11 +99,11 @@
             <=%- if header.isSimpleMode %=>
             <=%- if header.isTitle == true %=>
             <div class="flex items-center items-center">
-              <span class="font-medium text-base">{{ item.<=$ header.value $=> }}</span>
+              <span class="font-medium text-base"><=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></span>
               <=$ header.slot | tagFormat(12) $=>
             </div>
             <=%- else %=>
-            <div v-if="<=$ header.isSimpleMode $=> && viewMode != 'detail'" class="text-gray-500 flex items-center" <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=$ header.text $=>：<=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
+            <div v-if="<=$ header.isSimpleMode $=> && viewMode != 'detail'" class="text-gray-500 flex items-center pr-6" <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=$ header.text $=>：<=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
             <=%- endif %=>
             <=%- endif %=>
             <=%- endfor %=>

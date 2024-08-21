@@ -38,10 +38,10 @@ module.exports = class InitPage1Table extends CommandBase {
   // 生成 crud
   async generateCrud(jsonConfig) {
     const { table } = jsonConfig;
-    if (!table) {
-      this.info('未配置table，流程结束');
-      return;
-    }
+    // if (!table) {
+    //   this.info('未配置table，流程结束');
+    //   return;
+    // }
     this.info(`开始生成 ${table} 的 CRUD`);
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
