@@ -593,7 +593,7 @@ const mixin = {
 
     const hasJhList = pageContent.find(e => e.tag === 'jh-list');
     if (hasJhList) {
-      const index = hasJhList.headers.findIndex(e => !!e.isTitle);
+      const index = (hasJhList.headers || []).findIndex(e => !!e.isTitle);
       jsonConfig.pageContent.forEach(content => {
         if (content.tag === 'jh-list') {
           if (index !== -1) {
@@ -605,16 +605,20 @@ const mixin = {
               }
             });
           } else {
-            content.headers[0].isTitle = true;
-            content.headers[0].isSimpleMode = true;
+            if (content.headers && content.headers.length) {
+              content.headers[0].isTitle = true;
+              content.headers[0].isSimpleMode = true;
+            }
           }
         }
       });
       // 把 isTitle 为 true 的放到第一位
-      const titleIndex = hasJhList.headers.findIndex(e => e.isTitle);
-      const title = hasJhList.headers.splice(titleIndex, 1);
-      hasJhList.headers.unshift(title[0]);
-      jsonConfig.hasDelete = hasJhList.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
+      if (hasJhList.headers) {
+        const titleIndex = (hasJhList.headers || []).findIndex(e => e.isTitle);
+        const title = hasJhList.headers.splice(titleIndex, 1);
+        hasJhList.headers.unshift(title[0]);
+        jsonConfig.hasDelete = hasJhList.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
+      }
     }
 
     const createDrawer = actionContent.find(e => e.tag === 'jh-create-drawer');
