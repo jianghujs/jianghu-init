@@ -95,6 +95,7 @@
           ></v-checkbox>
           <=%- endif %=>
           <div class="flex-1">
+            <=%- if content.headers %=>
             <=%- for header in content.headers %=>
             <=%- if header.isSimpleMode %=>
             <=%- if header.isTitle == true %=>
@@ -107,6 +108,7 @@
             <=%- endif %=>
             <=%- endif %=>
             <=%- endfor %=>
+            <=%- endif %=>
             <div v-show="viewMode == 'detail'">
               <=%- for header in content.headers %=>
               <=%- if not header.isTitle %=>

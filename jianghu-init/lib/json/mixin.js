@@ -612,10 +612,12 @@ const mixin = {
         }
       });
       // 把 isTitle 为 true 的放到第一位
-      const titleIndex = hasJhList.headers.findIndex(e => e.isTitle);
-      const title = hasJhList.headers.splice(titleIndex, 1);
-      hasJhList.headers.unshift(title[0]);
-      jsonConfig.hasDelete = hasJhList.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
+      if (hasJhList.headers) {
+        const titleIndex = (hasJhList.headers || []).findIndex(e => e.isTitle);
+        const title = hasJhList.headers.splice(titleIndex, 1);
+        hasJhList.headers.unshift(title[0]);
+        jsonConfig.hasDelete = hasJhList.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
+      }
     }
 
     const createDrawer = actionContent.find(e => e.tag === 'jh-create-drawer');
