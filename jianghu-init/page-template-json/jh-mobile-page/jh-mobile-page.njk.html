@@ -432,10 +432,16 @@
             <v-row>
               <=%- for item in ((pageContent | find({tag: 'jh-action'})).actionList) %=>
               <v-col cols="12" class="pb-0">
+                <=%- if not item.tag %=>
                 <v-btn block class="p-3 rounded" color="<=%- if item.color %=><=$ item.color $=><=%- else %=>success<=%- endif %=>" @click="<=$ item.click $=>; isPageActionDrawerShown = false">
                   <=%- if item.icon %=><v-icon size="16" dark><=$ item.icon $=></v-icon><=%- endif %=>
                   <=$ item.value $=>
                 </v-btn>
+                <=%- else %=>
+                <!-- 抽屉内容自定义 -->
+                <=$ item | tagFormat(12) $=>
+                <=%- endif %=>
+                
               </v-col>
               <=%- endfor %=>
             </v-row>

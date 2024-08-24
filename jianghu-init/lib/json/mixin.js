@@ -593,11 +593,12 @@ const mixin = {
 
     const hasJhList = pageContent.find(e => e.tag === 'jh-list');
     if (hasJhList) {
-      const index = hasJhList.headers.findIndex(e => !!e.isTitle);
+      hasJhList.headers = hasJhList.headers || common.data.headers
+      const index =  hasJhList.headers.findIndex(e => !!e.isTitle);
       jsonConfig.pageContent.forEach(content => {
         if (content.tag === 'jh-list') {
           if (index !== -1) {
-            content.headers.forEach((e, i) => {
+            hasJhList.headers.forEach((e, i) => {
               if (index !== i) {
                 e.isTitle = false;
               } else {
@@ -605,8 +606,8 @@ const mixin = {
               }
             });
           } else {
-            content.headers[0].isTitle = true;
-            content.headers[0].isSimpleMode = true;
+            hasJhList.headers[0].isTitle = true;
+            hasJhList.headers[0].isSimpleMode = true;
           }
         }
       });
