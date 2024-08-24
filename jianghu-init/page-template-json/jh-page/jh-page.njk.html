@@ -548,6 +548,7 @@ new Vue({
       this.getTableData();
     },
     'tableQuery.sortDesc'(val, oldVal) {
+      // TODO:: 初始化会异常调用加载2次，暂时跳过，后续优化
       if (oldVal.length === 0 && val.length === 0) return;
       this.getTableData();
     },
