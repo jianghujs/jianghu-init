@@ -136,7 +136,7 @@ const mixin = {
     });
     const tagAttr = (keyStr, value, tag = '') => {
       let key = keyStr;
-      if (!keyStr.startsWith(':') && !keyStr.startsWith('@')) {
+      if (!keyStr.startsWith(':') && !keyStr.startsWith('@') && !keyStr.includes('-')) {
         key = _.kebabCase(keyStr);
       }
       // vuetify 的缩略标签

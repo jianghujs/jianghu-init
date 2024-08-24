@@ -664,7 +664,11 @@ new Vue({
       //===// for (const fieldKey in this.serverSearchWhere) {
       //===//   const fieldValue = this.serverSearchWhere[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
-      //===//     where[fieldKey] = fieldValue;
+      //===//     if (_.isString(fieldValue)) {
+      //===//       where[fieldKey] = fieldValue.trim();
+      //===//     } else {
+      //===//       where[fieldKey] = fieldValue;
+      //===//     }
       //===//   }
       //===// }
       //===// <=%- endif %=>
@@ -672,7 +676,11 @@ new Vue({
       //===// for (const fieldKey in this.serverSearchWhereLike) {
       //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
-      //===//     whereLike[fieldKey] = fieldValue;
+      //===//     if (_.isString(fieldValue)) {
+      //===//       whereLike[fieldKey] = fieldValue.trim();
+      //===//     } else {
+      //===//       whereLike[fieldKey] = fieldValue;
+      //===//     }
       //===//   }
       //===// }
       //===// <=%- endif %=>
@@ -705,7 +713,7 @@ new Vue({
         }
       })).data.appData.resultData;
 
-      this.tableQuery.totalCount = count || '...';
+      this.tableQuery.totalCount = count || rows.length;
       this.tableData = this.formatTableData(rows);
       this.isTableLoading = false;
     },
