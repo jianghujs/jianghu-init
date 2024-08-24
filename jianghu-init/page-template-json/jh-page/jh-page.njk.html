@@ -148,7 +148,7 @@
           :items="tableDataComputed"
           :search="searchInput"
           :options.sync="tableQuery"
-          :footer-props="{ itemsPerPageOptions: [20, 50, 200], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+          :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
           :server-items-length="tableQuery.totalCount"
           :items-per-page="50"
           mobile-breakpoint="0"
@@ -465,6 +465,8 @@ new Vue({
       page: 1,
       itemsPerPage: 50,
       totalCount: 0,
+      sortBy: [],
+      sortDesc: [],
     },
     //===// <=%- endif %=>
 
@@ -536,11 +538,17 @@ new Vue({
         this.isHelpPageDrawerLoaded = true;
       }
     },
+    //===// <=%- endif %=>
+    //===// <=%- if hasJhTable %=>
     'tableQuery.itemsPerPage'(val) {
       this.tableQuery.page = 1;
       this.getTableData();
     },
     'tableQuery.page'(val) {
+      this.getTableData();
+    },
+    'tableQuery.sortDesc'(val, oldVal) {
+      if (oldVal.length === 0 && val.length === 0) return;
       this.getTableData();
     },
     //===// <=%- endif %=>
@@ -693,6 +701,22 @@ new Vue({
       //===// }
       //===// <=%- endif %=>
 
+
+      //===// <=%- if jhTable.orderBy %=>
+      //===// let orderBy = <=$ jhTable.orderBy | variableToVar('', 6) $=>;
+      //===// <=%- else %=>
+      let orderBy = [{column: 'operationAt', order: 'desc'}];
+      //===// <=%- endif %=>
+      if (this.tableQuery.sortBy.length) {
+        orderBy = this.tableQuery.sortBy.map((item, index) => {
+          return {
+            column: item,
+            order: this.tableQuery.sortDesc[index] ? 'desc' : 'asc'
+          }
+        });
+      }
+      const limit = this.tableQuery.itemsPerPage === -1 ? 10000 : this.tableQuery.itemsPerPage;
+
       const {rows, count} = (await window.jianghuAxios({
         data: {
           appData: {
@@ -702,13 +726,9 @@ new Vue({
             where,
             whereLike,
             whereIn,
-            limit: this.tableQuery.itemsPerPage,
-            offset: (this.tableQuery.page - 1) * this.tableQuery.itemsPerPage,
-            //===// <=%- if jhTable.orderBy %=>
-            //===// <=$ jhTable.orderBy | variableToVar('orderBy', 12) $=>,
-            //===// <=%- else %=>
-            orderBy: [{column: 'operationAt', order: 'desc'}]
-            //===// <=%- endif %=>
+            limit,
+            offset: (this.tableQuery.page - 1) * limit,
+            orderBy
           }
         }
       })).data.appData.resultData;
