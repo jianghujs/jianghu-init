@@ -745,8 +745,7 @@ new Vue({
           }
         }
       })).data.appData.resultData;
-
-      //===// <=%- if jhTable.props.serverSearch %=>
+      //===// <=% if jhTable.props.serverSearch %=>
       this.tableQuery.totalCount = count || rows.length;
       //===// <=%- endif %=>
       this.tableData = this.formatTableData(rows);
