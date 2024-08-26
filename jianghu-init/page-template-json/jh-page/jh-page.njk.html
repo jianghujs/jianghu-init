@@ -147,10 +147,14 @@
           :headers="headers"
           :items="tableDataComputed"
           :search="searchInput"
-          :options.sync="tableQuery"
           :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+          <=%- if content.props.serverSearch %=>
+          :options.sync="tableQuery"
           :server-items-length="tableQuery.totalCount"
           :items-per-page="50"
+          <=%- else %=>
+          :items-per-page="-1"
+          <=%- endif %=>
           mobile-breakpoint="0"
           :loading="isTableLoading"
           checkbox-color="success"
@@ -461,6 +465,7 @@ new Vue({
     //===// searchInput: null,
     //===// columnSettingGroup: {},
     //===// selectedColumnGroup: null,
+    //===// <=%- if jhTable.props.serverSearch %=>
     tableQuery: {
       page: 1,
       itemsPerPage: 50,
@@ -468,6 +473,7 @@ new Vue({
       sortBy: [],
       sortDesc: [],
     },
+    //===// <=%- endif %=>
     //===// <=%- endif %=>
 
     //===// <=%- if hasCreateDrawer %=>
@@ -540,6 +546,7 @@ new Vue({
     },
     //===// <=%- endif %=>
     //===// <=%- if hasJhTable %=>
+    //===// <=%- if jhTable.props.serverSearch %=>
     'tableQuery.itemsPerPage'(val) {
       this.tableQuery.page = 1;
       this.getTableData();
@@ -552,6 +559,7 @@ new Vue({
       if (oldVal.length === 0 && val.length === 0) return;
       this.getTableData();
     },
+    //===// <=%- endif %=>
     //===// <=%- endif %=>
     //===// <=%- for key, item in common.watch %=>
     //===// <=%- if (item | typeof) == 'function' %=>
@@ -708,6 +716,7 @@ new Vue({
       //===// <=%- else %=>
       let orderBy = [{column: 'operationAt', order: 'desc'}];
       //===// <=%- endif %=>
+      //===// <=%- if jhTable.props.serverSearch %=>
       if (this.tableQuery.sortBy.length) {
         orderBy = this.tableQuery.sortBy.map((item, index) => {
           return {
@@ -717,6 +726,7 @@ new Vue({
         });
       }
       const limit = this.tableQuery.itemsPerPage === -1 ? 10000 : this.tableQuery.itemsPerPage;
+      //===// <=%- endif %=>
 
       const {rows, count} = (await window.jianghuAxios({
         data: {
@@ -727,14 +737,18 @@ new Vue({
             where,
             whereLike,
             whereIn,
+            //===// <=%- if jhTable.props.serverSearch %=>
             limit,
             offset: (this.tableQuery.page - 1) * limit,
+            //===// <=%- endif %=>
             orderBy
           }
         }
       })).data.appData.resultData;
 
+      //===// <=%- if jhTable.props.serverSearch %=>
       this.tableQuery.totalCount = count || rows.length;
+      //===// <=%- endif %=>
       this.tableData = this.formatTableData(rows);
       this.isTableLoading = false;
     },
