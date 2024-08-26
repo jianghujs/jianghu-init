@@ -743,6 +743,7 @@ new Vue({
     },
 
     // ---------- 获取表格数据 uiAction >>>>>>>>>> --------
+    //===// <=%- if not common.methods.getTableData %=>
     async getTableData() {
       this.isTableLoading = true;
       const where = {};
@@ -796,6 +797,7 @@ new Vue({
       this.tableData = this.formatTableData(rows);
       this.isTableLoading = false;
     },
+    //===// <=%- endif %=>
     //===// <=%- if not common.methods.formatTableData %=>
     formatTableData(rows) {
       rows.forEach(row => {
@@ -1110,7 +1112,7 @@ new Vue({
 
     // 判断是否相等的方法，兼容对象
     isEqual(a, b) {
-      if (_.isObject(a) && _.isObject(b)) {
+      if (_.isObject(a) && _.isObject(b)) { 
         return _.isEqual(a, b);
       }
       return a === b;
