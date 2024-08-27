@@ -252,10 +252,12 @@ module.exports = class InitByJsonCommand extends CommandBase {
     fs.mkdirSync('./app/view/common/jianghuJs', { recursive: true });
     fs.mkdirSync('./app/view/component/jianghuJs', { recursive: true });
     fs.mkdirSync('./app/view/template', { recursive: true });
+    fs.mkdirSync('./app/public/lib', { recursive: true });
 
     // 复制通用样式和组件
     this.copyDir(`${path.join(__dirname, '../')}page-template-json/component/jianghuJs`, './app/view/component/jianghuJs');
     this.copyDir(`${path.join(__dirname, '../')}page-template-json/common/jianghuJs`, './app/view/common/jianghuJs');
+    this.copyDir(`${path.join(__dirname, '../')}page-template-json/public/lib`, './app/public/lib');
     // page-template-json/common/jhMobileTemplateV4.html -> ./app/view/teamplate/jhMobileTemplateV4.html'
 
     fs.copyFileSync(`${path.join(__dirname, '../')}page-template-json/common/jhMobileTemplateV4.html`, './app/view/template/jhMobileTemplateV4.html');

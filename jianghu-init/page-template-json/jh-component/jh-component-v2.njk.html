@@ -218,12 +218,12 @@
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
         <v-row class="jh-drawer-header px-4" no-gutters align="center">
-          <span class="text-h7 font-weight-bold py-4 pl-[30px] md:pl-0"><=$ actionItem.title $=></span>
+          <span class="text-h7 font-weight-bold py-4"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
-          <div class="jh-drawer-action-btn-group md:block flex md:text-right">
-            <v-btn class="elevation-0 grey lighten-4" v-if="!isMobile" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck" small>取消</v-btn>
+          <div class="jh-drawer-action-btn-group">
+            <v-btn class="elevation-0 grey lighten-4" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck" small>取消</v-btn>
             <!-- 抽屉操作按钮 -->
             <=%- for content in actionItem.contentList %=>
             <=%- if content.action %=>
@@ -320,9 +320,8 @@
         <=%- endif %=>
       </v-form>
       <!-- 抽屉关闭按钮 -->
-      <v-btn elevation="0" :color="isMobile ? 'white' : 'success'" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">
-        <v-icon v-if="isMobile" size="30" class="mt-1">mdi-chevron-left</v-icon>
-        <v-icon v-else>mdi-close</v-icon>
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">
+        <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>
     <!-- <<<<<<<<<<<<< <=$ actionItem.title $=> -->
@@ -386,10 +385,8 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=$ (pageContent | find({tag: 'jh-table'})).headers | removeKey(['formatter']) | listToVar('headers') $=>,
     //===// <=%- endif %=>
     //===// tableData: [],
-    //===// <=%- if verstion == 'v2' %=>
     //===// tableParams: {},
     //===// tableDataFromBackend: [],
-    //===// <=%- endif %=>
     //===// isTableLoading: false,
     //===// searchInput: null,
     //===// <=%- endif %=>
@@ -452,6 +449,22 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- endfor %=>
   }),
   watch: {
+    //===// <=%- if hasJhTable %=>
+    //===// <=%- if jhTable.props.serverSearch %=>
+    'tableQuery.itemsPerPage'(val) {
+      this.tableQuery.page = 1;
+      this.doUiAction('getTableData');
+    },
+    'tableQuery.page'(val) {
+      this.doUiAction('getTableData');
+    },
+    'tableQuery.sortDesc'(val, oldVal) {
+      // TODO:: 初始化会异常调用加载2次，暂时跳过，后续优化
+      if (oldVal.length === 0 && val.length === 0) return;
+      this.doUiAction('getTableData');
+    },
+    //===// <=%- endif %=>
+    //===// <=%- endif %=>
     //===// <=%- for key, item in common.watch %=>
     //===// <=%- if (item | typeof) == 'function' %=>
     //===// <=$ item | variableToVar(key) $=>,
@@ -496,7 +509,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
           //===// <=%- for key, value in basicUiActionConfig %=> 
           //===// case '<=$ key $=>':
           //===//   <=%- for method in value %=> 
-          //===//   await this.<=$ method $=>(uiActionData);
+          //===//   <=$ method $=>;
           //===//   <=%- endfor %=>
           //===//   break;
           //===// <=%- endfor %=> 
@@ -533,10 +546,8 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       }
     },
 
-    //===// <=%- if hasJhTable %=>
-    // ---------- 获取表格数据 uiAction >>>>>>>>>> --------
-    async getTableData() {
-      this.isTableLoading = true;
+    //===// <=%- if hasJhTable and version == 'v2' %=>
+    async prepareTableParamsDefault() {
       const where = {};
       const whereLike = {};
       const whereIn = {};
@@ -589,39 +600,43 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
         });
       }
       const limit = this.tableQuery.itemsPerPage === -1 ? 10000 : this.tableQuery.itemsPerPage;
+      const offset = (this.tableQuery.page - 1) * limit;
       //===// <=%- endif %=>
 
-      const {rows, count} = (await window.jianghuAxios({
+      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
+    },
+    // 准备请求参数-自定义
+    prepareTableParams() {
+      // TODO 增加自定义复杂判断条件
+    },
+    // 获取表格数据
+    async getTableData() {
+      this.isTableLoading = true;
+
+      const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: '<=$ pageId $=>',
-            actionId: 'selectItemList',
+            actionId: "<=$ jhTable.props.actionId | default('selectItemList') $=>",
             actionData: {},
-            where,
-            whereLike,
-            whereIn,
-            //===// <=%- if jhTable.props.serverSearch %=>
-            limit,
-            offset: (this.tableQuery.page - 1) * limit,
-            //===// <=%- endif %=>
-            orderBy
+            ...this.tableParams
           }
         }
-      })).data.appData.resultData;
+      });
+      const { rows, count } = result.data.appData.resultData;
       //===// <=% if jhTable.props.serverSearch %=>
       this.tableQuery.totalCount = count || rows.length;
       //===// <=%- endif %=>
-      this.tableData = this.formatTableData(rows);
+      this.tableDataFromBackend = rows;
       this.isTableLoading = false;
     },
-    //===// <=%- if not common.methods.formatTableData %=>
-    formatTableData(rows) {
-      rows.forEach(row => {
+    formatTableData() {
+      let tableData = this.tableDataFromBackend.map(row => {
         row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+        return row;
       });
-      return rows;
+      this.tableData = tableData;
     },
-    //===// <=%- endif %=>
     // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
     //===// <=%- endif %=>
 
