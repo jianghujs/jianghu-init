@@ -534,7 +534,6 @@ new Vue({
     isTableLoading: false,
     tableDataOrderList: [],
     tableDataOrder: [{column: 'operationAt', order: 'desc'}],
-    //===// tableLimit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(20) $=>,
     tableQuery: {
       page: 1,
       //===// limit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(20) $=>,
@@ -774,6 +773,11 @@ new Vue({
       //===// }
       //===// <=%- endif %=>
 
+
+      //===// <=%- if (pageContent | find({tag: 'jh-list'})).props.serverSearch %=>
+      const limit = this.tableQuery.limit === -1 ? 10000 : this.tableQuery.limit;
+      //===// <=%- endif %=>
+
       const {rows, count} = (await window.jianghuAxios({
         data: {
           appData: {
@@ -783,7 +787,7 @@ new Vue({
             where,
             whereLike,
             whereIn,
-            limit: this.tableQuery.limit,
+            limit,
             offset: (this.tableQuery.page - 1) * this.tableQuery.limit,
             //===// <=%- if jhTable.orderBy %=>
             //===// <=$ jhTable.orderBy | variableToVar('orderBy', 12) $=>,
