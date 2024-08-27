@@ -531,6 +531,8 @@ new Vue({
 
     isMobile: window.innerWidth < 500,
     tableData: [],
+    tableParams: {},
+    tableDataFromBackend: [],
     isTableLoading: false,
     tableDataOrderList: [],
     tableDataOrder: [{column: 'operationAt', order: 'desc'}],
@@ -702,7 +704,11 @@ new Vue({
           //===// <=%- for key, value in basicUiActionConfig %=>
           //===// case '<=$ key $=>':
           //===//   <=%- for method in value %=>
+          //===//   <=%- if version == 'v2' %=>
+          //===//   <=$ method $=>;
+          //===//   <=%- else %=>
           //===//   await this.<=$ method $=>(uiActionData);
+          //===//   <=%- endif %=>
           //===//   <=%- endfor %=>
           //===//   break;
           //===// <=%- endfor %=>
@@ -740,11 +746,9 @@ new Vue({
         window.jhMask && window.jhMask.hide();
       }
     },
-
-    // ---------- 获取表格数据 uiAction >>>>>>>>>> --------
-    //===// <=%- if not common.methods.getTableData %=>
-    async getTableData() {
-      this.isTableLoading = true;
+    
+    //===// <=%- if version == 'v2' %=>
+    async prepareTableParamsDefault() {
       const where = {};
       const whereLike = {};
       const whereIn = {};
@@ -781,35 +785,43 @@ new Vue({
       //===// }
       //===// <=%- endif %=>
 
-      let orderBy = this.tableDataOrder.length ? this.tableDataOrder : [{column: 'operationAt', order: 'desc'}];
+      let orderBy = this.tableDataOrder.length ? this.tableDataOrder.length : [{column: 'operationAt', order: 'desc'}];
       const limit = this.tableQuery.limit === -1 ? 10000 : this.tableQuery.limit;
+      const offset = (this.tableQuery.page - 1) * limit;
 
-      const {rows, count} = (await window.jianghuAxios({
+      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
+    },
+    // 准备请求参数-自定义
+    prepareTableParams() {
+      // TODO 增加自定义复杂判断条件
+    },
+    // 获取表格数据
+    async getTableData() {
+      this.isTableLoading = true;
+
+      const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: '<=$ pageId $=>',
             actionId: "<=$ (pageContent | find({tag: 'jh-list'})).props.actionId | default('selectItemList') $=>",
             actionData: {},
-            where,
-            whereLike,
-            whereIn,
-            limit,
-            offset: (this.tableQuery.page - 1) * limit,
-            orderBy
+            ...this.tableParams
           }
         }
-      })).data.appData.resultData;
+      });
+      const { rows, count } = result.data.appData.resultData;
 
       this.tableQuery.totalCount = count || rows.length;
-      this.tableData = this.formatTableData(rows);
+      this.tableDataFromBackend = rows;
       this.isTableLoading = false;
     },
     //===// <=%- if not common.methods.formatTableData %=>
-    formatTableData(rows) {
-      rows.forEach(row => {
+    formatTableData() {
+      let tableData = this.tableDataFromBackend.map(row => {
         row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+        return row;
       });
-      return rows;
+      this.tableData = tableData;
     },
     //===// <=%- endif %=>
     // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------

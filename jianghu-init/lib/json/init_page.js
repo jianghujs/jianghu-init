@@ -121,11 +121,11 @@ module.exports = class InitPage1Table extends CommandBase {
     // const pageBakDir = './app/view/pageBak';
     // if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
 
-    const { table, pageId, pageType } = jsonConfig;
+    const { table, pageId, pageType, version } = jsonConfig;
     const tableCamelCase = _.camelCase(table);
     const filepath = `./app/view/page/${pageId}.html`;
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-page`;
-    const templateTargetPath = `${templatePath}/${pageType}.njk.html`;
+    const templateTargetPath = `${templatePath}/${version ? pageType + '-' + version : pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath)
       .toString()
       .replace(/\/\/===\/\/ /g, '')

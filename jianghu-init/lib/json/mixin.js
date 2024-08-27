@@ -638,7 +638,11 @@ const mixin = {
       jsonConfig.hasUpdateDrawer = updateDrawer.contentList.length;
       const action = updateDrawer.contentList.find(e => e.type === 'form' && e.action && (_.isObject(e.action) && checkClick(e.action, 'updateItem')) || (_.isArray(e.action) && e.action.some(a => checkClick(a, 'updateItem'))));
       if (action) {
-        jsonConfig.updateFormItemList = action.formItemList;
+        if (updateDrawer.props && updateDrawer.props.mergeForm) {
+          jsonConfig.updateFormItemList = updateDrawer.contentList.filter(e => e.type === 'form').map(e => e.formItemList).flat();
+        } else {
+          jsonConfig.updateFormItemList = action.formItemList;
+        }
         jsonConfig.hasUpdateSubmit = true;
       }
     }
@@ -992,8 +996,8 @@ const mixin = {
     };
   },
 
-  basicUiAction({ common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasDelete, hasUpdateSubmit, hasDetailDrawer }) {
-    const defaultUiAction = {
+  basicUiAction({ version, common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasDelete, hasUpdateSubmit, hasDetailDrawer }) {
+    let defaultUiAction = {
       getTableData: [ 'getTableData' ],
       startCreateItem: [ 'prepareCreateFormData', 'openCreateDrawer' ],
       createItem: [ 'prepareCreateValidate', 'confirmCreateItemDialog', 'prepareDoCreateItem', 'doCreateItem', 'closeCreateDrawer', 'getTableData' ],
@@ -1003,9 +1007,25 @@ const mixin = {
       deleteItem: [ 'prepareDeleteFormData', 'confirmDeleteItemDialog', 'prepareDoDeleteItem', 'doDeleteItem', 'getTableData' ],
     };
 
-    if (!hasJhTable) {
-      delete defaultUiAction.getTableData;
+    if (version === 'v2') {
+      const uiAction = {
+        getTableData: [ 'prepareTableParamsDefault', 'prepareTableParams', 'getTableData', 'formatTableData' ],
+        createItem: [ 'prepareCreateValidate', 'confirmCreateItemDialog', 'prepareDoCreateItem', 'doCreateItem', 'closeCreateDrawer', 'doUiAction.getTableData' ],
+        updateItem: [ 'prepareUpdateValidate', 'confirmUpdateItemDialog', 'prepareDoUpdateItem', 'doUpdateItem', 'closeUpdateDrawer', 'doUiAction.getTableData' ],
+        deleteItem: [ 'prepareDeleteFormData', 'confirmDeleteItemDialog', 'prepareDoDeleteItem', 'doDeleteItem', 'doUiAction.getTableData' ],
+      };
+      // 合并到默认配置
+      defaultUiAction = Object.assign(defaultUiAction, uiAction);
+
+      for (const key in defaultUiAction) {
+        const uiAction = defaultUiAction[key];
+        for (let [ index, item ] of uiAction.entries()) {
+          item = this.processUiActionItem(item);
+          defaultUiAction[key][index] = item;
+        }
+      }
     }
+
     if (!hasCreateDrawer) {
       delete defaultUiAction.startCreateItem;
     }
