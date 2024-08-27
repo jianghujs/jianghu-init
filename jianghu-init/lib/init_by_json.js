@@ -299,7 +299,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
       persistent: true,
       ignoreInitial: true,
       followSymlinks: false,
-      depth: 2,
+      depth: 3,
     });
     watcher.on('all', async (event, pathStr) => {
       if (event === 'change') {
