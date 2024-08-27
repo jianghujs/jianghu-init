@@ -460,6 +460,8 @@ new Vue({
     //===// <=%- if (pageContent | find({tag: 'jh-table'})).headers %=>
     //===// <=$ (pageContent | find({tag: 'jh-table'})).headers | removeKey(['formatter']) | listToVar('headers') $=>,
     //===// <=%- endif %=>
+    //===// tableParams: {},
+    //===// tableDataFromBackend: [],
     //===// tableData: [],
     //===// isTableLoading: false,
     //===// searchInput: null,
@@ -628,7 +630,7 @@ new Vue({
           //===// <=%- for key, value in basicUiActionConfig %=>
           //===// case '<=$ key $=>':
           //===//   <=%- for method in value %=>
-          //===//   await this.<=$ method $=>(uiActionData);
+          //===//   <=$ method $=>;
           //===//   <=%- endfor %=>
           //===//   break;
           //===// <=%- endfor %=>
@@ -671,45 +673,29 @@ new Vue({
     },
 
     //===// <=%- if hasJhTable %=>
-    // ---------- 获取表格数据 uiAction >>>>>>>>>> --------
-    async getTableData() {
-      this.isTableLoading = true;
+    // 准备请求参数-默认
+    async prepareTableParamsDefault() {
       const where = {};
       const whereLike = {};
       const whereIn = {};
-      //===// <=%- if common.data and common.data.serverSearchWhere %=>
-      //===// for (const fieldKey in this.serverSearchWhere) {
-      //===//   const fieldValue = this.serverSearchWhere[fieldKey];
-      //===//   if(!!fieldValue && fieldValue != '全部') {
-      //===//     if (_.isString(fieldValue)) {
-      //===//       where[fieldKey] = fieldValue.trim();
-      //===//     } else {
-      //===//       where[fieldKey] = fieldValue;
-      //===//     }
-      //===//   }
-      //===// }
-      //===// <=%- endif %=>
-      //===// <=%- if common.data and common.data.serverSearchWhereLike %=>
-      //===// for (const fieldKey in this.serverSearchWhereLike) {
-      //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
-      //===//   if(!!fieldValue && fieldValue != '全部') {
-      //===//     if (_.isString(fieldValue)) {
-      //===//       whereLike[fieldKey] = fieldValue.trim();
-      //===//     } else {
-      //===//       whereLike[fieldKey] = fieldValue;
-      //===//     }
-      //===//   }
-      //===// }
-      //===// <=%- endif %=>
-      //===// <=%- if common.data and common.data.serverSearchWhereIn %=>
-      //===// for (const fieldKey in this.serverSearchWhereIn) {
-      //===//   const fieldValue = this.serverSearchWhereIn[fieldKey];
-      //===//   if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
-      //===//     whereIn[fieldKey] = fieldValue;
-      //===//   }
-      //===// }
-      //===// <=%- endif %=>
-
+      for (const fieldKey in this.serverSearchWhere) {
+        const fieldValue = this.serverSearchWhere[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          where[fieldKey] = fieldValue;
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereLike) {
+        const fieldValue = this.serverSearchWhereLike[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          whereLike[fieldKey] = fieldValue;
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereIn) {
+        const fieldValue = this.serverSearchWhereIn[fieldKey];
+        if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
+          whereIn[fieldKey] = fieldValue;
+        }
+      }
 
       //===// <=%- if jhTable.orderBy %=>
       //===// let orderBy = <=$ jhTable.orderBy | variableToVar('', 6) $=>;
@@ -726,37 +712,43 @@ new Vue({
         });
       }
       const limit = this.tableQuery.itemsPerPage === -1 ? 10000 : this.tableQuery.itemsPerPage;
+      const offset = (this.tableQuery.page - 1) * limit;
       //===// <=%- endif %=>
 
-      const {rows, count} = (await window.jianghuAxios({
+      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
+    },
+    // 准备请求参数-自定义
+    prepareTableParams() {
+      // TODO 增加自定义复杂判断条件
+    },
+    // 获取表格数据
+    async getTableData() {
+      this.isTableLoading = true;
+      this.tableData = [];
+
+      const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: '<=$ pageId $=>',
-            actionId: 'selectItemList',
+            actionId: "<=$ jhTable.props.actionId | default('selectItemList') $=>",
             actionData: {},
-            where,
-            whereLike,
-            whereIn,
-            //===// <=%- if jhTable.props.serverSearch %=>
-            limit,
-            offset: (this.tableQuery.page - 1) * limit,
-            //===// <=%- endif %=>
-            orderBy
+            ...this.tableParams
           }
         }
-      })).data.appData.resultData;
+      });
+      const { rows, count } = result.data.appData.resultData;
       //===// <=% if jhTable.props.serverSearch %=>
       this.tableQuery.totalCount = count || rows.length;
       //===// <=%- endif %=>
-      this.tableData = this.formatTableData(rows);
+      this.tableDataFromBackend = rows;
       this.isTableLoading = false;
     },
     //===// <=%- if not common.methods.formatTableData %=>
-    formatTableData(rows) {
-      rows.forEach(row => {
+    formatTableData() {
+      let tableData = this.tableDataFromBackend.map(row => {
         row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
       });
-      return rows;
+      this.tableData = tableData;
     },
     //===// <=%- endif %=>
     // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------

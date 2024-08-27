@@ -994,13 +994,13 @@ const mixin = {
 
   basicUiAction({ common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasDelete, hasUpdateSubmit, hasDetailDrawer }) {
     const defaultUiAction = {
-      getTableData: [ 'getTableData' ],
+      getTableData: [ 'prepareTableParamsDefault', 'prepareTableParams', 'getTableData', 'formatTableData' ],
       startCreateItem: [ 'prepareCreateFormData', 'openCreateDrawer' ],
       createItem: [ 'prepareCreateValidate', 'confirmCreateItemDialog', 'prepareDoCreateItem', 'doCreateItem', 'closeCreateDrawer', 'getTableData' ],
       startUpdateItem: [ 'prepareUpdateFormData', 'openUpdateDrawer' ],
-      updateItem: [ 'prepareUpdateValidate', 'confirmUpdateItemDialog', 'prepareDoUpdateItem', 'doUpdateItem', 'closeUpdateDrawer', 'getTableData' ],
+      updateItem: [ 'prepareUpdateValidate', 'confirmUpdateItemDialog', 'prepareDoUpdateItem', 'doUpdateItem', 'closeUpdateDrawer', 'doUiAction.getTableData' ],
       startDetailItem: [ 'prepareDetailFormData', 'openDetailDrawer' ],
-      deleteItem: [ 'prepareDeleteFormData', 'confirmDeleteItemDialog', 'prepareDoDeleteItem', 'doDeleteItem', 'getTableData' ],
+      deleteItem: [ 'prepareDeleteFormData', 'confirmDeleteItemDialog', 'prepareDoDeleteItem', 'doDeleteItem', 'doUiAction.getTableData' ],
     };
 
     if (!hasJhTable) {
@@ -1024,12 +1024,32 @@ const mixin = {
     if (!hasDelete) {
       delete defaultUiAction.deleteItem;
     }
+
+    /**
+     * 
+    if (jsonConfig.common.doUiAction) {
+      for (const key in jsonConfig.common.doUiAction) {
+        const uiAction = jsonConfig.common.doUiAction[key];
+        for (let [ index, item ] of uiAction.entries()) {
+          item = this.processUiActionItem(item);
+          jsonConfig.common.doUiAction[key][index] = item;
+        }
+      }
+    }
+     */
     for (const key in defaultUiAction) {
       if (common.doUiAction[key]) {
         delete defaultUiAction[key];
       }
     }
 
+    for (const key in defaultUiAction) {
+      const uiAction = defaultUiAction[key];
+      for (let [ index, item ] of uiAction.entries()) {
+        item = this.processUiActionItem(item);
+        defaultUiAction[key][index] = item;
+      }
+    }
     return defaultUiAction;
   },
 
