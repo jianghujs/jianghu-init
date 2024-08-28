@@ -140,7 +140,7 @@
               <=%- for action in content.headActionList %=>
               <=$ action | tagFormat(10) $=>
               <=%- endfor %=>
-              <=%- if content.showTableColumnSettingBtn %=>
+              <=%- if content.props.showTableColumnSettingBtn or content.showTableColumnSettingBtn %=>
               <table-column-setting-btn :selectedColumnGroup.sync="selectedColumnGroup" :columnSettingGroup="columnSettingGroup" :headers="headers" @change="headers=$event" />
               <=%- endif %=>
             </v-row>
