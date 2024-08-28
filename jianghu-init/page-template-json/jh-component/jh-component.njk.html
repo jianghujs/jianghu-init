@@ -586,7 +586,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===// <=%- else %=>
       let orderBy = [{column: 'operationAt', order: 'desc'}];
       //===// <=%- endif %=>
-      //===// <=%- if jhTable.props.serverSearch %=>
+      //===// <=%- if jhTable.props.serverPagination %=>
       if (this.tableQuery.sortBy.length) {
         orderBy = this.tableQuery.sortBy.map((item, index) => {
           return {
@@ -607,7 +607,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
             where,
             whereLike,
             whereIn,
-            //===// <=%- if jhTable.props.serverSearch %=>
+            //===// <=%- if jhTable.props.serverPagination %=>
             limit,
             offset: (this.tableQuery.page - 1) * limit,
             //===// <=%- endif %=>
@@ -615,7 +615,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
           }
         }
       })).data.appData.resultData;
-      //===// <=% if jhTable.props.serverSearch %=>
+      //===// <=% if jhTable.props.serverPagination %=>
       this.tableQuery.totalCount = count || rows.length;
       //===// <=%- endif %=>
       this.tableData = this.formatTableData(rows);
