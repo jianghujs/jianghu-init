@@ -527,9 +527,10 @@ const mixin = {
       jsonConfig.pageContent = [];
     }
     
-    let { actionContent, pageContent = [], headContent = [], common = {} } = jsonConfig;
+    let { includeList, actionContent, pageContent = [], headContent = [], common = {} } = jsonConfig;
     /**
      * njk 快捷判断变量
+     * {hasIncludeList} - 是否有 includeList
      * {hasHeadContent} - 是否有 headContent
      * {hasPageContent} - 是否有 pageContent
      * {hasJhTable} - 是否有 jh-table
@@ -550,6 +551,9 @@ const mixin = {
     if (!_.isArray(pageContent) && _.isObject(pageContent)) {
       jsonConfig.pageContent = [ pageContent ];
       pageContent = jsonConfig.pageContent;
+    }
+    if (includeList && includeList.length > 0) {
+      jsonConfig.hasIncludeList = true;
     }
     if (headContent && headContent.length > 0) {
       jsonConfig.hasHeadContent = true;
@@ -1010,7 +1014,7 @@ const mixin = {
     };
   },
 
-  basicUiAction({ version, common, hasJhTable, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasDelete, hasUpdateSubmit, hasDetailDrawer }) {
+  basicUiAction({ version, common, hasJhTable, hasJhList, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasDelete, hasUpdateSubmit, hasDetailDrawer }) {
     let defaultUiAction = {
       getTableData: [ 'getTableData' ],
       startCreateItem: [ 'prepareCreateFormData', 'openCreateDrawer' ],
@@ -1040,7 +1044,7 @@ const mixin = {
       }
     }
 
-    if (!hasJhTable) {
+    if (!hasJhTable && !hasJhList) {
       delete defaultUiAction.getTableData;
     }
     if (!hasCreateDrawer) {

@@ -1,7 +1,7 @@
 <!-- <=$ componentPath.split('/').pop() $=>.html start -->
 <script type="text/x-template" id="<=$ componentPath.split('/').pop() | camelToKebab $=>">
   <div>
-    <=%- if headContent %=> 
+    <=%- if hasHeadContent %=> 
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-8">
       <v-row class="align-center" dense>
@@ -105,6 +105,8 @@
     <!-- <<<<<<<<<<<<< 头部内容 -->
     <=%- endif %=>
 
+     
+    <=%- if hasPageContent %=>
     <!-- 页面内容 >>>>>>>>>>>>> -->
     <=%- for content in pageContent %=>
     <=%- if content.tag == 'jh-table' %=>
@@ -208,6 +210,7 @@
     <=%- endif %=>
     <=%- endfor %=>
     <!-- <<<<<<<<<<<<< 页面内容 -->
+    <=%- endif %=>
 
     <=%- for actionItem in actionContent %=>
 
@@ -335,12 +338,14 @@
     <jh-save-confirm-dialog />
     <=%- endif %=>
 
+    <=%- if hasIncludeList %=>
     <!-- 组件列表 -->
     <=%- for item in includeList %=>
     <=%- if (item.includeType === 'auto') %=>
     <<=$ item.path | componentName $=> ref="<=$ item.path | componentHumpName $=>Ref" <=% for attr, value in item.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=> />
     <=%- endif %=>
     <=%- endfor %=>
+    <=%- endif %=>
   </div>
 </script>
 <=%- if (actionContent | find({isCheckFormBeforeClose: true})) %=>
@@ -461,6 +466,8 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- endfor %=>
   },
   computed: {
+     
+    //===// <=%- if hasJhTable %=>
     tableDataComputed() {
       if(this.filterMap) {
         return this.tableData.filter(row => {
@@ -475,6 +482,8 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
         return this.tableData;
       }
     },
+    //===// <=%- endif %=>
+    
     //===// <=%- for key, item in common.computed %=>
     //===// <=$ item | variableToVar(key) $=>,
     //===// <=%- endfor %=>
