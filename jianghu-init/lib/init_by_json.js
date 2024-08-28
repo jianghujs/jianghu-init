@@ -430,9 +430,6 @@ module.exports = class InitByJsonCommand extends CommandBase {
     if (fileObj.headContent && (fileObj.headContent.serverSearchList || []).find(e => e.label)) {
       warning.push('无效的 serverSearchList label 设置');
     }
-    if (!fileObj.pageId) {
-      error.push('pageId 不能为空');
-    }
     if (!fileObj.pageType) {
       error.push('pageType 不能为空');
     }
