@@ -395,6 +395,8 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- endif %=>
     //===// isTableLoading: false,
     //===// searchInput: null,
+    //===// serverSearchWhere: {},
+    //===// serverSearchWhereLike: {},
     //===// <=%- endif %=>
 
     //===// <=%- if hasCreateDrawer %=>
@@ -547,7 +549,6 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       const where = {};
       const whereLike = {};
       const whereIn = {};
-      //===// <=%- if common.data and common.data.serverSearchWhere %=>
       //===// for (const fieldKey in this.serverSearchWhere) {
       //===//   const fieldValue = this.serverSearchWhere[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
@@ -558,8 +559,6 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===//     }
       //===//   }
       //===// }
-      //===// <=%- endif %=>
-      //===// <=%- if common.data and common.data.serverSearchWhereLike %=>
       //===// for (const fieldKey in this.serverSearchWhereLike) {
       //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
@@ -570,15 +569,12 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===//     }
       //===//   }
       //===// }
-      //===// <=%- endif %=>
-      //===// <=%- if common.data and common.data.serverSearchWhereIn %=>
       //===// for (const fieldKey in this.serverSearchWhereIn) {
       //===//   const fieldValue = this.serverSearchWhereIn[fieldKey];
       //===//   if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
       //===//     whereIn[fieldKey] = fieldValue;
       //===//   }
       //===// }
-      //===// <=%- endif %=>
 
 
       //===// <=%- if jhTable.orderBy %=>
