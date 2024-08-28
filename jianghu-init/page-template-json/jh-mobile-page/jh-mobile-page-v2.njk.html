@@ -207,7 +207,7 @@
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
-        <v-row class="jh-drawer-header px-4 relative" no-gutters align="center">
+        <v-row class="jh-drawer-header px-4 relative pl-[30px] md:pl-0" no-gutters align="center">
           <!-- 取消icon -->
           <v-icon @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck" class="mr-2">mdi-chevron-left</v-icon>
           <div class="flex justify-center py-3 flex-1 w-full align-center">
@@ -217,7 +217,7 @@
           <=%- endif %=>
           </div>
           <!-- <v-icon >mdi-dots-vertical</v-icon> -->
-          <div class="jh-drawer-action-btn-group">
+          <div class="jh-drawer-action-btn-group md:block flex md:text-right">
             <!-- 抽屉操作按钮 -->
             <=%- for content in actionItem.contentList %=>
             <=%- if content.action %=>
@@ -339,8 +339,9 @@
         <=%- endif %=>
       </v-form>
       <!-- 抽屉关闭按钮 -->
-      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn hidden-xs-only" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">
-        <v-icon>mdi-close</v-icon>
+      <v-btn elevation="0" :color="isMobile ? 'white' : 'success'" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">
+        <v-icon v-if="isMobile" size="30" class="mt-1">mdi-chevron-left</v-icon>
+        <v-icon v-else>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>
     <!-- <<<<<<<<<<<<< <=$ actionItem.title $=> -->
