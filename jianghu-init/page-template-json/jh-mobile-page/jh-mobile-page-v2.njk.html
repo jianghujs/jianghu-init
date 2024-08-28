@@ -145,19 +145,19 @@
         <=%- if content.props.limit %=>
         <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
           <div class=" flex justify-space-between items-center">
-            每页 {{ tableQuery.limit }} 项，
-            共 {{ tableQuery.totalCount }} 项
+            每页 {{ tableOptions.limit }} 项，
+            共 {{ tableOptions.totalCount }} 项
 
             <div>
               <!-- 上一页 icon -->
-              <v-icon v-if="tableQuery.page > 1" @click="tableQuery.page--; doUiAction('getTableData')">mdi-chevron-left</v-icon>
+              <v-icon v-if="tableOptions.page > 1" @click="tableOptions.page--; doUiAction('getTableData')">mdi-chevron-left</v-icon>
               <v-icon v-else color="#eaeaea">mdi-chevron-left</v-icon>
     
               <!-- 页码 -->
-              <span><span class="primary--text font-weight-medium text-sm">{{ tableQuery.page }}</span> / {{ Math.ceil(tableQuery.totalCount / tableQuery.limit) }}</span>
+              <span><span class="primary--text font-weight-medium text-sm">{{ tableOptions.page }}</span> / {{ Math.ceil(tableOptions.totalCount / tableOptions.limit) }}</span>
     
               <!-- 下一页 icon -->
-              <v-icon v-if="tableQuery.totalCount > tableQuery.page * tableQuery.limit" @click="tableQuery.page++; doUiAction('getTableData')">mdi-chevron-right</v-icon>
+              <v-icon v-if="tableOptions.totalCount > tableOptions.page * tableOptions.limit" @click="tableOptions.page++; doUiAction('getTableData')">mdi-chevron-right</v-icon>
               <v-icon v-else color="#eaeaea">mdi-chevron-right</v-icon>
             </div>
           </div>
@@ -387,7 +387,7 @@
         </v-card-text>
         <v-card-actions class="flex justify-space-around pb-8">
           <v-btn rounded @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
-          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableQuery.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
       </v-card>
@@ -417,7 +417,7 @@
         </v-card-text>
         <v-card-actions class="flex justify-space-around pb-8">
           <v-btn rounded @click="usePageOrder = false;tableDataOrder = <=$ (headContent | find({tag: 'jh-order'})).items $=>[0].value">重置</v-btn>
-          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableQuery.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableOptions.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
       </v-card>
@@ -545,7 +545,7 @@ new Vue({
     isTableLoading: false,
     tableDataOrderList: [],
     tableDataOrder: [{column: 'operationAt', order: 'desc'}],
-    tableQuery: {
+    tableOptions: {
       page: 1,
       //===// limit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(20) $=>,
       totalCount: 0,
@@ -802,8 +802,8 @@ new Vue({
       //===// <=%- endif %=>
 
       let orderBy = this.tableDataOrder.length ? this.tableDataOrder.length : [{column: 'operationAt', order: 'desc'}];
-      const limit = this.tableQuery.limit === -1 ? 10000 : this.tableQuery.limit;
-      const offset = (this.tableQuery.page - 1) * limit;
+      const limit = this.tableOptions.limit === -1 ? 10000 : this.tableOptions.limit;
+      const offset = (this.tableOptions.page - 1) * limit;
 
       this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
     },
@@ -827,7 +827,7 @@ new Vue({
       });
       const { rows, count } = result.data.appData.resultData;
 
-      this.tableQuery.totalCount = count || rows.length;
+      this.tableOptions.totalCount = count || rows.length;
       this.tableDataFromBackend = rows;
       this.isTableLoading = false;
     },

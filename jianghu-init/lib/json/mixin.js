@@ -611,8 +611,9 @@ const mixin = {
 
     const hasJhList = pageContent.find(e => e.tag === 'jh-list');
     if (hasJhList) {
-      hasJhList.headers = hasJhList.headers || common.data.headers
-      const index =  hasJhList.headers.findIndex(e => !!e.isTitle);
+      jsonConfig.hasJhList = hasJhList;
+      hasJhList.headers = hasJhList.headers || common.data.headers;
+      const index = hasJhList.headers.findIndex(e => !!e.isTitle);
       jsonConfig.pageContent.forEach(content => {
         if (content.tag === 'jh-list') {
           if (index !== -1) {

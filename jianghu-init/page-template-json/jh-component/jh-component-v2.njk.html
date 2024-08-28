@@ -456,14 +456,14 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
   watch: {
     //===// <=%- if hasJhTable %=>
     //===// <=%- if jhTable.props.serverPagination %=>
-    'tableQuery.itemsPerPage'(val) {
-      this.tableQuery.page = 1;
+    'tableOptions.itemsPerPage'(val) {
+      this.tableOptions.page = 1;
       this.doUiAction('getTableData');
     },
-    'tableQuery.page'(val) {
+    'tableOptions.page'(val) {
       this.doUiAction('getTableData');
     },
-    'tableQuery.sortDesc'(val, oldVal) {
+    'tableOptions.sortDesc'(val, oldVal) {
       // TODO:: 初始化会异常调用加载2次，暂时跳过，后续优化
       if (oldVal.length === 0 && val.length === 0) return;
       this.doUiAction('getTableData');
@@ -594,16 +594,16 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       let orderBy = [{column: 'operationAt', order: 'desc'}];
       //===// <=%- endif %=>
       //===// <=%- if jhTable.props.serverPagination %=>
-      if (this.tableQuery.sortBy.length) {
-        orderBy = this.tableQuery.sortBy.map((item, index) => {
+      if (this.tableOptions.sortBy.length) {
+        orderBy = this.tableOptions.sortBy.map((item, index) => {
           return {
             column: item,
-            order: this.tableQuery.sortDesc[index] ? 'desc' : 'asc'
+            order: this.tableOptions.sortDesc[index] ? 'desc' : 'asc'
           }
         });
       }
-      const limit = this.tableQuery.itemsPerPage === -1 ? 10000 : this.tableQuery.itemsPerPage;
-      const offset = (this.tableQuery.page - 1) * limit;
+      const limit = this.tableOptions.itemsPerPage === -1 ? 10000 : this.tableOptions.itemsPerPage;
+      const offset = (this.tableOptions.page - 1) * limit;
       //===// <=%- endif %=>
 
       this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
@@ -628,7 +628,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       });
       const { rows, count } = result.data.appData.resultData;
       //===// <=% if jhTable.props.serverPagination %=>
-      this.tableQuery.totalCount = count || rows.length;
+      this.tableOptions.totalCount = count || rows.length;
       //===// <=%- endif %=>
       this.tableDataFromBackend = rows;
       this.isTableLoading = false;

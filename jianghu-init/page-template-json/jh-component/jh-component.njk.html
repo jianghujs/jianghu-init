@@ -583,15 +583,15 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       let orderBy = [{column: 'operationAt', order: 'desc'}];
       //===// <=%- endif %=>
       //===// <=%- if jhTable.props.serverPagination %=>
-      if (this.tableQuery.sortBy.length) {
-        orderBy = this.tableQuery.sortBy.map((item, index) => {
+      if (this.tableOptions.sortBy.length) {
+        orderBy = this.tableOptions.sortBy.map((item, index) => {
           return {
             column: item,
-            order: this.tableQuery.sortDesc[index] ? 'desc' : 'asc'
+            order: this.tableOptions.sortDesc[index] ? 'desc' : 'asc'
           }
         });
       }
-      const limit = this.tableQuery.itemsPerPage === -1 ? 10000 : this.tableQuery.itemsPerPage;
+      const limit = this.tableOptions.itemsPerPage === -1 ? 10000 : this.tableOptions.itemsPerPage;
       //===// <=%- endif %=>
 
       const {rows, count} = (await window.jianghuAxios({
@@ -605,14 +605,14 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
             whereIn,
             //===// <=%- if jhTable.props.serverPagination %=>
             limit,
-            offset: (this.tableQuery.page - 1) * limit,
+            offset: (this.tableOptions.page - 1) * limit,
             //===// <=%- endif %=>
             orderBy
           }
         }
       })).data.appData.resultData;
       //===// <=% if jhTable.props.serverPagination %=>
-      this.tableQuery.totalCount = count || rows.length;
+      this.tableOptions.totalCount = count || rows.length;
       //===// <=%- endif %=>
       this.tableData = this.formatTableData(rows);
       this.isTableLoading = false;
