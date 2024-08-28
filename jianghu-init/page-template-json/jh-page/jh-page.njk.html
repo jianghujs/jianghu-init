@@ -65,7 +65,7 @@
             <=%- if content.searchBtn is undefined or content.searchBtn != false %=>
             <div class="jh-backend-search-btn ml-2">
               <=%- if content.searchBtn == true %=>
-              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="tableQuery.page = 1; doUiAction('getTableData')">
+              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="tableOptions.page = 1; doUiAction('getTableData')">
                 查询
               </v-btn>
               <=%- else %=>
@@ -152,8 +152,8 @@
               :search="searchInput"
               :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
               <=%- if content.props.serverPagination %=>
-              :options.sync="tableQuery"
-              :server-items-length="tableQuery.totalCount"
+              :options.sync="tableOptions"
+              :server-items-length="tableOptions.totalCount"
               :items-per-page="50"
               <=%- else %=>
               :items-per-page="-1"
@@ -474,7 +474,7 @@ new Vue({
     //===// serverSearchWhere: {},
     //===// serverSearchWhereLike: {},
     //===// <=%- if jhTable.props.serverPagination %=>
-    tableQuery: {
+    tableOptions: {
       page: 1,
       itemsPerPage: 50,
       totalCount: 0,
@@ -555,14 +555,14 @@ new Vue({
     //===// <=%- endif %=>
     //===// <=%- if hasJhTable %=>
     //===// <=%- if jhTable.props.serverPagination %=>
-    'tableQuery.itemsPerPage'(val) {
-      this.tableQuery.page = 1;
+    'tableOptions.itemsPerPage'(val) {
+      this.tableOptions.page = 1;
       this.getTableData();
     },
-    'tableQuery.page'(val) {
+    'tableOptions.page'(val) {
       this.getTableData();
     },
-    'tableQuery.sortDesc'(val, oldVal) {
+    'tableOptions.sortDesc'(val, oldVal) {
       // TODO:: 初始化会异常调用加载2次，暂时跳过，后续优化
       if (oldVal.length === 0 && val.length === 0) return;
       this.getTableData();
@@ -725,16 +725,16 @@ new Vue({
       let limit = null;
       let offset = null;
       //===// <=%- if jhTable.props.serverPagination %=>
-      if (this.tableQuery.sortBy.length) {
-        orderBy = this.tableQuery.sortBy.map((item, index) => {
+      if (this.tableOptions.sortBy.length) {
+        orderBy = this.tableOptions.sortBy.map((item, index) => {
           return {
             column: item,
-            order: this.tableQuery.sortDesc[index] ? 'desc' : 'asc'
+            order: this.tableOptions.sortDesc[index] ? 'desc' : 'asc'
           }
         });
       }
-      limit = this.tableQuery.itemsPerPage === -1 ? 10000 : this.tableQuery.itemsPerPage;
-      offset = (this.tableQuery.page - 1) * limit;
+      limit = this.tableOptions.itemsPerPage === -1 ? 10000 : this.tableOptions.itemsPerPage;
+      offset = (this.tableOptions.page - 1) * limit;
       //===// <=%- endif %=>
 
 
@@ -749,14 +749,14 @@ new Vue({
             whereIn,
             //===// <=%- if jhTable.props.serverPagination %=>
             limit,
-            offset: (this.tableQuery.page - 1) * limit,
+            offset: (this.tableOptions.page - 1) * limit,
             //===// <=%- endif %=>
             orderBy
           }
         }
       })).data.appData.resultData;
       //===// <=% if jhTable.props.serverPagination %=>
-      this.tableQuery.totalCount = count || rows.length;
+      this.tableOptions.totalCount = count || rows.length;
       //===// <=%- endif %=>
       this.tableData = this.formatTableData(rows);
       this.isTableLoading = false;
