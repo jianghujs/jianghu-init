@@ -1,12 +1,12 @@
 {% block htmlHead %}
 <=%- if htmlHead %=>
-<=$ htmlHead $=>
-<=%- endif %=>
-{% endblock %}
+  <=$ htmlHead $=>
+    <=%- endif %=>
+      {% endblock %}
 
-{% extends 'template/<=$ template $=>.html'%}
-{% block vueTemplate %}
-<script type="text/html" id="app-template">
+      {% extends 'template/<=$ template $=>.html'%}
+        {% block vueTemplate %}
+        <script type="text/html" id="app-template">
 <div>
 <v-app mobile-breakpoint="sm">
   <jh-menu>
@@ -217,7 +217,7 @@
           <=%- endif %=>
           </div>
           <!-- <v-icon >mdi-dots-vertical</v-icon> -->
-          <div class="jh-drawer-action-btn-group md:block flex md:text-right">
+          <div class="jh-drawer-action-btn-group md:block md:text-right">
             <!-- 抽屉操作按钮 -->
             <=%- for content in actionItem.contentList %=>
             <=%- if content.action %=>
@@ -491,686 +491,685 @@
 <jh-confirm-dialog />
 </div>
 </script>
-<div id="app"></div>
-{% endblock %}
+        <div id="app"></div>
+        {% endblock %}
 
-{% block vueScript %}
+        {% block vueScript %}
 
-<=%- if (actionContent | find({isCheckFormBeforeClose: true})) %=>
-{% include 'component/jianghuJs/jhSaveConfirmDialog.html' %}
-<=%- endif %=>
+        <=%- if (actionContent | find({isCheckFormBeforeClose: true})) %=>
+          {% include 'component/jianghuJs/jhSaveConfirmDialog.html' %}
+          <=%- endif %=>
 
-<=%- for component in componentList %=>
-{% include 'component/<=$ component.componentPath $=>.html' %}
-<=%- endfor %=>
-<=%- for item in includeList %=>
-<=%- if item.type != 'vueComponent' and item.type != 'vueUse' %=>
-<=$ item | includeFormat | safe $=>
-<=%- endif %=>
-<=%- endfor %=>
+            <=%- for component in componentList %=>
+              {% include 'component/<=$ component.componentPath $=>.html' %}
+                <=%- endfor %=>
+                  <=%- for item in includeList %=>
+                    <=%- if item.type !='vueComponent' and item.type !='vueUse' %=>
+                      <=$ item | includeFormat | safe $=>
+                        <=%- endif %=>
+                          <=%- endfor %=>
 
-<script type="module">
-//===// <=%- for item in includeList %=>
-//===// <=%- if item.type == 'vueComponent' or item.type == 'vueUse' %=>
-//===// <=$ item | includeFormat $=>
-//===// <=%- endif %=>
-//===// <=%- endfor %=>
+                            <script type="module">
+                              //===// <=%- for item in includeList %=>
+                              //===// <=%- if item.type == 'vueComponent' or item.type == 'vueUse' %=>
+                              //===// <=$ item | includeFormat $=>
+                              //===// <=%- endif %=>
+                              //===// <=%- endfor %=>
 
-//===// <=%- for item in customScript %=>
-//===// <=$ item $=>
-//===// <=%- endfor %=>
+                              //===// <=%- for item in customScript %=>
+                              //===// <=$ item $=>
+                              //===// <=%- endfor %=>
 
-new Vue({
-  el: '#app',
-  template: '#app-template',
-  vuetify: new Vuetify(),
-  //===// <=%- if common and common.mixins %=>
-  //===// mixins: <=$ common.mixins $=>,
-  //===// <=%- endif %=>
-  //===// <=%- if common and common.filters %=>
-  //===// filters: <=$ common.filters | variableToVar(key) $=>,
-  //===// <=%- endif %=>
-  data: () => ({
+                              new Vue({
+                                el: '#app',
+                                template: '#app-template',
+                                vuetify: new Vuetify(),
+                                //===// <=%- if common and common.mixins %=>
+                                //===// mixins: <=$ common.mixins $=>,
+                                //===// <=%- endif %=>
+                                //===// <=%- if common and common.filters %=>
+                                //===// filters: <=$ common.filters | variableToVar(key) $=>,
+                                //===// <=%- endif %=>
+                                data: () => ({
 
-    //===// <=%- if hasHelpDrawer %=>
-    //===// isHelpPageDrawerShown: false,
-    //===// isHelpPageDrawerLoaded: false,
-    //===// <=%- endif %=>
+                                  //===// <=%- if hasHelpDrawer %=>
+                                  //===// isHelpPageDrawerShown: false,
+                                  //===// isHelpPageDrawerLoaded: false,
+                                  //===// <=%- endif %=>
 
-    isMobile: window.innerWidth < 500,
-    
-    //===// <=%- if hasJhList %=>
-    tableData: [],
-    tableParams: {},
-    tableDataFromBackend: [],
-    isTableLoading: false,
-    tableDataOrderList: [],
-    tableDataOrder: [{column: 'operationAt', order: 'desc'}],
-    tableOptions: {
-      page: 1,
-      //===// limit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(20) $=>,
-      totalCount: 0,
-    },
-    //===// <=%- endif %=>
+                                  isMobile: window.innerWidth < 500,
 
-    viewMode: 'simple',
+                                  //===// <=%- if hasJhList %=>
+                                  tableData: [],
+                                  tableParams: {},
+                                  tableDataFromBackend: [],
+                                  isTableLoading: false,
+                                  tableDataOrderList: [],
+                                  tableDataOrder: [{ column: 'operationAt', order: 'desc' }],
+                                  tableOptions: {
+                                    page: 1,
+                                    //===// limit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(20) $=>,
+                                    totalCount: 0,
+                                  },
+                                  //===// <=%- endif %=>
 
-    //===// <=%- if headContent | find({tag: 'jh-order'}) %=>
-    isPageOrderDrawerShown: false,
-    usePageOrder: false,
-    //===// <=%- endif %=>
+                                  viewMode: 'simple',
 
-    //===// <=%- if headContent | find({tag: 'jh-search'}) %=>
-    isPageSearchDrawerShown: false,
-    usePageSearch: false,
-    //===// <=%- endif %=>
+                                  //===// <=%- if headContent | find({tag: 'jh-order'}) %=>
+                                  isPageOrderDrawerShown: false,
+                                  usePageOrder: false,
+                                  //===// <=%- endif %=>
 
-    //===// <=%- if pageContent | find({tag: 'jh-action'}) %=>
-    isPageActionDrawerShown: false,
-    //===// <=%- endif %=>
+                                  //===// <=%- if headContent | find({tag: 'jh-search'}) %=>
+                                  isPageSearchDrawerShown: false,
+                                  usePageSearch: false,
+                                  //===// <=%- endif %=>
 
-    //===// <=%- for search in menuSlot.advSearch %=>
-    //===// <=$ search.model.split('.').join('') $=>Menu: false,
-    //===// <=%- endfor %=>
+                                  //===// <=%- if pageContent | find({tag: 'jh-action'}) %=>
+                                  isPageActionDrawerShown: false,
+                                  //===// <=%- endif %=>
 
-    //===// <=%- if hasDetailDrawer %=>
-    // ================================ 详情抽屉 ================================
-    //===// isDetailDrawerShown: false,
-    //===// detailItem: {},
-    //===// detailItemOrigin: {},
-    //===// <=%- if hasDetailSubmit %=>
-    //===// detailActionData: {},
-    //===// <=%- endif %=>
-    //===// <=%- if hasDetailDrawer > 1 %=>
-    //===// detailDrawerTab: 0,
-    //===// <=%- endif %=>
-    //===// <=%- endif %=>
+                                  //===// <=%- for search in menuSlot.advSearch %=>
+                                  //===// <=$ search.model.split('.').join('') $=>Menu: false,
+                                  //===// <=%- endfor %=>
 
-    //===// <=%- if hasCreateDrawer %=>
-    // ================================ 新建抽屉 ================================
-    //===// isCreateDrawerShown: false,
-    //===// createItem: {},
-    //===// createItemOrigin: {},
-    //===// <=%- if hasCreateSubmit %=>
-    //===// createActionData: {},
-    //===// <=%- endif %=>
-    //===// <=%- if hasCreateDrawer > 1 %=>
-    //===// createDrawerTab: 0,
-    //===// <=%- endif %=>
-    //===// <=%- endif %=>
+                                  //===// <=%- if hasDetailDrawer %=>
+                                  // ================================ 详情抽屉 ================================
+                                  //===// isDetailDrawerShown: false,
+                                  //===// detailItem: {},
+                                  //===// detailItemOrigin: {},
+                                  //===// <=%- if hasDetailSubmit %=>
+                                  //===// detailActionData: {},
+                                  //===// <=%- endif %=>
+                                  //===// <=%- if hasDetailDrawer > 1 %=>
+                                  //===// detailDrawerTab: 0,
+                                  //===// <=%- endif %=>
+                                  //===// <=%- endif %=>
 
-    //===// <=%- if hasUpdateDrawer %=>
-    // ================================ 编辑抽屉 ================================
-    //===// isUpdateDrawerShown: false,
-    //===// updateItem: {},
-    //===// updateItemOrigin: {},
-    //===// updateItemId: null,
-    //===// <=%- if hasUpdateSubmit %=>
-    //===// updateActionData: {},
-    //===// <=%- endif %=>
-    //===// <=%- if hasUpdateDrawer > 1 %=>
-    //===// updateDrawerTab: 0,
-    //===// <=%- endif %=>
-    //===// <=%- endif %=>
+                                  //===// <=%- if hasCreateDrawer %=>
+                                  // ================================ 新建抽屉 ================================
+                                  //===// isCreateDrawerShown: false,
+                                  //===// createItem: {},
+                                  //===// createItemOrigin: {},
+                                  //===// <=%- if hasCreateSubmit %=>
+                                  //===// createActionData: {},
+                                  //===// <=%- endif %=>
+                                  //===// <=%- if hasCreateDrawer > 1 %=>
+                                  //===// createDrawerTab: 0,
+                                  //===// <=%- endif %=>
+                                  //===// <=%- endif %=>
 
-    //===// <=%- if hasDelete %=>
-    // ================================ 删除 ================================
-    //===// deleteItem: {},
-    //===// deleteItemId: null,
-    //===// <=%- endif %=>
+                                  //===// <=%- if hasUpdateDrawer %=>
+                                  // ================================ 编辑抽屉 ================================
+                                  //===// isUpdateDrawerShown: false,
+                                  //===// updateItem: {},
+                                  //===// updateItemOrigin: {},
+                                  //===// updateItemId: null,
+                                  //===// <=%- if hasUpdateSubmit %=>
+                                  //===// updateActionData: {},
+                                  //===// <=%- endif %=>
+                                  //===// <=%- if hasUpdateDrawer > 1 %=>
+                                  //===// updateDrawerTab: 0,
+                                  //===// <=%- endif %=>
+                                  //===// <=%- endif %=>
 
-    // ================================ common ================================
-    //===// <=%- if common and common.data %=>
-    //===// <=%- for key, value in common.data %=>
-    //===// <=$ value | variableToVar(key, 4) $=>,
-    //===// <=%- endfor %=>
-    //===// <=%- endif %=>
-    //===// <=%- if common and common.dataExpression %=>
-    //===// <=%- for key, value in common.dataExpression %=>
-    //===// <=$ value | expressionToVar(key, 4) $=>,
-    //===// <=%- endfor %=>
-    //===// <=%- endif %=>
+                                  //===// <=%- if hasDelete %=>
+                                  // ================================ 删除 ================================
+                                  //===// deleteItem: {},
+                                  //===// deleteItemId: null,
+                                  //===// <=%- endif %=>
 
-    // ================================ 其他抽屉列表 ================================
-    //===// <=%- for drawer in actionContent %=>
-    //===// <=%- if drawer.tag == 'jh-drawer' %=>
-    //===// is<=$ drawer.key | ucfirst $=>DrawerShown: false,
-    //===// <=$ drawer.key | lcfirst $=>Item: {},
-    //===// <=$ drawer.key | lcfirst $=>ItemOrigin: {},
-    //===// <=%- if drawer.contentList.length > 1 %=>
-    //===// <=$ drawer.key | lcfirst $=>DrawerTab: 0,
-    //===// <=%- endif %=>
-    //===// <=%- endif %=>
-    //===// <=%- endfor %=>
+                                  // ================================ common ================================
+                                  //===// <=%- if common and common.data %=>
+                                  //===// <=%- for key, value in common.data %=>
+                                  //===// <=$ value | variableToVar(key, 4) $=>,
+                                  //===// <=%- endfor %=>
+                                  //===// <=%- endif %=>
+                                  //===// <=%- if common and common.dataExpression %=>
+                                  //===// <=%- for key, value in common.dataExpression %=>
+                                  //===// <=$ value | expressionToVar(key, 4) $=>,
+                                  //===// <=%- endfor %=>
+                                  //===// <=%- endif %=>
 
-    
+                                  // ================================ 其他抽屉列表 ================================
+                                  //===// <=%- for drawer in actionContent %=>
+                                  //===// <=%- if drawer.tag == 'jh-drawer' %=>
+                                  //===// is<=$ drawer.key | ucfirst $=>DrawerShown: false,
+                                  //===// <=$ drawer.key | lcfirst $=>Item: {},
+                                  //===// <=$ drawer.key | lcfirst $=>ItemOrigin: {},
+                                  //===// <=%- if drawer.contentList.length > 1 %=>
+                                  //===// <=$ drawer.key | lcfirst $=>DrawerTab: 0,
+                                  //===// <=%- endif %=>
+                                  //===// <=%- endif %=>
+                                  //===// <=%- endfor %=>
 
 
-  }),
-  watch: {
-    //===// <=%- if hasHelpDrawer %=>
-    isHelpPageDrawerShown(val) {
-      if (val && !this.isHelpPageDrawerLoaded) {
-        this.isHelpPageDrawerLoaded = true;
-      }
-    },
-    //===// <=%- endif %=>
-    //===// <=%- for key, item in common.watch %=>
-    //===// <=%- if (item | typeof) == 'function' %=>
-    //===// <=$ item | variableToVar(key) $=>,
-    //===// <=%- else %=>
-    //===// <=$ item | variableToVar(key, 4) $=>,
-    //===// <=%- endif %=>
-    //===// <=%- endfor %=>
-  },
-  computed: {
-    //===// <=%- if hasJhList %=>
-    tableDataComputed() {
-      if(this.filterMap) {
-        return this.tableData.filter(row => {
-          for (const key in this.filterMap) {
-            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
-              return false;
-            }
-          }
-          return true;
-        });
-      } else {
-        return this.tableData;
-      }
-    },
-    //===// <=%- endif %=>
-
-    //===// <=%- for key, item in common.computed %=>
-    //===// <=$ item | variableToVar(key) $=>,
-    //===// <=%- endfor %=>
-  },
-  //===// <=%- if not common.created %=>
-  async created() {
-    //===// <=%- if common.createdString %=>
-    //===// <=$ common.createdString $=>
-    //===// <=%- else %=>
-
-    //===// <=%- endif %=>
-  },
-  //===// <=%- endif %=>
-  //===// <=%- for key, item in common %=>
-  //===// <=%- if key == 'mounted' or key == 'created' %=>
-  //===// <=$ item | variableToVar(key) $=>,
-  //===// <=%- endif %=>
-  //===// <=%- endfor %=>
-
-  //===// <=%- for key, item in common %=>
-  //===// <=%- if ['beforeDestroy'] | includes(key) %=>
-  //===// <=$ item | variableToVar(key) $=>,
-  //===// <=%- endif %=>
-  //===// <=%- endfor %=>
-
-  //===// <=%- if common.mountedString %=>
-  async mounted() {
-  //===// <=$ common.createString | stringToVar $=>
-  },
-  //===// <=%- endif %=>
-  methods: {
-    async doUiAction(uiActionId, uiActionData) {
-      try {
-        switch (uiActionId) {
-          //===// <=%- for key, value in basicUiActionConfig %=>
-          //===// case '<=$ key $=>':
-          //===//   <=%- for method in value %=>
-          //===//   <=%- if version == 'v2' %=>
-          //===//   <=$ method $=>;
-          //===//   <=%- else %=>
-          //===//   await this.<=$ method $=>(uiActionData);
-          //===//   <=%- endif %=>
-          //===//   <=%- endfor %=>
-          //===//   break;
-          //===// <=%- endfor %=>
-          
-
-          //===// <=%- for key, value in common.doUiAction %=>
-          //===// case '<=$ key $=>':
-          //===//   <=%- for method in value %=>
-          //===//   <=$ method $=>;
-          //===//   <=%- endfor %=>
-          //===//   break;
-          //===// <=%- endfor %=>
 
 
-          //===// <=%- for drawer in actionContent %=>
-          //===// <=%- if drawer.tag == 'jh-drawer' %=>
-          //===// case 'view<=$ drawer.key | ucfirst $=>':
-          //===//   await this.prepare<=$ drawer.key | ucfirst $=>Data(uiActionData);
-          //===//   await this.open<=$ drawer.key | ucfirst $=>Drawer(uiActionData);
-          //===//   break;
-          //===// <=%- endif %=>
-          //===// <=%- endfor %=>
+                                }),
+                                watch: {
+                                  //===// <=%- if hasHelpDrawer %=>
+                                  isHelpPageDrawerShown(val) {
+                                    if (val && !this.isHelpPageDrawerLoaded) {
+                                      this.isHelpPageDrawerLoaded = true;
+                                    }
+                                  },
+                                  //===// <=%- endif %=>
+                                  //===// <=%- for key, item in common.watch %=>
+                                  //===// <=%- if (item | typeof) == 'function' %=>
+                                  //===// <=$ item | variableToVar(key) $=>,
+                                  //===// <=%- else %=>
+                                  //===// <=$ item | variableToVar(key, 4) $=>,
+                                  //===// <=%- endif %=>
+                                  //===// <=%- endfor %=>
+                                },
+                                computed: {
+                                  //===// <=%- if hasJhList %=>
+                                  tableDataComputed() {
+                                    if (this.filterMap) {
+                                      return this.tableData.filter(row => {
+                                        for (const key in this.filterMap) {
+                                          if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+                                            return false;
+                                          }
+                                        }
+                                        return true;
+                                      });
+                                    } else {
+                                      return this.tableData;
+                                    }
+                                  },
+                                  //===// <=%- endif %=>
 
-          //===// <=%- if hasJhList %=>
-          case 'getTableData':
-            await this.getTableData();
-            break;
-          //===// <=%- endif %=>
+                                  //===// <=%- for key, item in common.computed %=>
+                                  //===// <=$ item | variableToVar(key) $=>,
+                                  //===// <=%- endfor %=>
+                                },
+                                //===// <=%- if not common.created %=>
+                                async created() {
+                                  //===// <=%- if common.createdString %=>
+                                  //===// <=$ common.createdString $=>
+                                  //===// <=%- else %=>
 
-          default:
-            console.error("[doUiAction] uiActionId not find", {uiActionId});
-            break;
-        }
-      } catch (error) {
-        window.jhMask && window.jhMask.hide();
-        throw error;
-      } finally {
-        window.jhMask && window.jhMask.hide();
-      }
-    },
-    
-    //===// <=%- if version == 'v2' %=>
-    async prepareTableParamsDefault() {
-      const where = {};
-      const whereLike = {};
-      const whereIn = {};
-      //===// <=%- if common.data and common.data.serverSearchWhere %=>
-      //===// for (const fieldKey in this.serverSearchWhere) {
-      //===//   const fieldValue = this.serverSearchWhere[fieldKey];
-      //===//   if(!!fieldValue && fieldValue != '全部') {
-      //===//     if (_.isString(fieldValue)) {
-      //===//       where[fieldKey] = fieldValue.trim();
-      //===//     } else {
-      //===//       where[fieldKey] = fieldValue;
-      //===//     }
-      //===//   }
-      //===// }
-      //===// <=%- endif %=>
-      //===// <=%- if common.data and common.data.serverSearchWhereLike %=>
-      //===// for (const fieldKey in this.serverSearchWhereLike) {
-      //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
-      //===//   if(!!fieldValue && fieldValue != '全部') {
-      //===//     if (_.isString(fieldValue)) {
-      //===//       whereLike[fieldKey] = fieldValue.trim();
-      //===//     } else {
-      //===//       whereLike[fieldKey] = fieldValue;
-      //===//     }
-      //===//   }
-      //===// }
-      //===// <=%- endif %=>
-      //===// <=%- if common.data and common.data.serverSearchWhereIn %=>
-      //===// for (const fieldKey in this.serverSearchWhereIn) {
-      //===//   const fieldValue = this.serverSearchWhereIn[fieldKey];
-      //===//   if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
-      //===//     whereIn[fieldKey] = fieldValue;
-      //===//   }
-      //===// }
-      //===// <=%- endif %=>
+                                  //===// <=%- endif %=>
+                                },
+                                //===// <=%- endif %=>
+                                //===// <=%- for key, item in common %=>
+                                //===// <=%- if key == 'mounted' or key == 'created' %=>
+                                //===// <=$ item | variableToVar(key) $=>,
+                                //===// <=%- endif %=>
+                                //===// <=%- endfor %=>
 
-      let orderBy = this.tableDataOrder.length ? this.tableDataOrder.length : [{column: 'operationAt', order: 'desc'}];
-      const limit = this.tableOptions.limit === -1 ? 10000 : this.tableOptions.limit;
-      const offset = (this.tableOptions.page - 1) * limit;
+                                //===// <=%- for key, item in common %=>
+                                //===// <=%- if ['beforeDestroy'] | includes(key) %=>
+                                //===// <=$ item | variableToVar(key) $=>,
+                                //===// <=%- endif %=>
+                                //===// <=%- endfor %=>
 
-      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
-    },
-    // 准备请求参数-自定义
-    prepareTableParams() {
-      // TODO 增加自定义复杂判断条件
-    },
-    // 获取表格数据
-    async getTableData() {
-      this.isTableLoading = true;
+                                //===// <=%- if common.mountedString %=>
+                                async mounted() {
+                                  //===// <=$ common.createString | stringToVar $=>
+                                },
+                                //===// <=%- endif %=>
+                                methods: {
+                                  async doUiAction(uiActionId, uiActionData) {
+                                    try {
+                                      switch (uiActionId) {
+                                        //===// <=%- for key, value in basicUiActionConfig %=>
+                                        //===// case '<=$ key $=>':
+                                        //===//   <=%- for method in value %=>
+                                        //===//   <=%- if version == 'v2' %=>
+                                        //===//   <=$ method $=>;
+                                        //===//   <=%- else %=>
+                                        //===//   await this.<=$ method $=>(uiActionData);
+                                        //===//   <=%- endif %=>
+                                        //===//   <=%- endfor %=>
+                                        //===//   break;
+                                        //===// <=%- endfor %=>
 
-      const result = await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: '<=$ pageId $=>',
-            actionId: "<=$ (pageContent | find({tag: 'jh-list'})).props.actionId | default('selectItemList') $=>",
-            actionData: {},
-            ...this.tableParams
-          }
-        }
-      });
-      const { rows, count } = result.data.appData.resultData;
 
-      this.tableOptions.totalCount = count || rows.length;
-      this.tableDataFromBackend = rows;
-      this.isTableLoading = false;
-    },
-    //===// <=%- if not common.methods.formatTableData %=>
-    formatTableData() {
-      let tableData = this.tableDataFromBackend.map(row => {
-        row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
-        return row;
-      });
-      this.tableData = tableData;
-    },
-    //===// <=%- endif %=>
-    // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
-    //===// <=%- endif %=>
+                                        //===// <=%- for key, value in common.doUiAction %=>
+                                        //===// case '<=$ key $=>':
+                                        //===//   <=%- for method in value %=>
+                                        //===//   <=$ method $=>;
+                                        //===//   <=%- endfor %=>
+                                        //===//   break;
+                                        //===// <=%- endfor %=>
 
-    //===// <=%- if hasCreateDrawer %=>
-    // ---------- 新增数据 uiAction >>>>>>>>>> --------
-    //===// async prepareCreateFormData() {
-    //===//   this.createItem = {
-    //===//     <=%- for formItem in createFormItemList %=>
-    //===//     <=%- if formItem.default is defined %=>
-    //===//     <=$ formItem.model $=>: "<=$ formItem.default $=>",
-    //===//     <=%- endif %=>
-    //===//     <=%- endfor %=>
-    //===//   };
-    //===//   this.createItemOrigin = _.cloneDeep(this.createItem);
-    //===// },
-    //===// async openCreateDrawer() {
-    //===//   this.isCreateDrawerShown = true;
-    //===// },
-    //===// async prepareCreateValidate() {
-    //===//   if (await this.$refs.createForm.validate()) {
-    //===//     return true;
-    //===//   }
-    //===//   throw new Error("请完善表单信息")
-    //===// },
-    //===// async confirmCreateItemDialog() {
-    //===//   if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
-    //===//     throw new Error("[confirmCreateFormDialog] 否");
-    //===//   }
-    //===// },
-    //===// prepareDoCreateItem() {
-    //===//   const {id, ...data} = this.createItem;
-    //===//   this.createActionData = {
-    //===//     <=%- for formItem in createFormItemList %=>
-    //===//     <=%- if formItem.model %=>
-    //===//     <=%- if formItem.valueType === 'json' %=>
-    //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
-    //===//     <=%- elif formItem.model and formItem.model.search('\\.') == -1 and formItem.model.search('\\[') == -1 %=>
-    //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
-    //===//     <=%- endif %=>
-    //===//     <=%- endif %=>
-    //===//     <=%- endfor %=>
-    //===//   };
-    //===// },
-    //===// async doCreateItem() {
-    //===//   await window.jhMask.show();
-    //===//   await window.vtoast.loading("新增数据");
-    //===//   await window.jianghuAxios({
-    //===//     data: {
-    //===//       appData: {
-    //===//         pageId: '<=$ pageId $=>',
-    //===//         actionId: 'insertItem',
-    //===//         <=%- if idGenerate %=>
-    //===//         bizIdGenerate: {
-    //===//           type: "idSequence",
-    //===//           prefix: "<=$ idGenerate.prefix $=>",
-    //===//           bizId: "<=$ idGenerate.bizId $=>",
-    //===//           tableName: "<=$ table $=>",
-    //===//           startValue: <=$ idGenerate.startValue $=>,
-    //===//         },
-    //===//         <=%- endif %=>
-    //===//         actionData: this.createActionData
-    //===//       }
-    //===//     }
-    //===//   })
-    //===//   await window.jhMask.hide();
-    //===//   await window.vtoast.success("新增数据成功");
-    //===// },
-    //===// async closeCreateDrawerCheck() {
-    //===//   <=%- set drawer = (actionContent | find({key: 'create'})) %=>
-    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
-    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
-    //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
-    //===//     if (confirmDialogStatus === 'save') {
-    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
-    //===//     }
-    //===//     if (confirmDialogStatus === 'notSave') {
-    //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
-    //===//     }
-    //===//     return;
-    //===//  }
-    //===//   <=%- endif %=>
-    //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
-    //===// },
-    //===// async closeCreateDrawer() {
-    //===//   this.isCreateDrawerShown = false;
-    //===//   this.createItem = {};
-    //===//   this.createActionData = null;
-    //===//   <=%- if hasCreateDrawer > 1 %=>
-    //===//   this.updateDrawerTab = 0;
-    //===//   <=%- endif %=>
-    //===// },
-    // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
-    //===// <=%- endif %=>
 
-    //===// <=%- if hasUpdateDrawer %=>
-    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
-    //===// async prepareUpdateFormData(funObj) {
-    //===//   this.updateItem = _.cloneDeep(funObj);
-    //===//   this.updateItemOrigin = _.cloneDeep(funObj);
-    //===// },
-    //===// async openUpdateDrawer() {
-    //===//   this.isUpdateDrawerShown = true;
-    //===// },
-    //===// async prepareUpdateValidate() {
-    //===//   if (await this.$refs.updateForm.validate()) {
-    //===//     return true;
-    //===//   }
-    //===//   throw new Error("请完善表单信息")
-    //===// },
-    //===// async confirmUpdateItemDialog() {
-    //===//   if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
-    //===//     throw new Error("[confirmUpdateItemDialog] 否");
-    //===//   }
-    //===// },
-    //===// async prepareDoUpdateItem() {
-    //===//   const {id, ...data} = this.updateItem;
-    //===//   this.updateItemId = id;
-    //===//   this.updateActionData = {
-    //===//     <=%- for formItem in updateFormItemList %=>
-    //===//     <=%- if formItem.model %=>
-    //===//     <=%- if formItem.valueType === 'json' %=>
-    //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
-    //===//     <=%- elif formItem.model and formItem.model.search('\\.') == -1 and formItem.model.search('\\[') == -1 %=>
-    //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
-    //===//     <=%- endif %=>
-    //===//     <=%- endif %=>
-    //===//     <=%- endfor %=>
-    //===//   };
-    //===// },
-    //===// async doUpdateItem() {
-    //===//   await window.jhMask.show();
-    //===//   await window.vtoast.loading("修改数据");
-    //===//   await window.jianghuAxios({
-    //===//     data: {
-    //===//       appData: {
-    //===//         pageId: '<=$ pageId $=>',
-    //===//         actionId: 'updateItem',
-    //===//         actionData: this.updateActionData,
-    //===//         where: {id: this.updateItemId}
-    //===//       }
-    //===//     }
-    //===//   })
-    //===//   await window.jhMask.hide();
-    //===//   await window.vtoast.success("修改数据成功");
-    //===// },
-    //===// async closeUpdateDrawerCheck() {
-    //===//   <=%- set drawer = (actionContent | find({key: 'update'})) %=>
-    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
-    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
-    //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
-    //===//     if (confirmDialogStatus === 'save') {
-    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
-    //===//     }
-    //===//     if (confirmDialogStatus === 'notSave') {
-    //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
-    //===//     }
-    //===//     return;
-    //===//  }
-    //===//   <=%- endif %=>
-    //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
-    //===// },
-    //===// async closeUpdateDrawer() {
-    //===//   this.isUpdateDrawerShown = false;
-    //===//   this.updateItem = {};
-    //===//   this.updateActionData = null;
-    //===//   this.updateItemId = null;
-    //===//   <=%- if hasUpdateDrawer > 1 %=>
-    //===//   this.updateDrawerTab = 0;
-    //===//   <=%- endif %=>
-    //===// },
-    // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
-    //===// <=%- endif %=>
+                                        //===// <=%- for drawer in actionContent %=>
+                                        //===// <=%- if drawer.tag == 'jh-drawer' %=>
+                                        //===// case 'view<=$ drawer.key | ucfirst $=>':
+                                        //===//   await this.prepare<=$ drawer.key | ucfirst $=>Data(uiActionData);
+                                        //===//   await this.open<=$ drawer.key | ucfirst $=>Drawer(uiActionData);
+                                        //===//   break;
+                                        //===// <=%- endif %=>
+                                        //===// <=%- endfor %=>
 
-    //===// <=%- if hasDelete %=>
-    // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
-    //===// async prepareDeleteFormData(funObj) {
-    //===//   this.deleteItem = _.cloneDeep(funObj);
-    //===// },
-    //===// async confirmDeleteItemDialog() {
-    //===//   if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
-    //===//     throw new Error("[confirmDeleteItemDialog] 否");
-    //===//   }
-    //===// },
-    //===// async prepareDoDeleteItem() {
-    //===//   const {id} = this.deleteItem;
-    //===//   this.deleteItemId = id;
-    //===// },
-    //===// async doDeleteItem() {
-    //===//   await window.vtoast.loading("删除数据");
-    //===//   await window.jianghuAxios({
-    //===//     data: {
-    //===//       appData: {
-    //===//         pageId: '<=$ pageId $=>',
-    //===//         actionId: 'deleteItem',
-    //===//         actionData: {},
-    //===//         where: {id: this.deleteItemId}
-    //===//       }
-    //===//     }
-    //===//   });
-    //===//   await window.vtoast.success("删除数据成功");
-    //===// },
-    //===// async clearDeleteItem() {
-    //===//   this.deleteItem = {};
-    //===//   this.deleteItemId = null;
-    //===// },
-    // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
-    //===// <=%- endif %=>
+                                        //===// <=%- if hasJhList %=>
+                                        case 'getTableData':
+                                          await this.getTableData();
+                                          break;
+                                        //===// <=%- endif %=>
 
-    // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
-    //===// <=%- for drawer in actionContent %=>
-    //===// <=%- if drawer.tag == 'jh-drawer' %=>
-    //===// async prepare<=$ drawer.key | ucfirst $=>Data(funObj) {
-    //===//   this.<=$ drawer.key $=>Item = _.cloneDeep(funObj);
-    //===//   this.<=$ drawer.key $=>ItemOrigin = _.cloneDeep(funObj);
-    //===// },
-    //===// async open<=$ drawer.key | ucfirst $=>Drawer() {
-    //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = true;
-    //===// },
-    //===// async close<=$ drawer.key | ucfirst $=>DrawerCheck() {
-    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
-    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
-    //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
-    //===//     if (confirmDialogStatus === 'save') {
-    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
-    //===//     }
-    //===//     if (confirmDialogStatus === 'notSave') {
-    //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
-    //===//     }
-    //===//     return;
-    //===//  }
-    //===//   <=%- endif %=>
-    //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
-    //===// },
-    //===// async close<=$ drawer.key | ucfirst $=>Drawer() {
-    //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = false;
-    //===//   <=%- if drawer.contentList.length > 1 %=>
-    //===//   this.<=$ drawer.key | lcfirst $=>DrawerTab = 0;
-    //===//   <=%- endif %=>
-    //===// },
-    //===// <=%- endif %=>
-    //===// <=%- endfor %=>
+                                        default:
+                                          console.error("[doUiAction] uiActionId not find", { uiActionId });
+                                          break;
+                                      }
+                                    } catch (error) {
+                                      window.jhMask && window.jhMask.hide();
+                                      throw error;
+                                    } finally {
+                                      window.jhMask && window.jhMask.hide();
+                                    }
+                                  },
 
-    //===// <=%- if hasDetailDrawer %=>
-    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
-    //===// async prepareDetailFormData(funObj) {
-    //===//   this.detailItem = _.cloneDeep(funObj);
-    //===//   this.detailItemOrigin = _.cloneDeep(funObj);
-    //===// },
-    //===// async openDetailDrawer() {
-    //===//   this.isDetailDrawerShown = true;
-    //===// },
-    //===// async closeDetailDrawerCheck() {
-    //===//   <=%- set drawer = (actionContent | find({key: 'detail'})) %=>
-    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
-    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
-    //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
-    //===//     if (confirmDialogStatus === 'save') {
-    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
-    //===//     }
-    //===//     if (confirmDialogStatus === 'notSave') {
-    //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
-    //===//     }
-    //===//     return;
-    //===//  }
-    //===//   <=%- endif %=>
-    //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
-    //===// },
-    //===// async closeDetailDrawer() {
-    //===//   this.isDetailDrawerShown = false;
-    //===//   this.detailItem = {};
-    //===//   this.detailActionData = null;
-    //===//   this.detailItemId = null;
-    //===//   <=%- if hasDetailDrawer > 1 %=>
-    //===//   this.detailDrawerTab = 0;
-    //===//   <=%- endif %=>
-    //===// },
-    //===// <=%- endif %=>
+                                  //===// <=%- if version == 'v2' %=>
+                                  async prepareTableParamsDefault() {
+                                    const where = {};
+                                    const whereLike = {};
+                                    const whereIn = {};
+                                    //===// <=%- if common.data and common.data.serverSearchWhere %=>
+                                    //===// for (const fieldKey in this.serverSearchWhere) {
+                                    //===//   const fieldValue = this.serverSearchWhere[fieldKey];
+                                    //===//   if(!!fieldValue && fieldValue != '全部') {
+                                    //===//     if (_.isString(fieldValue)) {
+                                    //===//       where[fieldKey] = fieldValue.trim();
+                                    //===//     } else {
+                                    //===//       where[fieldKey] = fieldValue;
+                                    //===//     }
+                                    //===//   }
+                                    //===// }
+                                    //===// <=%- endif %=>
+                                    //===// <=%- if common.data and common.data.serverSearchWhereLike %=>
+                                    //===// for (const fieldKey in this.serverSearchWhereLike) {
+                                    //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
+                                    //===//   if(!!fieldValue && fieldValue != '全部') {
+                                    //===//     if (_.isString(fieldValue)) {
+                                    //===//       whereLike[fieldKey] = fieldValue.trim();
+                                    //===//     } else {
+                                    //===//       whereLike[fieldKey] = fieldValue;
+                                    //===//     }
+                                    //===//   }
+                                    //===// }
+                                    //===// <=%- endif %=>
+                                    //===// <=%- if common.data and common.data.serverSearchWhereIn %=>
+                                    //===// for (const fieldKey in this.serverSearchWhereIn) {
+                                    //===//   const fieldValue = this.serverSearchWhereIn[fieldKey];
+                                    //===//   if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
+                                    //===//     whereIn[fieldKey] = fieldValue;
+                                    //===//   }
+                                    //===// }
+                                    //===// <=%- endif %=>
 
-    getSearchItemText(searchItem, items, label) {
-      const item = items.find(item => {
-        if (_.isObject(searchItem) && _.isObject(item.value)) {
-          return _.isEqual(searchItem, item.value);
-        } else {
-          return item.value === searchItem || item === searchItem;
-        }
-      });
-      if (!item) {
-        return label;
-      }
-      return _.isString(item) ? item : item.text;
-    },
-    //===// <=%- if headContent | find({'tag': 'jh-search'}) %=>
-    clearServerSearch() {
-      for (const key in this.serverSearchWhere) {
-        this.serverSearchWhere[key] = '';
-      }
-      for (const key in this.serverSearchWhereLike) {
-        this.serverSearchWhereLike[key] = '';
-      }
-      for (const key in this.serverSearchWhereIn) {
-        this.serverSearchWhereIn[key] = [];
-      }
-    },
-    //===// <=%- endif %=>
+                                    let orderBy = this.tableDataOrder.length ? this.tableDataOrder.length : [{ column: 'operationAt', order: 'desc' }];
+                                    const limit = this.tableOptions.limit === -1 ? 10000 : this.tableOptions.limit;
+                                    const offset = (this.tableOptions.page - 1) * limit;
 
-    // 判断是否相等的方法，兼容对象
-    isEqual(a, b) {
-      if (_.isObject(a) && _.isObject(b)) { 
-        return _.isEqual(a, b);
-      }
-      return a === b;
-    },
+                                    this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
+                                  },
+                                  // 准备请求参数-自定义
+                                  prepareTableParams() {
+                                    // TODO 增加自定义复杂判断条件
+                                  },
+                                  // 获取表格数据
+                                  async getTableData() {
+                                    this.isTableLoading = true;
 
-    //===// <=%- if common and common.methods %=>
-    // ---------- Custom uiAction >>>>>>>>>>>> --------
-    //===// <=%- for key, value in common.methods %=>
-    //===// <=$ value | variableToVar(key) | safe $=>,
-    //===// <=%- endfor %=>
-    // ---------- <<<<<<<<<<< Custom uiAction ---------
-    //===// <=%- endif %=>
+                                    const result = await window.jianghuAxios({
+                                      data: {
+                                        appData: {
+                                          pageId: '<=$ pageId $=>',
+                                          actionId: "<=$ (pageContent | find({tag: 'jh-list'})).props.actionId | default('selectItemList') $=>",
+                                          actionData: {},
+                                          ...this.tableParams
+                                        }
+                                      }
+                                    });
+                                    const { rows, count } = result.data.appData.resultData;
 
-  }
-})
-</script>
+                                    this.tableOptions.totalCount = count || rows.length;
+                                    this.tableDataFromBackend = rows;
+                                    this.isTableLoading = false;
+                                  },
+                                  //===// <=%- if not common.methods.formatTableData %=>
+                                  formatTableData() {
+                                    let tableData = this.tableDataFromBackend.map(row => {
+                                      row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+                                      return row;
+                                    });
+                                    this.tableData = tableData;
+                                  },
+                                  //===// <=%- endif %=>
+                                  // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
+                                  //===// <=%- endif %=>
 
-<style scoped>
-  .v-navigation-drawer--bottom.v-navigation-drawer--is-mobile {
-    max-height: 80%;
-  }
-  <=%- if style %=>
-  <=$ style $=>
-  <=%- endif %=>
-</style>{% endblock %}
+                                  //===// <=%- if hasCreateDrawer %=>
+                                  // ---------- 新增数据 uiAction >>>>>>>>>> --------
+                                  //===// async prepareCreateFormData() {
+                                  //===//   this.createItem = {
+                                  //===//     <=%- for formItem in createFormItemList %=>
+                                  //===//     <=%- if formItem.default is defined %=>
+                                  //===//     <=$ formItem.model $=>: "<=$ formItem.default $=>",
+                                  //===//     <=%- endif %=>
+                                  //===//     <=%- endfor %=>
+                                  //===//   };
+                                  //===//   this.createItemOrigin = _.cloneDeep(this.createItem);
+                                  //===// },
+                                  //===// async openCreateDrawer() {
+                                  //===//   this.isCreateDrawerShown = true;
+                                  //===// },
+                                  //===// async prepareCreateValidate() {
+                                  //===//   if (await this.$refs.createForm.validate()) {
+                                  //===//     return true;
+                                  //===//   }
+                                  //===//   throw new Error("请完善表单信息")
+                                  //===// },
+                                  //===// async confirmCreateItemDialog() {
+                                  //===//   if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+                                  //===//     throw new Error("[confirmCreateFormDialog] 否");
+                                  //===//   }
+                                  //===// },
+                                  //===// prepareDoCreateItem() {
+                                  //===//   const {id, ...data} = this.createItem;
+                                  //===//   this.createActionData = {
+                                  //===//     <=%- for formItem in createFormItemList %=>
+                                  //===//     <=%- if formItem.model %=>
+                                  //===//     <=%- if formItem.valueType === 'json' %=>
+                                  //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
+                                  //===//     <=%- elif formItem.model and formItem.model.search('\\.') == -1 and formItem.model.search('\\[') == -1 %=>
+                                  //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+                                  //===//     <=%- endif %=>
+                                  //===//     <=%- endif %=>
+                                  //===//     <=%- endfor %=>
+                                  //===//   };
+                                  //===// },
+                                  //===// async doCreateItem() {
+                                  //===//   await window.jhMask.show();
+                                  //===//   await window.vtoast.loading("新增数据");
+                                  //===//   await window.jianghuAxios({
+                                  //===//     data: {
+                                  //===//       appData: {
+                                  //===//         pageId: '<=$ pageId $=>',
+                                  //===//         actionId: 'insertItem',
+                                  //===//         <=%- if idGenerate %=>
+                                  //===//         bizIdGenerate: {
+                                  //===//           type: "idSequence",
+                                  //===//           prefix: "<=$ idGenerate.prefix $=>",
+                                  //===//           bizId: "<=$ idGenerate.bizId $=>",
+                                  //===//           tableName: "<=$ table $=>",
+                                  //===//           startValue: <=$ idGenerate.startValue $=>,
+                                  //===//         },
+                                  //===//         <=%- endif %=>
+                                  //===//         actionData: this.createActionData
+                                  //===//       }
+                                  //===//     }
+                                  //===//   })
+                                  //===//   await window.jhMask.hide();
+                                  //===//   await window.vtoast.success("新增数据成功");
+                                  //===// },
+                                  //===// async closeCreateDrawerCheck() {
+                                  //===//   <=%- set drawer = (actionContent | find({key: 'create'})) %=>
+                                  //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+                                  //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+                                  //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+                                  //===//     if (confirmDialogStatus === 'save') {
+                                  //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+                                  //===//     }
+                                  //===//     if (confirmDialogStatus === 'notSave') {
+                                  //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
+                                  //===//     }
+                                  //===//     return;
+                                  //===//  }
+                                  //===//   <=%- endif %=>
+                                  //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
+                                  //===// },
+                                  //===// async closeCreateDrawer() {
+                                  //===//   this.isCreateDrawerShown = false;
+                                  //===//   this.createItem = {};
+                                  //===//   this.createActionData = null;
+                                  //===//   <=%- if hasCreateDrawer > 1 %=>
+                                  //===//   this.updateDrawerTab = 0;
+                                  //===//   <=%- endif %=>
+                                  //===// },
+                                  // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
+                                  //===// <=%- endif %=>
+
+                                  //===// <=%- if hasUpdateDrawer %=>
+                                  // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+                                  //===// async prepareUpdateFormData(funObj) {
+                                  //===//   this.updateItem = _.cloneDeep(funObj);
+                                  //===//   this.updateItemOrigin = _.cloneDeep(funObj);
+                                  //===// },
+                                  //===// async openUpdateDrawer() {
+                                  //===//   this.isUpdateDrawerShown = true;
+                                  //===// },
+                                  //===// async prepareUpdateValidate() {
+                                  //===//   if (await this.$refs.updateForm.validate()) {
+                                  //===//     return true;
+                                  //===//   }
+                                  //===//   throw new Error("请完善表单信息")
+                                  //===// },
+                                  //===// async confirmUpdateItemDialog() {
+                                  //===//   if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+                                  //===//     throw new Error("[confirmUpdateItemDialog] 否");
+                                  //===//   }
+                                  //===// },
+                                  //===// async prepareDoUpdateItem() {
+                                  //===//   const {id, ...data} = this.updateItem;
+                                  //===//   this.updateItemId = id;
+                                  //===//   this.updateActionData = {
+                                  //===//     <=%- for formItem in updateFormItemList %=>
+                                  //===//     <=%- if formItem.model %=>
+                                  //===//     <=%- if formItem.valueType === 'json' %=>
+                                  //===//     <=$ formItem.model $=>: JSON.stringify(data.<=$ formItem.model $=>),
+                                  //===//     <=%- elif formItem.model and formItem.model.search('\\.') == -1 and formItem.model.search('\\[') == -1 %=>
+                                  //===//     <=$ formItem.model $=>: data.<=$ formItem.model $=>,
+                                  //===//     <=%- endif %=>
+                                  //===//     <=%- endif %=>
+                                  //===//     <=%- endfor %=>
+                                  //===//   };
+                                  //===// },
+                                  //===// async doUpdateItem() {
+                                  //===//   await window.jhMask.show();
+                                  //===//   await window.vtoast.loading("修改数据");
+                                  //===//   await window.jianghuAxios({
+                                  //===//     data: {
+                                  //===//       appData: {
+                                  //===//         pageId: '<=$ pageId $=>',
+                                  //===//         actionId: 'updateItem',
+                                  //===//         actionData: this.updateActionData,
+                                  //===//         where: {id: this.updateItemId}
+                                  //===//       }
+                                  //===//     }
+                                  //===//   })
+                                  //===//   await window.jhMask.hide();
+                                  //===//   await window.vtoast.success("修改数据成功");
+                                  //===// },
+                                  //===// async closeUpdateDrawerCheck() {
+                                  //===//   <=%- set drawer = (actionContent | find({key: 'update'})) %=>
+                                  //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+                                  //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+                                  //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+                                  //===//     if (confirmDialogStatus === 'save') {
+                                  //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+                                  //===//     }
+                                  //===//     if (confirmDialogStatus === 'notSave') {
+                                  //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
+                                  //===//     }
+                                  //===//     return;
+                                  //===//  }
+                                  //===//   <=%- endif %=>
+                                  //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
+                                  //===// },
+                                  //===// async closeUpdateDrawer() {
+                                  //===//   this.isUpdateDrawerShown = false;
+                                  //===//   this.updateItem = {};
+                                  //===//   this.updateActionData = null;
+                                  //===//   this.updateItemId = null;
+                                  //===//   <=%- if hasUpdateDrawer > 1 %=>
+                                  //===//   this.updateDrawerTab = 0;
+                                  //===//   <=%- endif %=>
+                                  //===// },
+                                  // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
+                                  //===// <=%- endif %=>
+
+                                  //===// <=%- if hasDelete %=>
+                                  // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+                                  //===// async prepareDeleteFormData(funObj) {
+                                  //===//   this.deleteItem = _.cloneDeep(funObj);
+                                  //===// },
+                                  //===// async confirmDeleteItemDialog() {
+                                  //===//   if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+                                  //===//     throw new Error("[confirmDeleteItemDialog] 否");
+                                  //===//   }
+                                  //===// },
+                                  //===// async prepareDoDeleteItem() {
+                                  //===//   const {id} = this.deleteItem;
+                                  //===//   this.deleteItemId = id;
+                                  //===// },
+                                  //===// async doDeleteItem() {
+                                  //===//   await window.vtoast.loading("删除数据");
+                                  //===//   await window.jianghuAxios({
+                                  //===//     data: {
+                                  //===//       appData: {
+                                  //===//         pageId: '<=$ pageId $=>',
+                                  //===//         actionId: 'deleteItem',
+                                  //===//         actionData: {},
+                                  //===//         where: {id: this.deleteItemId}
+                                  //===//       }
+                                  //===//     }
+                                  //===//   });
+                                  //===//   await window.vtoast.success("删除数据成功");
+                                  //===// },
+                                  //===// async clearDeleteItem() {
+                                  //===//   this.deleteItem = {};
+                                  //===//   this.deleteItemId = null;
+                                  //===// },
+                                  // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
+                                  //===// <=%- endif %=>
+
+                                  // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+                                  //===// <=%- for drawer in actionContent %=>
+                                  //===// <=%- if drawer.tag == 'jh-drawer' %=>
+                                  //===// async prepare<=$ drawer.key | ucfirst $=>Data(funObj) {
+                                  //===//   this.<=$ drawer.key $=>Item = _.cloneDeep(funObj);
+                                  //===//   this.<=$ drawer.key $=>ItemOrigin = _.cloneDeep(funObj);
+                                  //===// },
+                                  //===// async open<=$ drawer.key | ucfirst $=>Drawer() {
+                                  //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = true;
+                                  //===// },
+                                  //===// async close<=$ drawer.key | ucfirst $=>DrawerCheck() {
+                                  //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+                                  //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+                                  //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+                                  //===//     if (confirmDialogStatus === 'save') {
+                                  //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+                                  //===//     }
+                                  //===//     if (confirmDialogStatus === 'notSave') {
+                                  //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
+                                  //===//     }
+                                  //===//     return;
+                                  //===//  }
+                                  //===//   <=%- endif %=>
+                                  //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
+                                  //===// },
+                                  //===// async close<=$ drawer.key | ucfirst $=>Drawer() {
+                                  //===//   this.is<=$ drawer.key | ucfirst $=>DrawerShown = false;
+                                  //===//   <=%- if drawer.contentList.length > 1 %=>
+                                  //===//   this.<=$ drawer.key | lcfirst $=>DrawerTab = 0;
+                                  //===//   <=%- endif %=>
+                                  //===// },
+                                  //===// <=%- endif %=>
+                                  //===// <=%- endfor %=>
+
+                                  //===// <=%- if hasDetailDrawer %=>
+                                  // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+                                  //===// async prepareDetailFormData(funObj) {
+                                  //===//   this.detailItem = _.cloneDeep(funObj);
+                                  //===//   this.detailItemOrigin = _.cloneDeep(funObj);
+                                  //===// },
+                                  //===// async openDetailDrawer() {
+                                  //===//   this.isDetailDrawerShown = true;
+                                  //===// },
+                                  //===// async closeDetailDrawerCheck() {
+                                  //===//   <=%- set drawer = (actionContent | find({key: 'detail'})) %=>
+                                  //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+                                  //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+                                  //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+                                  //===//     if (confirmDialogStatus === 'save') {
+                                  //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+                                  //===//     }
+                                  //===//     if (confirmDialogStatus === 'notSave') {
+                                  //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
+                                  //===//     }
+                                  //===//     return;
+                                  //===//  }
+                                  //===//   <=%- endif %=>
+                                  //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
+                                  //===// },
+                                  //===// async closeDetailDrawer() {
+                                  //===//   this.isDetailDrawerShown = false;
+                                  //===//   this.detailItem = {};
+                                  //===//   this.detailActionData = null;
+                                  //===//   this.detailItemId = null;
+                                  //===//   <=%- if hasDetailDrawer > 1 %=>
+                                  //===//   this.detailDrawerTab = 0;
+                                  //===//   <=%- endif %=>
+                                  //===// },
+                                  //===// <=%- endif %=>
+
+                                  getSearchItemText(searchItem, items, label) {
+                                    const item = items.find(item => {
+                                      if (_.isObject(searchItem) && _.isObject(item.value)) {
+                                        return _.isEqual(searchItem, item.value);
+                                      } else {
+                                        return item.value === searchItem || item === searchItem;
+                                      }
+                                    });
+                                    if (!item) {
+                                      return label;
+                                    }
+                                    return _.isString(item) ? item : item.text;
+                                  },
+                                  //===// <=%- if headContent | find({'tag': 'jh-search'}) %=>
+                                  clearServerSearch() {
+                                    for (const key in this.serverSearchWhere) {
+                                      this.serverSearchWhere[key] = '';
+                                    }
+                                    for (const key in this.serverSearchWhereLike) {
+                                      this.serverSearchWhereLike[key] = '';
+                                    }
+                                    for (const key in this.serverSearchWhereIn) {
+                                      this.serverSearchWhereIn[key] = [];
+                                    }
+                                  },
+                                  //===// <=%- endif %=>
+
+                                  // 判断是否相等的方法，兼容对象
+                                  isEqual(a, b) {
+                                    if (_.isObject(a) && _.isObject(b)) {
+                                      return _.isEqual(a, b);
+                                    }
+                                    return a === b;
+                                  },
+
+                                  //===// <=%- if common and common.methods %=>
+                                  // ---------- Custom uiAction >>>>>>>>>>>> --------
+                                  //===// <=%- for key, value in common.methods %=>
+                                  //===// <=$ value | variableToVar(key) | safe $=>,
+                                  //===// <=%- endfor %=>
+                                  // ---------- <<<<<<<<<<< Custom uiAction ---------
+                                  //===// <=%- endif %=>
+
+                                }
+                              })
+                            </script>
+
+                            <style scoped>
+                              .v-navigation-drawer--bottom.v-navigation-drawer--is-mobile {
+                                max-height: 80%;
+                              }
+
+                              <=%- if style %=><=$ style $=><=%- endif %=>
+                            </style>{% endblock %}

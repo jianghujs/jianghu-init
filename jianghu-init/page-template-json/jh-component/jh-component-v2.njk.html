@@ -224,7 +224,7 @@
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
-          <div class="jh-drawer-action-btn-group md:block flex md:text-right">
+          <div class="jh-drawer-action-btn-group md:block md:text-right">
             <v-btn class="elevation-0 grey lighten-4" v-if="!isMobile" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck" small>取消</v-btn>
             <!-- 抽屉操作按钮 -->
             <=%- for content in actionItem.contentList %=>
