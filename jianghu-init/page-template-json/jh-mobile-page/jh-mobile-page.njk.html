@@ -539,7 +539,6 @@ new Vue({
 
     isMobile: window.innerWidth < 500,
 
-    //===// <=%- if hasJhList %=>
     tableData: [],
     isTableLoading: false,
     tableDataOrderList: [],
@@ -549,7 +548,6 @@ new Vue({
       //===// limit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(20) $=>,
       totalCount: 0,
     },
-    //===// <=%- endif %=>
 
     viewMode: 'simple',
 
@@ -662,7 +660,6 @@ new Vue({
     //===// <=%- endfor %=>
   },
   computed: {
-    //===// <=%- if hasJhList %=>
     tableDataComputed() {
       if(this.filterMap) {
         return this.tableData.filter(row => {
@@ -677,7 +674,6 @@ new Vue({
         return this.tableData;
       }
     },
-    //===// <=%- endif %=>
 
     //===// <=%- for key, item in common.computed %=>
     //===// <=$ item | variableToVar(key) $=>,

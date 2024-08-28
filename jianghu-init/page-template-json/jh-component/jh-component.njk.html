@@ -383,7 +383,6 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// isHelpPageDrawerLoaded: false,
     //===// <=%- endif %=>
 
-    //===// <=%- if hasJhTable %=>
     // ================================ 表格相关 ================================
     //===// <=%- if (pageContent | find({tag: 'jh-table'})).headers %=>
     //===// <=$ (pageContent | find({tag: 'jh-table'})).headers | removeKey(['formatter']) | listToVar('headers') $=>,
@@ -397,7 +396,6 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// searchInput: null,
     //===// serverSearchWhere: {},
     //===// serverSearchWhereLike: {},
-    //===// <=%- endif %=>
 
     //===// <=%- if hasCreateDrawer %=>
     // ================================ 新建抽屉 ================================
@@ -467,7 +465,6 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
   },
   computed: {
      
-    //===// <=%- if hasJhTable %=>
     tableDataComputed() {
       if(this.filterMap) {
         return this.tableData.filter(row => {
@@ -482,8 +479,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
         return this.tableData;
       }
     },
-    //===// <=%- endif %=>
-    
+
     //===// <=%- for key, item in common.computed %=>
     //===// <=$ item | variableToVar(key) $=>,
     //===// <=%- endfor %=>

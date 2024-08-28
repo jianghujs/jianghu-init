@@ -461,7 +461,6 @@ new Vue({
     //===// defaultSceneList: [],
     //===// <=%- endif %=>
 
-    //===// <=%- if hasJhTable %=>
     // ================================ 表格相关 ================================
     //===// <=%- if (pageContent | find({tag: 'jh-table'})).headers %=>
     //===// <=$ (pageContent | find({tag: 'jh-table'})).headers | removeKey(['formatter']) | listToVar('headers') $=>,
@@ -481,7 +480,6 @@ new Vue({
       sortBy: [],
       sortDesc: [],
     },
-    //===// <=%- endif %=>
     //===// <=%- endif %=>
 
     //===// <=%- if hasCreateDrawer %=>
@@ -578,7 +576,6 @@ new Vue({
     //===// <=%- endfor %=>
   },
   computed: {
-    //===// <=%- if hasJhTable %=>
     tableDataComputed() {
       if(this.filterMap) {
         return this.tableData.filter(row => {
@@ -593,7 +590,6 @@ new Vue({
         return this.tableData;
       }
     },
-    //===// <=%- endif %=>
 
     //===// <=%- for key, item in common.computed %=>
     //===// <=$ item | variableToVar(key) $=>,
