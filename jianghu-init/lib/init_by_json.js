@@ -430,6 +430,12 @@ module.exports = class InitByJsonCommand extends CommandBase {
     if (fileObj.headContent && (fileObj.headContent.serverSearchList || []).find(e => e.label)) {
       warning.push('无效的 serverSearchList label 设置');
     }
+    if (!fileObj.pageId) {
+      error.push('pageId 不能为空');
+    }
+    if (!fileObj.pageType) {
+      error.push('pageType 不能为空');
+    }
     if (fileObj.pageType === '1table-page') {
       error.push('1table-page 已废弃，请使用 jh-page');
     }
@@ -459,9 +465,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.allConfigFileList = this.allConfigFileList || [];
     let duplicateList = [];
     if ([ 'jh-page', '1table-page', 'jh-mobile-page' ].includes(fileObj.pageType)) {
-      duplicateList = this.allConfigFileList.filter(item => item.pageType.includes('-page') && item.pageId === fileObj.pageId && item.file !== file);
+      duplicateList = this.allConfigFileList.filter(item => (item.pageType || '').includes('-page') && (item.pageId || '') === fileObj.pageId && item.file !== file);
     } else {
-      duplicateList = this.allConfigFileList.filter(item => item.pageType.includes('-component') && item.componentPath === fileObj.componentPath && item.file !== file);
+      duplicateList = this.allConfigFileList.filter(item => (item.pageType || '').includes('-component') && item.componentPath === fileObj.componentPath && item.file !== file);
     }
     if (duplicateList.length) {
       error.push(`pageId: ${fileObj.pageId} [ ${file}, ${duplicateList.map(e => e.file).join(',')} ] 文件重复，请检查`);

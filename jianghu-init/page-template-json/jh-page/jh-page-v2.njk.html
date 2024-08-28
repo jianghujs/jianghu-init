@@ -14,6 +14,7 @@
     <=%- if headContentStudio %=>
     <=$ headContentStudio | tagFormat(4) $=>
     <=%- elif headContent %=>
+    <=%- if hasHeadContent %=>
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <div class="jh-page-second-bar px-3 px-sm-8">
       <v-row class="align-center" no-gutters>
@@ -122,129 +123,133 @@
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
     <=%- endif %=>
-
+    <=%- endif %=>
+    
+    <=%- if hasPageContent %=>
     <!-- 页面内容 >>>>>>>>>>>>> -->
     <div class="jh-page-body-container px-sm-8">
       <v-row class="pa-0 ma-0">
-      <=%- for content in pageContent %=>
-      
-      <=%- if content.tag == 'jh-table' %=>
-      <v-col class="pa-0" <=% for attr, value in content.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
-        <!-- 表格顶部栏 -->
-        <v-card <=% for attr, value in content.cardAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
-        <=%- if content.headActionList.length %=>
-        <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0" align="center">
-          <=%- for action in content.headActionList %=>
-          <=$ action | tagFormat(10) $=>
-          <=%- endfor %=>
-          <=%- if content.showTableColumnSettingBtn %=>
-          <table-column-setting-btn :selectedColumnGroup.sync="selectedColumnGroup" :columnSettingGroup="columnSettingGroup" :headers="headers" @change="headers=$event" />
-          <=%- endif %=>
-        </v-row>
-        <=%- endif %=>
-        <!-- 表格 -->
-        <v-data-table
-          :headers="headers"
-          :items="tableDataComputed"
-          :search="searchInput"
-          :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
-          <=%- if content.props.serverSearch %=>
-          :options.sync="tableQuery"
-          :server-items-length="tableQuery.totalCount"
-          :items-per-page="50"
-          <=%- else %=>
-          :items-per-page="-1"
-          <=%- endif %=>
-          mobile-breakpoint="0"
-          :loading="isTableLoading"
-          checkbox-color="success"
-          :class="{'zebraLine': true }"
-          fixed-header
-          <=%- for attr, value in content.attrs %=>
-          <=$ attr | tagAttr(value) $=>
-          <=%- endfor %=>
-          class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
-        >
-
-          <!-- 表格插槽 -->
-          <=$ content.value | tagFormat(12) $=>
-
-          <!-- 自定义渲染列 -->
-          <=%- for header in content.headers %=>
-          <=%- if header.formatter %=>
-          <template v-slot:item.<=$ header.value $=>="{item, index}">
-            <=$ header.formatter | tagFormat(12) $=>
-          </template>
-          <=%- endif %=>
-          <=%- endfor %=>
-
-          <=%- if content.rowActionList and  content.rowActionList.length %=>
-          <!-- 表格操作按钮 -->
-          <template v-slot:item.action="{ item }">
-            <=%- for action in content.rowActionList %=>
-            <=%- if action.tag %=>
-            <=$ action | tagFormat(12) $=>
+        <=%- for content in pageContent %=>
+        
+        <=%- if content.tag == 'jh-table' %=>
+        <v-col class="pa-0" <=% for attr, value in content.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
+          <!-- 表格顶部栏 -->
+          <v-card <=% for attr, value in content.cardAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
+            <=%- if content.headActionList.length %=>
+            <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0" align="center">
+              <=%- for action in content.headActionList %=>
+              <=$ action | tagFormat(10) $=>
+              <=%- endfor %=>
+              <=%- if content.showTableColumnSettingBtn %=>
+              <table-column-setting-btn :selectedColumnGroup.sync="selectedColumnGroup" :columnSettingGroup="columnSettingGroup" :headers="headers" @change="headers=$event" />
+              <=%- endif %=>
+            </v-row>
             <=%- endif %=>
-            <=%- endfor %=>
-            <!-- pc端 -->
-            <template v-if="!isMobile">
-              <=%- for action in content.rowActionList %=>
-              <=%- if not action.tag %=>
-              <span role="button" class="<=$ action.color | default('success') $=>--text font-weight-medium font-size-2 mr-2" @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=><=% for attr in action.quickAttrs %=><=$ attr $=> <=% endfor %=>>
-                <=%- if action.icon %=>
-                <v-icon size="16" class="<=$ action.color | default('success') $=>--text">mdi-<=$ action.icon.replace('mdi-', '') $=></v-icon><=%- endif %=><=$ action.text $=>
-              </span>
+            <!-- 表格 -->
+            <v-data-table
+              :headers="headers"
+              :items="tableDataComputed"
+              :search="searchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+              <=%- if content.props.serverSearch %=>
+              :options.sync="tableQuery"
+              :server-items-length="tableQuery.totalCount"
+              :items-per-page="50"
+              <=%- else %=>
+              :items-per-page="-1"
+              <=%- endif %=>
+              mobile-breakpoint="0"
+              :loading="isTableLoading"
+              checkbox-color="success"
+              :class="{'zebraLine': true }"
+              fixed-header
+              <=%- for attr, value in content.attrs %=>
+              <=$ attr | tagAttr(value) $=>
+              <=%- endfor %=>
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+            >
+
+              <!-- 表格插槽 -->
+              <=$ content.value | tagFormat(12) $=>
+
+              <!-- 自定义渲染列 -->
+              <=%- for header in content.headers %=>
+              <=%- if header.formatter %=>
+              <template v-slot:item.<=$ header.value $=>="{item, index}">
+                <=$ header.formatter | tagFormat(12) $=>
+              </template>
               <=%- endif %=>
               <=%- endfor %=>
-            </template>
-            <!-- 手机端 -->
-            <v-menu offset-y v-if="isMobile">
-              <template v-slot:activator="{ on, attrs }">
-                
-                <=%- if  not (content.rowActionList | find({tag: 'div'})).value %=>
-                <span role="button" class="success--text font-weight-medium font-size-2"
-                  v-bind="attrs" v-on="on">
-                  <v-icon size="20" class="success--text">mdi-chevron-down</v-icon>操作
-                </span>
-                <=%- endif %=>
-              </template>
-              <v-list dense>
+
+              <=%- if content.rowActionList and  content.rowActionList.length %=>
+              <!-- 表格操作按钮 -->
+              <template v-slot:item.action="{ item }">
                 <=%- for action in content.rowActionList %=>
-                <=%- if not action.tag %=>
-                <v-list-item @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=><=% for attr in action.quickAttrs %=><=$ attr $=> <=% endfor %=>>
-                  <v-list-item-title><=$ action.text $=></v-list-item-title>
-                </v-list-item>
+                <=%- if action.tag %=>
+                <=$ action | tagFormat(12) $=>
                 <=%- endif %=>
                 <=%- endfor %=>
-              </v-list>
-            </v-menu>
-          </template>
-          <=%- endif %=>
-          <!-- 没有数据 -->
-          <template v-slot:loading>
-            <div class="jh-no-data">数据加载中</div>
-          </template>
-          <template v-slot:no-data>
-            <div class="jh-no-data">暂无数据</div>
-          </template>
-          <template v-slot:no-results>
-            <div class="jh-no-data">暂无数据</div>
-          </template>
-          <!-- 表格分页 -->
-          <template v-slot:footer.page-text="pagination">
-            <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-            <span class="ml-1">共{{pagination.itemsLength}}条</span>
-          </template>
-        </v-data-table>
-      </v-card>
-    </v-col>
-    <=%- else %=>
-    <=$ content | tagFormat(6) $=>
-    <=%- endif %=>
-    <=%- endfor %=>
-    </v-row>
+                <!-- pc端 -->
+                <template v-if="!isMobile">
+                  <=%- for action in content.rowActionList %=>
+                  <=%- if not action.tag %=>
+                  <span role="button" class="<=$ action.color | default('success') $=>--text font-weight-medium font-size-2 mr-2" @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=><=% for attr in action.quickAttrs %=><=$ attr $=> <=% endfor %=>>
+                    <=%- if action.icon %=>
+                    <v-icon size="16" class="<=$ action.color | default('success') $=>--text">mdi-<=$ action.icon.replace('mdi-', '') $=></v-icon><=%- endif %=><=$ action.text $=>
+                  </span>
+                  <=%- endif %=>
+                  <=%- endfor %=>
+                </template>
+                <!-- 手机端 -->
+                <v-menu offset-y v-if="isMobile">
+                  <template v-slot:activator="{ on, attrs }">
+                    
+                    <=%- if  not (content.rowActionList | find({tag: 'div'})).value %=>
+                    <span role="button" class="success--text font-weight-medium font-size-2"
+                      v-bind="attrs" v-on="on">
+                      <v-icon size="20" class="success--text">mdi-chevron-down</v-icon>操作
+                    </span>
+                    <=%- endif %=>
+                  </template>
+                  <v-list dense>
+                    <=%- for action in content.rowActionList %=>
+                    <=%- if not action.tag %=>
+                    <v-list-item @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=><=% for attr in action.quickAttrs %=><=$ attr $=> <=% endfor %=>>
+                      <v-list-item-title><=$ action.text $=></v-list-item-title>
+                    </v-list-item>
+                    <=%- endif %=>
+                    <=%- endfor %=>
+                  </v-list>
+                </v-menu>
+              </template>
+              <=%- endif %=>
+              <!-- 没有数据 -->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <!-- 表格分页 -->
+              <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-col>
+        <=%- else %=>
+        <=$ content | tagFormat(6) $=>
+        <=%- endif %=>
+        <=%- endfor %=>
+      </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 页面内容 -->
+    <=%- endif %=>
+
     <=%- for actionItem in actionContent %=>
 
     <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' %=>
@@ -572,6 +577,7 @@ new Vue({
     //===// <=%- endfor %=>
   },
   computed: {
+    //===// <=%- if hasJhTable %=>
     tableDataComputed() {
       if(this.filterMap) {
         return this.tableData.filter(row => {
@@ -586,6 +592,8 @@ new Vue({
         return this.tableData;
       }
     },
+    //===// <=%- endif %=>
+    
     //===// <=%- for key, item in common.computed %=>
     //===// <=$ item | variableToVar(key) $=>,
     //===// <=%- endfor %=>
@@ -710,12 +718,14 @@ new Vue({
       //===// }
       //===// <=%- endif %=>
 
-
       //===// <=%- if jhTable.orderBy %=>
       //===// let orderBy = <=$ jhTable.orderBy | variableToVar('', 6) $=>;
       //===// <=%- else %=>
       let orderBy = [{column: 'operationAt', order: 'desc'}];
       //===// <=%- endif %=>
+
+      let limit = null;
+      let offset = null;
       //===// <=%- if jhTable.props.serverSearch %=>
       if (this.tableQuery.sortBy.length) {
         orderBy = this.tableQuery.sortBy.map((item, index) => {
@@ -725,8 +735,8 @@ new Vue({
           }
         });
       }
-      const limit = this.tableQuery.itemsPerPage === -1 ? 10000 : this.tableQuery.itemsPerPage;
-      const offset = (this.tableQuery.page - 1) * limit;
+      limit = this.tableQuery.itemsPerPage === -1 ? 10000 : this.tableQuery.itemsPerPage;
+      offset = (this.tableQuery.page - 1) * limit;
       //===// <=%- endif %=>
 
       this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };

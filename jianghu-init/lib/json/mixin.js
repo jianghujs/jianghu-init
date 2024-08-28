@@ -520,10 +520,18 @@ const mixin = {
     if (!jsonConfig.headContent) {
       jsonConfig.headContent = [];
     }
+    if (!jsonConfig.common) { 
+      jsonConfig.common = [];
+    }
+    if (!jsonConfig.pageContent) {
+      jsonConfig.pageContent = [];
+    }
     
-    let { actionContent, pageContent, headContent = [], common } = jsonConfig;
+    let { actionContent, pageContent = [], headContent = [], common = {} } = jsonConfig;
     /**
      * njk 快捷判断变量
+     * {hasHeadContent} - 是否有 headContent
+     * {hasPageContent} - 是否有 pageContent
      * {hasJhTable} - 是否有 jh-table
      * {hasJhScene} - 是否有 jh-scene
      * {hasCreateDrawer / hasCreateStart / hasCreateSubmit} - 是否有创建抽屉
@@ -542,6 +550,12 @@ const mixin = {
     if (!_.isArray(pageContent) && _.isObject(pageContent)) {
       jsonConfig.pageContent = [ pageContent ];
       pageContent = jsonConfig.pageContent;
+    }
+    if (headContent && headContent.length > 0) {
+      jsonConfig.hasHeadContent = true;
+    }
+    if (pageContent && pageContent.length > 0) {
+      jsonConfig.hasPageContent = true;
     }
     const findJhTable = pageContent.find(e => [ 'jhTable', 'jh-table' ].includes(e.tag));
     if (findJhTable) {
@@ -1026,6 +1040,9 @@ const mixin = {
       }
     }
 
+    if (!hasJhTable) {
+      delete defaultUiAction.getTableData;
+    }
     if (!hasCreateDrawer) {
       delete defaultUiAction.startCreateItem;
     }
