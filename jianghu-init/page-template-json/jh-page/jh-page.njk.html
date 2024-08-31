@@ -698,9 +698,9 @@ new Vue({
       //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
       //===//     if (_.isString(fieldValue)) {
-      //===//       whereLike[fieldKey] = fieldValue.trim();
+      //===//       whereLike[fieldKey] = '%' + fieldValue.trim() + '%';
       //===//     } else {
-      //===//       whereLike[fieldKey] = fieldValue;
+      //===//       whereLike[fieldKey] = '%' + fieldValue + '%';
       //===//     }
       //===//   }
       //===// }

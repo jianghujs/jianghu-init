@@ -394,6 +394,15 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// searchInput: null,
     //===// serverSearchWhere: {},
     //===// serverSearchWhereLike: {},
+    //===// <=%- if jhTable.props.serverPagination %=>
+    tableOptions: {
+      page: 1,
+      itemsPerPage: 50,
+      totalCount: 0,
+      sortBy: [],
+      sortDesc: [],
+    },
+    //===// <=%- endif %=>
     //===// <=%- endif %=>
 
     //===// <=%- if hasCreateDrawer %=>
@@ -574,9 +583,9 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
       //===//     if (_.isString(fieldValue)) {
-      //===//       whereLike[fieldKey] = fieldValue.trim();
+      //===//       whereLike[fieldKey] = '%' + fieldValue.trim() + '%';
       //===//     } else {
-      //===//       whereLike[fieldKey] = fieldValue;
+      //===//       whereLike[fieldKey] = '%' + fieldValue + '%';
       //===//     }
       //===//   }
       //===// }

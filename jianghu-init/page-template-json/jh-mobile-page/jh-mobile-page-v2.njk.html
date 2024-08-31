@@ -47,12 +47,8 @@
               class="inline-flex bg-white px-2 py-1 rounded-md"
               v-bind="attrs"
               v-on="on">
-              <=%- if content.icon %=>
-              <v-icon size="16" class="mr-1"><=$ content.icon $=></v-icon>
-              <=%- endif %=>
-              <=%- if content.title %=>
+              <v-icon size="16" class="mr-1"><=$ content.icon | default('mdi-view-carousel-outline') $=></v-icon>
               <span class="font-medium">{{ viewMode == 'simple' ? '简洁模式' : '详细模式' }}</span>
-              <=%- endif %=>
             </div>
           </template>
 
@@ -146,7 +142,7 @@
         <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
           <div class=" flex justify-space-between items-center">
             每页 {{ tableOptions.limit }} 项，
-            共 {{ tableOptions.totalCount }} 项
+            共 {{ tableOptions.totalCount == tableDataComputed.length ? tableOptions.totalCount : tableDataComputed.length + '/' + tableOptions.totalCount }} 项
 
             <div>
               <!-- 上一页 icon -->
@@ -271,7 +267,7 @@
 
             <!-- 抽屉内容form -->
             <=%- if content.type == "form" %=>
-            <v-row class="mt-0 px-3 pb-4">
+            <v-row class="mt-0 px-3 pb-12">
               <=%- for formItem in content.formItemList %=>
               <=%- if not formItem.hidden %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
@@ -408,7 +404,7 @@
           <!-- 列表list容器 循环 -->
           <div style="height: 250px; overflow: hidden; overflow-y: auto;">
             <v-row>
-              <v-col cols="12" class="pb-0" v-for="(item, index) in <=$ (headContent | find({tag: 'jh-order'})).items $=>">
+              <v-col cols="12" class="pb-0" v-for="(item, index) in tableDataOrderList">
                 <v-btn block class="p-3 rounded" :color="isEqual(tableDataOrder, item.value) ? 'primary' : 'gray'" @click="tableDataOrder = item.value">
                   {{ item.text }}
                 </v-btn>
@@ -417,7 +413,7 @@
           </div>
         </v-card-text>
         <v-card-actions class="flex justify-space-around pb-8">
-          <v-btn rounded @click="usePageOrder = false;tableDataOrder = <=$ (headContent | find({tag: 'jh-order'})).items $=>[0].value">重置</v-btn>
+          <v-btn rounded @click="usePageOrder = false;tableDataOrder = tableDataOrderList[0].value">重置</v-btn>
           <v-btn color="success" rounded class="flex-1 ml-3" @click="tableOptions.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
@@ -548,9 +544,13 @@ new Vue({
     tableDataOrder: [{column: 'operationAt', order: 'desc'}],
     tableOptions: {
       page: 1,
-      //===// limit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(20) $=>,
+      //===// limit: <=$ (pageContent | find({tag: 'jh-list'})).props.limit | default(1000) $=>,
       totalCount: 0,
     },
+
+    //===// <=%- if (pageContent | find({tag: 'jh-list'})).props.showSelect %=>
+    tableSelected: [],
+    //===// <=%- endif %=>
     //===// <=%- endif %=>
 
     viewMode: 'simple',
@@ -653,6 +653,11 @@ new Vue({
       if (val && !this.isHelpPageDrawerLoaded) {
         this.isHelpPageDrawerLoaded = true;
       }
+    },
+    //===// <=%- endif %=>
+    //===// <=%- if (pageContent | find({tag: 'jh-list'})).props.showSelect %=>
+    tableData(val) {
+      this.tableSelected = [];
     },
     //===// <=%- endif %=>
     //===// <=%- for key, item in common.watch %=>
@@ -786,9 +791,9 @@ new Vue({
       //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
       //===//     if (_.isString(fieldValue)) {
-      //===//       whereLike[fieldKey] = fieldValue.trim();
+      //===//       whereLike[fieldKey] = '%' + fieldValue.trim() + '%';
       //===//     } else {
-      //===//       whereLike[fieldKey] = fieldValue;
+      //===//       whereLike[fieldKey] = '%' + fieldValue + '%';
       //===//     }
       //===//   }
       //===// }
@@ -802,7 +807,10 @@ new Vue({
       //===// }
       //===// <=%- endif %=>
 
-      let orderBy = this.tableDataOrder.length ? this.tableDataOrder.length : [{column: 'operationAt', order: 'desc'}];
+      let orderBy = this.tableDataOrder || [{column: 'operationAt', order: 'desc'}];
+      if ((!this.tableDataOrder || !this.tableDataOrder.length) && this.tableDataOrderList && this.tableDataOrderList.length) {
+        orderBy = this.tableDataOrderList[0].value;
+      }
       const limit = this.tableOptions.limit === -1 ? 10000 : this.tableOptions.limit;
       const offset = (this.tableOptions.page - 1) * limit;
 
