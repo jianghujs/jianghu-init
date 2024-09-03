@@ -287,7 +287,7 @@
 
             <!-- 抽屉内容form -->
             <=%- if content.type == "form" %=>
-            <v-row class="mt-0 px-3 pb-12">
+            <v-row class="mt-0 px-3 pb-16">
               <=%- for formItem in content.formItemList %=>
               <=%- if not formItem.hidden %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
@@ -377,11 +377,11 @@
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
-          <div style="height: 250px; overflow: hidden; overflow-y: auto;">
-            <v-row>
+          <div style="min-height: 150px;">
+            <v-row class="py-2">
               <=%- for search in (headContent | find({tag: 'jh-search'})).searchList %=>
               <=%- if search.tag == "v-date-picker" %=>
-              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 pb-0" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                   <template v-slot:activator="{on, attrs}">
                     <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prepend-inner-icon="mdi-calendar-range" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>：" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
@@ -390,11 +390,11 @@
                 </v-menu>
               </v-col>
               <=%- elif search.model is defined %=>
-              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 pb-0" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=$ search | formItemFormat $=>
               </v-col>
               <=%- else %=>
-              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 pb-0" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=$ search | tagFormat(14) $=>
               </v-col>
               <=%- endif %=>
@@ -422,7 +422,7 @@
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
-          <div style="height: 250px; overflow: hidden; overflow-y: auto;">
+          <div style="min-height: 150px;">
             <v-row>
               <v-col cols="12" class="pb-0" v-for="(item, index) in tableDataOrderList">
                 <v-btn block class="p-3 rounded" :color="isEqual(tableDataOrder, item.value) ? 'primary' : 'gray'" @click="tableDataOrder = item.value">
@@ -452,7 +452,7 @@
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
-          <div style="height: 250px; overflow: hidden; overflow-y: auto;">
+          <div style="min-height: 150px;">
             <v-row>
               <=%- for item in ((pageContent | find({tag: 'jh-action'})).actionList) %=>
               <v-col cols="12" class="pb-0">
