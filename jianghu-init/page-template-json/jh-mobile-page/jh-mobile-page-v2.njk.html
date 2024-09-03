@@ -102,13 +102,19 @@
               <span class="font-medium text-base"><=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></span>
               <=$ header.slot | tagFormat(12) $=>
             </div>
-            <=%- else %=>
-            <div v-if="<=$ header.isSimpleMode $=> && viewMode != 'detail'" class="text-gray-500 flex items-center pr-6" <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=$ header.text $=>：<=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
             <=%- endif %=>
             <=%- endif %=>
             <=%- endfor %=>
             <=%- endif %=>
-            <div v-show="viewMode == 'detail'">
+            <div v-show="viewMode != 'detail'" class="text-sm pt-2">
+              <=%- for header in content.headers %=>
+              <=%- if (not header.isTitle) and header.isSimpleMode  %=>
+              <div class="text-gray-500 flex items-center" <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=$ header.text $=>：<=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
+              <=%- endif %=>
+              <=%- endfor %=>
+            </div>
+
+            <div v-show="viewMode == 'detail'" class="text-sm pt-2">
               <=%- for header in content.headers %=>
               <=%- if not header.isTitle %=>
               <=%- if header.value == 'action' %=>
@@ -213,16 +219,27 @@
           <=%- endif %=>
           </div>
           <!-- <v-icon >mdi-dots-vertical</v-icon> -->
-          <div class="jh-drawer-action-btn-group md:block md:text-right">
+          <!-- 抽屉操作按钮 -->
+          <=%- for content in actionItem.contentList %=>
+          <=%- if content.headAction %=>
+          <template v-if="
+          <=%- if actionItem.contentList.length === 1 %=>true
+          <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
+          <=%- endif %=>">
+            <=$ content.headAction | tagFormat(12) $=>
+          </template>
+          <=%- endif %=>
+          <=%- endfor %=>
+          <div class="jh-drawer-action-btn-group pa-3">
             <!-- 抽屉操作按钮 -->
             <=%- for content in actionItem.contentList %=>
             <=%- if content.action %=>
-            <template v-if="
+            <div class="w-full gap-x-3 grid grid-cols-<=$ content.action.length $=>" v-if="
             <=%- if actionItem.contentList.length === 1 %=>true
             <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
             <=%- endif %=>">
-              <=$ content.action | tagFormat(12) $=>
-            </template>
+              <=$ content.action | tagFormat(14) $=>
+            </div>
             <=%- endif %=>
             <=%- endfor %=>
           </div>
@@ -237,6 +254,9 @@
             <=$ actionItem.tag | tagFormat $=><=% endfor %=>
           </v-col>
         </v-row>
+        <=%- endif %=>
+        <=%- if actionItem.card %=>
+        <=$ actionItem.card | tagFormat(4) $=>
         <=%- endif %=>
         <=%- if actionItem.contentList.length > 1 %=>
         <div class="px-4">
@@ -272,7 +292,7 @@
               <=%- if not formItem.hidden %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
-                <span class="text-sm text-weight-bold w-28"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                <div class="text-sm d-inline-block text-weight-bold w-28 py-1"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></div>
                 <=%- endif %=>
                 <=%- if formItem.tag == "v-date-picker" %=>
                 <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
@@ -336,7 +356,7 @@
       </v-form>
       <!-- 抽屉关闭按钮 -->
       <v-btn elevation="0" :color="isMobile ? 'white' : 'success'" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">
-        <v-icon v-if="isMobile" size="30" class="mt-1">mdi-chevron-left</v-icon>
+        <v-icon v-if="isMobile" size="30">mdi-chevron-left</v-icon>
         <v-icon v-else>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>
@@ -350,10 +370,10 @@
     <v-bottom-sheet v-if="isPageSearchDrawerShown" v-model="isPageSearchDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
-        <v-card-title>
+        <v-card-title class="px-4">
           <span class="text-base">高级搜索</span>
         </v-card-title>
-        <v-card-text>
+        <v-card-text class="px-4">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
@@ -382,9 +402,9 @@
             </v-row>
           </div>
         </v-card-text>
-        <v-card-actions class="flex justify-space-around pb-8">
-          <v-btn rounded @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
-          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+        <v-card-actions class="flex justify-space-around px-4 pb-6">
+          <v-btn @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
+          <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
       </v-card>
@@ -395,10 +415,10 @@
     <v-bottom-sheet v-if="isPageOrderDrawerShown" v-model="isPageOrderDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
-        <v-card-title>
+        <v-card-title class="px-4">
           <span class="text-base">排序</span>
         </v-card-title>
-        <v-card-text>
+        <v-card-text class="px-4">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
@@ -412,9 +432,9 @@
             </v-row>
           </div>
         </v-card-text>
-        <v-card-actions class="flex justify-space-around pb-8">
-          <v-btn rounded @click="usePageOrder = false;tableDataOrder = tableDataOrderList[0].value">重置</v-btn>
-          <v-btn color="success" rounded class="flex-1 ml-3" @click="tableOptions.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+        <v-card-actions class="flex justify-space-around px-4 pb-6">
+          <v-btn @click="usePageOrder = false;tableDataOrder = tableDataOrderList[0].value">重置</v-btn>
+          <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
       </v-card>
@@ -425,10 +445,10 @@
     <v-bottom-sheet v-if="isPageActionDrawerShown" v-model="isPageActionDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
-        <v-card-title>
+        <v-card-title class="px-4">
           <span class="text-base">更多操作</span>
         </v-card-title>
-        <v-card-text>
+        <v-card-text class="px-4">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->

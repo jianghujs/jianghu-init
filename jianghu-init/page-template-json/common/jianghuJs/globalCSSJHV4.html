@@ -7,6 +7,25 @@
         font-size: 12px;
         line-height: 32px;
     }
+    .jh-input-label-group {
+        color: var(--cPrimaryColor);
+        padding-left: 10px;
+        font-size: 1rem !important;
+        line-height: 1.75rem;
+        letter-spacing: .009375em !important;
+        font-family: Roboto, sans-serif !important;
+        font-weight: 500 !important;
+        position: relative;
+    }
+    .jh-input-label-group::before {
+        content: "";
+        background-color: var(--cPrimaryColor);
+        position: absolute;
+        height: calc(100% - 12px); /* 高度为父元素高度减去3px */
+        width: 4px;
+        bottom: 6px;
+        left: 0;
+    }
     .jh-no-data {
       text-align: center;
       max-width: calc(100vw - 64px);

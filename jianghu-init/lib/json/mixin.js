@@ -611,13 +611,12 @@ const mixin = {
 
     const hasJhList = pageContent.find(e => e.tag === 'jh-list');
     if (hasJhList) {
-      jsonConfig.hasJhList = hasJhList;
-      hasJhList.headers = hasJhList.headers || common.data.headers;
       const index = hasJhList.headers.findIndex(e => !!e.isTitle);
       jsonConfig.pageContent.forEach(content => {
         if (content.tag === 'jh-list') {
           if (index !== -1) {
-            hasJhList.headers.forEach((e, i) => {
+            content.headers = content.headers || common.data.headers;
+            content.headers.forEach((e, i) => {
               if (index !== i) {
                 e.isTitle = false;
               } else {
@@ -625,11 +624,12 @@ const mixin = {
               }
             });
           } else {
-            hasJhList.headers[0].isTitle = true;
-            hasJhList.headers[0].isSimpleMode = true;
+            content.headers[0].isTitle = true;
+            content.headers[0].isSimpleMode = true;
           }
         }
       });
+      jsonConfig.hasJhList = jsonConfig.pageContent.find(e => e.tag === 'jh-list');
       // 把 isTitle 为 true 的放到第一位
       if (hasJhList.headers) {
         const titleIndex = (hasJhList.headers || []).findIndex(e => e.isTitle);
@@ -824,10 +824,10 @@ const mixin = {
       });
     };
     const drawerList = actionContent.filter(e => [ 'jh-create-drawer', 'jh-update-drawer', 'jh-drawer' ].includes(e.tag));
-    const tableColumnSetting = pageContent.filter(e => [ 'jh-table' ].includes(e.tag)).filter(item=> item.showTableColumnSettingBtn);
-    
+    const tableColumnSetting = pageContent.filter(e => [ 'jh-table' ].includes(e.tag)).filter(item => item.showTableColumnSettingBtn);
+
     if (tableColumnSetting.length) {
-      componentList.push({type: 'component', componentPath: 'tableColumnSettingBtn'})
+      componentList.push({ type: 'component', componentPath: 'tableColumnSettingBtn' });
     }
     drawerList.forEach(drawer => {
       processContentList(drawer.contentList, drawer.key);
