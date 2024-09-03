@@ -823,7 +823,7 @@ const mixin = {
         }
       });
     };
-    const drawerList = actionContent.filter(e => [ 'jh-create-drawer', 'jh-update-drawer', 'jh-drawer' ].includes(e.tag));
+    const drawerList = actionContent.filter(e => [ 'jh-create-drawer', 'jh-update-drawer', 'jh-detail-drawer', 'jh-drawer' ].includes(e.tag));
     const tableColumnSetting = pageContent.filter(e => [ 'jh-table' ].includes(e.tag)).filter(item => item.showTableColumnSettingBtn);
 
     if (tableColumnSetting.length) {
