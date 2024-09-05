@@ -370,6 +370,9 @@ const mixin = {
     nunjucksEnv.addFilter('isObject', function(val) {
       return _.isObject(val);
     });
+    nunjucksEnv.addFilter('isString', function(item) {
+      return _.isString(item);
+    });
     nunjucksEnv.addFilter('matchStr', function(str, regexStr) {
       if (!str) return '';
       const match = str.replace(/\n/, '\n').match(new RegExp(regexStr));
@@ -432,9 +435,6 @@ const mixin = {
         }
         return true; // 如果item通过了所有条件检查，则保留这个item
       });
-    });
-    nunjucksEnv.addFilter('isString', function(item) {
-      return _.isString(item);
     });
     nunjucksEnv.addFilter('includes', function(arr, val) {
       return arr.includes(val);
