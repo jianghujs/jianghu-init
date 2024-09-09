@@ -635,7 +635,9 @@ const mixin = {
         const titleIndex = (hasJhList.headers || []).findIndex(e => e.isTitle);
         const title = hasJhList.headers.splice(titleIndex, 1);
         hasJhList.headers.unshift(title[0]);
-        jsonConfig.hasDelete = hasJhList.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
+        if (hasJhList.rowActionList) {
+          jsonConfig.hasDelete = hasJhList.rowActionList.some(e => checkClick(e, 'deleteItem') || /doUiAction\(['"]deleteItem['"]/.test(e.click || ''));
+        }
       }
     }
 

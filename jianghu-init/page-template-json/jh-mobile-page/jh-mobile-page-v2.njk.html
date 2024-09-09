@@ -419,7 +419,8 @@
     <=%- endif %=>
     <=%- endfor %=>
 
-    <=%- if headContent | find({tag: 'jh-search'}) %=>
+    <=%- set jhSearch = (headContent | find({tag: 'jh-search'})) %=>
+    <=%- if jhSearch %=>
     <v-bottom-sheet v-if="isPageSearchDrawerShown" v-model="isPageSearchDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
@@ -432,7 +433,7 @@
           <!-- 列表list容器 循环 -->
           <div style="min-height: 150px;">
             <v-row class="py-2">
-              <=%- for search in (headContent | find({tag: 'jh-search'})).searchList %=>
+              <=%- for search in jhSearch.searchList %=>
               <=%- if search.tag == "v-date-picker" %=>
               <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 pb-0" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
@@ -457,7 +458,11 @@
         </v-card-text>
         <v-card-actions class="flex justify-space-around px-4 pb-6">
           <v-btn @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
-          <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+          <=%- if (pageContent | find({tag: 'jh-search'})) %=>
+          <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
+          <=%- else %=>
+          <v-btn color="success" class="flex-1 ml-3" @click="usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
+          <=%- endif %=>
         </v-card-actions>
       
       </v-card>
