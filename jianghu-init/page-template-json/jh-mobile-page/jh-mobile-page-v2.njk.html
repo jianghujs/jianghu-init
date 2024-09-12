@@ -292,7 +292,7 @@
               <=%- if not formItem.hidden %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>"<=% for attr, value in formItem.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
-                <div class="text-sm d-inline-block text-weight-bold w-28 py-1"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></div>
+                <div class="text-sm d-inline-block text-weight-bold py-1"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></div>
                 <=%- endif %=>
                 <=%- if formItem.tag == "v-date-picker" %=>
                 <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
@@ -456,6 +456,7 @@
             </v-row>
           </div>
         </v-card-text>
+        <=%- if not jhSearch.props.hiddenBtn %=>
         <v-card-actions class="flex justify-space-around px-4 pb-6">
           <v-btn @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
           <=%- if (pageContent | find({tag: 'jh-search'})) %=>
@@ -464,6 +465,7 @@
           <v-btn color="success" class="flex-1 ml-3" @click="usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
           <=%- endif %=>
         </v-card-actions>
+        <=%- endif %=>
       
       </v-card>
     </v-bottom-sheet>
@@ -515,7 +517,7 @@
               <=%- for item in ((pageContent | find({tag: 'jh-action'})).actionList) %=>
               <v-col cols="12" class="pb-0">
                 <=%- if not item.tag %=>
-                <v-btn block class="p-3 rounded" color="<=%- if item.color %=><=$ item.color $=><=%- else %=>success<=%- endif %=>" @click="<=$ item.click $=>; isPageActionDrawerShown = false">
+                <v-btn block class="p-3 rounded" color="<=%- if item.color %=><=$ item.color $=><=%- else %=>success<=%- endif %=>" @click="<=$ item.click $=>; isPageActionDrawerShown = false" <=% for attr, value in item.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=> <=% for attr in item.quickAttrs %=><=$ attr $=> <=% endfor %=>>
                   <=%- if item.icon %=><v-icon size="16" dark><=$ item.icon $=></v-icon><=%- endif %=>
                   <=$ item.value $=>
                 </v-btn>
