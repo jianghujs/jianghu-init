@@ -186,7 +186,11 @@
         <div class="w-full h-full flex justify-center rounded-full items-center bg-green-600" @click="isPageActionDrawerShown = true">
           <v-icon color="white" size="28">mdi-view-grid-outline</v-icon>
         </div>
-        <=%- else %=>
+        <=%- elif not content.actionList[0].click %=>
+        <div class="w-full h-full flex justify-center rounded-full items-center bg-green-600" @click="isPageActionDrawerShown = true">
+          <v-icon color="white" size="28">mdi-view-grid-outline</v-icon>
+        </div>
+        <=%- else  %=>
         <div class="w-full h-full flex justify-center rounded-full items-center bg-green-600" @click="<=$ content.actionList[0].click $=>">
           <v-icon color="white" size="28"><=$ content.actionList[0].icon $=></v-icon>
         </div>
