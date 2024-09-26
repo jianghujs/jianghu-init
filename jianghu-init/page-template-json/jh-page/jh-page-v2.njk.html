@@ -65,9 +65,15 @@
             <=%- if content.searchBtn is undefined or content.searchBtn != false %=>
             <div class="jh-backend-search-btn ml-2">
               <=%- if content.searchBtn == true %=>
+              <=%- if jhTable.props.serverPagination %=>
               <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="tableOptions.page = 1; doUiAction('getTableData')">
                 查询
               </v-btn>
+              <=%- else %=>
+              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+              <=%- endif %=>
               <=%- else %=>
               <=$ content.searchBtn | tagFormat(10) $=>
               <=%- endif %=>
