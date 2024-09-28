@@ -13,7 +13,6 @@ const checkClick = (obj, action) => {
 };
 
 
-
 // 1table-page / 1table-component 共用方法
 const mixin = {
   handleNunjucksEnv(templateTargetPath) {
@@ -484,7 +483,8 @@ const mixin = {
         });
         if (!isDiff) continue;
         await knex('_resource').where({ id: resourceItem.id }).update(updateData);
-      } 
+      }
+
       if (!resourceItem) {
         await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr, operationByUserId });
       }
@@ -520,13 +520,13 @@ const mixin = {
     if (!jsonConfig.headContent) {
       jsonConfig.headContent = [];
     }
-    if (!jsonConfig.common) { 
+    if (!jsonConfig.common) {
       jsonConfig.common = [];
     }
     if (!jsonConfig.pageContent) {
       jsonConfig.pageContent = [];
     }
-    
+
     let { includeList, actionContent, pageContent = [], headContent = [], common = {} } = jsonConfig;
     /**
      * njk 快捷判断变量
@@ -749,7 +749,7 @@ const mixin = {
     if (!item.includes('this.')) {
       item = 'await this.' + item;
     }
-  
+
     // 处理doUiAction的特殊情况
     if (item.includes('doUiAction.')) {
       const prefixKey = item.includes('await ') ? 'await ' : '';
@@ -903,7 +903,7 @@ const mixin = {
 
   async modifyComponentResourceItem(templatePath, component) {
     const knex = await this.getKnex();
-    if (component.type === 'component' && ![ 'tableRecordHistory', 'jhFile'].includes(component.componentPath)) return;
+    if (component.type === 'component' && ![ 'tableRecordHistory', 'jhFile' ].includes(component.componentPath)) return;
     if (!fs.existsSync(`${templatePath}/${component.componentPath}.sql`)) return;
     let resourceSql = fs.readFileSync(`${templatePath}/${component.componentPath}.sql`).toString();
     _.forEach(component.sqlMap, (value, key) => {
@@ -957,12 +957,7 @@ const mixin = {
         await this.modifyComponentResourceItem(componentPath, item);
       }
     }
-   
   },
-
-  
- 
-
   // 生成 service
   async renderService(jsonConfig, dev = false) {
     const { idGenerate = false } = jsonConfig;
