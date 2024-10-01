@@ -441,7 +441,6 @@ module.exports = content;
         }
       }
     }
-    console.log('123', obj.length);
     return JSON.stringify(obj, (key, value) => {
       if (key === 'resourceHook' || key === 'resourceData') {
         // 如果是 resourceHook 或 resourceData，则将其内容压缩成单行
