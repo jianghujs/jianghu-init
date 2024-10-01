@@ -4,7 +4,7 @@ const CommandBase = require('../command_base');
 require('colors');
 const inquirer = require('inquirer');
 const fs = require('fs');
-// const _ = require('lodash');
+const _ = require('lodash');
 const path = require('path');
 const typeList = [
   { value: 'jh-page', name: 'jh-page' },
@@ -91,7 +91,8 @@ module.exports = class InitJson extends CommandBase {
       //   default: table ? table + 'Management' : 'examplePage',
       //   message: `请输入pageId，如"${table ? table + 'Management' : 'examplePage'}"`,
       // });
-      pageId = table;
+      // table 转 驼峰
+      pageId = _.camelCase(table);
     }
     let filename = pageId;
     if (pageType === 'jh-component') {
@@ -257,6 +258,10 @@ module.exports = class InitJson extends CommandBase {
           label: "新增", 
           type: "form", 
           formItemList: [
+            /**
+             * colAtts: { cols: 12, md: 3 } // 表单父容器栅格设置
+             * attrs: {} // 表单项属性
+             */
             ${createItemListStr}
           ], 
           action: [{
@@ -285,6 +290,10 @@ module.exports = class InitJson extends CommandBase {
           label: "编辑", 
           type: "form", 
           formItemList: [
+            /**
+             * colAtts: { cols: 12, md: 3 } // 表单父容器栅格设置
+             * attrs: {} // 表单项属性
+             */
             ${updateItemListStr}
           ], 
           action: [{
@@ -347,13 +356,7 @@ module.exports = class InitJson extends CommandBase {
       const templatePath = `${path.join(__dirname, '../../')}page-template-json/${pageType}`;
       const defaultResource = JSON.parse(fs.readFileSync(`${templatePath}/resource.json`));
       defaultResource.push(...otherResourceList);
-      const defaultResourceJSON = JSON.stringify(defaultResource, null, 2);
-      resourceList = defaultResourceJSON
-        .replace(/\{\{pageId}}/g, pageId)
-        .replace(/\{\{table}}/g, table)
-        .replace(/\{\{filename}}/g, filename.split('/').pop())
-        .replace(/"([^"]+)":/g, '$1:')
-        .replace(/\n/g, '\n  ');
+      resourceList = this.customStringify(defaultResource, pageId, table, filename);
     }
 
     const propsStr = pageType === 'jh-component' ? 'props: {},' : '';
@@ -428,6 +431,43 @@ module.exports = class InitJson extends CommandBase {
 module.exports = content;
 `;
   }
+  customStringify(obj, pageId, table, filename) {
+    for (const item of obj) {
+      for (const key in item) {
+        if (key === 'resourceHook' || key === 'resourceData') {
+          if (Object.keys(item[key]).length === 0) {
+            delete item[key];
+          }
+        }
+      }
+    }
+    console.log('123', obj.length);
+    return JSON.stringify(obj, (key, value) => {
+      if (key === 'resourceHook' || key === 'resourceData') {
+        // 如果是 resourceHook 或 resourceData，则将其内容压缩成单行
+        if (Object.keys(value).length === 0) {
+          return {}; // 空对象
+        } else {
+          // 将内部的 key-value 对象格式化为单行
+          const formattedEntries = Object.entries(value)
+            .map(([ k, v ]) => `${k}: ${JSON.stringify(v)}`) // 使用 JSON.stringify 保持字符串引号
+            .join(', ');
+          return `{ ${formattedEntries} }`; // 保持花括号
+
+        }
+      }
+      return value;
+    }, 2)
+      // 进行模板替换
+      .replace(/\{\{pageId}}/g, pageId)
+      .replace(/\{\{table}}/g, table)
+      .replace(/\{\{filename}}/g, filename.split('/').pop())
+      .replace(/"([^"]+)":/g, '$1:') // 移除属性名的引号
+      .replace(/\\/g, '') // 移除属性名的引号
+      .replace(/"{/g, '{') // 移除被 JSON.stringify 添加的引号
+      .replace(/}"/g, '}')
+      .replace(/\n/g, '\n  '); // 移除结尾的引号
+  }
 
   getBasicMobileContent({ pageId, pageType, tableStr = '', componentPath = '', resourceList = '[]', propsStr = '', pageContent = '[]', actionContent, style }) {
     return `const content = {
@@ -440,7 +480,7 @@ module.exports = content;
       tag: 'jh-search', 
       attrs: { cols: 12, sm: 6, md:8 },
       searchList: [
-        { tag: "v-text-field", model: "serverSearchWhereLike.className", attrs: {prefix: '前缀'} },
+        { tag: "v-text-field", model: "serverSearchWhereLike.className", colAttrs: { cols: 12, md: 3 }, attrs: {prefix: '前缀'} },
       ], 
     },
     { tag: 'v-spacer'},

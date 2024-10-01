@@ -16,9 +16,13 @@ const _ = require('lodash');
 
 const jsonTypes = [
   {
-    value: 'page',
-    name: 'init page by json text',
+    value: 'dev',
+    name: 'run dev mode',
   },
+  // {
+  //   value: 'page',
+  //   name: 'init page by json text',
+  // },
   {
     value: 'json',
     name: 'init json by table',
@@ -128,6 +132,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
       await new InitJson().run(process.cwd(), Object.assign(this.argv, { chartPage: true, pageType: 'jh-component' }));
     } else if (handleType === 'clear') {
       await new InitClear().run(process.cwd(), this.argv);
+    } else if (handleType === 'dev') {
+      await this.enableDevMode(true);
     }
     // this.success('jianghu init by json is success');
     await this.enableDevMode(this.argv.dev);
