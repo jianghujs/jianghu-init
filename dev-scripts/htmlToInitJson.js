@@ -2,7 +2,7 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
 // 读取文件的路径
-const filePath = path.resolve(__dirname, '../jianghu-init/page-template/template/user-management/init.html');
+const filePath = path.resolve(__dirname, '../jianghu-init/page-template/template/user-group-role/init.html');
 // 使用 fs.readFileSync 方法读取文件内容
 const htmlString = fs.readFileSync(filePath, 'utf-8');
 
@@ -136,7 +136,7 @@ initjson.actionContent.push({
 // const methodsMatch = htmlString.match(/methods: \{([^}]+)\}/);
 // const watchMatch = htmlString.match(/watch: \{([^}]+)\}/);
 // const computedMatch = htmlString.match(/computed: \{([^}]+)\}/);
-// const propsMatch = htmlString.match(/props: \{([^}]+)\}/);
+// const propsMatch = htmlString.match(/props: \{([^}]+)\}/);jianghujs_attendance
 // const modelMatch = htmlString.match(/model: \{([^}]+)\}/);
 
 

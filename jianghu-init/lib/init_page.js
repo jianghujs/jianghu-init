@@ -8,7 +8,7 @@ const InitPageTestPage = require('./json/template/init_page_test_page');
 const InitComponentCrudRelateTable = require('./json/template/init_component_crud_relate_table');
 const InitPageStatic = require('./json/template/init_page_static');
 const InitPageManual = require('./json/template/init_page_manual');
-const InitPageUserManagement = require('./json/template/init_page_user_management');
+const InitPageDefault = require('./json/template/init_page_default');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 
@@ -108,7 +108,13 @@ module.exports = class InitPageCommand extends CommandBase {
     } else if (pageType === 'manual-page') {
       await new InitPageManual().run(process.cwd(), pageTypes.find(o => o.value === pageType));
     } else if (pageType === 'user-management-page') {
-      await new InitPageUserManagement().run(process.cwd(), 'user-management');
+      await new InitPageDefault().run(process.cwd(), 'user-management');
+    } else if (pageType === 'user-group-role-page') {
+      await new InitPageDefault().run(process.cwd(), 'user-group-role');
+    } else if (pageType === 'reset-password-page') {
+      await new InitPageDefault().run(process.cwd(), 'reset-password');
+    } else if (pageType === 'record-history-page') {
+      await new InitPageDefault().run(process.cwd(), 'record-history');
     } else {
       await new InitPageStatic().run(process.cwd(), pageTypes.find(o => o.value === pageType));
     }
