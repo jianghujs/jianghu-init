@@ -8,6 +8,7 @@ const InitPageTestPage = require('./json/template/init_page_test_page');
 const InitComponentCrudRelateTable = require('./json/template/init_component_crud_relate_table');
 const InitPageStatic = require('./json/template/init_page_static');
 const InitPageManual = require('./json/template/init_page_manual');
+const InitPageUserManagement = require('./json/template/init_page_user_management');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 
@@ -43,7 +44,7 @@ const pageTypes = [
     value: 'user-management-page',
     name: 'user-management-page - generate pages from user-management',
     pageId: 'userManagement',
-    path: 'template/user-management/',
+    path: 'user-management/',
   }, {
     value: 'user-group-role-page',
     name: 'user-group-role-page - generate pages from user-group-role',
@@ -106,6 +107,8 @@ module.exports = class InitPageCommand extends CommandBase {
       await new InitComponentCrudRelateTable().run(process.cwd(), this.argv);
     } else if (pageType === 'manual-page') {
       await new InitPageManual().run(process.cwd(), pageTypes.find(o => o.value === pageType));
+    } else if (pageType === 'user-management-page') {
+      await new InitPageUserManagement().run(process.cwd(), 'user-management');
     } else {
       await new InitPageStatic().run(process.cwd(), pageTypes.find(o => o.value === pageType));
     }
