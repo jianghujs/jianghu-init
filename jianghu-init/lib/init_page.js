@@ -1,13 +1,13 @@
 'use strict';
 const yargs = require('yargs');
-const InitPage1Table = require('./page/init_page_1table');
-const InitPage1TableFile = require('./page/init_page_1table_file');
-const InitPage2Table = require('./page/init_page_2table');
-const InitPage3Table = require('./page/init_page_3table');
-const InitPageTestPage = require('./page/init_page_test_page');
-const InitComponentCrudRelateTable = require('./page/init_component_crud_relate_table');
-const InitPageStatic = require('./page/init_page_static');
-const InitPageManual = require('./page/init_page_manual');
+const InitPage1Table = require('./json/template/init_page_1table');
+const InitPage1TableFile = require('./json/template/init_page_1table_file');
+const InitPage2Table = require('./json/template/init_page_2table');
+const InitPage3Table = require('./json/template/init_page_3table');
+const InitPageTestPage = require('./json/template/init_page_test_page');
+const InitComponentCrudRelateTable = require('./json/template/init_component_crud_relate_table');
+const InitPageStatic = require('./json/template/init_page_static');
+const InitPageManual = require('./json/template/init_page_manual');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 
