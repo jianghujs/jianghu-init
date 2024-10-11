@@ -596,12 +596,14 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===//   }
       //===// }
 
-
       //===// <=%- if jhTable.orderBy %=>
       //===// let orderBy = <=$ jhTable.orderBy | variableToVar('', 6) $=>;
       //===// <=%- else %=>
       let orderBy = [{column: 'operationAt', order: 'desc'}];
       //===// <=%- endif %=>
+
+      let limit = null;
+      let offset = null;
       //===// <=%- if jhTable.props.serverPagination %=>
       if (this.tableOptions.sortBy.length) {
         orderBy = this.tableOptions.sortBy.map((item, index) => {
@@ -611,8 +613,8 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
           }
         });
       }
-      const limit = this.tableOptions.itemsPerPage === -1 ? 10000 : this.tableOptions.itemsPerPage;
-      const offset = (this.tableOptions.page - 1) * limit;
+      limit = this.tableOptions.itemsPerPage === -1 ? 10000 : this.tableOptions.itemsPerPage;
+      offset = (this.tableOptions.page - 1) * limit;
       //===// <=%- endif %=>
 
       this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };

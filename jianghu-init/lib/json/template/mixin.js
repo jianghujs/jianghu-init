@@ -7,19 +7,27 @@ const { exec } = require('child_process');
 
 // 1table-page / 1table-component 共用方法
 const mixin = {
-  getResourceList(pageType, pageId, table, otherResourceList = [], componentName = '') {
+  getResourceList(pageType, pageId, table, otherResourceList = [], componentName = '', primaryField) {
     const templatePath = `${path.join(__dirname, '../../../')}page-template-json/${pageType}`;
     const defaultResource = JSON.parse(fs.readFileSync(`${templatePath}/resource.json`));
+    for (const resource of defaultResource) {
+      if ((resource.actionId === 'insertItem' || resource.actionId.includes('-insertItem')) && primaryField) {
+        resource.resourceHook = {
+          before: [{ service: 'common', serviceFunction: 'generateBizIdOfBeforeHook' }],
+        };
+      }
+    }
     defaultResource.push(...otherResourceList);
     return this.customStringify(defaultResource, pageId, table, componentName);
   },
-  getContent(table, pageId, pageType, fields, updateDrawerComponent) {
+  getContent(table, pageId, pageType, fields, pageName, updateDrawerComponent = '', primaryField) {
     let tableStr = '';
     let columnStr = '';
     let space = '';
     let actionSpace = '';
     let pageContent = '';
     let actionContent = '';
+    let headContent = '[]';
     if (table) {
       let createItemListStr = '';
       let updateItemListStr = '';
@@ -30,10 +38,20 @@ const mixin = {
         const fieldKey = field.COLUMN_NAME;
         const fieldName = field.COLUMN_COMMENT;
         if (excludeColumn.includes(fieldKey)) return;
+        if (fieldKey === 'idSequence') return;
         if (index === 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
         if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", width: 80, sortable: true },\n`;
-        createItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
-        updateItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
+        if (fieldKey === primaryField) {
+          createItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", idGenerate: { prefix: "T", startValue: 10001, bizId: "${primaryField}" }, quickAttrs: ['disabled'] },\n`;
+        } else {
+          createItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules" },\n`;
+        }
+
+        if (fieldKey === primaryField) {
+          updateItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", quickAttrs: ['disabled'] },\n`;
+        } else {
+          updateItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules" },\n`;
+        }
         detailItemListStr += actionSpace + `{ label: "${fieldName}", tag: "span", colAttrs: { class: 'border-b pb-2 flex justify-between' }, value: "{{detailItem.${fieldKey}}}"  },\n`;
         space = ' '.repeat(8);
         actionSpace = ' '.repeat(12);
@@ -199,7 +217,23 @@ const mixin = {
     }
   ]`;
     }
-    return { pageContent, actionContent, tableStr };
+    if (pageType !== 'jh-component') {
+      headContent = `[
+    { tag: 'jh-page-title', value: "${pageName}", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
+
+    { 
+      tag: 'jh-search', 
+      attrs: { cols: 12, sm: 6, md:8 },
+      searchList: [
+        { tag: "v-text-field", model: "serverSearchWhereLike.className", colAttrs: { cols: 12, md: 3 }, attrs: {prefix: '前缀'} },
+      ], 
+    },
+    { tag: 'v-spacer'},
+    { tag: 'jh-mode', title: '简单模式', icon: 'mdi-view-carousel-outline', model: 'viewMode', items: 'constantObj.viewModeList' },
+  ]
+      `;
+    }
+    return { pageContent, actionContent, tableStr, headContent };
   },
   async getFields(table) {
     const knex = await this.getKnex();

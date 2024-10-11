@@ -70,13 +70,13 @@ module.exports = class InitPage2Table extends CommandBase {
         componentName = await this.readlineMethod(`【${tableB}】数据表组件名`, componentName);
       }
       // 生成 vue
-      const content = await this.renderJson(table, pageId, table === tableA ? 'jh-page' : 'jh-component', componentName, nameB, primaryFieldA);
+      const content = await this.renderJson(table, pageId, table === tableA ? 'jh-page' : 'jh-component', componentName, nameA, primaryFieldA, nameB, primaryFieldB);
       // eslint-disable-next-line no-eval
-      const jsConfig = eval(content);
+      const jsConfig = eval(content, true);
       if (table === tableA) {
-        new InitPage().renderContent(jsConfig);
+        await new InitPage().renderContent(jsConfig, true);
       } else {
-        new InitComponent().renderContent(jsConfig);
+        await new InitComponent().renderContent(jsConfig, true);
       }
       this.success(`生成 ${table} 的 vue 文件完成`);
     }
@@ -140,7 +140,7 @@ module.exports = class InitPage2Table extends CommandBase {
   /**
    * 生成 vue
    */
-  async renderJson(table, pageId, pageType = 'jh-page', componentName = '', nameB = '', primaryFieldA) {
+  async renderJson(table, pageId, pageType = 'jh-page', componentName = '', nameA, primaryFieldA, nameB, primaryFieldB) {
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
     const filepath = pageType === 'jh-page' ? `./app/view/init-json/page/${pageId}.js` : `./app/view/init-json/component/${componentName}.js`;
@@ -156,33 +156,95 @@ module.exports = class InitPage2Table extends CommandBase {
     const templatePath = `${path.join(__dirname, '../../../')}page-template-json/template`;
     const fields = await this.getFields(table);
     this.info('表字段', fields);
-    const resourceList = this.getResourceList(pageType, pageId, table, [], componentName);
-    let updateDrawerComponent = '';
-    let componentPath = '';
-    if (pageType === 'jh-page') {
-      updateDrawerComponent = `{ label: "${nameB}", type: "component", componentPath: "${componentName}", attrs: { ':${primaryFieldA}': 'updateItem.${primaryFieldA}' } },`;
-    } else {
-      componentPath = `componentPath: '${componentName}',`;
-    }
-    const { pageContent, actionContent, tableStr } = this.getContent(table, pageId, pageType, fields, updateDrawerComponent);
+    const resourceList = this.getResourceList(pageType, pageId, table, [], componentName, pageType === 'jh-page' ? primaryFieldA : primaryFieldB);
+    const {
+      pageName,
+      updateDrawerComponent,
+      componentPath,
+      propsStr,
+      createdStr,
+      methodItemStr,
+    } = this.buildParameters(pageType, nameA, nameB, componentName, primaryFieldA, primaryFieldB);
+
+    const { pageContent, actionContent, tableStr, headContent } = this.getContent(
+      table,
+      pageId,
+      pageType,
+      fields,
+      pageName,
+      updateDrawerComponent,
+      pageType === 'jh-page' ? primaryFieldA : primaryFieldB
+    );
     const replacements = {
+      pageType,
+      pageId,
+      pageName,
       table,
       tableCamelCase,
       componentPath,
-      pageId,
-      pageType,
       resourceList,
+      headContent,
       pageContent,
       actionContent,
+      propsStr,
+      createdStr,
+      methodItemStr,
     };
 
     // 使用正则表达式替换占位符
-    const fileContent = fs.readFileSync(`${templatePath}/1table.js`, 'utf-8').toString();
+    const fileContent = fs.readFileSync(`${templatePath}/crud.js`, 'utf-8').toString();
     const result = fileContent.replace(/\$\{(\w+)\}/g, (match, p1) => {
       return replacements[p1] || ''; // 替换变量或保留原样
     });
 
     fs.writeFileSync(filepath, result);
     return result;
+  }
+
+  buildParameters(pageType, nameA, nameB, componentName, primaryFieldA, primaryFieldB) {
+    let updateDrawerComponent = '';
+    let componentPath = '';
+    let pageName = '';
+    let propsStr = '';
+    let methodItemStr = '';
+    let createdStr = `
+    async created() {
+      await this.doUiAction('getTableData');
+    },`;
+    if (pageType === 'jh-page') {
+      pageName = nameA + '页面';
+      updateDrawerComponent = `{ label: "${nameB}", type: "component", componentPath: "${componentName}", attrs: { ':${primaryFieldA}': 'updateItem.${primaryFieldA}', class: 'px-4' } },`;
+    } else {
+      // 传递变量
+      propsStr = `props: { ${primaryFieldA}: { type: String, required: true } },`;
+      // 初始watch、生命周期
+      createdStr = `
+    watch: {
+      ${primaryFieldA}() {
+        this.serverSearchWhere['${primaryFieldA}'] = this.${primaryFieldA};
+        this.doUiAction('getTableData');
+      },
+    },
+    async created() {
+      this.serverSearchWhere['${primaryFieldA}'] = this.${primaryFieldA};
+      await this.doUiAction('getTableData');
+    },`;
+      componentPath = `componentPath: '${componentName}',`;
+      methodItemStr = `
+      async prepareCreateFormData() {
+        this.createItem = {
+          ${primaryFieldA}: this.${primaryFieldA},
+        };
+      },
+      `;
+    }
+    return {
+      pageName,
+      updateDrawerComponent,
+      componentPath,
+      propsStr,
+      createdStr,
+      methodItemStr,
+    };
   }
 };

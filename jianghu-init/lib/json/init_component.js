@@ -47,7 +47,7 @@ module.exports = class InitComponent extends CommandBase {
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
-      // await this.modifyTable(jsonConfig, pageId, componentPath);
+      await this.modifyTable(jsonConfig);
       // 生成组件
       await this.renderComponent(jsonConfig);
       // 生成 service
@@ -64,51 +64,22 @@ module.exports = class InitComponent extends CommandBase {
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
     await this.renderVue(jsonConfig);
+    await this.modifyTable(jsonConfig);
     await this.handleOtherResource(jsonConfig);
   }
 
   async modifyTable(jsonConfig) {
-    const { table, pageId, componentPath, idGenerate = false } = jsonConfig;
-    if (!table || !pageId) return;
-    const knex = await this.getKnex();
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/1table-component`;
-    await this.checkTableFields(table, idGenerate);
+    const { table, pageId, pageName = '', pageHook = {}, idGenerate = false } = jsonConfig;
 
-    let clearSql = fs.readFileSync(`${templatePath}/clear_crud.sql`).toString();
-    clearSql = clearSql.replace(/\{\{pageId}}/g, pageId);
-    clearSql = clearSql.replace(/\{\{table}}/g, table);
-    clearSql = clearSql.replace(/\{\{component}}/g, componentPath.split('/').pop());
-    this.info(`开始生成 ${table} 的相关数据`);
-    // 删除数据
-    for (const line of clearSql.split('\n')) {
-      if (!line) {
-        continue;
-      }
-      if (line.startsWith('--')) {
-        this.info(`正在执行删除 ${line}`);
-      } else {
-        await knex.raw(line);
-      }
+    if (table) {
+      await this.checkTableFields(table, idGenerate);
+      // await this.executeSql('clear_resource.sql', { pageId, table });
+      // const insertBeforeHook = idGenerate ? '{"before": [{"service": "common", "serviceFunction": "generateBizIdOfBeforeHook"}]}' : '';
+      // await this.executeSql('check_resource.sql', { pageId, pageName, table, insertBeforeHook });
     }
-
-    let sql = fs.readFileSync(`${templatePath}/crud.sql`).toString();
-    sql = sql.replace(/\{\{pageId}}/g, pageId);
-    sql = sql.replace(/\{\{table}}/g, table);
-    sql = sql.replace(/\{\{component}}/g, componentPath.split('/').pop());
-    if (idGenerate) {
-      sql = sql.replace(/\{\{insertBeforeHook}}/g, '{"before": [{"service": "common", "serviceFunction": "generateBizIdOfBeforeHook"}]}');
-    } else {
-      sql = sql.replace(/\{\{insertBeforeHook}}/g, '');
-    }
-    // 插入数据
-    for (const line of sql.split('\n')) {
-      if (!line) continue;
-      if (line.startsWith('--')) {
-        this.info(`正在执行插入/更新 ${line}`);
-      } else {
-        await knex.raw(line);
-      }
-    }
+    // if (pageId) {
+    //   await this.executeSql('check_page.sql', { pageId, pageName, pageHook });
+    // }
   }
 
   // 生成 vue

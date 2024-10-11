@@ -89,7 +89,6 @@ module.exports = class InitPage1Table extends CommandBase {
       choices: tables,
       pageSize: 100,
     });
-    console.log(answer);
     return answer.tables;
   }
 
@@ -113,20 +112,28 @@ module.exports = class InitPage1Table extends CommandBase {
     const fields = await this.getFields(table);
     this.info('表字段', fields);
     const pageType = 'jh-page';
+    const pageName = `${pageId}页面`;
     const resourceList = this.getResourceList(pageType, pageId, table, []);
-    const { pageContent, actionContent, tableStr } = this.getContent(table, pageId, pageType, fields);
+    const { pageContent, actionContent, tableStr, headContent } = this.getContent(table, pageId, pageType, fields, pageName);
     const replacements = {
+      pageType,
+      pageId,
+      pageName: pageId + '页面',
       table,
       tableCamelCase,
-      pageId,
-      pageType,
       resourceList,
+      headContent,
       pageContent,
       actionContent,
+      createdStr: `
+  async created() {
+    await this.doUiAction('getTableData');
+  },
+      `,
     };
 
     // 使用正则表达式替换占位符
-    const fileContent = fs.readFileSync(`${templatePath}/1table.js`, 'utf-8').toString();
+    const fileContent = fs.readFileSync(`${templatePath}/crud.js`, 'utf-8').toString();
     const result = fileContent.replace(/\$\{(\w+)\}/g, (match, p1) => {
       return replacements[p1] || ''; // 替换变量或保留原样
     });
