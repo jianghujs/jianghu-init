@@ -596,6 +596,16 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===//   }
       //===// }
 
+      let whereOrOptions = [];
+      if (this.keyword) {
+        if (!this.keywordFieldList || this.keywordFieldList.length === 0) {
+          console.warn('keywordFieldList is empty');
+        }
+        this.keywordFieldList.forEach(fieldKey => {
+          whereOrOptions.push([fieldKey, 'like', '%' + this.keyword.trim() + '%']);
+        });
+      }
+
       //===// <=%- if jhTable.orderBy %=>
       //===// let orderBy = <=$ jhTable.orderBy | variableToVar('', 6) $=>;
       //===// <=%- else %=>
@@ -617,7 +627,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       offset = (this.tableOptions.page - 1) * limit;
       //===// <=%- endif %=>
 
-      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
+      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy, whereOrOptions };
     },
     // 准备请求参数-自定义
     prepareTableParams() {
