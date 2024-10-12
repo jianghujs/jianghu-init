@@ -1,18 +1,23 @@
 'use strict';
-const yargs = require('yargs');
 const CommandBase = require('../../command_base');
 
 require('colors');
 const inquirer = require('inquirer');
 const fs = require('fs');
-const nunjucks = require('nunjucks');
 const _ = require('lodash');
 const path = require('path');
+const mixin = require('./mixin.js');
+const InitPage = require('../init_page');
 
 /**
  * 根据 table 定义生成 crud 页面
  */
 module.exports = class InitPage1TableFile extends CommandBase {
+
+  constructor() {
+    super();
+    Object.assign(this, mixin);
+  }
 
   async run(cwd, argv) {
     this.cwd = cwd;
@@ -47,55 +52,31 @@ module.exports = class InitPage1TableFile extends CommandBase {
    */
   async generateCrud() {
     this.info('开始生成 CRUD');
-    const tables = await this.promptTables('请输入你要生成 CRUD 的 table', '');
-    if (!tables || !tables.length) {
+    const table = await this.promptTables('请输入你要生成 CRUD 的 table', '');
+    if (!table) {
       this.info('未选择 table，流程结束');
       return;
     }
-    const field = await this.promptFields(tables[0]);
-    if (!field || !field.length) {
+    const field = await this.promptFields(table);
+    if (!field) {
       this.info('未选择文件路径字段，流程结束');
       return;
     }
-    for (const table of tables) {
-      this.info(`开始生成 ${table} 的 CRUD`);
-      const tableCamelCase = _.camelCase(table);
-      let pageId = `${tableCamelCase}Management`;
-      pageId = await this.readlineMethod(`【${table}】数据表pageId`, pageId);
-      // 生成 vue
-      if (await this.renderVue(table, field, pageId)) {
-        this.success(`生成 ${table} 的 vue 文件完成`);
 
-        // 数据库
-        this.info(`开始生成 ${table} 的相关数据`);
-        await this.modifyTable(table, pageId);
-        this.success(`生成 ${table} 的相关数据完成`);
-      }
-    }
+    this.info(`开始生成 ${table} 的 CRUD`);
+    const tableCamelCase = _.camelCase(table);
+    let pageId = `${tableCamelCase}Management`;
+    pageId = await this.readlineMethod(`【${table}】数据表pageId`, pageId);
+    // 生成 vue
+    const content = await this.renderJson(table, pageId, field);
+    // eslint-disable-next-line no-eval
+    const jsConfig = eval(content);
+    new InitPage().renderContent(jsConfig);
+    this.success(`生成 ${table} 的 vue 文件完成`);
   }
 
   async modifyTable(table, pageId) {
-    const knex = await this.getKnex();
 
-    const templatePath = `${path.join(__dirname, '../../')}page-template`;
-    let sql = fs.readFileSync(`${templatePath}/template/file/init.sql`).toString();
-
-    sql = sql.replace(/\{\{pageId}}/g, pageId);
-    sql = sql.replace(/\{\{table}}/g, table);
-    // const appId = `${tableCamelCase}Management`;
-    // sql = sql.replace(/\{\{appId}}/g, appId);
-    // console.log(sql);
-
-    for (const line of sql.split('\n')) {
-      if (!line) {
-        continue;
-      }
-      if (line.startsWith('--')) {
-        this.info(`正在执行 ${line}`);
-      } else {
-        await knex.raw(line);
-      }
-    }
   }
 
   /**
@@ -110,14 +91,13 @@ module.exports = class InitPage1TableFile extends CommandBase {
     });
     const tables = result.map(item => item.TABLE_NAME).filter(table => !table.startsWith('_'));
     const answer = await inquirer.prompt({
-      name: 'tables',
-      type: 'checkbox',
+      name: 'table',
+      type: 'list',
       message: '请选择你要生成 crud 的表',
       choices: tables,
       pageSize: 100,
     });
-    console.log(answer);
-    return answer.tables;
+    return answer.table || '';
   }
 
   /**
@@ -129,23 +109,22 @@ module.exports = class InitPage1TableFile extends CommandBase {
     const result = await knex.raw(`SHOW COLUMNS FROM ${tableName}`);
     const fields = result[0].map(item => item.Field).filter(field => !['id', 'operationAt', 'operation', 'operationByUserId', 'operationByUser'].includes(field));
     const answer = await inquirer.prompt({
-      name: 'fields',
-      type: 'checkbox',
+      name: 'field',
+      type: 'list',
       message: `请选择 ${tableName} 表内的文件路径字段`,
       choices: fields,
       pageSize: 100,
     });
-    console.log(answer);
-    return answer.fields ? answer.fields[0] : '';
+    return answer.field || '';
   }
 
   /**
    * 生成 vue
    */
-  async renderVue(table, field, pageId) {
+  async renderJson(table, pageId, field) {
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
-    const filepath = `./app/view/page/${pageId}.html`;
+    const filepath = `./app/view/init-json/page/${pageId}.js`;
     if (fs.existsSync(filepath)) {
       const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
       if (overwrite !== 'y' && overwrite !== 'Y') {
@@ -155,32 +134,58 @@ module.exports = class InitPage1TableFile extends CommandBase {
     }
 
     // 读取文件
-    const templatePath = `${path.join(__dirname, '../../')}page-template`;
-    let listTemplate = fs.readFileSync(`${templatePath}/template/file/init.html`).toString();
-    // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
-    listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
-
-    // 生成 vue
-    nunjucks.configure(`${templatePath}/crud.html.njk`, {
-      tags: {
-        blockStart: '<=%',
-        blockEnd: '%=>',
-        variableStart: '<=$',
-        variableEnd: '$=>',
-      },
-    });
+    const templatePath = `${path.join(__dirname, '../../../')}page-template-json/template`;
     const fields = await this.getFields(table);
     this.info('表字段', fields);
-    const result = nunjucks.renderString(listTemplate, {
+    const pageType = 'jh-page';
+    const pageName = `${pageId}页面`;
+    const resourceList = this.getResourceList(pageType, pageId, table, []);
+    const { pageContent, actionContent, tableStr, headContent } = this.getContentV2(table, pageId, pageType, fields, pageName);
+    const actionContentAndPreview = actionContent + `/*html*/\`<!-- 文件预览 -->
+    <v-overlay :value="isPreviewOverlayShown" @click="isPreviewOverlayShown = false" :opacity="0.85" style="z-index: 99;">
+      <v-icon style="position: fixed; right: 10px; top: 5px; z-index: 50000" large color="white"
+        @click="isPreviewOverlayShown = false">
+        mdi-close-circle
+      </v-icon>
+      <v-icon style="position: fixed; right: 50px; top: 5px; z-index: 50000" large color="white"
+        @click="doUiAction('downloadPreviewFile')">
+        mdi-download
+      </v-icon>
+      <iframe v-if="previewFileType === 'pdf'" :src="previewFileUrl" frameborder="0"
+        style="width: 100vw; height: 100vh; padding: 50px 0 0 0;"></iframe>
+      <v-img v-if="previewFileType === 'img'" max-height="80vw" max-width="100vw"  :src="previewFileUrl"></v-img>
+    </v-overlay>
+    \``;
+    const replacements = {
+      pageType,
+      pageId,
+      pageName: pageId + '页面',
       table,
       tableCamelCase,
-      filePath: field,
-      pageId,
-      fields,
+      resourceList,
+      headContent,
+      pageContent,
+      actionContent: actionContentAndPreview,
+      createdStr: `
+  async created() {
+    await this.doUiAction('getTableData');
+  },
+      `,
+      commonDataStr: `
+      isPreviewOverlayShown: false,
+      previewFileUrl: null,
+      previewFilename: '',
+      previewFileType: '',`,
+    };
+
+    // 使用正则表达式替换占位符
+    const fileContent = fs.readFileSync(`${templatePath}/crud-v2.js`, 'utf-8').toString();
+    const result = fileContent.replace(/\$\{(\w+)\}/g, (match, p1) => {
+      return replacements[p1] || ''; // 替换变量或保留原样
     });
 
     fs.writeFileSync(filepath, result);
-    return true;
+    return result;
   }
 
   /**
