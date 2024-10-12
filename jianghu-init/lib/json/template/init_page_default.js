@@ -57,21 +57,23 @@ module.exports = class InitPageUserManagement extends CommandBase {
     
     this.success(`已复制 ${this.templateNameCamelCase}.js 文件`);
 
-    // 复制 service 目录下的所有文件
+    // 复制 service 目录下的所有文件（如果存在）
     const serviceSourcePath = path.join(templatePathFolder, 'service');
-    const serviceTargetPath = path.join(targetPathFolder, 'service');
-    
-    if (!fs.existsSync(serviceTargetPath)) {
-      fs.mkdirSync(serviceTargetPath, { recursive: true });
+    if (fs.existsSync(serviceSourcePath)) {
+      const serviceTargetPath = path.join(targetPathFolder, 'service');
+      
+      if (!fs.existsSync(serviceTargetPath)) {
+        fs.mkdirSync(serviceTargetPath, { recursive: true });
+      }
+      
+      fs.readdirSync(serviceSourcePath).forEach(file => {
+        const sourcePath = path.join(serviceSourcePath, file);
+        const targetPath = path.join(serviceTargetPath, file);
+        fs.copyFileSync(sourcePath, targetPath);
+      });
+      
+      this.success(`已复制 ${this.templateNameCamelCase} service 目录下的所有文件`);
     }
-    
-    fs.readdirSync(serviceSourcePath).forEach(file => {
-      const sourcePath = path.join(serviceSourcePath, file);
-      const targetPath = path.join(serviceTargetPath, file);
-      fs.copyFileSync(sourcePath, targetPath);
-    });
-    
-    this.success(`已复制 ${this.templateNameCamelCase} service 目录下的所有文件`);
 
     // 检查并执行 init.sql 文件
     const initSqlPath = path.join(templatePathFolder, 'init.sql');
