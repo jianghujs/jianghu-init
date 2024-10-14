@@ -69,6 +69,9 @@ const pageTypes = [
     value: 'component-crud-relate-table',
     name: 'component-crud - generate component from a relate table for targetPage',
   }, {
+    value: 'file-page',
+    name: 'file-page - generate file page from a table',
+  }, {
     value: 'test-page',
     name: 'test-page - generate test page from a table',
   }];
@@ -115,6 +118,8 @@ module.exports = class InitPageCommand extends CommandBase {
       await new InitPageDefault().run(process.cwd(), 'reset-password');
     } else if (pageType === 'record-history-page') {
       await new InitPageDefault().run(process.cwd(), 'record-history');
+    } else if (pageType === 'user-page-resource-page') {
+      await new InitPageDefault().run(process.cwd(), 'user-page-resource');
     } else {
       await new InitPageStatic().run(process.cwd(), pageTypes.find(o => o.value === pageType));
     }
