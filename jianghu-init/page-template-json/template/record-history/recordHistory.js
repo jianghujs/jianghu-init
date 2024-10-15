@@ -55,65 +55,57 @@ const content = {
     },
   ],
   "pageContent": [
-     {
-      tag: 'v-col',
-      attrs: { cols: 12, class: 'pa-0' },
+    {
+      tag: 'jh-table',
+      attrs: {},
+      colAttrs: { clos: 12 },
+      cardAttrs: { class: 'rounded-lg elevation-0' },
+      headActionList: [
+        { tag: 'v-spacer' },
+        {
+          tag: 'v-col',
+          attrs: { cols: '12', sm: '6', md: '2', class: 'pa-0' },
+          value: [
+            { tag: 'v-text-field', attrs: { prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true } },
+          ],
+        }
+      ],
+      headers: [
+        { text: "用户ID[登陆]", value: "userId", width: 120 },
+        { text: "用户名", value: "username", width: 140 },
+        { text: "用户类型", value: "userType", width: 120 },
+        { text: "用户状态", value: "userStatus", width: 120 },
+        { text: "初始密码", value: "clearTextPassword", width: 120 },
+        { text: "操作人", value: "operationByUser", width: 90 },
+        { text: "操作时间", value: "operationAt", width: 150 },
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 230, class: 'fixed', cellClass: 'fixed' },
+      ],
       value: [
+         /*html*/`
+         <template v-slot:item.operationAt="{ item }">
+         {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
+       </template>
+
+         `
+      ],
+      rowActionList: [
+        { text: `查看数据版本<span v-if="item.count > 0" style="color: red">({{item.count}})</span>`, icon: 'mdi-eye-outline', color: 'success', click: 'doUiAction("viewRecordHistory", item)' },
+        
+      ],
+    },
+  ],
+  "actionContent": [
+    {
+      tag: 'jh-drawer',
+      key: "historyDetail",
+      attrs: {},
+      title: '数据版本',
+      headSlot: [
+        { tag: 'v-spacer' }
+      ],
+      contentList: [
         /*html*/`
-        <div class="jh-page-body-container">
-        <!-- 页面主要内容 -->
-        <v-card class="rounded-lg">
-          <!-- 数据表格 >>>>>>>>>>>>> -->
-          <v-data-table
-            :headers="headers"
-            :items="tableData"
-            :search="searchInput"
-            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-            :items-per-page="20"
-            mobile-breakpoint="0"
-            :loading="isTableLoading"
-            :class="{'zebraLine': isTableZebraLineShown }"
-            checkbox-color="success"
-            fixed-header
-            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
-            <!-- 表格操作按钮 -->
-            <template v-slot:item.action="{ item }">
-              <span role="button" class="success--text font-weight-medium font-size-2 text-no-wrap" @click="doUiAction('viewRecordHistory', item)">
-                <v-icon size="14" class="success--text">mdi-eye-outline</v-icon>查看数据版本<span v-if="item.count > 0" style="color: red">({{item.count}})</span>
-              </span>
-            </template>
-            <!-- 操作时间 -->
-            <template v-slot:item.operationAt="{ item }">
-              {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
-            </template>
-            <!-- 没有数据 -->
-            <template v-slot:loading>
-              <div class="jh-no-data">数据加载中</div>
-            </template>
-            <template v-slot:no-data>
-              <div class="jh-no-data">暂无数据</div>
-            </template>
-            <template v-slot:no-results>
-              <div class="jh-no-data">暂无数据</div>
-            </template>
-            <!-- 表格分页 -->
-            <template v-slot:footer.page-text="pagination">
-              <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
-              <span class="ml-1">共{{ pagination.itemsLength }}条</span>
-            </template>
-          </v-data-table>
-          <!-- <<<<<<<<<<<<< 数据表格 -->
-        </v-card>
-  
-        <v-navigation-drawer v-model="isHistoryDetailDrawerShow" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-          <!-- 抽屉标题 -->
-          <v-row no-gutters>
-            <span class="text-h7 font-weight-bold pa-4">数据版本</span>
-          </v-row>
-          <v-divider class="jh-divider"></v-divider>
-  
-          <!-- 表格操作 -->
-          <v-data-table
+        <v-data-table
             fixed-header
             checkbox-color="success"
             :headers="headers"
@@ -153,19 +145,9 @@ const content = {
               <span class="ml-1">共{{ pagination.itemsLength }}条</span>
             </template>
           </v-data-table>
-          <!-- <<<<<<<<<<< 抽屉的表格主体 -->
-          <!-- 抽屉的关闭按钮 -->
-          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHistoryDetailDrawerShow = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-navigation-drawer>
-      </div>
         `
       ]
-    }
-  ],
-  "actionContent": [
-  
+    },
   ],
   "common": {
     data: {
@@ -292,7 +274,7 @@ const content = {
             }
             headers.push({text: key, value: key, width: 120});
           }
-          headers.push({text: '操作', value: 'action', align: 'left', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed'});
+          headers.push({text: '操作', value: 'action', align: 'left', sortable: false, width: 150, class: 'fixed', cellClass: 'fixed'});
           this.headers = headers;
         }
       },
@@ -361,7 +343,6 @@ const content = {
         this.restoreId = null;
       },
       //   --------------- <<<<<<<<<< 还原数据 uiAction  ---------------
-      dayjs: dayjs,
     }
   },
 }
