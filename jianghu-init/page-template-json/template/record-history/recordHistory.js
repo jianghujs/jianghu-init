@@ -193,7 +193,7 @@ const content = {
       // 历史数据详情相关变量
       currentRecordId: null,
       isDrawerTableLoading: true,
-      isHistoryDetailDrawerShow: false,
+      isHistoryDetailDrawerShown: false,
       recordHistoryDetailListBackend: [],
       recordHistoryDetailList: [],
       restoreId: null
@@ -286,7 +286,7 @@ const content = {
         this.currentRecordId = funObj.id;
       },
       async openRecordHistoryDetailDrawer() {
-        this.isHistoryDetailDrawerShow = true;
+        this.isHistoryDetailDrawerShown = true;
       },
   
       async doGetRecordHistoryDetail() {
