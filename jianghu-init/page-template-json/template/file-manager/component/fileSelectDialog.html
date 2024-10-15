@@ -1,0 +1,153 @@
+<script type="text/x-template" id="file-select-dialog">
+ <!-- 选择素材 -->
+<v-dialog v-model="isDialogShown" hide-overlay fullscreen transition="dialog-bottom-transition">
+  <v-card>
+    <v-toolbar
+        dark
+        width="100%"
+        style="background-color: #fff;"
+    >
+      <div class="black--text ml-2" style="font-size: 16px;">选择素材</div>
+      <v-spacer></v-spacer>
+      <v-toolbar-items>
+        <v-btn
+            text
+            @click="isDialogShown = false"
+        >
+          <v-icon class="black--text">mdi-close</v-icon>
+        </v-btn>
+      </v-toolbar-items>
+    </v-toolbar>
+    <v-divider style="border-color: #eff2f5;opacity:0.8;"></v-divider>
+    <file-browser
+      ref="fileBrowser"
+      v-if="isDialogShown"
+      @use-material="useMaterial($event)"
+      @close-material-picker="closeDialog"
+      :material-type="materialType"
+      :material-dir="material.dir"
+      :path="material.path"
+      use-file-btn
+      :page-id="pageId"
+      :operation-option="{delete: true, recycle: true, copy: true, renameFile: true}"
+    >
+      <template slot="importMaterial">
+        <import-material 
+          @close-material-picker="closeImportMaterialPicker" 
+          @use-material="useMaterial"
+          :material-type="materialType"
+          :page-id="pageId"
+          :material-target="material"
+        >
+        </import-material>
+      </template>
+    </file-browser>
+  </v-card>
+</v-dialog>
+</script>
+
+{% include 'component/fileBrowser/FileBrowser.html' %}
+{% include 'component/importMaterial/FileBrowser.html' %}
+<script>
+  Vue.component("file-select-dialog", {
+    template: "#file-select-dialog",
+    props: {
+      pageId: {
+        type: String,
+        default: 'allPage'
+      }
+    },
+    data() {
+      return {
+        isDialogShown: false,
+        isCopyMaterial: true,
+        materialType: 'image',
+        material: {
+          dir: "",
+          path: "/"
+        },
+        onUseMaterial: null
+      };
+    },
+    created() { 
+      window.selectMaterial = this.select;
+    },
+    methods: {
+      async useMaterial({path, dir}) {
+        let filename, downloadPath = null;
+
+        if (this.isCopyMaterial) {
+          const resultData = (await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'allPage',
+                actionId: 'copyMaterial',
+                actionData: {
+                  path,
+                  fromDir: dir || "/",
+                  toDir: this.material.dir || "/"
+                },
+              }
+            }
+          })).data.appData.resultData;
+          filename = resultData.filename;
+          downloadPath = resultData.downloadPath;
+        }
+
+        this.onUseMaterial && this.onUseMaterial({filename, downloadPath});
+        this.$emit('useMaterial', downloadPath);
+        this.isDialogShown = false;
+      },
+      openDialog() {
+        this.isDialogShown = true;
+      },
+      closeDialog() {
+        this.isDialogShown = false;
+      },
+      closeImportMaterialPicker() {
+        this.$refs.fileBrowser.closeImportMaterialPicker();
+      },
+
+      // 选择素材
+      // window.selectMaterial({
+      //   dir: this.materialDir,
+      //   materialType: 'video',
+      //   onUseMaterial: (material) => {
+      //     console.log('use', material)
+      //     this.$emit('input', material.downloadPath)
+      //   }
+      // })
+      select({ 
+        dir = '/', 
+        path = '/', 
+        materialType = 'image', 
+        isCopyMaterial = true, 
+        onUseMaterial
+      }) {
+        this.material.dir = dir;
+        this.material.path = path;
+        // dir如果不是/结尾，自动补上/
+        if (this.material.dir && this.material.dir[this.material.dir.length - 1] !== '/') {
+          this.material.dir += '/';
+        }
+        console.log('select material:', this.material);
+        this.materialType = materialType;
+        this.onUseMaterial = onUseMaterial;
+
+        this.isDialogShown = true;
+      },
+    },
+  });
+</script>
+<style>
+  .list {
+    max-height: 700px;
+    overflow-y: scroll;
+  }
+  .v-dialog--fullscreen .v-sheet {
+    height: auto;
+    position: relative;
+    background: #fff;
+    display: block;
+  }
+</style>

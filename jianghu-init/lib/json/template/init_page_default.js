@@ -79,7 +79,43 @@ module.exports = class InitPageDefault extends CommandBase {
       
       this.success(`已复制 ${this.templateNameCamelCase} service 目录下的所有文件`);
     }
-
+    // 复制 component 目录下的所有文件（如果存在）
+    const componentSourcePath = path.join(templatePathFolder, 'component');
+    if (fs.existsSync(componentSourcePath)) {
+      const componentTargetPath = path.join(targetPathFolder, 'view', 'component');
+      
+      if (!fs.existsSync(componentTargetPath)) {
+        fs.mkdirSync(componentTargetPath, { recursive: true });
+      }
+      
+      const copyRecursively = (src, dest) => {
+        const exists = fs.existsSync(src);
+        const stats = exists && fs.statSync(src);
+        const isDirectory = exists && stats.isDirectory();
+        if (isDirectory) {
+          if (!fs.existsSync(dest)) {
+            fs.mkdirSync(dest, { recursive: true });
+          }
+          fs.readdirSync(src).forEach(childItemName => {
+            copyRecursively(path.join(src, childItemName), path.join(dest, childItemName));
+          });
+        } else {
+          try {
+            fs.copyFileSync(src, dest);
+          } catch (error) {
+            if (error.code === 'EPERM') {
+              this.warning(`无法复制文件 ${src}：操作不被允许。可能是目标文件被占用或没有足够的权限。`);
+            } else {
+              this.error(`复制文件 ${src} 时发生错误：${error.message}`);
+            }
+          }
+        }
+      };
+      
+      copyRecursively(componentSourcePath, componentTargetPath);
+      
+      this.success(`已尝试复制 ${this.templateNameCamelCase} component 目录下的所有文件和文件夹`);
+    }
     // 检查并执行 init.sql 文件
     const initSqlPath = path.join(templatePathFolder, 'init.sql');
     

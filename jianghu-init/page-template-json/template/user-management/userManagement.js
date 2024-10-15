@@ -54,11 +54,11 @@ const content = {
       colAttrs: { clos: 12 },
       cardAttrs: { class: 'rounded-lg elevation-0' },
       headActionList: [
-        { tag: 'v-btn', value: '新增', attrs: { color: 'success', '@click': 'doUiAction("startCreateItem")' } },
+        { tag: 'v-btn', value: '新增', attrs: { small: true, color: 'success', '@click': 'doUiAction("startCreateItem")' } },
         { tag: 'v-spacer' },
         {
           tag: 'v-col',
-          attrs: { cols: '12', sm: '6', md: '4', class: 'pa-0' },
+          attrs: { cols: '12', sm: '6', md: '2', class: 'pa-0' },
           value: [
             { tag: 'v-text-field', attrs: { prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true } },
           ],

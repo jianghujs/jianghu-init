@@ -2,12 +2,12 @@ const fs = require('fs');
 const path = require('path');
 
 // 读取文件的路径
-const filePath = path.resolve(__dirname, '../jianghu-init/page-template-json/template/record-history/init.sql');
+const filePath = path.resolve(__dirname, '../jianghu-init/page-template-json/template/file-manager/init.sql');
 
 // 使用 fs.readFileSync 方法读取文件内容
 const sqlContent = fs.readFileSync(filePath, 'utf-8');
 // 定义正则表达式来匹配INSERT语句
-const regex = /INSERT INTO `_resource` \((.*?)\) SELECT (.*?) FROM DUAL/g;
+const regex = /INSERT INTO `_resource` \((.*?)\) (?:VALUES \((.*?)\)|SELECT (.*?) FROM DUAL)/g;
 
 const resourceList = [];
 
