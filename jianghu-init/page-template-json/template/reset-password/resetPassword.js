@@ -3,16 +3,21 @@ const content = {
   "pageId": "resetPassword",
   "table": "_user",
   "pageName": "修改密码",
-  "resourceList": [],
+  "resourceList": [
+    {
+      "actionId": "resetPassword",
+      "desc": "✅修改用户密码",
+      "resourceType": "service",
+      "resourceData": {
+        "service": "user",
+        "serviceFunction": "resetPassword"
+      }
+    }
+  ],
   "includeList": [],
   headContent: [
     { tag: 'jh-page-title', value: "修改密码", attrs: { cols: 12, sm: 6, md: 4 }, helpBtn: true, slot: [] },
     { tag: 'v-spacer' },
-    {
-      tag: 'jh-search',
-      value: [
-      ],
-    },
   ],
 
   "pageContent": [
@@ -45,16 +50,6 @@ const content = {
             </v-form>
           </v-card>
         </div>
-
-        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-        <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-        <iframe style="border: 0" :src="'/' + appInfo.appId + '/pageDoc#7.resetUserPassword.md'" width="100%" height="100%"></iframe>
-        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-navigation-drawer>
-      <!-- <<<<<<<<<<< 帮助页抽屉  -->
-
         `
       ]
     }
@@ -98,7 +93,7 @@ const content = {
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: '<=$ pageId $=>',
+              pageId: 'resetPassword',
               actionId: 'resetPassword',
               actionData: {
                 oldPassword: this.formData.oldPassword,

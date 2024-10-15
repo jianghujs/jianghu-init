@@ -3,7 +3,44 @@ const content = {
   "pageId": "recordHistory",
   "table": "_record_history",
   "pageName": "数据历史",
-  "resourceList": [],
+  "resourceList": [
+    {
+      "actionId": "selectOnUseItemListByTable",
+      "desc": "✅获取指定表的使用中的数据列表",
+      "resourceType": "service",
+      "resourceData": {
+        "service": "recordHistory",
+        "serviceFunction": "selectOnUseItemListByTable"
+      }
+    },
+    {
+      "actionId": "selectDeletedItemListByTable",
+      "desc": "✅获取指定表的已删除的数据列表",
+      "resourceType": "service",
+      "resourceData": {
+        "service": "recordHistory",
+        "serviceFunction": "selectDeletedItemListByTable"
+      }
+    },
+    {
+      "actionId": "selectItemList",
+      "desc": "✅获取数据历史表",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_record_history",
+        "operation": "select"
+      }
+    },
+    {
+      "actionId": "restoreRecordByRecordHistory",
+      "desc": "✅还原数据",
+      "resourceType": "service",
+      "resourceData": {
+        "service": "recordHistory",
+        "serviceFunction": "restoreRecordByRecordHistory"
+      }
+    }
+  ],
   "includeList": [
     "{% include 'common/jianghuJs/fixedTableHeightV4.html' %}"
   ],

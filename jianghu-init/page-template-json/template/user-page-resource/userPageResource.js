@@ -3,7 +3,116 @@ const content = {
   "pageId": "userPageResource",
   "table": "_user",
   "pageName": "权限规则",
-  "resourceList": [],
+  "resourceList": [
+    {
+      "actionId": "insertItemOfResource",
+      "desc": "✅权限规则-协议管理-插入信息",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_resource",
+        "operation": "jhInsert"
+      }
+    },
+    {
+      "actionId": "selectItemListOfResource",
+      "desc": "✅权限规则-协议管理-查询数据列表",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_resource",
+        "operation": "select"
+      }
+    },
+    {
+      "actionId": "updateItemOfResource",
+      "desc": "✅权限规则-协议管理-更新数据",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_resource",
+        "operation": "jhUpdate"
+      }
+    },
+    {
+      "actionId": "deleteItemOfResource",
+      "desc": "✅权限规则-协议管理-删除数据",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_resource",
+        "operation": "jhDelete"
+      }
+    },
+    {
+      "actionId": "insertItemOfPage",
+      "desc": "✅权限规则-页面管理-插入信息",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_page",
+        "operation": "jhInsert"
+      }
+    },
+    {
+      "actionId": "selectItemListOfPage",
+      "desc": "✅权限规则-页面管理-查询数据列表",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_page",
+        "operation": "select"
+      }
+    },
+    {
+      "actionId": "updateItemOfPage",
+      "desc": "✅权限规则-页面管理-更新数据",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_page",
+        "operation": "jhUpdate"
+      }
+    },
+    {
+      "actionId": "deleteItemOfPage",
+      "desc": "✅权限规则-页面管理-删除数据",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_page",
+        "operation": "jhDelete"
+      }
+    },
+    {
+      "actionId": "selectGroup",
+      "desc": "✅权限规则管理-查询群组",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_group",
+        "operation": "select"
+      }
+    },
+    {
+      "actionId": "selectRole",
+      "desc": "✅权限规则管理-查询角色",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_role",
+        "operation": "select"
+      }
+    },
+    {
+      "actionId": "selectResourceList",
+      "desc": "✅权限规则-查询协议列表",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_resource",
+        "operation": "select"
+      }
+    },
+    {
+      "actionId": "selectPageList",
+      "desc": "✅权限规则-查询页面列表",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_page",
+        "operation": "select"
+      }
+    }
+  ],
   "includeList": [
     `{% include 'common/jianghuJs/fixedTableHeightV4.html' %}`
   ],

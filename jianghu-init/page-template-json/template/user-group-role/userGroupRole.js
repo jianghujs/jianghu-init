@@ -3,7 +3,155 @@ const content = {
   "pageId": "userGroupRole",
   "table": "course",
   "pageName": "用户权限管理",
-  "resourceList": [],
+  "resourceList": [
+    {
+      "actionId": "selectItemList",
+      "desc": "✅权限管理页-查询已配置权限列表",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_user_group_role",
+        "operation": "select"
+      }
+    },
+    {
+      "actionId": "selectUser",
+      "desc": "✅权限管理页-查询用户",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_user",
+        "operation": "select"
+      }
+    },
+    {
+      "actionId": "selectGroup",
+      "desc": "✅权限管理页-查询群组",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_group",
+        "operation": "select"
+      }
+    },
+    {
+      "actionId": "insertItem",
+      "desc": "✅权限管理页-创建权限配置",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_user_group_role",
+        "operation": "jhInsert",
+        "whereCondition": ""
+      }
+    },
+    {
+      "actionId": "updateItem",
+      "desc": "✅权限管理页-更新权限配置",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_user_group_role",
+        "operation": "jhUpdate",
+        "whereParamsCondition": ".where(function() {this.where(whereParams)})"
+      }
+    },
+    {
+      "actionId": "deleteItem",
+      "desc": "✅权限管理页-删除权限配置",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_user_group_role",
+        "operation": "jhDelete",
+        "whereParamsCondition": ".where(function() {this.where(whereParams)})"
+      }
+    },
+    {
+      "actionId": "selectRole",
+      "desc": "✅权限管理页-查询角色",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_role",
+        "operation": "select"
+      }
+    },
+    {
+      "actionId": "insertUser",
+      "desc": "✅权限管理页-添加用户",
+      "resourceType": "service",
+      "resourceData": {
+        "service": "userManagement",
+        "serviceFunction": "addUser"
+      }
+    },
+    {
+      "actionId": "insertGroup",
+      "desc": "✅权限管理页-添加群组",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_group",
+        "operation": "jhInsert"
+      }
+    },
+    {
+      "actionId": "insertRole",
+      "desc": "✅权限管理页-添加角色",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_role",
+        "operation": "jhInsert"
+      }
+    },
+    {
+      "actionId": "deleteUser",
+      "desc": "✅权限管理页-删除用户",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_user",
+        "operation": "jhDelete"
+      }
+    },
+    {
+      "actionId": "deleteGroup",
+      "desc": "✅权限管理页-删除群组",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_group",
+        "operation": "jhDelete"
+      }
+    },
+    {
+      "actionId": "deleteRole",
+      "desc": "✅权限管理页-删除角色",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_role",
+        "operation": "jhDelete"
+      }
+    },
+    {
+      "actionId": "updateUser",
+      "desc": "✅权限管理页-更新用户",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_user",
+        "operation": "jhUpdate"
+      }
+    },
+    {
+      "actionId": "updateGroup",
+      "desc": "✅权限管理页-更新群组",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_group",
+        "operation": "jhUpdate"
+      }
+    },
+    {
+      "actionId": "updateRole",
+      "desc": "✅权限管理页-更新角色",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_role",
+        "operation": "jhUpdate"
+      }
+    }
+  ],
   "includeList": [],
   headContent: [
     

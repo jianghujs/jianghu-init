@@ -2,46 +2,42 @@ const content = {
   pageType: "jh-page", pageId: "userManagement", table: "_user", pageName: "用户管理",
   resourceList: [
     {
-      actionId: "selectItemList",
-      resourceType: "sql",
-      resourceHook: {},
-      desc: "✅用户管理-查询信息",
-      resourceData: {
-        table: "_user",
-        operation: "select"
+      "actionId": "selectItemList",
+      "desc": "✅用户管理-查询信息",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_user",
+        "operation": "select"
       }
     },
     {
-      actionId: "insertItem",
-      resourceType: "sql",
-      resourceHook: {},
-      desc: "✅用户管理-新增用户",
-      resourceData: {
-        service: "userManagement",
-        serviceFunction: "addUser"
+      "actionId": "insertItem",
+      "desc": "✅用户管理-查询信息",
+      "resourceType": "service",
+      "resourceData": {
+        "service": "userManagement",
+        "serviceFunction": "addUser"
       }
     },
     {
-      actionId: "resetUserPassword",
-      resourceType: "service",
-      resourceHook: {},
-      desc: "✅用户管理-修改密码",
-      resourceData: {
-        service: "userManagement",
-        serviceFunction: "resetUserPassword"
+      "actionId": "resetUserPassword",
+      "desc": "✅用户管理-修改密码",
+      "resourceType": "service",
+      "resourceData": {
+        "service": "userManagement",
+        "serviceFunction": "resetUserPassword"
       }
     },
     {
-      actionId: "updateItem",
-      resourceType: "sql",
-      resourceHook: {},
-      desc: "✅用户管理-更新用户",
-      resourceData: {
-        table: "_user",
-        operation: "jhUpdate"
+      "actionId": "updateItem",
+      "desc": "✅用户管理-更新用户",
+      "resourceType": "sql",
+      "resourceData": {
+        "table": "_user",
+        "operation": "jhUpdate"
       }
     }
-  ], // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
+  ],
   headContent: [
     { tag: 'jh-page-title', value: "用户管理", attrs: { cols: 12, sm: 6, md: 4 }, helpBtn: true, slot: [] },
     { tag: 'v-spacer' },
