@@ -109,7 +109,9 @@ module.exports = class InitPageCommand extends CommandBase {
     } else if (pageType === 'component-crud-relate-table') {
       await new InitComponentCrudRelateTable().run(process.cwd(), this.argv);
     } else if (pageType === 'manual-page') {
-      await new InitPageManual().run(process.cwd(), pageTypes.find(o => o.value === pageType));
+      await new InitPageDefault().run(process.cwd(), 'manual')
+    } else if (pageType === 'page-log') {
+      await new InitPageDefault().run(process.cwd(), 'page-log');
     } else if (pageType === 'user-management-page') {
       await new InitPageDefault().run(process.cwd(), 'user-management');
     } else if (pageType === 'user-group-role-page') {
