@@ -1,155 +1,134 @@
 'use strict';
-const yargs = require('yargs');
-const CommandBase = require('../../command_base.js');
-
-require('colors');
-const inquirer = require('inquirer');
-const fs = require('fs');
-const nunjucks = require('nunjucks');
-const _ = require('lodash');
 const path = require('path');
-const mixin = require('./mixin.js');
+const fs = require('fs');
+const CommandBase = require('../../command_base.js');
 const InitPage = require('../init_page.js');
 
-/**
- * 根据 table 定义生成 user-management 页面
- */
-module.exports = class InitPageDefault extends CommandBase {
+class InitPageDefault extends CommandBase {
+  async run(cwd, pageTypeObj) {
+    this.initialize(cwd, pageTypeObj);
+    await this.setupDatabase();
+    await this.copyTemplateFiles();
+    await this.renderAndExecuteContent();
+  }
 
-  async run(cwd, templateName) {
+  initialize(cwd, pageTypeObj) {
     this.cwd = cwd;
-    this.templateName = templateName;
-    // 小驼峰名称
-    this.templateNameCamelCase = this.templateName.replace(/-(\w)/g, (match, p1) => p1.toUpperCase());
+    this.templateName = pageTypeObj.pageId.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    this.pageId = pageTypeObj.pageId;
+    this.info(`初始化完成，当前 pageId: ${this.pageId}`);
+  }
 
-    // 检查当前目录是否是在项目中
+  async setupDatabase() {
     await this.checkPath();
-    // 初始化数据库连接
     this.dbSetting = this.readDbConfigFromFile();
-    // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
-
     await this.getKnex(this.dbSetting);
-    this.success('初始化数据库连接成功');
+    this.success(`数据库连接初始化成功，当前 pageId: ${this.pageId}`);
+  }
 
-    // 检查当前目录是否是在项目中
-    await this.checkPath();
+  async copyTemplateFiles() {
+    const templateDir = path.join(__dirname, '../../../page-template-json/template', this.templateName);
+    const targetDir = './app';
+
+    this.info(`开始复制模板文件，当前 pageId: ${this.pageId}`);
+    await this.copyFile(templateDir, targetDir, `${this.pageId}.js`, 'view/init-json/page');
+    await this.copyDirectory(templateDir, targetDir, 'service');
+    await this.copyDirectory(templateDir, targetDir, 'component', 'view/component');
+    this.success(`模板文件复制完成，当前 pageId: ${this.pageId}`);
+  }
+
+  async renderAndExecuteContent() {
+    this.info(`开始渲染和执行内容，当前 pageId: ${this.pageId}`);
     const content = await this.renderJson();
-    const jsConfig = eval(content);
-    
-    new InitPage().renderContent(jsConfig);
-    this.success(`已执行 InitPage().renderContent(jsConfig)`);
+    if (content) {
+      const jsConfig = eval(content);
+      new InitPage().renderContent(jsConfig);
+      this.success(`内容渲染完成，当前 pageId: ${this.pageId}`);
+    } else {
+      this.warning(`未找到内容，当前 pageId: ${this.pageId}`);
+    }
   }
 
   async renderJson() {
-    const templatePathFolder = `${path.join(__dirname, '../../../')}page-template-json/template/${this.templateName}`;
-    const targetPathFolder = `./app`;
+    const templateDir = path.join(__dirname, '../../../page-template-json/template', this.templateName);
+    const targetPath = path.join('./app', 'view', 'init-json', 'page', `${this.pageId}.js`);
 
-    // 复制 userManagement 文件
-    const sourcePath = path.join(templatePathFolder, `${this.templateNameCamelCase}.js`);
-    const targetPath = path.join(targetPathFolder, 'view', 'init-json', 'page', `${this.templateNameCamelCase}.js`);
+    await this.executeSqlFile(path.join(templateDir, 'init.sql'));
 
-    // 检查源文件是否存在
+    return fs.existsSync(targetPath) ? fs.readFileSync(targetPath, 'utf-8') : '';
+  }
+
+  async copyFile(sourceDir, targetDir, fileName, subDir = '') {
+    const sourcePath = path.join(sourceDir, fileName);
+    const targetPath = path.join(targetDir, subDir, fileName);
+
     if (!fs.existsSync(sourcePath)) {
-        this.warning(`源文件 ${sourcePath} 不存在`);
-        return ''; // 返回空字符串
+      this.warning(`源文件 ${sourcePath} 不存在，当前 pageId: ${this.pageId}`);
+      return;
     }
 
-    if (!fs.existsSync(path.dirname(targetPath))) {
-        fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-    }
-
+    await this.ensureDirectoryExistence(targetPath);
     fs.copyFileSync(sourcePath, targetPath);
-    this.success(`已复制 ${this.templateNameCamelCase}.js 文件`);
+    this.success(`已复制 ${fileName} 文件，当前 pageId: ${this.pageId}`);
+  }
 
-    // 复制 service 目录下的所有文件（如果存在）
-    const serviceSourcePath = path.join(templatePathFolder, 'service');
-    if (fs.existsSync(serviceSourcePath)) {
-      const serviceTargetPath = path.join(targetPathFolder, 'service');
-      
-      if (!fs.existsSync(serviceTargetPath)) {
-        fs.mkdirSync(serviceTargetPath, { recursive: true });
-      }
-      
-      fs.readdirSync(serviceSourcePath).forEach(file => {
-        const sourcePath = path.join(serviceSourcePath, file);
-        const targetPath = path.join(serviceTargetPath, file);
-        fs.copyFileSync(sourcePath, targetPath);
+  async copyDirectory(sourceDir, targetDir, dirName, targetSubDir = '') {
+    const sourcePath = path.join(sourceDir, dirName);
+    const targetPath = path.join(targetDir, targetSubDir || dirName);
+
+    if (!fs.existsSync(sourcePath)) {
+      this.warning(`源目录 ${sourcePath} 不存在，当前 pageId: ${this.pageId}`);
+      return;
+    }
+
+    await this.ensureDirectoryExistence(targetPath);
+    this.copyRecursively(sourcePath, targetPath);
+    this.success(`已复制 ${dirName} 目录下的所有文件和文件夹，当前 pageId: ${this.pageId}`);
+  }
+
+  copyRecursively(src, dest) {
+    if (fs.statSync(src).isDirectory()) {
+      fs.mkdirSync(dest, { recursive: true });
+      fs.readdirSync(src).forEach(childItemName => {
+        this.copyRecursively(path.join(src, childItemName), path.join(dest, childItemName));
       });
-      
-      this.success(`已复制 ${this.templateNameCamelCase} service 目录下的所有文件`);
-    }
-    // 复制 component 目录下的所有文件（如果存在）
-    const componentSourcePath = path.join(templatePathFolder, 'component');
-    if (fs.existsSync(componentSourcePath)) {
-      const componentTargetPath = path.join(targetPathFolder, 'view', 'component');
-      
-      if (!fs.existsSync(componentTargetPath)) {
-        fs.mkdirSync(componentTargetPath, { recursive: true });
-      }
-      
-      const copyRecursively = (src, dest) => {
-        const exists = fs.existsSync(src);
-        const stats = exists && fs.statSync(src);
-        const isDirectory = exists && stats.isDirectory();
-        if (isDirectory) {
-          if (!fs.existsSync(dest)) {
-            fs.mkdirSync(dest, { recursive: true });
-          }
-          fs.readdirSync(src).forEach(childItemName => {
-            copyRecursively(path.join(src, childItemName), path.join(dest, childItemName));
-          });
-        } else {
-          try {
-            fs.copyFileSync(src, dest);
-          } catch (error) {
-            if (error.code === 'EPERM') {
-              this.warning(`无法复制文件 ${src}：操作不被允许。可能是目标文件被占用或没有足够的权限。`);
-            } else {
-              this.error(`复制文件 ${src} 时发生错误：${error.message}`);
-            }
-          }
-        }
-      };
-      
-      copyRecursively(componentSourcePath, componentTargetPath);
-      
-      this.success(`已尝试复制 ${this.templateNameCamelCase} component 目录下的所有文件和文件夹`);
-    }
-    // 检查并执行 init.sql 文件
-    const initSqlPath = path.join(templatePathFolder, 'init.sql');
-    
-    if (fs.existsSync(initSqlPath)) {
-        let sql = fs.readFileSync(initSqlPath).toString();
-
-        if (sql) {
-            sql = sql.replace(/\{\{pageId}}/g, this.templateNameCamelCase);
-            for (const line of sql.split('\n')) {
-                if (!line) {
-                    continue;
-                }
-                if (line.startsWith('--')) {
-                    this.info(`正在执行 ${line}`);
-                } else {
-                    try {
-                        await this.knex.raw(line);
-                    } catch (error) {
-                        this.error(`执行 SQL 语句失败: ${line}, 错误: ${error.message}`);
-                    }
-                }
-            }
-            this.success('SQL 执行成功');
-            return true; // 返回成功标志
-        }
-    }
-
-    // 检查目标文件是否存在并返回内容
-    if (fs.existsSync(targetPath)) {
-        return fs.readFileSync(targetPath, 'utf-8');
     } else {
-        this.warning(`目标文件 ${targetPath} 不存在`);
-        return ''; // 返回空字符串
+      fs.copyFileSync(src, dest);
     }
   }
 
-};
+  async executeSqlFile(filePath) {
+    if (!fs.existsSync(filePath)) {
+      this.warning(`SQL文件 ${filePath} 不存在，当前 pageId: ${this.pageId}`);
+      return;
+    }
+
+    const sql = fs.readFileSync(filePath, 'utf-8')
+      .replace(/\{\{pageId}}/g, this.pageId);
+
+    for (const line of sql.split('\n')) {
+      if (line.trim() && !line.startsWith('--')) {
+        try {
+          await this.knex.raw(line);
+        } catch (error) {
+          this.error(`SQL执行失败: ${line}, 错误: ${error.message}，当前 pageId: ${this.pageId}`);
+        }
+      }
+    }
+    this.success(`SQL执行成功，当前 pageId: ${this.pageId}`);
+  }
+
+  async ensureDirectoryExistence(filePath) {
+    const dirname = path.dirname(filePath);
+    if (fs.existsSync(dirname)) return true;
+    await this.ensureDirectoryExistence(dirname);
+    fs.mkdirSync(dirname);
+  }
+
+  toCamelCase(str) {
+    return str.replace(/-(\w)/g, (_, c) => c.toUpperCase());
+  }
+}
+
+module.exports = InitPageDefault;

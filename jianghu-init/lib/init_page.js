@@ -8,7 +8,7 @@ const InitPageTestPage = require('./json/template/init_page_test_page');
 const InitComponentCrudRelateTable = require('./json/template/init_component_crud_relate_table');
 const InitPageStatic = require('./json/template/init_page_static');
 const InitPageManual = require('./json/template/init_page_manual');
-const InitPageDefault = require('./json/template/init_page_default');
+const InitPageStaticJson = require('./json/template/init_page_default');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 
@@ -33,7 +33,7 @@ const pageTypes = [
   }, {
     value: 'reset-password-page',
     name: 'reset-password-page - generate pages from reset-password',
-    pageId: 'resetUserPassword',
+    pageId: 'resetPassword',
     path: 'template/reset-password/',
   }, {
     value: 'record-history-page',
@@ -44,7 +44,7 @@ const pageTypes = [
     value: 'user-management-page',
     name: 'user-management-page - generate pages from user-management',
     pageId: 'userManagement',
-    path: 'user-management/',
+    path: 'template/user-management/',
   }, {
     value: 'user-group-role-page',
     name: 'user-group-role-page - generate pages from user-group-role',
@@ -67,12 +67,17 @@ const pageTypes = [
     path: 'template/page-log/',
   }, {
     value: 'component-crud-relate-table',
+    pageId: 'componentCrudRelateTable',
+    path: 'template/component-crud-relate-table/',
     name: 'component-crud - generate component from a relate table for targetPage',
   }, {
     value: 'file-manager-page',
+    pageId: 'fileManager',
+    path: 'template/file-manager/',
     name: 'file-manager-page - generate file manager page from a table',
   }, {
     value: 'test-page',
+    path: 'template/test/',
     name: 'test-page - generate test page from a table',
   }];
 
@@ -108,24 +113,8 @@ module.exports = class InitPageCommand extends CommandBase {
       await new InitPageTestPage().run(process.cwd(), this.argv);
     } else if (pageType === 'component-crud-relate-table') {
       await new InitComponentCrudRelateTable().run(process.cwd(), this.argv);
-    } else if (pageType === 'manual-page') {
-      await new InitPageDefault().run(process.cwd(), 'manual')
-    } else if (pageType === 'page-log') {
-      await new InitPageDefault().run(process.cwd(), 'page-log');
-    } else if (pageType === 'user-management-page') {
-      await new InitPageDefault().run(process.cwd(), 'user-management');
-    } else if (pageType === 'user-group-role-page') {
-      await new InitPageDefault().run(process.cwd(), 'user-group-role');
-    } else if (pageType === 'reset-password-page') {
-      await new InitPageDefault().run(process.cwd(), 'reset-password');
-    } else if (pageType === 'record-history-page') {
-      await new InitPageDefault().run(process.cwd(), 'record-history');
-    } else if (pageType === 'user-page-resource-page') {
-      await new InitPageDefault().run(process.cwd(), 'user-page-resource');
-    } else if (pageType === 'file-manager-page') {
-      await new InitPageDefault().run(process.cwd(), 'file-manager');
     } else {
-      await new InitPageStatic().run(process.cwd(), pageTypes.find(o => o.value === pageType));
+      await new InitPageStaticJson().run(process.cwd(), pageTypes.find(o => o.value === pageType));
     }
     this.success('jianghu init page is success');
   }
