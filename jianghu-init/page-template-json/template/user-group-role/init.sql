@@ -1,0 +1,1 @@
+INSERT INTO `_role` (`roleId`, `roleName`, `roleDesc`, `operation`, `operationByUserId`, `operationByUser`, `operationAt`) SELECT 'default', '普通角色', NULL, '', '', '', '' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `_role` WHERE `roleId` = 'default');

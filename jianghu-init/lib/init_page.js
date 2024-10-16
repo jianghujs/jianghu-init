@@ -53,7 +53,7 @@ const pageTypes = [
   }, {
     value: 'user-group-role-enterprise-page',
     name: 'user-group-role-enterprise-page - generate pages from user-group-role-enterprise',
-    pageId: 'userGroupRole',
+    pageId: 'userGroupRoleEnterprise',
     path: 'template/user-group-role-enterprise/',
   }, {
     value: 'user-page-resource-page',
