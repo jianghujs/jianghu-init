@@ -1,18 +1,25 @@
 'use strict';
-const yargs = require('yargs');
 const CommandBase = require('../../command_base');
 
 require('colors');
 const inquirer = require('inquirer');
 const fs = require('fs');
-const nunjucks = require('nunjucks');
 const _ = require('lodash');
 const path = require('path');
+const mixin = require('./mixin.js');
+const InitPage = require('../init_page');
+const InitComponent = require('../init_component');
+const nunjucks = require('nunjucks');
 
 /**
  * 根据 table 定义生成 crud 页面（3 table）
  */
 module.exports = class InitPage3Table extends CommandBase {
+
+  constructor() {
+    super();
+    Object.assign(this, mixin);
+  }
 
   async run(cwd, argv) {
     this.cwd = cwd;
@@ -120,25 +127,28 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
       return;
     }
     this.info(`开始生成 ${tableA} 的 CRUD`);
-
-    // 创建 view
     await this.createView({ tableA, nameA, primaryFieldA, tableB, nameB, primaryFieldB, tableMiddle });
     const tableView = `view01_${tableMiddle}`;
 
     // 生成 vue
-    const abMiddlePageId = `${_.camelCase(tableA)}ManagementOfOne${_.upperFirst(_.camelCase(tableB))}`;
-    const baMiddlePageId = `${_.camelCase(tableB)}ManagementOfOne${_.upperFirst(_.camelCase(tableA))}`;
-    if (await this.renderVue('3table/a_crud.html', _.camelCase(tableA) + 'Management', { tableA, nameA, tableB, nameB, table: tableA, tableMiddle, tableView, middlePageId: baMiddlePageId, primaryFieldA, primaryFieldB, title: nameA })) {
-      this.success(`生成 ${tableA} 的 vue 文件完成`);
-    }
-    if (await this.renderVue('3table/a_crud.html', _.camelCase(tableB) + 'Management', { tableA: tableB, nameA: nameB, tableB: tableA, nameB: nameA, table: tableB, tableMiddle, tableView, middlePageId: abMiddlePageId, primaryFieldB: primaryFieldA, primaryFieldA: primaryFieldB, title: nameB })) {
-      this.success(`生成 ${tableB} 的 vue 文件完成`);
-    }
-    if (await this.renderVue('3table/b_management_of_one_a.html', baMiddlePageId, { tableB, nameB, tableA, nameA, table: tableB, tableMiddle, tableView, primaryFieldA, primaryFieldB, title: abMiddlePageId })) {
-      this.success(`生成 ${tableMiddle} 的 vue 文件完成`);
-    }
-    if (await this.renderVue('3table/b_management_of_one_a.html', abMiddlePageId, { tableA: tableB, nameA: nameB, tableB: tableA, nameB: nameA, table: tableB, tableMiddle, tableView, primaryFieldB: primaryFieldA, primaryFieldA: primaryFieldB, title: baMiddlePageId })) {
-      this.success(`生成 ${tableMiddle} 的 vue 文件完成`);
+    const tableCamelCase = _.camelCase(tableA);
+    let pageId = `${tableCamelCase}Management`;
+    pageId = await this.readlineMethod(`【${tableA}】数据表pageId`, pageId);
+    let componentName = _.camelCase(tableB) + 'List';
+    for (const table of [ tableA, tableB ]) {
+      if (table === tableB) {
+        componentName = await this.readlineMethod(`【${tableB}】数据表组件名`, componentName);
+      }
+      // 生成 vue
+      const content = await this.renderJson(table, pageId, table === tableA ? 'jh-page' : 'jh-component', componentName, nameA, primaryFieldA, nameB, primaryFieldB, tableView, tableMiddle);
+      // eslint-disable-next-line no-eval
+      const jsConfig = eval(content, true);
+      if (table === tableA) {
+        await new InitPage().renderContent(jsConfig, true);
+      } else {
+        await new InitComponent().renderContent(jsConfig, true);
+      }
+      this.success(`生成 ${table} 的 vue 文件完成`);
     }
   }
 
@@ -265,7 +275,69 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
     fs.writeFileSync(filepath, result);
     return true;
   }
+  /**
+     * 生成 vue
+     */
+  async renderJson(table, pageId, pageType = 'jh-page', componentName = '', nameA, primaryFieldA, nameB, primaryFieldB, tableView, tableMiddle) {
+    const tableCamelCase = _.camelCase(table);
+    // 写文件前确认是否覆盖
+    const filepath = pageType === 'jh-page' ? `./app/view/init-json/page/${pageId}.js` : `./app/view/init-json/component/${componentName}.js`;
+    if (fs.existsSync(filepath)) {
+      const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
+      if (overwrite !== 'y' && overwrite !== 'Y') {
+        this.warning(`跳过 ${table} 表 CRUD 的生成`);
+        return false;
+      }
+    }
 
+    // 读取文件
+    const templatePath = `${path.join(__dirname, '../../../')}page-template-json/template`;
+    const fields = await this.getFields(table);
+    this.info('表字段', fields);
+    let updateDrawerComponent = '';
+    let jhTableRowAction = '';
+    if (pageType === 'jh-page') {
+      jhTableRowAction = `{ text: '${nameB}', icon: 'mdi-note-edit-outline', color: 'success', click: 'updateDrawerTab = 1; doUiAction("startUpdateItem", item)' },`;
+      updateDrawerComponent = `{ label: "${nameB}", type: "component", componentPath: "${componentName}", attrs: { ":${primaryFieldA}": "updateItem.${primaryFieldA}", class: "px-4" } }`;
+    }
+
+    const tplFile = pageType === 'jh-page' ? 'crud.js' : '3table/component.js';
+    // 使用正则表达式替换占位符
+    let listTemplate = fs.readFileSync(`${templatePath}/${tplFile}`, 'utf-8').toString();
+    // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
+    listTemplate = listTemplate.replace(/\/\/===\/\/\s?/g, '');
+
+    // 生成 vue
+    nunjucks.configure(`${templatePath}/crud.html.njk`, {
+      tags: {
+        blockStart: '<=%',
+        blockEnd: '%=>',
+        variableStart: '<=$',
+        variableEnd: '$=>',
+      },
+    });
+    const result = nunjucks.renderString(listTemplate, {
+      // 共有
+      pageType,
+      pageId,
+      table,
+      tableCamelCase,
+      fields,
+      nameA, primaryFieldA, nameB, primaryFieldB,
+      // page 独有
+      pageName: nameA,
+      // component 独有
+      componentName,
+      actionIdPrefix: componentName.split('/').pop(),
+      updateDrawerComponent,
+      jhTableRowAction,
+      tableView,
+      tableMiddle,
+    });
+
+    fs.writeFileSync(filepath, result);
+    return result;
+  }
   /**
    * 获取表字段
    */

@@ -243,7 +243,7 @@ const mixin = {
     let actionSpace = '';
     let pageContent = '';
     let actionContent = '';
-    let headContent = '[]';
+    let headContent = '';
     if (table) {
       let createItemListStr = '';
       let updateItemListStr = '';
@@ -426,7 +426,7 @@ const mixin = {
       ]
     }`;
     }
-    if (pageType !== 'jh-component') {
+    if (pageType === 'jh-mobile-page') {
       headContent = `
     { tag: 'jh-page-title', value: "${pageName}", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
 
@@ -439,6 +439,21 @@ const mixin = {
     },
     { tag: 'v-spacer'},
     { tag: 'jh-mode', title: '简单模式', icon: 'mdi-view-carousel-outline', model: 'viewMode', items: 'constantObj.viewModeList' },
+      `;
+    } else if (pageType === 'jh-page') {
+      headContent = `
+    { tag: 'jh-page-title', value: "${pageName}", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
+
+    { tag: 'v-spacer'},
+    { 
+      tag: 'jh-search', 
+      attrs: { cols: 12, sm: 6, md:8 },
+      value: [
+        { tag: "v-text-field", model: "keyword", colAttrs: { cols: 12, md: 3 }, attrs: {prefix: '标题', ':disabled': 'keywordFieldList.length == 0', ':placeholder': "!keywordFieldList.length ? '未设置搜索字段' : ''"} },
+        // { tag: "v-text-field", model: "serverSearchWhereLike.className", colAttrs: { cols: 12, md: 3 }, attrs: {prefix: '前缀'} },
+      ], 
+      searchBtn: true
+    },
       `;
     }
     return { pageContent, actionContent, tableStr, headContent };

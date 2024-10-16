@@ -8,6 +8,7 @@ const _ = require('lodash');
 const path = require('path');
 const mixin = require('./mixin.js');
 const InitPage = require('../init_page');
+const nunjucks = require('nunjucks');
 
 /**
  * 根据 table 定义生成 crud 页面
@@ -178,10 +179,29 @@ module.exports = class InitPage1TableFile extends CommandBase {
       previewFileType: '',`,
     };
 
-    // 使用正则表达式替换占位符
-    const fileContent = fs.readFileSync(`${templatePath}/crud-v2.js`, 'utf-8').toString();
-    const result = fileContent.replace(/\$\{(\w+)\}/g, (match, p1) => {
-      return replacements[p1] || ''; // 替换变量或保留原样
+
+    // 读取文件
+    let listTemplate = fs.readFileSync(`${templatePath}/1table-file.js`).toString();
+    // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
+    listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
+
+    // 生成 vue
+    nunjucks.configure(`${templatePath}/crud.html.njk`, {
+      tags: {
+        blockStart: '<=%',
+        blockEnd: '%=>',
+        variableStart: '<=$',
+        variableEnd: '$=>',
+      },
+    });
+    const result = nunjucks.renderString(listTemplate, {
+      pageType,
+      pageId,
+      pageName: pageId + '页面',
+      table,
+      tableCamelCase,
+      fields,
+      fileField: field,
     });
 
     fs.writeFileSync(filepath, result);

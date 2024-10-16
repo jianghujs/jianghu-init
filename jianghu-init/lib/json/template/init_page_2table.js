@@ -9,6 +9,7 @@ const path = require('path');
 const mixin = require('./mixin.js');
 const InitPage = require('../init_page');
 const InitComponent = require('../init_component');
+const nunjucks = require('nunjucks');
 
 /**
  * 根据 table 定义生成 crud 页面（3 table）
@@ -156,95 +157,46 @@ module.exports = class InitPage2Table extends CommandBase {
     const templatePath = `${path.join(__dirname, '../../../')}page-template-json/template`;
     const fields = await this.getFields(table);
     this.info('表字段', fields);
-    const resourceList = this.getResourceList(pageType, pageId, table, [], componentName, pageType === 'jh-page' ? primaryFieldA : primaryFieldB);
-    const {
-      pageName,
-      updateDrawerComponent,
-      componentPath,
-      propsStr,
-      createdStr,
-      methodItemStr,
-    } = this.buildParameters(pageType, nameA, nameB, componentName, primaryFieldA, primaryFieldB);
+    let updateDrawerComponent = '';
+    let jhTableRowAction = '';
+    if (pageType === 'jh-page') {
+      jhTableRowAction = `{ text: '${nameB}', icon: 'mdi-note-edit-outline', color: 'success', click: 'updateDrawerTab = 1; doUiAction("startUpdateItem", item)' },`;
+      updateDrawerComponent = `{ label: "${nameB}", type: "component", componentPath: "${componentName}", attrs: { ":${primaryFieldA}": "updateItem.${primaryFieldA}", class: "px-4" } }`;
+    }
 
-    const { pageContent, actionContent, tableStr, headContent } = this.getContent(
-      table,
-      pageId,
+    const tplFile = pageType === 'jh-page' ? 'crud.js' : '2table/component.js';
+    // 使用正则表达式替换占位符
+    let listTemplate = fs.readFileSync(`${templatePath}/${tplFile}`, 'utf-8').toString();
+    // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
+    listTemplate = listTemplate.replace(/\/\/===\/\/\s?/g, '');
+
+    // 生成 vue
+    nunjucks.configure(`${templatePath}/crud.html.njk`, {
+      tags: {
+        blockStart: '<=%',
+        blockEnd: '%=>',
+        variableStart: '<=$',
+        variableEnd: '$=>',
+      },
+    });
+    const result = nunjucks.renderString(listTemplate, {
+      // 共有
       pageType,
-      fields,
-      pageName,
-      updateDrawerComponent,
-      pageType === 'jh-page' ? primaryFieldA : primaryFieldB
-    );
-    const replacements = {
-      pageType,
       pageId,
-      pageName,
       table,
       tableCamelCase,
-      componentPath,
-      resourceList,
-      headContent,
-      pageContent,
-      actionContent,
-      propsStr,
-      createdStr,
-      methodItemStr,
-    };
-
-    // 使用正则表达式替换占位符
-    const fileContent = fs.readFileSync(`${templatePath}/crud.js`, 'utf-8').toString();
-    const result = fileContent.replace(/\$\{(\w+)\}/g, (match, p1) => {
-      return replacements[p1] || ''; // 替换变量或保留原样
+      fields,
+      nameA, primaryFieldA, nameB, primaryFieldB,
+      // page 独有
+      pageName: nameA,
+      // component 独有
+      componentName,
+      actionIdPrefix: componentName.split('/').pop(),
+      updateDrawerComponent,
+      jhTableRowAction,
     });
 
     fs.writeFileSync(filepath, result);
     return result;
-  }
-
-  buildParameters(pageType, nameA, nameB, componentName, primaryFieldA, primaryFieldB) {
-    let updateDrawerComponent = '';
-    let componentPath = '';
-    let pageName = '';
-    let propsStr = '';
-    let methodItemStr = '';
-    let createdStr = `
-    async created() {
-      await this.doUiAction('getTableData');
-    },`;
-    if (pageType === 'jh-page') {
-      pageName = nameA + '页面';
-      updateDrawerComponent = `{ label: "${nameB}", type: "component", componentPath: "${componentName}", attrs: { ':${primaryFieldA}': 'updateItem.${primaryFieldA}', class: 'px-4' } },`;
-    } else {
-      // 传递变量
-      propsStr = `props: { ${primaryFieldA}: { type: String, required: true } },`;
-      // 初始watch、生命周期
-      createdStr = `
-    watch: {
-      ${primaryFieldA}() {
-        this.serverSearchWhere['${primaryFieldA}'] = this.${primaryFieldA};
-        this.doUiAction('getTableData');
-      },
-    },
-    async created() {
-      this.serverSearchWhere['${primaryFieldA}'] = this.${primaryFieldA};
-      await this.doUiAction('getTableData');
-    },`;
-      componentPath = `componentPath: '${componentName}',`;
-      methodItemStr = `
-      async prepareCreateFormData() {
-        this.createItem = {
-          ${primaryFieldA}: this.${primaryFieldA},
-        };
-      },
-      `;
-    }
-    return {
-      pageName,
-      updateDrawerComponent,
-      componentPath,
-      propsStr,
-      createdStr,
-      methodItemStr,
-    };
   }
 };

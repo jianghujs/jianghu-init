@@ -8,6 +8,7 @@ const _ = require('lodash');
 const path = require('path');
 const mixin = require('./mixin.js');
 const InitPage = require('../init_page');
+const nunjucks = require('nunjucks');
 
 /**
  * 根据 table 定义生成 crud 页面
@@ -52,23 +53,22 @@ module.exports = class InitPage1Table extends CommandBase {
    */
   async generateCrud() {
     this.info('开始生成 CRUD');
-    const tables = await this.promptTables('请输入你要生成 CRUD 的 table', '');
-    if (!tables || !tables.length) {
+    const table = await this.promptTables('请输入你要生成 CRUD 的 table', '');
+    if (!table) {
       this.info('未选择 table，流程结束');
       return;
     }
-    for (const table of tables) {
-      this.info(`开始生成 ${table} 的 CRUD`);
-      const tableCamelCase = _.camelCase(table);
-      let pageId = `${tableCamelCase}Management`;
-      pageId = await this.readlineMethod(`【${table}】数据表pageId`, pageId);
-      // 生成 vue
-      const content = await this.renderJson(table, pageId);
-      // eslint-disable-next-line no-eval
-      const jsConfig = eval(content);
-      new InitPage().renderContent(jsConfig);
-      this.success(`生成 ${table} 的 vue 文件完成`);
-    }
+
+    this.info(`开始生成 ${table} 的 CRUD`);
+    const tableCamelCase = _.camelCase(table);
+    let pageId = `${tableCamelCase}Management`;
+    pageId = await this.readlineMethod(`【${table}】数据表pageId`, pageId);
+    // 生成 vue
+    const content = await this.renderJson(table, pageId);
+    // eslint-disable-next-line no-eval
+    const jsConfig = eval(content);
+    new InitPage().renderContent(jsConfig);
+    this.success(`生成 ${table} 的 vue 文件完成`);
   }
 
   /**
@@ -83,13 +83,13 @@ module.exports = class InitPage1Table extends CommandBase {
     });
     const tables = result.map(item => item.TABLE_NAME).filter(table => !table.startsWith('_'));
     const answer = await inquirer.prompt({
-      name: 'tables',
-      type: 'checkbox',
+      name: 'table',
+      type: 'list',
       message: '请选择你要生成 crud 的表',
       choices: tables,
       pageSize: 100,
     });
-    return answer.tables;
+    return answer.table;
   }
 
   /**
@@ -114,28 +114,38 @@ module.exports = class InitPage1Table extends CommandBase {
     const pageType = 'jh-page';
     const pageName = `${pageId}页面`;
     const resourceList = this.getResourceList(pageType, pageId, table, []);
-    const { pageContent, actionContent, tableStr, headContent } = this.getContent(table, pageId, pageType, fields, pageName);
+    const { pageContent, actionContent, tableStr, headContent } = this.getContentV2(table, pageId, pageType, fields, pageName);
     const replacements = {
       pageType,
       pageId,
       pageName: pageId + '页面',
       table,
       tableCamelCase,
-      resourceList,
-      headContent,
-      pageContent,
-      actionContent,
-      createdStr: `
-  async created() {
-    await this.doUiAction('getTableData');
-  },
-      `,
     };
 
     // 使用正则表达式替换占位符
-    const fileContent = fs.readFileSync(`${templatePath}/crud.js`, 'utf-8').toString();
-    const result = fileContent.replace(/\$\{(\w+)\}/g, (match, p1) => {
-      return replacements[p1] || ''; // 替换变量或保留原样
+    let listTemplate = fs.readFileSync(`${templatePath}/crud.js`, 'utf-8').toString();
+    // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
+    listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
+
+    // 生成 vue
+    nunjucks.configure(`${templatePath}/crud.html.njk`, {
+      tags: {
+        blockStart: '<=%',
+        blockEnd: '%=>',
+        variableStart: '<=$',
+        variableEnd: '$=>',
+      },
+    });
+    const result = nunjucks.renderString(listTemplate, {
+      pageType,
+      pageId,
+      pageName: pageId + '页面',
+      table,
+      resourceList,
+      headContent,
+      tableCamelCase,
+      fields,
     });
 
     fs.writeFileSync(filepath, result);
