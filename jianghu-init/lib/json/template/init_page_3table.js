@@ -130,6 +130,17 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
     await this.createView({ tableA, nameA, primaryFieldA, tableB, nameB, primaryFieldB, tableMiddle });
     const tableView = `view01_${tableMiddle}`;
 
+    for (const index of [ 0, 1 ]) {
+      if (index === 1) {
+        await this.makefile(tableB, nameB, primaryFieldB, tableA, nameA, primaryFieldA, tableView, tableMiddle);
+      } else {
+        await this.makefile(tableA, nameA, primaryFieldA, tableB, nameB, primaryFieldB, tableView, tableMiddle);
+      }
+
+    }
+  }
+
+  async makefile(tableA, nameA, primaryFieldA, tableB, nameB, primaryFieldB, tableView, tableMiddle) {
     // 生成 vue
     const tableCamelCase = _.camelCase(tableA);
     let pageId = `${tableCamelCase}Management`;
@@ -334,8 +345,8 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
       tableView,
       tableMiddle,
     });
-
-    fs.writeFileSync(filepath, result);
+    // 删除 result 以 /* eslint-disable */ 开头的 第一行
+    fs.writeFileSync(filepath, result.replace(/^\/\* eslint-disable \*\/\n/, ''));
     return result;
   }
   /**

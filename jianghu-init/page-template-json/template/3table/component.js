@@ -83,10 +83,10 @@ const content = {
               class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4 zebraLine px-4"
               checkbox-color="success" show-select item-key="studentId" v-model="allotTableSelected" @item-selected="tableItemSelected" @toggle-select-all="tableToggleSelectAll">
               <template v-slot:item.action="{ item }">
-                <span role="button" class="success--text font-weight-medium font-size-2"
+                <!-- <span role="button" class="success--text font-weight-medium font-size-2"
                   @click="doUiAction('buildRelation', item)">
                   <v-icon size="16" class="success--text">mdi-plus-box-outline</v-icon>新增
-                </span>
+                </span> -->
               </template>
               <!-- 没有数据 -->
               <template v-slot:loading>
