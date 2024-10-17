@@ -8,6 +8,7 @@ const fs = require('fs');
 const nunjucks = require('nunjucks');
 const _ = require('lodash');
 const path = require('path');
+const InitComponent = require('../init_component');
 
 /**
  * 根据 table 定义生成 crud 页面
@@ -47,51 +48,53 @@ module.exports = class InitPage1TableFile extends CommandBase {
    */
   async generateCrud() {
     this.info('开始生成 CRUD');
-    const tables = await this.promptTables('请输入你要生成 Component-CRUD 的 table', '');
-    if (!tables || !tables.length) {
+    const table = await this.promptTables('请输入你要生成 Component-CRUD 的 table', '');
+    if (!table) {
       this.info('未选择 table，流程结束');
       return;
     }
-    for (const table of tables) {
-      this.info(`开始生成 ${table} 的 CRUD`);
-      const tableCamelCase = _.camelCase(table);
-      const pageId = await this.readlineMethod('主页面Id', 'xxxxManagement');
-      const componentId = await this.readlineMethod('组件名', 'xxxx');
-      const relateId = await this.readlineMethod('主页面与数据表关联Id', 'xxxxId');
-      const relateIdOfCamel = _.camelCase(relateId);
-      const relateIdOfKebab = _.kebabCase(relateId);
+    
+    this.info(`开始生成 ${table} 的 CRUD`);
+    const tableCamelCase = _.camelCase(table);
+    const pageId = await this.readlineMethod('主页面Id', 'xxxxManagement');
+    const componentId = await this.readlineMethod('组件名', 'xxxx');
+    const relateId = await this.readlineMethod('主页面与数据表关联Id', 'xxxxId');
+    const relateIdOfCamel = _.camelCase(relateId);
+    const relateIdOfKebab = _.kebabCase(relateId);
 
-      // 生成 vue
-      if (await this.renderVue(table, pageId, componentId, relateId)) {
-        this.success(`生成 ${table} 的 vue 文件完成`);
-        this.success(`页面引入组件: {% include 'component/${pageId}-${componentId}.html' %}`);
-        this.success(`页面使用组件:
-          <!-- ${componentId}组件抽屉 -->
-          <v-navigation-drawer v-if="${componentId}DrawerShown" v-model="${componentId}DrawerShown" :permanent="${componentId}DrawerShown" fixed temporary right width="80%" class="elevation-24">
-            <v-row no-gutters>
-              <span class="text-h7 font-weight-bold pa-4">{{${componentId}ComponentItem.xxx}}--${componentId}列表</span>
-            </v-row>
-            <v-divider class="jh-divider"></v-divider>
-            <${pageId}-${componentId} :${relateIdOfKebab}="${componentId}ComponentItem.${relateId}"/>
-            <!-- 抽屉关闭按钮 -->
-            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="${componentId}DrawerShown = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-navigation-drawer>
+    // 生成 vue
+    const content = await this.renderJson(table, pageId, componentId, relateId);
+    this.success(`生成 ${table} 的 vue 文件完成`);
+    this.success(`页面引入组件: {% include 'component/${pageId}-${componentId}.html' %}`);
+    this.success(`页面使用组件:
+      <!-- json 引入 -->
+      { label: "${table}", type: "component", componentPath: "${componentId}", attrs: { ":${relateId}": "updateItem.${relateId}", class: "px-4" } }
+      <!-- 页面引入 -->
+      <!-- ${componentId}组件抽屉 -->
+      <v-navigation-drawer v-if="${componentId}DrawerShown" v-model="${componentId}DrawerShown" :permanent="${componentId}DrawerShown" fixed temporary right width="80%" class="elevation-24">
+        <v-row no-gutters>
+          <span class="text-h7 font-weight-bold pa-4">{{${componentId}ComponentItem.xxx}}--${componentId}列表</span>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <${pageId}-${componentId} :${relateIdOfKebab}="${componentId}ComponentItem.${relateId}"/>
+        <!-- 抽屉关闭按钮 -->
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="${componentId}DrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
 
-          // vue data 新增
-          ${componentId}DrawerShown: false,
-          ${componentId}ComponentItem: {},
+      // vue data 新增
+      ${componentId}DrawerShown: false,
+      ${componentId}ComponentItem: {},
 
-          // 添加打开抽屉代码
-          @click="() => { ${componentId}ComponentItem=item; ${componentId}DrawerShown=true; }"
-        `);
-        // 数据库
-        this.info(`开始生成 ${table} 的相关数据`);
-        await this.modifyTable(table, pageId, componentId);
-        this.success(`生成 ${table} 的相关数据完成`);
-      }
-    }
+      // 添加打开抽屉代码
+      @click="() => { ${componentId}ComponentItem=item; ${componentId}DrawerShown=true; }"
+    `);
+
+    // eslint-disable-next-line no-eval
+    const jsConfig = eval(content, true);
+    await new InitComponent().renderContent(jsConfig, true);
+    this.success(`生成 ${table} 的相关数据完成`);
   }
 
   async modifyTable(table, pageId, componentId) {
@@ -131,16 +134,64 @@ module.exports = class InitPage1TableFile extends CommandBase {
     });
     const tables = result.map(item => item.TABLE_NAME).filter(table => !table.startsWith('_'));
     const answer = await inquirer.prompt({
-      name: 'tables',
-      type: 'checkbox',
+      name: 'table',
+      type: 'list',
       message: '请选择你要生成 crud 的表',
       choices: tables,
       pageSize: 100,
     });
-    console.log(answer);
-    return answer.tables;
+    return answer.table;
   }
 
+
+  /**
+   * 生成 vue
+   */
+  async renderJson(table, pageId, componentName, relateId) {
+    const tableCamelCase = _.camelCase(table);
+    // 写文件前确认是否覆盖
+    const filepath = `./app/view/init-json/component/${componentName}.js`;
+    if (fs.existsSync(filepath)) {
+      const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
+      if (overwrite !== 'y' && overwrite !== 'Y') {
+        this.warning(`跳过 ${table} 表 CRUD 的生成`);
+        return false;
+      }
+    }
+
+    // 读取文件
+    const templatePath = `${path.join(__dirname, '../../../')}page-template-json/template`;
+    const fields = await this.getFields(table);
+    this.info('表字段', fields);
+    // 使用正则表达式替换占位符
+    let listTemplate = fs.readFileSync(`${templatePath}/1table-component/component.js`, 'utf-8').toString();
+    // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
+    listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
+
+    // 生成 vue
+    nunjucks.configure(`${templatePath}/crud.html.njk`, {
+      tags: {
+        blockStart: '<=%',
+        blockEnd: '%=>',
+        variableStart: '<=$',
+        variableEnd: '$=>',
+      },
+    });
+    const result = nunjucks.renderString(listTemplate, {
+      pageType: 'jh-component',
+      pageId,
+      pageName: pageId + '页面',
+      table,
+      tableCamelCase,
+      fields,
+      componentName,
+      actionIdPrefix: componentName.split('/').pop(),
+      primaryFieldA: relateId,
+    });
+
+    fs.writeFileSync(filepath, result.replace(/^\/\* eslint-disable \*\/\n/, ''));
+    return result;
+  }
   /**
    * 生成 vue
    */

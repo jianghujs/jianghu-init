@@ -196,7 +196,7 @@ module.exports = class InitPage2Table extends CommandBase {
       jhTableRowAction,
     });
 
-    fs.writeFileSync(filepath, result);
+    fs.writeFileSync(filepath, result.replace(/^\/\* eslint-disable \*\/\n/, ''));
     return result;
   }
 };

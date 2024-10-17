@@ -226,67 +226,6 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
   }
 
   /**
-   * 生成 vue
-   */
-  async renderVue(template, pageId, renderContext = {}) {
-  // 写文件前确认是否覆盖
-    const filepath = `./app/view/page/${pageId}.html`;
-    if (fs.existsSync(filepath)) {
-      const overwrite = await this.readlineMethod(`文件 ${filepath} 已经存在，是否覆盖?(y/N)`, 'n');
-      if (overwrite !== 'y' && overwrite !== 'Y') {
-        this.warning(`跳过 ${filepath} 的生成`);
-        return false;
-      }
-    }
-
-    // 读取文件
-    const templatePath = `${path.join(__dirname, '../../')}page-template`;
-    let listTemplate = fs.readFileSync(`${templatePath}/${template}`).toString();
-    // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
-    listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
-
-    // 生成 vue
-    nunjucks.configure(`${templatePath}/${template}`, {
-      tags: {
-        blockStart: '<=%',
-        blockEnd: '%=>',
-        variableStart: '<=$',
-        variableEnd: '$=>',
-      },
-    });
-    const context = {
-      pageId,
-    };
-    for (const key of Object.keys(renderContext)) {
-      const value = renderContext[key];
-      context[key] = value;
-      context[key + 'CamelCase'] = _.camelCase(value);
-      if (key.startsWith('table')) {
-        context[key + 'Fields'] = await this.getFields(value);
-      }
-    }
-    // console.log('context', context);
-    let result = nunjucks.renderString(listTemplate, context);
-
-    // render 的 view 中会包含一些 sql，提取出来执行
-    const groups = /<!--SQL START([\s\S]*)SQL END!-->/.exec(result);
-    if (groups && groups.length) {
-      this.info('渲染页面中包含 sql，执行中..');
-      const lines = result.split('\n');
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line.startsWith('INSERT')) {
-          await this.knex.schema.raw(line);
-          console.log(`执行 SQL:\n${line}`);
-        }
-      }
-      result = result.replace(/<!--SQL START([\s\S]*)SQL END!-->/, '');
-    }
-
-    fs.writeFileSync(filepath, result);
-    return true;
-  }
-  /**
      * 生成 vue
      */
   async renderJson(table, pageId, pageType = 'jh-page', componentName = '', nameA, primaryFieldA, nameB, primaryFieldB, tableView, tableMiddle) {

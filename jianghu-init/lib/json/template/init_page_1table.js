@@ -148,7 +148,7 @@ module.exports = class InitPage1Table extends CommandBase {
       fields,
     });
 
-    fs.writeFileSync(filepath, result);
+    fs.writeFileSync(filepath, result.replace(/^\/\* eslint-disable \*\/\n/, ''));
     return result;
   }
 
