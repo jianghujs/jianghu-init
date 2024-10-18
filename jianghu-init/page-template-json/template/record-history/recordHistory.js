@@ -1,111 +1,96 @@
+/* eslint-disable */
 const content = {
-  "pageType": "jh-page",
-  "pageId": "recordHistory",
-  "table": "_record_history",
-  "pageName": "数据历史",
-  "resourceList": [
+  pageType: "jh-page", pageId: "recordHistoryManagement", table: '_user', pageName: "数据历史", version: 'v2',
+  resourceList: [
     {
-      "actionId": "selectOnUseItemListByTable",
-      "desc": "✅获取指定表的使用中的数据列表",
-      "resourceType": "service",
-      "resourceData": {
-        "service": "recordHistory",
-        "serviceFunction": "selectOnUseItemListByTable"
-      }
+      actionId: "selectOnUseItemListByTable",
+      resourceType: "service",
+      desc: "✅获取指定表的使用中的数据列表",
+      resourceData: {service: "recordHistory", serviceFunction: "selectOnUseItemListByTable"}
     },
     {
-      "actionId": "selectDeletedItemListByTable",
-      "desc": "✅获取指定表的已删除的数据列表",
-      "resourceType": "service",
-      "resourceData": {
-        "service": "recordHistory",
-        "serviceFunction": "selectDeletedItemListByTable"
-      }
+      actionId: "selectDeletedItemListByTable",
+      resourceType: "service",
+      desc: "✅获取指定表的已删除的数据列表",
+      resourceData: {service: "recordHistory", serviceFunction: "selectDeletedItemListByTable"}
     },
     {
-      "actionId": "selectItemList",
-      "desc": "✅获取数据历史表",
-      "resourceType": "sql",
-      "resourceData": {
-        "table": "_record_history",
-        "operation": "select"
-      }
+      actionId: "selectItemList",
+      resourceType: "sql",
+      desc: "✅获取数据历史表",
+      resourceData: {table: "_record_history", operation: "select"}
     },
     {
-      "actionId": "restoreRecordByRecordHistory",
-      "desc": "✅还原数据",
-      "resourceType": "service",
-      "resourceData": {
-        "service": "recordHistory",
-        "serviceFunction": "restoreRecordByRecordHistory"
-      }
+      actionId: "restoreRecordByRecordHistory",
+      resourceType: "service",
+      desc: "✅还原数据",
+      resourceData: {service: "recordHistory", serviceFunction: "restoreRecordByRecordHistory"}
     }
-  ],
-  "includeList": [
-    "{% include 'common/jianghuJs/fixedTableHeightV4.html' %}"
-  ],
+  ], // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
   headContent: [
-    { tag: 'jh-page-title', value: "数据历史", attrs: { cols: 12, sm: 6, md: 4 }, helpBtn: true, slot: [] },
+    { tag: 'jh-page-title', value: "数据历史", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
     { tag: 'v-spacer' },
     {
       tag: 'jh-search',
       value: [
-
+        /**
+         * <v-col cols="12" xs="12" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-sm-2">
+              <v-select v-model="serverSearchInput.table" color="success" prefix="数据表：" class="jh-v-input bg-white" :items="constantObj.table" dense filled single-line hide-details></v-select>
+            </v-col>
+            <v-col cols="12" xs="12" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
+              <v-select v-model="serverSearchInput.dataType" color="success" prefix="数据类型：" class="jh-v-input bg-white" :items="constantObj.dataType" dense filled single-line hide-details></v-select>
+            </v-col>
+            <div class="jh-backend-search-btn">
+              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </div>
+         */
+        { tag: 'v-select', model: 'serverSearchInput.table', attrs: { prefix: '数据表：', class: 'jh-v-input bg-white', ':items': 'constantObj.table' } },
+        { tag: 'v-select', model: 'serverSearchInput.dataType', attrs: { prefix: '数据类型：', class: 'jh-v-input bg-white', ':items': 'constantObj.dataType' } },
       ],
-    },
+      searchBtn: true,
+    }
   ],
-  "pageContent": [
+  pageContent: [
     {
       tag: 'jh-table',
-      attrs: {},
+      attrs: {  },
       colAttrs: { clos: 12 },
       cardAttrs: { class: 'rounded-lg elevation-0' },
       headActionList: [
         { tag: 'v-spacer' },
+        // 默认筛选
         {
           tag: 'v-col',
-          attrs: { cols: '12', sm: '6', md: '2', class: 'pa-0' },
+          attrs: { cols: '12', sm: '6', md: '3', xs: 8, class: 'pa-0' },
           value: [
-            { tag: 'v-text-field', attrs: { prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true } },
+            { tag: 'v-text-field', attrs: {prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true} },
           ],
         }
       ],
       headers: [
-        { text: "用户ID[登陆]", value: "userId", width: 120 },
-        { text: "用户名", value: "username", width: 140 },
-        { text: "用户类型", value: "userType", width: 120 },
-        { text: "用户状态", value: "userStatus", width: 120 },
-        { text: "初始密码", value: "clearTextPassword", width: 120 },
-        { text: "操作人", value: "operationByUser", width: 90 },
-        { text: "操作时间", value: "operationAt", width: 150 },
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 230, class: 'fixed', cellClass: 'fixed' },
       ],
       value: [
-         /*html*/`
-         <template v-slot:item.operationAt="{ item }">
-         {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
-       </template>
-
-         `
+        // vuetify table custom slot
       ],
       rowActionList: [
-        { text: `查看数据版本<span v-if="item.count > 0" style="color: red">({{item.count}})</span>`, icon: 'mdi-eye-outline', color: 'success', click: 'doUiAction("viewRecordHistory", item)' },
-        
+        { text: '查看数据版本<span v-if="item.count > 0" class="success--text">({{item.count}})</span>', icon: 'mdi-eye-outline', color: 'success', click: 'doUiAction("viewRecordHistory", item)' },
       ],
-    },
+    }
   ],
-  "actionContent": [
+  actionContent: [
     {
       tag: 'jh-drawer',
-      key: "historyDetail",
-      attrs: {},
-      title: '数据版本',
-      headSlot: [
-        { tag: 'v-spacer' }
-      ],
+      key: 'historyDetail',
+      title: '数据历史详情',
       contentList: [
-        /*html*/`
-        <v-data-table
+        {
+          tag: 'div',
+          attrs: { class: 'pa-4' },
+          value: `
+          <v-data-table
+            :search="searchInputDrawer"
             fixed-header
             checkbox-color="success"
             :headers="headers"
@@ -113,23 +98,22 @@ const content = {
             :items="recordHistoryDetailList"
             item-key="classId"
             :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-            :class="{'zebraLine': isTableZebraLineShown }"
-            :items-per-page="-1"
+            :items-per-page="20"
             :data-bottom="-100"
             mobile-breakpoint="0"
-            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4 zebraLine"
           >
             <!-- 表格操作按钮 -->
             <template v-slot:item.action="{ item }">
               <span role="button" class="success--text font-weight-medium font-size-2 text-no-wrap" @click="doUiAction('restoreRecordByRecordHistory', item)">
-                <v-icon size="14" class="success--text">mdi-history</v-icon>还原数据
+                <v-icon size="16" class="success--text">mdi-history</v-icon>还原数据
               </span>
             </template>
             <!-- 操作时间 -->
             <template v-slot:item.operationAt="{ item }">
               {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
             </template>
-            <!-- 没有数据 -->
+            <!--没有数据-->
             <template v-slot:loading>
               <div class="jh-no-data">数据加载中</div>
             </template>
@@ -145,26 +129,25 @@ const content = {
               <span class="ml-1">共{{ pagination.itemsLength }}条</span>
             </template>
           </v-data-table>
-        `
+          `
+        }
       ]
-    },
+    }
   ],
-  "common": {
+  includeList: [], // { type: < js | css | html | vueComponent >, path: ''}
+  common: { 
+    
     data: {
-
-      breadcrumbs: [
-        {text: '首页', disabled: true,},
-        {text: '用户管理', disabled: true,}
-      ],
-      isHelpPageDrawerShown: false,
-      // 页面变量
-      isTableZebraLineShown: true,
-      // 表格相关数据
       validationRules: {
         requireRules: [
-          v => !!v || 'This is required',
+          v => !!v || '必填',
         ],
       },
+      serverSearchWhereLike: { className: '' }, // 服务端like查询
+      serverSearchWhere: { }, // 服务端查询
+      serverSearchWhereIn: { }, // 服务端 in 查询
+      filterMap: {}, // 结果筛选条件
+
       // 可操作数据表
       constantObj: {
         table: ["_user"],
@@ -179,62 +162,55 @@ const content = {
       },
       recordHistoryActionId: null,
       currentTable: null,
-  
-      searchInput: null,
-      isTableLoading: false,
-      tableData: [],
+
       defaultHeaders: [
-        {text: "数据ID", value: "id", width: 120},
+        {text: "数据ID", value: "id", width: 80},
         {text: "操作类型", value: "operation", width: 120},
-        {text: "操作人", value: "operationByUser", width: 90},
-        {text: "操作时间", value: "operationAt", width: 150},
+        {text: "操作人", value: "operationByUser", width: 120},
+        {text: "操作时间", value: "operationAt", width: 180},
       ],
       headers: [],
       // 历史数据详情相关变量
       currentRecordId: null,
       isDrawerTableLoading: true,
-      isHistoryDetailDrawerShown: false,
+      isHistoryDetailDrawerShow: false,
       recordHistoryDetailListBackend: [],
       recordHistoryDetailList: [],
-      restoreId: null
+      restoreId: null,
+      searchInputDrawer: null
     },
+    dataExpression: {
+      isMobile: 'window.innerWidth < 500'
+    }, // data 表达式
     watch: {},
-    async created() {
-      this.doUiAction('getTableData')
-    },
-    methods: {
-      async doUiAction(uiActionId, uiActionData) {
-        switch (uiActionId) {
-          case 'getTableData':
-            await this.prepareGetTableData();
-            await this.getTableData();
-            await this.computeHeader();
-            break;
-          case 'viewRecordHistory':
-            await this.prepareRecordHistoryItem(uiActionData);
-            await this.openRecordHistoryDetailDrawer();
-            await this.doGetRecordHistoryDetail();
-            await this.decodeRecordHistoryDetail();
-            break;
-          case 'restoreRecordByRecordHistory':
-            await this.prepareRestoreItem(uiActionData);
-            await this.doRestoreRecordByRecordHistory();
-            await this.doGetRecordHistoryDetail();
-            await this.decodeRecordHistoryDetail();
-  
-            await this.prepareGetTableData();
-            await this.getTableData();
-            await this.computeHeader();
-            break;
-          default:
-            console.error("[doUiAction] uiActionId not find", {uiActionId});
-            break;
+    computed: {
+      tableDataComputed() {
+        if(this.filterMap) {
+          return this.tableData.filter(row => {
+            for (const key in this.filterMap) {
+              if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+                return false;
+              }
+            }
+            return true;
+          });
+        } else {
+          return this.tableData;
         }
       },
+    },
+    async created() {
+      this.doUiAction('initTableData');
+    },
+    doUiAction: {
+      initTableData: ['doUiAction.getTableData', 'setSearchSummary', 'computeHeader'],
+      viewRecordHistory: ['prepareRecordHistoryItem', 'doUiAction.viewHistoryDetail', 'doGetRecordHistoryDetail', 'decodeRecordHistoryDetail'],
+      restoreRecordByRecordHistory: ['prepareRestoreItem', 'doRestoreRecordByRecordHistory', 'doGetRecordHistoryDetail', 'decodeRecordHistoryDetail', 'prepareGetTableData', 'doUiAction.initTableData', 'computeHeader'],
+    }, // 额外uiAction { [key]: [action1, action2]}
+    methods: {
       //   --------------- 获取数据 uiAction >>>>>>>>>>  ---------------
-      async openTableLoading() {
-      },
-      async prepareGetTableData() {
+      prepareTableParams() {
+        // TODO 增加自定义复杂判断条件
         const backendSearchData = _.pickBy(this.serverSearchInput, value => !!value && value !== '全部');
         if (backendSearchData.dataType === 'onUse') {
           this.recordHistoryActionId = 'selectOnUseItemListByTable';
@@ -246,23 +222,29 @@ const content = {
       },
       async getTableData() {
         this.isTableLoading = true;
-        const rows = (await window.jianghuAxios({
+        const result = await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'recordHistory',
+              pageId: 'recordHistoryManagement',
               actionId: this.recordHistoryActionId,
               actionData: {
                 table: this.currentTable
               }
             }
           }
-        })).data.appData.resultData.rows;
-  
-        rows.forEach(row => {
-          row.operationAt = window.dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss');
-        })
-        this.tableData = rows;
+        });
+        this.tableDataFromBackend = result.data.appData.resultData.rows;
         this.isTableLoading = false;
+      },
+      setSearchSummary(){
+        const conditions = [];
+        if (this.serverSearchInput.table) {
+          conditions.push(`数据表为【${getDisplayText({displayObj: this.constantObj.table, displayValue: this.serverSearchInput.table})}】`);
+        }
+        if (this.serverSearchInput.dataType) {
+          conditions.push(`数据类型为【${getDisplayText({displayObj: this.constantObj.dataType, displayValue: this.serverSearchInput.dataType})}】`);
+        }
+        this.searchSummary = conditions.length > 0  ? `${conditions.join('，')}，共${this.tableData.length}条记录` : `共${this.tableData.length}条记录`;
       },
       computeHeader() {
         if (this.tableData.length > 0) {
@@ -274,7 +256,7 @@ const content = {
             }
             headers.push({text: key, value: key, width: 120});
           }
-          headers.push({text: '操作', value: 'action', align: 'left', sortable: false, width: 150, class: 'fixed', cellClass: 'fixed'});
+          headers.push({text: '操作', value: 'action', align: 'left', sortable: false, width: 140, class: 'fixed', cellClass: 'fixed'});
           this.headers = headers;
         }
       },
@@ -285,16 +267,13 @@ const content = {
         this.recordHistoryDetailList = [];
         this.currentRecordId = funObj.id;
       },
-      async openRecordHistoryDetailDrawer() {
-        this.isHistoryDetailDrawerShown = true;
-      },
-  
+
       async doGetRecordHistoryDetail() {
         this.isDrawerTableLoading = true;
         this.recordHistoryDetailListBackend = (await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'recordHistory',
+              pageId: 'recordHistoryManagement',
               actionId: 'selectItemList',
               where: {
                 recordId: this.currentRecordId,
@@ -331,7 +310,7 @@ const content = {
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'recordHistory',
+              pageId: 'recordHistoryManagement',
               actionId: 'restoreRecordByRecordHistory',
               actionData: {
                 recordHistoryId: this.restoreId
@@ -342,9 +321,9 @@ const content = {
         window.vtoast.success(`${this.currentTable}【${this.restoreId}】数据还原成功`);
         this.restoreId = null;
       },
-      //   --------------- <<<<<<<<<< 还原数据 uiAction  ---------------
     }
   },
-}
+  
+};
 
 module.exports = content;

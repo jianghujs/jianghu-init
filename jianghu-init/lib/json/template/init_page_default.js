@@ -16,7 +16,7 @@ class InitPageDefault extends CommandBase {
     this.cwd = cwd;
     this.templateName = pageTypeObj.pageId.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
     this.pageId = pageTypeObj.pageId;
-    this.info(`初始化完成，当前 pageId: ${this.pageId}`);
+    this.info('✅ 获取模板信息');
   }
 
   async setupDatabase() {
@@ -24,26 +24,31 @@ class InitPageDefault extends CommandBase {
     this.dbSetting = this.readDbConfigFromFile();
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
-    this.success(`数据库连接初始化成功，当前 pageId: ${this.pageId}`);
+    this.info('✅ 数据库连接初始化');
   }
 
   async copyTemplateFiles() {
     const templateDir = path.join(__dirname, '../../../page-template-json/template', this.templateName);
     const targetDir = './app';
 
-    this.info(`开始复制模板文件，当前 pageId: ${this.pageId}`);
     await this.copyFile(templateDir, targetDir, `${this.pageId}.js`, 'view/init-json/page');
-    await this.copyDirectory(templateDir, targetDir, 'service');
-    await this.copyDirectory(templateDir, targetDir, 'component', 'view/component');
-    this.success(`模板文件复制完成，当前 pageId: ${this.pageId}`);
+    if (fs.existsSync(`${templateDir}/service`)) {
+      await this.copyDirectory(templateDir, targetDir, 'service');
+      this.info('✅ 生成 service 依赖文件');
+    }
+
+    if (fs.existsSync(`${templateDir}/component`)) {
+      await this.copyDirectory(templateDir, targetDir, 'component', 'view/component');
+      this.info('✅ 生成 component 依赖文件');
+    }
   }
 
   async renderAndExecuteContent() {
-    this.info(`开始渲染和执行内容，当前 pageId: ${this.pageId}`);
     const content = await this.renderJson();
     if (content) {
+      // eslint-disable-next-line no-eval
       const jsConfig = eval(content);
-      new InitPage().renderContent(jsConfig);
+      await new InitPage().renderContent(jsConfig);
       this.success(`内容渲染完成，当前 pageId: ${this.pageId}`);
     } else {
       this.warning(`未找到内容，当前 pageId: ${this.pageId}`);
@@ -51,26 +56,34 @@ class InitPageDefault extends CommandBase {
   }
 
   async renderJson() {
-    const templateDir = path.join(__dirname, '../../../page-template-json/template', this.templateName);
+    // const templateDir = path.join(__dirname, '../../../page-template-json/template', this.templateName);
     const targetPath = path.join('./app', 'view', 'init-json', 'page', `${this.pageId}.js`);
 
-    await this.executeSqlFile(path.join(templateDir, 'init.sql'));
+    // await this.executeSqlFile(path.join(templateDir, 'init.sql'));
 
     return fs.existsSync(targetPath) ? fs.readFileSync(targetPath, 'utf-8') : '';
   }
 
   async copyFile(sourceDir, targetDir, fileName, subDir = '') {
     const sourcePath = path.join(sourceDir, fileName);
-    const targetPath = path.join(targetDir, subDir, fileName);
+    const targetSubDir = path.join(targetDir, subDir);
+    const targetPath = path.join(targetSubDir, fileName);
 
     if (!fs.existsSync(sourcePath)) {
       this.warning(`源文件 ${sourcePath} 不存在，当前 pageId: ${this.pageId}`);
       return;
     }
 
-    await this.ensureDirectoryExistence(targetPath);
-    fs.copyFileSync(sourcePath, targetPath);
-    this.success(`已复制 ${fileName} 文件，当前 pageId: ${this.pageId}`);
+    fs.mkdirSync(targetSubDir, { recursive: true });
+
+
+    if (sourcePath.endsWith('.js')) {
+      const content = fs.readFileSync(sourcePath, 'utf-8');
+      fs.writeFileSync(targetPath, content.replace(/^\/\* eslint-disable \*\/\n/, ''));
+    } else {
+      fs.copyFileSync(sourcePath, targetPath);
+    }
+    this.info(`✅ 生成 ${fileName} 文件`);
   }
 
   async copyDirectory(sourceDir, targetDir, dirName, targetSubDir = '') {
@@ -82,7 +95,7 @@ class InitPageDefault extends CommandBase {
       return;
     }
 
-    await this.ensureDirectoryExistence(targetPath);
+    fs.mkdirSync(targetPath, { recursive: true });
     this.copyRecursively(sourcePath, targetPath);
     this.success(`已复制 ${dirName} 目录下的所有文件和文件夹，当前 pageId: ${this.pageId}`);
   }
@@ -117,17 +130,6 @@ class InitPageDefault extends CommandBase {
       }
     }
     this.success(`SQL执行成功，当前 pageId: ${this.pageId}`);
-  }
-
-  async ensureDirectoryExistence(filePath) {
-    const dirname = path.dirname(filePath);
-    if (fs.existsSync(dirname)) return true;
-    await this.ensureDirectoryExistence(dirname);
-    fs.mkdirSync(dirname);
-  }
-
-  toCamelCase(str) {
-    return str.replace(/-(\w)/g, (_, c) => c.toUpperCase());
   }
 }
 

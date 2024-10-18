@@ -46,7 +46,7 @@ class PageLogService extends Service {
       const rows = JSON.parse("[" + strData + "]");
       const newRows = rows.map(row => {
         const { message, ...other } = row;
-        const messageObj = JSON.parse(message);
+        const messageObj = eval(`(${message})`);
         const newRow = { ...other, ...messageObj };
         return newRow;
       });

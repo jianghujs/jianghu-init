@@ -1,3 +1,4 @@
+/* eslint-disable */
 const content = {
   "pageType": "jh-page",
   "pageId": "userGroupRole",

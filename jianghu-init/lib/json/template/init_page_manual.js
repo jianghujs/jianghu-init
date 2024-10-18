@@ -64,10 +64,6 @@ module.exports = class InitPageManual extends CommandBase {
     if (await this.renderVue(path, pageId, { pageId })) {
       this.success(`生成 ${pageId} 的 vue 文件完成`);
     }
-    // 生成 sql
-    if (await this.renderSql(path, { pageId })) {
-      this.success(`生成 ${pageId} 的 sql 文件完成`);
-    }
     // 生成 pageDoc
     if (await this.renderPageDoc(path, { pageId })) {
       this.success(`生成 ${pageId} 的 doc 文件完成`);
@@ -89,8 +85,8 @@ module.exports = class InitPageManual extends CommandBase {
     }
 
     // 读取文件
-    const templatePath = `${path.join(__dirname, '../../')}page-template`;
-    let listTemplate = fs.readFileSync(`${templatePath}/${dirPath}/init.html`).toString();
+    const templatePath = `${path.join(__dirname, '../../../')}page-template-json/template`;
+    let listTemplate = fs.readFileSync(`${templatePath}/${dirPath}/manual/manual.html`).toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
     listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
 

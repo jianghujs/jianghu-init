@@ -1,19 +1,17 @@
+/* eslint-disable */
 const content = {
-  "pageType": "jh-page",
-  "pageId": "manual",
-  "table": "_user",
-  "pageName": "操作手册",
-  "resourceList": [],
-  "includeList": [],
+  pageType: "jh-page", pageId: "manual", table: "_user", pageName: "操作手册",
+  resourceList: [],
+  includeList: [],
   headContent: [
     { tag: 'jh-page-title', value: "操作手册", attrs: { cols: 12, sm: 6, md: 4 }, helpBtn: true, slot: [] },
     { tag: 'v-spacer' },
   ],
 
-  "pageContent": [
+  pageContent: [
     {
       tag: 'v-col',
-      attrs: { cols: 12 },
+      attrs: { cols: 12, class: 'pa-0' },
       value: [
         /*html*/`
         <iframe style="border: 0" :src="'/' + appInfo.appId + '/pageDoc'" width="100%" height="100%"></iframe>
@@ -21,10 +19,10 @@ const content = {
       ]
     }
   ],
-  "actionContent": [
+  actionContent: [
 
   ],
-  "common": {
+  common: {
     data: {},
     dataExpression: {
       appInfo: 'window.appInfo',

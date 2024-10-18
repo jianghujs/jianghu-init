@@ -1,40 +1,41 @@
+/* eslint-disable */
 const content = {
-  pageType: "jh-page", pageId: "userManagement", table: "_user", pageName: "用户管理",
+  pageType: "jh-page", pageId: "userManagement", table: "_user", pageName: "用户管理", version: 'v2',
   resourceList: [
     {
-      "actionId": "selectItemList",
-      "desc": "✅用户管理-查询信息",
-      "resourceType": "sql",
-      "resourceData": {
-        "table": "_user",
-        "operation": "select"
+      actionId: "selectItemList",
+      desc: "✅用户管理-查询信息",
+      resourceType: "sql",
+      resourceData: {
+        table: "_user",
+        operation: "select"
       }
     },
     {
-      "actionId": "insertItem",
-      "desc": "✅用户管理-查询信息",
-      "resourceType": "service",
-      "resourceData": {
-        "service": "userManagement",
-        "serviceFunction": "addUser"
+      actionId: "insertItem",
+      desc: "✅用户管理-查询信息",
+      resourceType: "service",
+      resourceData: {
+        service: "userManagement",
+        serviceFunction: "addUser"
       }
     },
     {
-      "actionId": "resetUserPassword",
-      "desc": "✅用户管理-修改密码",
-      "resourceType": "service",
-      "resourceData": {
-        "service": "userManagement",
-        "serviceFunction": "resetUserPassword"
+      actionId: "resetUserPassword",
+      desc: "✅用户管理-修改密码",
+      resourceType: "service",
+      resourceData: {
+        service: "userManagement",
+        serviceFunction: "resetUserPassword"
       }
     },
     {
-      "actionId": "updateItem",
-      "desc": "✅用户管理-更新用户",
-      "resourceType": "sql",
-      "resourceData": {
-        "table": "_user",
-        "operation": "jhUpdate"
+      actionId: "updateItem",
+      desc: "✅用户管理-更新用户",
+      resourceType: "sql",
+      resourceData: {
+        table: "_user",
+        operation: "jhUpdate"
       }
     }
   ],
@@ -101,28 +102,25 @@ const content = {
   ],
   actionContent: [
     {
-      tag: 'jh-drawer',
-      key: "resetPassword",
+      tag: 'jh-create-drawer',
+      key: "create",
       attrs: {},
-      title: '修改密码',
-      headSlot: [
-        { tag: 'v-spacer' }
-      ],
+      title: '课程详情',
       contentList: [
         {
-          "label": "",
-          "type": "form",
-          "formItemList": [{
-            "label": "初始密码*必填",
-            "model": "resetPasswordItem.clearTextPassword",
-            "tag": "v-text-field",
-            "attrs": {},
-            "rules": "validationRules.requireRules"
-          }],
+          label: "新增",
+          type: "form",
+          formItemList: [
+            { label: "用户ID[登陆]*必填", model: "userId", tag: "v-text-field", rules: "validationRules.requireRules" },
+            { label: "用户名*必填", model: "username", tag: "v-text-field", rules: "validationRules.requireRules" },
+            { label: "用户类型*必填", model: "userType", tag: "v-select", attrs: { ":items": "constantObj.userType" }, rules: "validationRules.requireRules", quickAttrs: ['clearable'] },
+            { label: "用户状态*必填", model: "userStatus", tag: "v-select", attrs: { ":items": "constantObj.userStatus" }, rules: "validationRules.requireRules", quickAttrs: ['clearable'] },
+            { label: "初始密码*必填", model: "clearTextPassword", tag: "v-text-field", rules: "validationRules.requireRules" }
+          ],
           action: [
-            { tag: 'v-btn', value: '保存', attrs: { small: true, class: 'ml-2', color: 'success', '@click': "doUiAction('resetPassword')" } },
+            { tag: 'v-btn', value: '新增', attrs: { class: 'ml-2', color: 'success', '@click': "doUiAction('updateItem')" }, quickAttrs: ['small'] },
           ]
-        }
+        },
       ]
     },
     {
@@ -135,112 +133,53 @@ const content = {
       ],
       contentList: [
         {
-          "label": "新增",
-          "type": "form",
-          "formItemList": [
+          label: "新增",
+          type: "form",
+          formItemList: [
+            { label: "用户ID[登陆]", model: "updateItem.userId", tag: "v-text-field", quickAttrs: ['disabled'], rules: "validationRules.requireRules" },
+            { label: "用户名*必填", model: "updateItem.username", tag: "v-text-field", rules: "validationRules.requireRules" },
+            { label: "用户类型*必填", model: "userType", tag: "v-select", attrs: { ":items": "constantObj.userType" }, rules: "validationRules.requireRules", quickAttrs: ['clearable'] },
+            { label: "用户状态*必填", model: "userStatus", tag: "v-select", attrs: { ":items": "constantObj.userStatus" }, rules: "validationRules.requireRules", quickAttrs: ['clearable'] },
             {
-              "label": "用户ID[登陆]",
-              "model": "updateItem.userId",
-              "tag": "v-text-field",
-              "attrs": {
-                "disabled": true
+              label: "初始密码",
+              model: "updateItem.clearTextPassword",
+              tag: "v-text-field",
+              attrs: {
+                disabled: true
               },
-              "rules": "validationRules.requireRules"
-            },
-            {
-              "label": "用户名*必填",
-              "model": "updateItem.username",
-              "tag": "v-text-field",
-              "attrs": {},
-              "rules": "validationRules.requireRules"
-            },
-            {
-              "label": "用户类型*必填",
-              "model": "updateItem.userType",
-              "tag": "v-select",
-              "attrs": {
-                "clearable": true,
-                ":items": "constantObj.userType"
-              },
-              "rules": "validationRules.requireRules"
-            },
-            {
-              "label": "用户状态*必填",
-              "model": "updateItem.userStatus",
-              "tag": "v-select",
-              "attrs": {
-                "clearable": true,
-                ":items": "constantObj.userStatus"
-              },
-              "rules": "validationRules.requireRules"
-            },
-            {
-              "label": "初始密码",
-              "model": "updateItem.clearTextPassword",
-              "tag": "v-text-field",
-              "attrs": {
-                "disabled": true
-              },
-              "rules": "validationRules.requireRules"
+              rules: "validationRules.requireRules"
             }
+          ],
+          action: [
+            { tag: 'v-btn', value: '保存', attrs: { class: 'ml-2', color: 'success', '@click': "doUiAction('updateItem')" }, quickAttrs: ['small'] },
           ]
-        }
+        },
+        { label: "操作记录", type: "component", componentPath: "recordHistory", attrs: { table: 'course', pageId: 'course', ':id': 'updateItem.id' } },
       ]
     },
     {
       tag: 'jh-drawer',
-      key: "create",
+      key: "resetPassword",
       attrs: {},
-      title: '课程详情',
+      title: '修改密码',
+      headSlot: [
+        { tag: 'v-spacer' }
+      ],
       contentList: [
         {
-          "label": "新增",
-          "type": "form",
-          "formItemList": [
-            {
-              "label": "用户ID[登陆]*必填",
-              "model": "createItem.userId",
-              "tag": "v-text-field",
-              "attrs": {},
-              "rules": "validationRules.requireRules"
-            },
-            {
-              "label": "用户名*必填",
-              "model": "createItem.username",
-              "tag": "v-text-field",
-              "attrs": {},
-              "rules": "validationRules.requireRules"
-            },
-            {
-              "label": "用户类型*必填",
-              "model": "createItem.userType",
-              "tag": "v-select",
-              "attrs": {
-                "clearable": true,
-                ":items": "constantObj.userType"
-              },
-              "rules": "validationRules.requireRules"
-            },
-            {
-              "label": "用户状态*必填",
-              "model": "createItem.userStatus",
-              "tag": "v-select",
-              "attrs": {
-                "clearable": true,
-                ":items": "constantObj.userStatus"
-              },
-              "rules": "validationRules.requireRules"
-            },
-            {
-              "label": "初始密码*必填",
-              "model": "createItem.clearTextPassword",
-              "tag": "v-text-field",
-              "attrs": {},
-              "rules": "validationRules.requireRules"
-            }
+          label: "",
+          type: "form",
+          formItemList: [{
+            label: "初始密码*必填",
+            model: "resetPasswordItem.clearTextPassword",
+            tag: "v-text-field",
+            attrs: {},
+            rules: "validationRules.requireRules"
+          }],
+          action: [
+            { tag: 'v-btn', value: '保存', attrs: { small: true, class: 'ml-2', color: 'success', '@click': "doUiAction('resetPassword')" } },
           ]
-        },
-        { label: "操作记录", type: "component", componentPath: "recordHistory", attrs: { table: 'course', pageId: 'course', ':id': 'updateItem.id' } },
+        }
       ]
     },
   ],
@@ -262,29 +201,7 @@ const content = {
         userStatus: [{ value: 'active', text: '正常' }, { value: 'banned', text: '禁用' }],
         userType: [{ value: 'common', text: '普通用户' }, { value: 'staff', text: '教职工' }, { value: 'student', text: '学生' }],
       },
-      searchInput: null,
-      isTableLoading: true,
-      tableData: [],
-
-      headers: [
-        { text: "用户ID[登陆]", value: "userId", width: 120 },
-        { text: "用户名", value: "username", width: 140 },
-        { text: "用户类型", value: "userType", width: 120 },
-        { text: "用户状态", value: "userStatus", width: 120 },
-        { text: "初始密码", value: "clearTextPassword", width: 120 },
-        { text: "操作人", value: "operationByUser", width: 90 },
-        { text: "操作时间", value: "operationAt", width: 150 },
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 'window.innerWidth < 500 ? 80 : 230', class: 'fixed', cellClass: 'fixed' },
-      ],
-      // 新增用户
-      isCreateDrawerShown: false,
-      createItem: {},
-      createActionData: {},
-      // 修改用户
-      isUpdateDrawerShown: false,
-      updateItem: {},
-      updateItemId: null,
-      updateActionData: {},
+      
       // 激活用户
       activeUserItem: {},
       activeUserId: null,
@@ -304,173 +221,14 @@ const content = {
     mounted() {
       this.doUiAction('getTableData');
     },
+    doUiAction: {
+      activeUserStatus: ['prepareActiveUserItem', 'confirmActiveUserStatusDialog', 'prepareDoActiveUserStatus', 'doActiveUser', 'doUiAction.getTableData'],
+      bannedUserStatus: ['prepareBannedUserItem', 'confirmBannedUserStatusDialog', 'prepareDoBannedUserStatus', 'doBannedUser', 'doUiAction.getTableData'],
+      startResetPassword: ['prepareResetPasswordItem', 'doUiAction.viewResetPassword'],
+      resetPassword: ['prepareResetPasswordValidate', 'confirmResetPasswordDialog', 'prepareDoResetPasswordItem', 'doResetPasswordItem', 'closeResetPasswordDrawer', 'doUiAction.getTableData'],
+      copyPassword: ['copyPassword'],
+    },
     methods: {
-      async doUiAction(uiActionId, uiActionData) {
-        switch (uiActionId) {
-          case 'getTableData':
-            await this.getTableData();
-            break;
-          case 'startCreateItem':
-            await this.prepareCreateItem();
-            await this.openCreateDrawer();
-            break;
-          case 'createItem':
-            await this.prepareCreateValidate();
-            await this.confirmCreateItemDialog();
-            await this.prepareDoCreateItem();
-            await this.doCreateItem();
-            await this.closeCreateDrawer();
-            await this.getTableData();
-            break;
-          case 'startUpdateItem':
-            await this.prepareUpdateItem(uiActionData);
-            await this.openUpdateDrawer();
-            break;
-          case 'updateItem':
-            await this.prepareUpdateValidate();
-            await this.confirmUpdateItemDialog();
-            await this.prepareDoUpdateItem();
-            await this.doUpdateItem();
-            await this.closeUpdateDrawer();
-            await this.getTableData();
-            break;
-          case 'activeUserStatus':
-            await this.prepareActiveUserItem(uiActionData);
-            await this.confirmActiveUserStatusDialog();
-            await this.prepareDoActiveUserStatus();
-            await this.doActiveUser();
-            await this.getTableData();
-            break;
-          case 'bannedUserStatus':
-            await this.prepareBannedUserItem(uiActionData);
-            await this.confirmBannedUserStatusDialog();
-            await this.prepareDoBannedUserStatus();
-            await this.doBannedUser();
-            await this.getTableData();
-            break;
-          case 'startResetPassword':
-            await this.prepareResetPasswordItem(uiActionData);
-            await this.openResetPasswordDrawer();
-            break;
-          case 'resetPassword':
-            await this.prepareResetPasswordValidate();
-            await this.confirmResetPasswordDialog();
-            await this.prepareDoResetPasswordItem();
-            await this.doResetPasswordItem();
-            await this.closeResetPasswordDrawer();
-            break;
-          case 'copyPassword':
-            await this.copyPassword(uiActionData);
-            break;
-          default:
-            console.error("[doUiAction] uiActionId not find", { uiActionId });
-            break;
-        }
-      },
-      async getTableData() {
-        this.isTableLoading = true;
-        const rows = (await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userManagement',
-              actionId: 'selectItemList',
-              actionData: {},
-              where: {},
-              orderBy: [{ column: 'operationAt', order: 'desc' }]
-            }
-          }
-        })).data.appData.resultData.rows;
-
-        rows.forEach(row => {
-          row.operationAt = row.operationAt ? window.dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
-        })
-        this.tableData = rows;
-        this.isTableLoading = false;
-      },
-      //   --------------- 新增数据 uiAction >>>>>>>>>>  ---------------
-      async prepareCreateItem() {
-        this.createItem = {};
-      },
-      async openCreateDrawer() {
-        this.isCreateDrawerShown = true;
-      },
-      async prepareCreateValidate() {
-        if (await this.$refs.createForm.validate() === false) {
-          throw new Error("[prepareCreateValidate] false");
-        }
-      },
-      async confirmCreateItemDialog() {
-        if (await window.confirmDialog({ title: "新增", content: "确定新增吗？" }) === false) {
-          throw new Error("[confirmCreateFormDialog] 否");
-        }
-      },
-      prepareDoCreateItem() {
-        const { id, ...data } = this.createItem;
-        this.createActionData = data;
-      },
-      async doCreateItem() {
-        await window.vtoast.loading("保存中");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userManagement',
-              actionId: 'insertItem',
-              actionData: this.createActionData,
-              where: {}
-            }
-          }
-        });
-        await window.vtoast.success("保存成功");
-      },
-      async closeCreateDrawer() {
-        this.isCreateDrawerShown = false;
-        this.createItem = {};
-        this.createActionData = null;
-      },
-      //   --------------- <<<<<<<<<<<< 新增数据 uiAction  ---------------
-      //   --------------- 编辑数据 uiAction >>>>>>>>>>>>  ---------------
-      async prepareUpdateItem(funObj) {
-        this.updateItem = _.cloneDeep(funObj);
-      },
-      async openUpdateDrawer() {
-        this.isUpdateDrawerShown = true;
-      },
-      async prepareUpdateValidate() {
-        if (await this.$refs.updateForm.validate() === false) {
-          throw new Error("[prepareUpdateValidate] false");
-        }
-      },
-      async confirmUpdateItemDialog() {
-        if (await window.confirmDialog({ title: "编辑", content: "确定编辑吗？" }) === false) {
-          throw new Error("[confirmUpdateItemDialog] 否");
-        }
-      },
-      prepareDoUpdateItem() {
-        const { id, userId, ...data } = this.updateItem;
-        this.updateItemId = id;
-        this.updateActionData = data;
-      },
-      async doUpdateItem() {
-        await window.vtoast.loading("保存中");
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'userManagement',
-              actionId: 'updateItem',
-              actionData: this.updateActionData,
-              where: { id: this.updateItemId }
-            }
-          }
-        });
-        await window.vtoast.success("修改成功");
-      },
-      async closeUpdateDrawer() {
-        this.isUpdateDrawerShown = false;
-        this.updateItem = {};
-        this.updateActionData = null;
-        this.updateItemId = null;
-      },
-      //   --------------- <<<<<<<<<<<< 编辑数据 uiAction  ---------------
       //   --------------- 激活用户 uiAction >>>>>>>>>>>>  ---------------
       async prepareActiveUserItem(funObj) {
         this.activeUserItem = _.cloneDeep(funObj);
