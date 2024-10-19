@@ -5,7 +5,8 @@ const CommandInitProject = require('./init_project');
 const CommandInitPage = require('./init_page');
 const CommandInitTool = require('./init_tool');
 const CommandInitByJson = require('./init_by_json');
-
+const path = require('path');
+const fs = require('fs');
 
 const initTypes = [
   {
@@ -35,6 +36,18 @@ module.exports = class Entry {
     let passArgv = process.argv.slice(2);
     let initType = passArgv[0];
 
+    // 添加版本号检查
+    if (initType === '-v' || initType === '--version') {
+      this.showVersion();
+      return;
+    }
+
+    // 添加帮助信息检查
+    if (initType === '-h' || initType === '--help') {
+      this.showHelp();
+      return;
+    }
+
     if (![ 'project', 'page', 'tool', 'json' ].includes(initType)) {
       const answer = await inquirer.prompt({
         name: 'initType',
@@ -62,12 +75,37 @@ module.exports = class Entry {
         await new CommandInitByJson().run(process.cwd(), passArgv);
         break;
       default:
-        this.errror('init type is not support');
+        console.log('未知的命令类型。显示帮助信息：\n');
+        this.showHelp();
         break;
     }
 
     process.exit();
   }
+  
 
+  showVersion() {
+    const packagePath = path.join(__dirname, '..', 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+    console.log(`当前版本: ${packageJson.version}`);
+  }
 
+  showHelp() {
+    console.log(`
+使用方法: jianghu-init <命令> [选项]
+
+选项:
+  -V, --version                输出版本号
+  -h, --help                   显示帮助信息
+
+命令:
+  project [选项]               创建一个新项目并初始化表
+  page [选项]                  从数据库表生成管理或测试页面
+  tool [选项]                  添加一些工具来管理你的应用
+  json [选项]                  通过 JSON 文本初始化
+
+  运行 jianghu-init <命令> --help 以获取指定命令的详细用法。
+  `);
+  }
 };
+
