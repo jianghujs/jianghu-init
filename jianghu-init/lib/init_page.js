@@ -66,6 +66,11 @@ const pageTypes = [
     pageId: 'pageLog',
     path: 'template/page-log/',
   }, {
+    value: 'constant',
+    name: 'constant - management constant',
+    pageId: 'constant',
+    path: 'template/constant/',
+  }, {
     value: 'component-crud-relate-table',
     pageId: 'componentCrudRelateTable',
     path: 'template/component-crud-relate-table/',

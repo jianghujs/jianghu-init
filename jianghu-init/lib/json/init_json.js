@@ -70,7 +70,8 @@ module.exports = class InitJson extends CommandBase {
         TABLE_SCHEMA: this.dbSetting.database,
         TABLE_TYPE: 'BASE TABLE',
       });
-      const tables = result.filter(table => !table.TABLE_NAME.startsWith('_')).map(item => ({ value: item.TABLE_NAME, name: item.TABLE_NAME }));
+      // const tables = result.filter(table => !table.TABLE_NAME.startsWith('_')).map(item => ({ value: item.TABLE_NAME, name: item.TABLE_NAME }));
+      const tables = result.map(item => ({ value: item.TABLE_NAME, name: item.TABLE_NAME }));
       if (pageType.startsWith('jh-')) {
         tables.unshift({ value: '', name: '自定义页面，不选择 table' });
       }
