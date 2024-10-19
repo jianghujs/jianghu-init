@@ -5,26 +5,26 @@ const content = {
     {
       actionId: "selectItemList",
       resourceType: "sql",
-      desc: "✅查询列表-classManagement",
+      desc: "✅查询列表",
       resourceData: { table: "<=$ table $=>", operation: "select" }
     },
     {
       actionId: "insertItem",
       resourceType: "sql",
       // resourceHook: { before: [{service:"common",serviceFunction:"generateBizIdOfBeforeHook"}] },
-      desc: "✅添加-classManagement",
+      desc: "✅添加",
       resourceData: { table: "<=$ table $=>", operation: "jhInsert" }
     },
     {
       actionId: "updateItem",
       resourceType: "sql",
-      desc: "✅更新-classManagement",
+      desc: "✅更新",
       resourceData: { table: "<=$ table $=>", operation: "jhUpdate" }
     },
     {
       actionId: "deleteItem",
       resourceType: "sql",
-      desc: "✅删除-classManagement",
+      desc: "✅删除",
       resourceData: { table: "<=$ table $=>", operation: "jhDelete" }
     }
   ], // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
