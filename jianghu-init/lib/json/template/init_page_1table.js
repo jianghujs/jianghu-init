@@ -47,7 +47,7 @@ module.exports = class InitPage1Table extends CommandBase {
    */
   async generateCrud() {
     this.info('开始生成 CRUD');
-    const table = await this.promptTables('请输入你要生成 CRUD 的 table', '');
+    const { table, name } = await this.promptTables('请输入你要生成 CRUD 的 table', '');
     if (!table) {
       this.info('未选择 table，流程结束');
       return;
@@ -58,10 +58,10 @@ module.exports = class InitPage1Table extends CommandBase {
     let pageId = `${tableCamelCase}Management`;
     pageId = await this.readlineMethod(`【${table}】数据表pageId`, pageId);
     // 生成 vue
-    const content = await this.renderJson(table, pageId);
+    const content = await this.renderJson(table, pageId, name);
     // eslint-disable-next-line no-eval
     const jsConfig = eval(content);
-    new InitPage().renderContent(jsConfig);
+    await new InitPage().renderContent(jsConfig);
     this.success(`生成 ${table} 的 vue 文件完成`);
   }
 
@@ -76,20 +76,27 @@ module.exports = class InitPage1Table extends CommandBase {
       TABLE_TYPE: 'BASE TABLE',
     });
     const tables = result.map(item => item.TABLE_NAME).filter(table => !table.startsWith('_'));
-    const answer = await inquirer.prompt({
+    const { table } = await inquirer.prompt({
       name: 'table',
       type: 'list',
       message: '请选择你要生成 crud 的表',
       choices: tables,
       pageSize: 100,
     });
-    return answer.table;
+    const { name } = await inquirer.prompt({
+      name: 'name',
+      type: 'input',
+      message: '请输入页面名称，如：用户管理',
+      default: _.camelCase(table),
+      pageSize: 100,
+    });
+    return { table, name };
   }
 
   /**
    * 生成 vue
    */
-  async renderJson(table, pageId) {
+  async renderJson(table, pageId, name) {
     const tableCamelCase = _.camelCase(table);
     // 写文件前确认是否覆盖
     const filepath = `./app/view/init-json/page/${pageId}.js`;
@@ -124,7 +131,7 @@ module.exports = class InitPage1Table extends CommandBase {
     const result = nunjucks.renderString(listTemplate, {
       pageType,
       pageId,
-      pageName: pageId + '页面',
+      pageName: name,
       table,
       tableCamelCase,
       fields,
