@@ -56,10 +56,10 @@ class InitPageDefault extends CommandBase {
   }
 
   async renderJson() {
-    // const templateDir = path.join(__dirname, '../../../page-template-json/template', this.templateName);
+    const templateDir = path.join(__dirname, '../../../page-template-json/template', this.templateName);
     const targetPath = path.join('./app', 'view', 'init-json', 'page', `${this.pageId}.js`);
 
-    // await this.executeSqlFile(path.join(templateDir, 'init.sql'));
+    await this.executeSqlFile(path.join(templateDir, 'init.sql'));
 
     return fs.existsSync(targetPath) ? fs.readFileSync(targetPath, 'utf-8') : '';
   }

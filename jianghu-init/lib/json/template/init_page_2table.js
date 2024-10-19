@@ -6,7 +6,6 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 const _ = require('lodash');
 const path = require('path');
-const mixin = require('./mixin.js');
 const InitPage = require('../init_page');
 const InitComponent = require('../init_component');
 const nunjucks = require('nunjucks');
@@ -15,11 +14,6 @@ const nunjucks = require('nunjucks');
  * 根据 table 定义生成 crud 页面（3 table）
  */
 module.exports = class InitPage2Table extends CommandBase {
-
-  constructor() {
-    super();
-    Object.assign(this, mixin);
-  }
 
   async run(cwd, argv) {
     this.cwd = cwd;
@@ -198,5 +192,37 @@ module.exports = class InitPage2Table extends CommandBase {
 
     fs.writeFileSync(filepath, result.replace(/^\/\* eslint-disable \*\/\n/, ''));
     return result;
+  }
+
+  /**
+   * 获取表字段
+   */
+  async getFields(table) {
+    const knex = await this.getKnex();
+    const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT').from('INFORMATION_SCHEMA.COLUMNS').where({
+      TABLE_SCHEMA: this.dbSetting.database,
+      TABLE_NAME: table,
+    });
+
+    const defaultColumn = ['operation', 'operationByUserId', 'operationByUser', 'operationAt'];
+    for (const column of defaultColumn) {
+      await knex.schema.hasColumn(table, column).then(exists => {
+        if (!exists) {
+          return knex.schema.table(table, t => {
+            this.info(`创建依赖字段：${column}`);
+            t.string(column);
+          });
+        }
+      });
+    }
+
+    return result.filter(column => {
+      return ![...defaultColumn, 'id'].includes(column.COLUMN_NAME);
+    }).map(column => {
+      return {
+        COLUMN_NAME: column.COLUMN_NAME,
+        COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '').split(';')[0].split('；')[0].split(':')[0],
+      };
+    });
   }
 };
