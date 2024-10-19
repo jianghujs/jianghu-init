@@ -1,90 +1,36 @@
 'use strict';
 const yargs = require('yargs');
-const InitPageStatic = require('./page/init_page_static');
+const InitToolScript = require('./tool/init_tool_script');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 
 const pageTypes = [
   {
-    type: 'page',
-    value: 'record-history-page',
-    name: 'record-history-page - generate pages from record-history',
-    pageId: 'recordHistory',
-    path: 'template/record-history/',
+    type: 'tool',
+    value: 'initSqlToResourceList',
+    name: 'initSqlToResourceList - 将init.sql转换成init-json的resouceList',
   },
   {
-    type: 'page',
-    value: 'user-management-page',
-    name: 'user-management-page - generate pages from user-management',
-    pageId: 'userManagement',
-    path: 'template/user-management/',
+    type: 'tool',
+    value: 'updateResourceId',
+    name: 'updateResourceId - 按pageId更新_resouce表id，方便排序查看',
   },
   {
-    type: 'page',
-    value: 'user-group-role-page',
-    name: 'user-group-role-page - generate pages from user-group-role',
-    pageId: 'userGroupRole',
-    path: 'template/user-group-role/',
+    type: 'tool',
+    value: 'htmlToInitJson',
+    name: 'htmlToInitJson - 将html文件转换成init-json配置文件',
   },
   {
-    type: 'page',
-    value: 'user-page-resource-page',
-    name: 'user-page-resource-page - generate pages from user-page-resource',
-    pageId: 'userPageResource',
-    path: 'template/user-page-resource/',
+    type: 'tool',
+    value: 'dumpSqlFile',
+    name: 'dumpSqlFile - 导出数据库数据表为sql文件',
   },
   {
-    type: 'component',
-    value: 'json-editor-component',
-    name: 'json-editor-component - generate component from json-editor',
-    pageId: 'vueJsonEditor',
-    path: 'template/json-editor/',
-    queryPageId: false,
-    demo: `model 变量支持 String Object Array 
-        <vue-json-editor v-model="updateItem.config" mode="code" height="calc(100vh - 240px)"></vue-json-editor>
-    `,
+    type: 'tool',
+    value: 'exportProjectDocs',
+    name: 'exportProjectDocs - 导出当前项目目录结构, 系统数据表为md文档',
   },
-  {
-    type: 'component',
-    value: 'table-attachment-component',
-    name: 'table-attachment-component - generate component from table-attachment',
-    pageId: '',
-    filename: 'tableAttachment',
-    path: 'template/table-attachment/',
-    demo: `/**
-         * crud 附件上传组件
-         * target-table {String} 关联表名
-         * target-id    {String} 关联表id
-         * fileType     {Array}  文件分类
-         * fileSubtype  {Array}  文件子类型
-         * imageCompression {Boolean} 是否压缩图片 - 需要引入 image-compression 资源
-         * imageCompressionOptions {Object} 压缩图片配置 { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true }
-         */
-        <table-attachment target-table="class" pageId="pageId" :target-id="updateItem.id" :file-type="['分类']" :file-subtype="['子类型']" />
-        { label: "附件", type: "component", componentPath: "jhTableAttachment" }
-    `,
-  },
-  {
-    type: 'component',
-    value: 'table-record-history-component',
-    name: 'table-record-history-component - generate component from table-record-history',
-    pageId: '',
-    filename: 'tableRecordHistory',
-    path: 'template/table-record-history/',
-    demo: `/**
-         * crud 操作记录组件
-         * table  {String} 关联表名
-         * pageId {String} pageId
-         * id     {String} 关联表id
-         */
-        <table-record-history table="class" :pageId="pageId" :id="updateItem.id" />
-        { label: "操作记录", type: "component", componentPath: "jhTableRecordHistory" }
-    `,
-  },
-  {
-    value: 'all',
-    name: 'all - generate all above pages',
-  }];
+];
 
 
 /**
@@ -122,7 +68,7 @@ module.exports = class InitToolCommand extends CommandBase {
       }
       page.y = this.argv.y;
 
-      await new InitPageStatic().run(process.cwd(), page);
+      await new InitToolScript().run(process.cwd(), page);
       this.success('jianghu init tool is success');
     }
   }
