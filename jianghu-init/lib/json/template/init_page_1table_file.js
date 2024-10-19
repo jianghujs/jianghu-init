@@ -6,7 +6,6 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 const _ = require('lodash');
 const path = require('path');
-const mixin = require('./mixin.js');
 const InitPage = require('../init_page');
 const nunjucks = require('nunjucks');
 
@@ -14,11 +13,6 @@ const nunjucks = require('nunjucks');
  * 根据 table 定义生成 crud 页面
  */
 module.exports = class InitPage1TableFile extends CommandBase {
-
-  constructor() {
-    super();
-    Object.assign(this, mixin);
-  }
 
   async run(cwd, argv) {
     this.cwd = cwd;
