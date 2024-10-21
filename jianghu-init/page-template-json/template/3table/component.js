@@ -1,6 +1,6 @@
 /* eslint-disable */
 const content = {
-  pageType: "<=$ pageType $=>", pageId: "<=$ pageId $=>", table: "<=$ table $=>", pageName: "<=$ pageName $=>", template: "jhMobileTemplateV4", version: 'v2', componentPath: '<=$ componentName $=>',
+  pageType: "<=$ pageType $=>", pageId: "<=$ pageId $=>", table: "<=$ table $=>", pageName: "<=$ pageName $=>", template: "jhTemplateV4", version: 'v2', componentPath: '<=$ componentName $=>',
   resourceList: [
     {
       actionId: "<=$ actionIdPrefix $=>-selectItemList",
