@@ -126,6 +126,8 @@ module.exports = class InitPage1TableFile extends CommandBase {
         this.warning(`跳过 ${table} 表 CRUD 的生成`);
         return false;
       }
+    } else {
+      fs.mkdirSync('./app/view/init-json/page/', { recursive: true });
     }
 
     // 读取文件
@@ -133,46 +135,6 @@ module.exports = class InitPage1TableFile extends CommandBase {
     const fields = await this.getFields(table);
     this.info('表字段', fields);
     const pageType = 'jh-page';
-    const pageName = `${pageId}页面`;
-    const resourceList = this.getResourceList(pageType, pageId, table, []);
-    const { pageContent, actionContent, tableStr, headContent } = this.getContentV2(table, pageId, pageType, fields, pageName);
-    const actionContentAndPreview = actionContent + `/*html*/\`<!-- 文件预览 -->
-    <v-overlay :value="isPreviewOverlayShown" @click="isPreviewOverlayShown = false" :opacity="0.85" style="z-index: 99;">
-      <v-icon style="position: fixed; right: 10px; top: 5px; z-index: 50000" large color="white"
-        @click="isPreviewOverlayShown = false">
-        mdi-close-circle
-      </v-icon>
-      <v-icon style="position: fixed; right: 50px; top: 5px; z-index: 50000" large color="white"
-        @click="doUiAction('downloadPreviewFile')">
-        mdi-download
-      </v-icon>
-      <iframe v-if="previewFileType === 'pdf'" :src="previewFileUrl" frameborder="0"
-        style="width: 100vw; height: 100vh; padding: 50px 0 0 0;"></iframe>
-      <v-img v-if="previewFileType === 'img'" max-height="80vw" max-width="100vw"  :src="previewFileUrl"></v-img>
-    </v-overlay>
-    \``;
-    const replacements = {
-      pageType,
-      pageId,
-      pageName: pageId + '页面',
-      table,
-      tableCamelCase,
-      resourceList,
-      headContent,
-      pageContent,
-      actionContent: actionContentAndPreview,
-      createdStr: `
-  async created() {
-    await this.doUiAction('getTableData');
-  },
-      `,
-      commonDataStr: `
-      isPreviewOverlayShown: false,
-      previewFileUrl: null,
-      previewFilename: '',
-      previewFileType: '',`,
-    };
-
 
     // 读取文件
     let listTemplate = fs.readFileSync(`${templatePath}/1table-file.js`).toString();

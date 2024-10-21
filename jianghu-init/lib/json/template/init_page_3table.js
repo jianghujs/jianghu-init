@@ -232,6 +232,9 @@ from ((\`${tableMiddle}\` left join \`${tableA}\` on ((
         this.warning(`跳过 ${table} 表 CRUD 的生成`);
         return false;
       }
+    } else {
+      // 创建文件夹
+      fs.mkdirSync(path.dirname(filepath), { recursive: true });
     }
 
     // 读取文件
