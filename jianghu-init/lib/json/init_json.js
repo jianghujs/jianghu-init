@@ -6,6 +6,8 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 const _ = require('lodash');
 const path = require('path');
+const nunjucks = require('nunjucks');
+const InitPage = require('./init_page');
 const typeList = [
   { value: 'jh-page', name: 'jh-page' },
   { value: 'jh-mobile-page', name: 'jh-mobile-page' },
@@ -70,8 +72,9 @@ module.exports = class InitJson extends CommandBase {
         TABLE_SCHEMA: this.dbSetting.database,
         TABLE_TYPE: 'BASE TABLE',
       });
-      // const tables = result.filter(table => !table.TABLE_NAME.startsWith('_')).map(item => ({ value: item.TABLE_NAME, name: item.TABLE_NAME }));
-      const tables = result.map(item => ({ value: item.TABLE_NAME, name: item.TABLE_NAME }));
+      const tables = result.filter(table => !table.TABLE_NAME.startsWith('_')).map(item => ({ value: item.TABLE_NAME, name: item.TABLE_NAME }));
+      // const tables = result.map(item => ({ value: item.TABLE_NAME, name: item.TABLE_NAME }));
+
       if (pageType.startsWith('jh-')) {
         tables.unshift({ value: '', name: '自定义页面，不选择 table' });
       }
@@ -105,7 +108,12 @@ module.exports = class InitJson extends CommandBase {
       });
       filename = res.filename;
     }
-    return { table, pageId, pageType, filename };
+    return {
+      table,
+      pageId: pageType.startsWith('jh-mobile') ? 'mobile/' + pageId : pageId,
+      pageType,
+      filename: pageType.startsWith('jh-mobile') ? 'mobile/' + filename : filename,
+    };
   }
 
 
@@ -117,8 +125,11 @@ module.exports = class InitJson extends CommandBase {
 
 
     const fields = table ? await this.getTableFields(table) : [];
-    let content;
     let fileName = filename;
+    let content;
+    if (![ 'jh-component', 'jh-page', 'jh-mobile-page' ].includes(pageType)) {
+      this.error('pageType 只能是 jh-component、jh-page、jh-mobile-page');
+    }
     if (pageType === 'jh-component') {
       if (chartType) {
         if (chartType === 'all') {
@@ -133,14 +144,11 @@ module.exports = class InitJson extends CommandBase {
         }
         // 添加依赖的public 静态资源
         this.checkStaticChartFile();
+      } else {
+        content = await this.getCrudContent({ table, pageId, pageType, fields, filename: fileName });
       }
-      content = this.getJhContent({ table, pageId, pageType, fields, filename: fileName });
-    } else if (pageType === 'jh-page') {
-      content = this.getJhContent({ table, pageId, pageType, fields, filename: fileName });
-    } else if (pageType === 'jh-mobile-page') {
-      content = this.getJhContent({ table, pageId, pageType, fields, filename: fileName });
     } else {
-      this.error('pageType `1table-page` 已废弃，请使用 `jh-page`');
+      content = await this.getCrudContent({ table, pageId, pageType, fields, filename: fileName });
     }
 
     if (fileName.includes('/')) {
@@ -151,6 +159,11 @@ module.exports = class InitJson extends CommandBase {
     // 生成文件
     const generateFilePath = `${generateFileDir}/${fileName}.js`;
     fs.writeFileSync(generateFilePath, content);
+
+    // eslint-disable-next-line no-eval
+    const jsConfig = eval(content);
+    await new InitPage().renderContent(jsConfig);
+    this.success(`生成 ${table} 的 html 文件完成`);
     if (pageType.includes('component')) {
       this.info(`
     ---------- 引入示例 ----------
@@ -165,209 +178,42 @@ module.exports = class InitJson extends CommandBase {
     }
   }
 
-  getJhContent({ table, pageId, pageType, fields, filename = '', otherResourceList = [] }) {
-    let tableStr = '';
-    let columnStr = '';
-    let space = '';
-    let actionSpace = '';
-    let pageContent = '';
-    let actionContent = '';
-    if (table) {
-      let createItemListStr = '';
-      let updateItemListStr = '';
-      let detailItemListStr = '';
-      tableStr = `table: "${table}",`;
-      const { excludeColumn = [] } = this.argv;
-      fields.forEach((field, index) => {
-        const fieldKey = field.COLUMN_NAME;
-        const fieldName = field.COLUMN_COMMENT;
-        if (excludeColumn.includes(fieldKey)) return;
-        if (index === 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", width: 80, sortable: true, class: "fixed", cellClass: "fixed" },\n`;
-        if (index !== 0) columnStr += space + `{ text: "${fieldName}", value: "${fieldKey}", width: 80, sortable: true },\n`;
-        createItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
-        updateItemListStr += actionSpace + `{ label: "${fieldName}", model: "${fieldKey}", tag: "v-text-field", rules: "validationRules.requireRules",   },\n`;
-        detailItemListStr += actionSpace + `{ label: "${fieldName}", tag: "span", colAttrs: { class: 'border-b pb-2 flex justify-between' }, value: "{{detailItem.${fieldKey}}}"  },\n`;
-        space = ' '.repeat(8);
-        actionSpace = ' '.repeat(12);
-      });
-
-      columnStr += space + '{ text: "操作", value: "action", type: "action", width: \'window.innerWidth < 500 ? 70 : 120\', align: "center", class: "fixed", cellClass: "fixed" },\n';
-      pageContent = `[
-    {
-      tag: 'jh-table',
-      attrs: {  },
-      colAttrs: { clos: 12 },
-      cardAttrs: { class: 'rounded-lg elevation-0' },
-      headActionList: [
-        { tag: 'v-btn', value: '新增', attrs: { color: 'success', class: 'mr-2', '@click': 'doUiAction("startCreateItem")', small: true } },
-        { tag: 'v-spacer' },
-        // 默认筛选
-        {
-          tag: 'v-col',
-          attrs: { cols: '12', sm: '6', md: '3', xs: 8, class: 'pa-0' },
-          value: [
-            { tag: 'v-text-field', attrs: {prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true} },
-          ],
-        }
-      ],
-      headers: [
-        ${columnStr}
-        // width 表达式需要使用字符串包裹
-      ],
-      value: [
-        // vuetify table custom slot
-      ],
-      rowActionList: [
-        { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: 'doUiAction("startUpdateItem", item)' }, // 简写支持 pc 和 移动端折叠
-        { text: '删除', icon: 'mdi-trash-can-outline', color: 'error', click: 'doUiAction("deleteItem", item)' } // 简写支持 pc 和 移动端折叠
-      ],
+  async getCrudContent({ table, pageId, pageType, fields, filename = '' }) {
+    // 读取文件
+    const templatePath = `${path.join(__dirname, '../../')}page-template-json/template`;
+    this.info('表字段', fields);
+    // 使用正则表达式替换占位符
+    let templateFile = 'curd';
+    if (pageType === 'jh-component') {
+      templateFile = '1table-component/component';
+    } else if (pageType === 'jh-mobile-page') {
+      templateFile = 'mobile';
     }
-  ]`;
-      if (pageType === 'jh-mobile-page') {
-        pageContent = `[
-    {
-      tag: 'jh-list',
-      props: {
-        limit: 10,
-        rightArrowText: '指派跟进人',
+    let listTemplate = fs.readFileSync(`${templatePath}/${templateFile}.js`, 'utf-8').toString();
+    // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示
+    listTemplate = listTemplate.replace(/\/\/===\/\//g, '');
+    // 生成 vue
+    nunjucks.configure(`${templatePath}/crud.html.njk`, {
+      tags: {
+        blockStart: '<=%',
+        blockEnd: '%=>',
+        variableStart: '<=$',
+        variableEnd: '$=>',
       },
-      attrs: { cols: 12, class: 'p-0 pb-7', style: 'height: calc(100vh - 140px); overflow-y: auto;overscroll-behavior: contain' },
-      headers: [
-        ${columnStr}
-        // width 表达式需要使用字符串包裹 
-        // 是否是标题 isTitle: true 
-        // 简单模式 isSimpleMode: true
-      ],
-      rowActionList: [
-        { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: 'doUiAction("startUpdateItem", item)' }, // 简写支持 pc 和 移动端折叠
-        { text: '删除', icon: 'mdi-trash-can-outline', color: 'error', click: 'doUiAction("deleteItem", item)' } // 简写支持 pc 和 移动端折叠
-      ],
-    }
-  ]`;
-      }
-      actionContent = `actionContent: [
-    {
-      tag: 'jh-create-drawer',
-      key: "create",
-      attrs: {},
-      title: '新增',
-      headSlot: [
-        { tag: 'v-spacer'}
-      ],
-      contentList: [
-        { 
-          label: "新增", 
-          type: "form", 
-          formItemList: [
-            /**
-             * colAtts: { cols: 12, md: 3 } // 表单父容器栅格设置
-             * attrs: {} // 表单项属性
-             */
-            ${createItemListStr}
-          ], 
-          action: [{
-            tag: "v-btn",
-            value: "新增",
-            attrs: {
-              color: "success",
-              ':small': true,
-              '@click': "doUiAction('createItem')"
-            }
-          }],
-        },
-
-      ]
-    },
-    {
-      tag: 'jh-update-drawer',
-      key: "update",
-      attrs: {},
-      title: '编辑',
-      headSlot: [
-        { tag: 'v-spacer'}
-      ],
-      contentList: [
-        { 
-          label: "编辑", 
-          type: "form", 
-          formItemList: [
-            /**
-             * colAtts: { cols: 12, md: 3 } // 表单父容器栅格设置
-             * attrs: {} // 表单项属性
-             */
-            ${updateItemListStr}
-          ], 
-          action: [{
-            tag: "v-btn",
-            value: "编辑",
-            attrs: {
-              color: "success",
-              ':small': true,
-              '@click': "doUiAction('updateItem')"
-            }
-          }],
-        },
-        { label: "操作记录", type: "component", componentPath: "recordHistory", attrs: { table: '${table}', pageId: '${pageId}', ':id': 'updateItem.id' } },
-      ]
-    },
-    ${pageType === 'jh-mobile-page' ? `{
-        tag: 'jh-detail-drawer',
-        key: "detail",
-        attrs: {},
-        title: '编辑',
-        headSlot: [
-          { tag: 'v-spacer'}
-        ],
-        contentList: [
-          { 
-            label: "编辑", 
-            type: "preview", 
-            formItemList: [
-              ${detailItemListStr}
-            ], 
-            action: [{
-              tag: "v-btn",
-              value: "编辑",
-              attrs: {
-                color: "success",
-                ':small': true,
-                '@click': "doUiAction('startUpdateItem', detailItem); closeDetailDrawer()"
-              }
-            }],
-          },
-        ]
-      }` : ''}
-  ]`;
-
-    } else {
-      pageContent = `[
-    {
-      tag: 'v-row',
-      attrs: { justify: 'center', ':no-gutters': true },
-      value: [
-        { tag: 'v-col', attrs: { cols: '12', sm: '12', md: '12', lg: '12', xl: '12' }, value: '自定义容器内容' },
-      ]
-    }
-  ]`;
-    }
-
-    // resourceList预设
-    let resourceList = '[]';
-    if (table) {
-      const templatePath = `${path.join(__dirname, '../../')}page-template-json/${pageType}`;
-      const defaultResource = JSON.parse(fs.readFileSync(`${templatePath}/resource.json`));
-      defaultResource.push(...otherResourceList);
-      resourceList = this.customStringify(defaultResource, pageId, table, filename);
-    }
-
-    const propsStr = pageType === 'jh-component' ? 'props: {},' : '';
-    const componentPath = pageType === 'jh-component' ? `componentPath: "${filename}",` : '';
-
-    if ([ 'jh-page', 'jh-component' ].includes(pageType)) {
-      return this.getBasicContent({ pageId, pageType, tableStr, componentPath, resourceList, propsStr, pageContent, actionContent, style: '' });
-    } else {
-      return this.getBasicMobileContent({ pageId, pageType, tableStr, componentPath, resourceList, propsStr, pageContent, actionContent, style: '' });
-    }
+    });
+    const result = nunjucks.renderString(listTemplate, {
+      pageType,
+      pageId,
+      pageName: pageId,
+      table,
+      tableCamelCase: _.camelCase(table),
+      fields,
+      propsStr: pageType === 'jh-component' ? 'props: {},' : '',
+      // component 独有
+      componentName: filename,
+      actionIdPrefix: filename.split('/').pop(),
+    });
+    return result.replace(/^\/\* eslint-disable \*\/\n/, '');
   }
 
   getBasicContent({ pageId, pageType, tableStr = '', componentPath = '', resourceList = '[]', propsStr = '', pageContent = '[]', actionContent, style }) {
@@ -843,14 +689,14 @@ module.exports = content;
       });
     }
 
-    const columns = result.map(column => {
+    return result.filter(column => {
+      return ![ ...defaultColumn, 'id' ].includes(column.COLUMN_NAME);
+    }).map(column => {
       return {
         COLUMN_NAME: column.COLUMN_NAME,
         COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '').split(';')[0].split('；')[0].split(':')[0],
       };
     });
-
-    return columns;
   }
 
   async example(cwd, argv) {

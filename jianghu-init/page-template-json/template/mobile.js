@@ -31,43 +31,40 @@ const content = {
   headContent: [
     { tag: 'jh-page-title', value: "<=$ pageName $=>", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
 
-    { tag: 'v-spacer'},
+    { tag: 'jh-order'},
     { 
       tag: 'jh-search', 
-      attrs: { cols: 12, sm: 6, md:8 },
-      value: [
+      searchList: [
         { tag: "v-text-field", model: "keyword", colAttrs: { cols: 12, md: 3 }, attrs: {prefix: '标题', ':disabled': 'keywordFieldList.length == 0', ':placeholder': "!keywordFieldList.length ? '未设置搜索字段' : ''"} },
         // { tag: "v-text-field", model: "serverSearchWhereLike.className", colAttrs: { cols: 12, md: 3 }, attrs: {prefix: '前缀'} },
       ], 
-      searchBtn: true
     },
+    { tag: 'v-spacer'},
+    { tag: 'jh-mode'},
   ],
   pageContent: [
     {
-      tag: 'jh-table',
+      tag: 'jh-list',
+      props: {
+        limit: 10,
+        rightArrowText: '指派跟进人',
+      },
       attrs: {  },
-      colAttrs: { clos: 12 },
-      cardAttrs: { class: 'rounded-lg elevation-0' },
-      headActionList: [
-        { tag: 'v-btn', value: '新增', attrs: { color: 'success', class: 'mr-2', '@click': 'doUiAction("startCreateItem")' }, quickAttrs: ['small'] },
-        { tag: 'v-spacer' },
-        /*html*/`
-        <v-col cols="12" sm="6" md="3" xs="8" class="pa-0">
-          <v-text-field prefix="筛选" v-model="searchInput" class="jh-v-input" dense filled single-line></v-text-field>
-        </v-col>
-        `
-      ],
+      attrs: { cols: 12, class: 'p-0 pb-7', style: 'height: calc(100vh - 140px); overflow-y: auto;overscroll-behavior: contain' },
       headers: [
         //===//<=%- for field in fields %=>
         { text: "<=$ field.COLUMN_COMMENT $=>", value: "<=$ field.COLUMN_NAME $=>", width: 80, sortable: true },
         //===//<=%- endfor %=>
         { text: "操作", value: "action", type: "action", width: 'window.innerWidth < 500 ? 70 : 120', align: "center", class: "fixed", cellClass: "fixed" },
+        // width 表达式需要使用字符串包裹 
+        // 是否是标题 isTitle: true 
+        // 简单模式 isSimpleMode: true
       ],
       value: [],
       rowActionList: [
         // 简写支持 pc 和 移动端折叠
         //===// <=$ jhTableRowAction | safe $=>
-        { text: '详情', icon: 'mdi-note-edit-outline', color: 'success', click: 'doUiAction("startUpdateItem", item)' },
+        { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: 'doUiAction("startUpdateItem", item)' },
         { text: '删除', icon: 'mdi-trash-can-outline', color: 'error', click: 'doUiAction("deleteItem", item)' }
       ],
     }
@@ -102,7 +99,6 @@ const content = {
             attrs: {
               color: "success",
               class: 'ml-2',
-              ':small': true,
               '@click': "doUiAction('createItem')"
             }
           }],
@@ -139,12 +135,41 @@ const content = {
             attrs: {
               color: "success",
               class: 'ml-2',
-              ':small': true,
               '@click': "doUiAction('updateItem')"
             }
           }],
         },
         //===// <=$ updateDrawerComponent | safe $=>
+      ]
+    },
+    {
+      tag: 'jh-detail-drawer',
+      key: "detail",
+      attrs: {},
+      title: '编辑',
+      headSlot: [
+        { tag: 'v-spacer'}
+      ],
+      contentList: [
+        { 
+          label: "编辑", 
+          type: "preview", 
+          formItemList: [
+            //===//<=%- for field in fields %=>
+            //===//<=%- if field.COLUMN_NAME != 'id' %=>
+            { label: "<=$ field.COLUMN_COMMENT $=>", tag: "span", colAttrs: { class: 'border-b pb-2 flex justify-between' }, value: "{{detailItem.<=$ field.COLUMN_NAME $=>}}"  },
+            //===//<=%- endif %=>
+            //===//<=%- endfor %=>
+          ], 
+          action: [{
+            tag: "v-btn",
+            value: "编辑",
+            attrs: {
+              color: "success",
+              '@click': "doUiAction('startUpdateItem', detailItem); closeDetailDrawer()"
+            }
+          }],
+        },
       ]
     }
   ],
