@@ -274,7 +274,7 @@
     computed: {
       allowPageList() {
         if (this.userInfo.allowPageList.some(e => e.pageId.startsWith('mobile/'))) {
-          return this.userInfo.allowPageList.filter(e => this.isMobile ? e.pageName.startsWith('mobile/') : !e.pageName.startsWith('mobile/'));
+          return this.userInfo.allowPageList.filter(e => this.isMobile ? e.pageId.startsWith('mobile/') : !e.pageId.startsWith('mobile/'));
         }
         return this.userInfo.allowPageList;
       }
