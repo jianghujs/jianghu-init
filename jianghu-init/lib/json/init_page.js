@@ -125,6 +125,7 @@ module.exports = class InitPage1Table extends CommandBase {
     const filepath = `./app/view/page/${pageId}.html`;
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-page`;
     const templateTargetPath = `${templatePath}/${version ? pageType + '-' + version : pageType}.njk.html`;
+    console.log('templateTargetPath', templateTargetPath);
     const listTemplate = fs.readFileSync(templateTargetPath)
       .toString()
       .replace(/\/\/===\/\/ /g, '')

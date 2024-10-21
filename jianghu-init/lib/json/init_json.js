@@ -8,6 +8,8 @@ const _ = require('lodash');
 const path = require('path');
 const nunjucks = require('nunjucks');
 const InitPage = require('./init_page');
+const InitMobilePage = require('./init_mobile_page');
+const InitComponent = require('./init_component');
 const typeList = [
   { value: 'jh-page', name: 'jh-page' },
   { value: 'jh-mobile-page', name: 'jh-mobile-page' },
@@ -161,8 +163,21 @@ module.exports = class InitJson extends CommandBase {
     fs.writeFileSync(generateFilePath, content);
 
     // eslint-disable-next-line no-eval
-    const jsConfig = eval(content);
-    await new InitPage().renderContent(jsConfig);
+    // const jsConfig = eval(content);
+    // switch (pageType) {
+    //   case 'jh-component':
+    //     new InitComponent().renderContent(jsConfig);
+    //     break;
+    //   case 'jh-page':
+    //     await new InitPage().renderContent(jsConfig);
+    //     break;
+    //   case 'jh-mobile-page':
+    //     await new InitMobilePage().renderContent(jsConfig);
+    //     break;
+    //   default:
+    //     this.error('pageType 只能是 jh-component、jh-page、jh-mobile-page');
+    //     break;
+    // }
     this.success(`生成 ${table} 的 html 文件完成`);
     if (pageType.includes('component')) {
       this.info(`
@@ -183,7 +198,7 @@ module.exports = class InitJson extends CommandBase {
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/template`;
     this.info('表字段', fields);
     // 使用正则表达式替换占位符
-    let templateFile = 'curd';
+    let templateFile = 'crud';
     if (pageType === 'jh-component') {
       templateFile = '1table-component/component';
     } else if (pageType === 'jh-mobile-page') {
