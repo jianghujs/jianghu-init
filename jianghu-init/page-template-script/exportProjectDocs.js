@@ -6,7 +6,7 @@ const sqlFormatter = require('sql-formatter');
 // ---------------------改这里---------------------
 const projectName = '当前项目名称';
 const projectPath = path.resolve(__dirname, '../', projectName);
-const configPath = path.resolve(projectPath, 'config/config.local.js');
+const configLocal = require('../config/config.local.js');
 const exportPath = path.resolve(__dirname, './docs');
 // 定义项目异常的文件路径，支持多个
 const errorFilePath = [
@@ -15,10 +15,10 @@ const errorFilePath = [
 // ---------------------改这里---------------------
 
 // 读取配置文件
-const config = require(configPath);
+const config = configLocal({baseDir: path.join(__dirname, '..')});
 
 // 获取数据库连接信息
-const connection = config.knex.connection;
+const connection = config.knex.client.connection;
 
 const knex = require('knex')({
     client: 'mysql',

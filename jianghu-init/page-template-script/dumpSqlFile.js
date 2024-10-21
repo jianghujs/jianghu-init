@@ -2,21 +2,11 @@
 const path = require('path');
 const mysqldump = require('mysqldump');
 const fs = require('fs');
+const configLocal = require('../config/config.local.js');
+const config = configLocal({baseDir: path.join(__dirname, '..')});
+const client = config.knex.client.connection
 
-// 添加新的函数来读取配置文件
-function getConnectionConfig() {
-    const configPath = path.resolve(process.cwd(), 'config/config.local.js');
-    if (!fs.existsSync(configPath)) {
-        throw new Error('配置文件 config.local.js 不存在');
-    }
-    const config = require(configPath);
-    return {
-        host: config.knex.connection.host,
-        port: config.knex.connection.port,
-        user: config.knex.connection.user,
-        password: config.knex.connection.password,
-    };
-}
+
 
 const noDataTables = ['_cache', '_record_history', '_user_session'];
 // 加一个不导出结构和数据的表名列表
@@ -40,7 +30,7 @@ async function dumpSingleProject(database, targetDir) {
 }
 
 async function dumpSql({ database, targetFile, options = { data: true, schema: true } }) {
-    const connection = getConnectionConfig();
+    const connection = client;
     connection.database = database;
     const res = await mysqldump({
         connection,
