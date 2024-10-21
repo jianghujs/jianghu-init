@@ -6,34 +6,6 @@ const inquirer = require('inquirer');
 
 const pageTypes = [
   {
-    type: 'page',
-    value: 'record-history-page',
-    name: 'record-history-page - generate pages from record-history',
-    pageId: 'recordHistory',
-    path: 'template/record-history/',
-  },
-  {
-    type: 'page',
-    value: 'user-management-page',
-    name: 'user-management-page - generate pages from user-management',
-    pageId: 'userManagement',
-    path: 'template/user-management/',
-  },
-  {
-    type: 'page',
-    value: 'user-group-role-page',
-    name: 'user-group-role-page - generate pages from user-group-role',
-    pageId: 'userGroupRole',
-    path: 'template/user-group-role/',
-  },
-  {
-    type: 'page',
-    value: 'user-page-resource-page',
-    name: 'user-page-resource-page - generate pages from user-page-resource',
-    pageId: 'userPageResource',
-    path: 'template/user-page-resource/',
-  },
-  {
     type: 'component',
     value: 'json-editor-component',
     name: 'json-editor-component - generate component from json-editor',
