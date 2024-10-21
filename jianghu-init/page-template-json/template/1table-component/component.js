@@ -138,7 +138,9 @@ const content = {
   includeList: [
   ], // { type: < js | css | html | vueComponent >, path: ''}
   common: { 
+    //===// <=%- if primaryFieldA %=>
     //===// props: { <=$ primaryFieldA $=>: { type: String, required: true } },
+    //===// <=%- endif %=>
     data: {
       constantObj: {
       },
@@ -167,7 +169,9 @@ const content = {
     }, // data 表达式
     computed: {
       tableDataComputed() {
+        //===// <=%- if primaryFieldA %=>
         //===// let data = this.tableData.filter(e => e.<=$ primaryFieldA $=> === this.<=$ primaryFieldA $=>);
+        //===// <=%- endif %=>
         if(this.filterMap) {
           return data.filter(row => {
             for (const key in this.filterMap) {
