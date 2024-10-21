@@ -67,6 +67,13 @@ const content = {
         { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: 'doUiAction("startUpdateItem", item)' },
         { text: '删除', icon: 'mdi-trash-can-outline', color: 'error', click: 'doUiAction("deleteItem", item)' }
       ],
+    },
+    {
+      tag: 'jh-action',
+      attrs: { class: 'h-16 w-16 p-2 fixed right-4 bottom-32' },
+      actionList: [
+        { tag: 'v-btn', value: '新增', attrs: { color: 'primary', class: 'elevation-0', '@click': "doUiAction('startCreateItem'); isPageActionDrawerShown = false"  }, quickAttrs: ['block'] },
+      ]
     }
   ],
   actionContent: [
