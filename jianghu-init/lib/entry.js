@@ -3,7 +3,7 @@
 const inquirer = require('inquirer');
 const CommandInitProject = require('./init_project');
 const CommandInitPage = require('./init_page');
-const CommandInitTool = require('./init_tool');
+const CommandInitComponent = require('./init_component');
 const CommandInitByJson = require('./init_by_json');
 const CommandInitScript = require('./init_script');
 const path = require('path');
@@ -23,8 +23,8 @@ const initTypes = [
     name: 'page - Generate manage or test page from database table.',
   },
   {
-    value: 'tool',
-    name: 'tool - Add some tools to manage your app.',
+    value: 'component',
+    name: 'component - Add some components to manage your app.',
   },
   {
     value: 'script',
@@ -54,7 +54,7 @@ module.exports = class Entry {
       return;
     }
 
-    if (![ 'project', 'page', 'tool', 'json' ].includes(initType)) {
+    if (![ 'project', 'page', 'component', 'json' ].includes(initType)) {
       const answer = await inquirer.prompt({
         name: 'initType',
         type: 'list',
@@ -74,8 +74,8 @@ module.exports = class Entry {
       case 'page':
         await new CommandInitPage().run(process.cwd(), passArgv);
         break;
-      case 'tool':
-        await new CommandInitTool().run(process.cwd(), passArgv);
+      case 'component':
+        await new CommandInitComponent().run(process.cwd(), passArgv);
         break;
       case 'json':
         await new CommandInitByJson().run(process.cwd(), passArgv);

@@ -1,6 +1,6 @@
 'use strict';
 const yargs = require('yargs');
-const InitToolScript = require('./tool/init_tool_script');
+const InitToolScript = require('./script/init_tool_script');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 

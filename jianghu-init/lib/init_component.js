@@ -1,6 +1,6 @@
 'use strict';
 const yargs = require('yargs');
-const InitPageStatic = require('./page/init_page_static');
+const InitComponentStatic = require('./component/init_component_static');
 const CommandBase = require('./command_base');
 const inquirer = require('inquirer');
 
@@ -10,7 +10,7 @@ const pageTypes = [
     value: 'json-editor-component',
     name: 'json-editor-component - generate component from json-editor',
     pageId: 'vueJsonEditor',
-    path: 'template/json-editor/',
+    path: 'json-editor/',
     queryPageId: false,
     demo: `model 变量支持 String Object Array 
         <vue-json-editor v-model="updateItem.config" mode="code" height="calc(100vh - 240px)"></vue-json-editor>
@@ -22,7 +22,7 @@ const pageTypes = [
     name: 'table-attachment-component - generate component from table-attachment',
     pageId: '',
     filename: 'tableAttachment',
-    path: 'template/table-attachment/',
+    path: 'table-attachment/',
     demo: `/**
          * crud 附件上传组件
          * target-table {String} 关联表名
@@ -42,7 +42,7 @@ const pageTypes = [
     name: 'table-record-history-component - generate component from table-record-history',
     pageId: '',
     filename: 'tableRecordHistory',
-    path: 'template/table-record-history/',
+    path: 'table-record-history/',
     demo: `/**
          * crud 操作记录组件
          * table  {String} 关联表名
@@ -80,7 +80,7 @@ module.exports = class InitToolCommand extends CommandBase {
           continue;
         }
         page.queryPageId = false;
-        await new InitPageStatic().run(process.cwd(), page);
+        await new InitComponentStatic().run(process.cwd(), page);
       }
       this.success('jianghu init tool is success');
     } else {
@@ -94,7 +94,7 @@ module.exports = class InitToolCommand extends CommandBase {
       }
       page.y = this.argv.y;
 
-      await new InitPageStatic().run(process.cwd(), page);
+      await new InitComponentStatic().run(process.cwd(), page);
       this.success('jianghu init tool is success');
     }
   }

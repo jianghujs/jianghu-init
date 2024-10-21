@@ -1,0 +1,537 @@
+<!-- crud attachment start -->
+<template id="table-attachment">
+  <div>
+
+    <!-- 页面内容 >>>>>>>>>>>>> -->
+    
+    <v-card class="px-4">
+      <v-row class="ma-0 pt-0 d-flex">
+        <v-btn color="success" small dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)">新增附件
+        </v-btn>
+
+        <v-spacer></v-spacer>
+        <v-btn
+          class="elevation-0 ml-0 ml-sm-2 hidden-sm-and-up"
+          color="success"
+          dark
+          small
+          @click="doUiAction('getTableData')"
+        >
+          查询
+        </v-btn>
+        <v-col cols="12" sm="6" md="3" xl="3" class="pa-0 pt-2 pt-sm-0">
+          <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="jh-v-input" dense filled single-line hide-details></v-text-field>
+        </v-col>
+
+        <!-- <v-col cols="12" sm="6" md="3" xl="3" class="pa-0 pl-0 pl-sm-2 pt-2 pt-sm-0">
+          <row-status-select :value="serverSearchInput.rowStatus" :bg-white="false" @update-value="serverSearchInput.rowStatus=$event" />
+        </v-col> -->
+        <v-btn
+          class="elevation-0 ml-0 ml-sm-2 hidden-xs-only "
+          color="success"
+          dark
+          small
+          @click="doUiAction('getTableData')"
+        >
+          查询
+        </v-btn>
+
+      </v-row>
+      <v-card v-for="(itemList, contractFileType, index) in tableData" outlined class="my-2">
+        <v-card-title class="pl-4" style="font-size: 20px; font-weight: 500;">{{ contractFileType }}</v-card-title>
+        <v-card-text style="display: flex; flex-flow: wrap;">
+          <v-card v-for="item in itemList" width="200px" class="mr-2 mb-2" outlined>
+            <v-img
+              :src="previewPrefix + item.downloadPath"
+              class="white--text align-end"
+              gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+              height="120px"
+            >
+              <v-card-title v-text="item.filename"></v-card-title>
+            </v-img>
+
+            <v-card-actions>
+              <v-chip small>{{item.fileSubtype}}</v-chip>
+              <v-spacer></v-spacer>
+              <v-btn icon small v-if="item.downloadPath && /.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(item.downloadPath)" @click="doUiAction('previewFile', { item })">
+                <v-icon>mdi-eye</v-icon>
+              </v-btn>
+              <v-btn icon small v-if="item.downloadPath" @click="doUiAction('downloadFile', { item })">
+                <v-icon>mdi-download</v-icon>
+              </v-btn>
+              <v-btn icon small v-if="item.downloadPath" @click="doUiAction('deleteItem', { item })">
+                <v-icon>mdi-trash-can-outline</v-icon>
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-card-text>
+      </v-card>
+      <v-overlay absolute :value="isTableLoading" color="#fff">
+        <v-progress-circular
+          color="success"
+          indeterminate
+          size="32"
+        ></v-progress-circular>
+      </v-overlay>
+      <div v-if="!isTableLoading && tableDataFromBackend.length == 0" class="mt-5 text-center">暂无附件</div>
+    </v-card>
+    
+    <!-- <<<<<<<<<<<<< 页面内容 --> 
+    <!-- 新增附件 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24" >
+      <v-form ref="createForm" lazy-validation>
+        
+        <!-- 抽屉标题 -->
+        <v-row no-gutters align="center">
+          <span class="text-h7 font-weight-bold pa-4">新增附件</span>
+          
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+            <v-row class="mt-0 px-4">
+              <v-col cols="12" sm="12" md="4" >
+                <span class="jh-input-label">附件</span>
+                <v-file-input class="jh-v-input" dense single-line filled v-model="createItem.filename" :rules="validationRules.requireRules"></v-file-input>
+              </v-col>
+              <v-col cols="12" sm="12" md="4" >
+                <span class="jh-input-label"><span class="red--text text--accent-2 ml-1">* </span>文件分类</span>
+                <v-select :items="fileType" class="jh-v-input" dense single-line filled v-model="createItem.fileType" :rules="validationRules.requireRules"></v-select>
+              </v-col>
+              <v-col cols="12" sm="12" md="4" >
+                <span class="jh-input-label"><span class="red--text text--accent-2 ml-1">* </span>文件类型</span>
+                <v-select :items="fileSubtype" class="jh-v-input" dense single-line filled v-model="createItem.fileSubtype" :rules="validationRules.requireRules"></v-select>
+              </v-col>
+              <v-col cols="12" sm="12" md="4" >
+                <span class="jh-input-label">备注</span>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.fileDesc"></v-text-field>
+              </v-col>
+            </v-row>
+
+            <!-- 抽屉操作按钮 -->
+            <v-row class="justify-end mx-0 my-8 px-4">
+              <v-btn color="success" small @click="doUiAction('createItem')">
+                新增
+              </v-btn>
+              <v-btn class="elevation-0 ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 新增附件 --> 
+    
+    <v-overlay :value="previewOverlay" @click="previewOverlay = false" :opacity="0.85">
+      <v-icon style="position: fixed; right: 10px; top: 5px; z-index: 50000" large color="white"
+        @click="previewOverlay = false">
+        mdi-close-circle
+      </v-icon>
+      <v-icon style="position: fixed; right: 50px; top: 5px; z-index: 50000" large color="white"
+        @click="doUiAction('downloadPreviewFile')">
+        mdi-download
+      </v-icon>
+      <iframe v-if="previewFileType === 'pdf'" :src="'/<$ ctx.app.config.appId $>/public/pdf/web/viewer.html?file=' + previewFileUrl" frameborder="0"
+        style="width: 1000px; height: 100vh; padding: 50px 0 0 0;"></iframe>
+      <v-img v-if="previewFileType === 'img'" contain max-height="90vh" max-width="75%"  :src="previewFileUrl"></v-img>
+    </v-overlay>
+    
+  </div>
+</template>
+<script>
+Vue.component("table-attachment", {
+  template: '#table-attachment',
+  vuetify: new Vuetify(),
+  name: 'table-attachment',
+  props: {
+    pageId: {
+      type: String,
+      default: "",
+      desc: "页面id"
+    },
+    targetId: {
+      type: String,
+      default: "",
+      desc: "关联id"
+    },
+    targetTable: {
+      type: String,
+      default: "",
+      desc: "关联表"
+    },
+    imageCompression: {
+      type: Boolean,
+      default: true
+    },
+    imageCompressionOptions: {
+      type: Object,
+      default: () => ({ maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true })
+    },
+    fileType: {
+      type: Array,
+      default: () => ['引入fileType'],
+      desc: "文件分类"
+    },
+    fileSubtype: {
+      type: Array,
+      default: () => ['引入fileSubtype'],
+      desc: "文件类型"
+    }
+  },
+  data: () => ({
+    serverSearchPropsWhere: {},
+    serverSearchPropsWhereLike: {},
+    // ================================ 新建抽屉 ================================
+    isCreateDrawerShown: false,
+    createItem: {},
+    createActionData: {},
+
+    // ================================ common ================================ 
+    constantObj: {}, 
+    validationRules: {
+      requireRules: [
+        v => !!v || '必填'
+      ]
+    }, 
+    testString: '测试字符串', 
+    serverSearchWhereLike: {
+      className: ""
+    }, 
+    filterMap: {}, 
+    tableDataFromBackend: [], 
+    searchInput: '', 
+    isTableLoading: false, 
+    previewPrefix: '/<$ ctx.app.config.appId $>/upload', 
+    previewOverlay: false, 
+    previewFileUrl: null, 
+    previewFileBase64: '', 
+    previewFilename: '', 
+    previewFileType: '', 
+    downloadPath: '', 
+    isMobile: window.innerWidth < 500,
+
+    // ================================ 其他抽屉列表 ================================
+  }),
+  watch: {
+    targetId: {
+    handler: function (val, oldVal) {
+        this.serverSearchPropsWhere.targetId = val;
+        this.serverSearchPropsWhere.targetTable = this.targetTable;
+        this.getTableData();
+      },
+    immediate: true
+  },
+  },
+  computed: {
+    tableDataComputed() {
+      return _.groupBy(this.tableData, e => {
+        return e.year + '-' + e.semester;
+      });
+    },
+    tableData() {
+      return _.groupBy(this.tableDataFromBackend, 'fileType');
+    }
+  },
+  async created() {
+  },
+
+  
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      try {
+        switch (uiActionId) { 
+          case 'startCreateItem': 
+            await this.prepareCreateFormData(uiActionData); 
+            await this.openCreateDrawer(uiActionData);
+            break; 
+          case 'getTableData': 
+            await this.getTableData(uiActionData);
+            break; 
+          case 'previewFile': 
+            await this.previewFile(uiActionData);
+            break; 
+          case 'downloadFile': 
+            await this.downloadFile(uiActionData);
+            break; 
+          case 'downloadPreviewFile': 
+            await this.downloadPreviewFile(uiActionData);
+            break; 
+          case 'createItem': 
+            await this.prepareCreateValidate(uiActionData); 
+            await this.confirmCreateItemDialog(uiActionData); 
+            await this.doUploadCreateFile(uiActionData); 
+            await this.prepareDoCreateItem(uiActionData); 
+            await this.doCreateItem(uiActionData); 
+            await this.closeCreateDrawer(uiActionData); 
+            await this.getTableData(uiActionData);
+            break; 
+          case 'deleteItem': 
+            await this.confirmDeleteItemDialog(uiActionData); 
+            await this.doDeleteItem(uiActionData); 
+            await this.getTableData(uiActionData);
+            break;
+
+
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      } catch (error) {
+        throw error;
+      } finally {
+        window.jhMask && window.jhMask.hide();
+      }
+    },
+    // ---------- 新增数据 uiAction >>>>>>>>>> --------
+    async prepareCreateFormData() {
+      this.createItem = {
+        targetTable: this.targetTable,
+        targetId: this.targetId,
+      };
+    },
+    async openCreateDrawer() {
+      this.isCreateDrawerShown = true;
+    },
+    async prepareCreateValidate() {
+      if (await this.$refs.createForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息")
+    },
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("[confirmCreateFormDialog] 否");
+      }
+    },
+    prepareDoCreateItem() {
+      const {id, ...data} = this.createItem;
+      this.createActionData = {
+        filename: data.filename,
+        fileType: data.fileType,
+        fileSubtype: data.fileSubtype,
+        fileDesc: data.fileDesc,
+        downloadPath: data.downloadPath,
+        binarySize: data.binarySize,
+        filenameStorage: data.filenameStorage,
+        fileDirectory: data.fileDirectory,
+        targetTable: data.targetTable,
+        targetId: data.targetId,
+      };
+    },
+    async doCreateItem() {
+      await window.jhMask.show();
+      await window.vtoast.loading("新增数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: this.pageId,
+            actionId: 'attachment-insertItem',
+            actionData: this.createActionData
+          }
+        }
+      })
+      await window.jhMask.hide();
+      await window.vtoast.success("新增数据成功");
+    },
+    async closeCreateDrawer() {
+      this.isCreateDrawerShown = false;
+      this.createItem = {};
+      this.createActionData = null;
+    },
+    // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
+    // ---------- Custom uiAction >>>>>>>>>>>> -------- 
+    async getTableData() {
+      this.isTableLoading = true;
+      const where = {};
+      const whereLike = {};
+    
+      for (const fieldKey in this.serverSearchPropsWhere) {
+        const fieldValue = this.serverSearchPropsWhere[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          where[fieldKey] = fieldValue;
+        }
+      }
+      for (const fieldKey in this.serverSearchPropsWhereLike) {
+        const fieldValue = this.serverSearchPropsWhereLike[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          whereLike[fieldKey] = fieldValue;
+        }
+      }
+    
+      const rows = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: this.pageId,
+            actionId: 'attachment-selectItemList',
+            actionData: {},
+            where,
+            whereLike,
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      })).data.appData.resultData.rows;
+      this.tableDataFromBackend = this.formatTableData(rows);
+      this.isTableLoading = false;
+    }, 
+    formatTableData(rows) {
+      rows.forEach(row => {
+        row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+      });
+      return rows;
+    }, 
+    async doUploadFile(key) {
+      const { filename: file } = this[key];
+      if (file && file.size) {
+        await window.vtoast.loading("文件上传");
+  
+        // 压缩文件
+        let compressedFile;
+        if (/.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/i.test(file.name) && this.imageCompression) {
+          if (typeof imageCompression !== 'undefined') {
+            try {
+              console.log(file);
+              compressedFile = await imageCompression(file, this.imageCompression);
+              // 处理压缩后的文件...
+            } catch (e) {
+              window.vtoast.fail("图片压缩失败，请检查格式是否符合要求");
+            }
+          } else {
+            console.log('压缩未生效')
+            console.error('请尝试引入 image-compression 库：/<$ ctx.app.config.appId $>/public/plugin/compression/browser-image-compression.js');
+            compressedFile = file;
+          }
+          
+        } else {
+          compressedFile = file;
+        }
+  
+        const result = await window.jianghuAxios.httpUploadByStream({ file: compressedFile, fileDirectory: 'doc',
+          onProgress: (total, loaded) => {
+            let progress = Number((loaded * 100 / total).toFixed(2))
+            window.vtoast.loading(`文件上传进度${progress}%`);
+            if (progress === 100) {
+              window.vtoast.success('文件上传成功');
+            }
+          }
+        });
+  
+        if (result.data.status === 'success') {
+          this[key].downloadPath = result.data.appData.resultData.downloadPath;
+          this[key].binarySize = result.data.appData.resultData.binarySize;
+          this[key].filename = compressedFile.name;
+          this[key].fileDirectory = this[key].downloadPath.split('/').slice(0, -1).join('/');
+          this[key].filenameStorage = this[key].downloadPath.split('/').pop();
+        } else {
+          await window.vtoast.fail("文件上传失败");
+          throw new Error("文件上传失败");
+        }
+      } else if (file && file.name) {
+        this[key].filename = file.name;
+      }
+    }, 
+    async doUploadCreateFile() {
+      await this.doUploadFile('createItem');
+    }, 
+    async doUploadUpdateFile() {
+      await this.doUploadFile('updateItem');
+    }, 
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("[confirmDeleteItemDialog] 否");
+      }
+    }, 
+    async doDeleteItem({ item: { id }}) {
+      window.vtoast.loading('正在删除')
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: this.pageId,
+            actionId: 'attachment-deleteItem',
+            where: {id}
+          }
+        }
+      });
+      window.vtoast.success('删除成功')
+    }, 
+    async downloadFile({ item }) {
+      const { filename, downloadPath } = item;
+      window.vtoast.loading('文件下载进度0.00%');
+      const buffer = await window.jianghuAxios.httpDownloadByStream({ downloadPath, filename,
+        onProgress: (total, loaded)=> {
+          const progress = Number((loaded * 100 / total).toFixed(2));
+          window.vtoast.loading(`文件下载进度${progress}%`);
+          if (progress === 100) {
+            window.vtoast.success('文件下载成功');
+          }
+        }
+      }).catch(err => {
+        window.vtoast.fail({ message: err.errorReason });
+        throw err;
+      });
+      window.jianghuAxios.downloadBufferToChrome({ buffer, filename });
+    }, 
+    async previewFile({ item }) {
+      const { filename, downloadPath, binarySize } = item;
+      if (binarySize > 7 * 1024) {
+        window.vtoast.fail('文件大于7M, 不支持预览!');
+        // 中断uiAction
+        return false;
+      }
+      this.filename = filename;
+      if (/.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(filename)) {
+        this.previewFileType = 'img';
+        this.previewFileUrl = `/<$ ctx.app.config.appId $>/upload${downloadPath}`;
+      } else if (/.(pdf|PDF)$/.test(filename)) {
+        this.previewFileType = 'pdf';
+        this.previewFileUrl = encodeURIComponent(`/<$ ctx.app.config.appId $>/upload${downloadPath}`);
+      } else {
+        // 直接跳转链接
+        window.open(`/<$ ctx.app.config.appId $>/upload${downloadPath}`);
+        return false;
+      }
+      this.previewFilename = filename;
+      this.previewOverlay = true;
+      this.downloadPath = downloadPath;
+  
+    }, 
+    async downloadPreviewFile() {
+      const oReq = new XMLHttpRequest();
+      const url = `/<$ ctx.app.config.appId $>/upload${this.downloadPath}`;
+      const filename = this.previewFilename;
+      oReq.open("GET", url, true);
+      oReq.responseType = "arraybuffer";
+      oReq.onprogress = function (event) {
+        if (event.lengthComputable) {
+          const progress = Number((event.loaded * 100 / event.total).toFixed(2));
+          window.vtoast.loading(`文件下载进度${progress}%`);
+          if (progress === 100) {
+            window.vtoast.success('文件下载成功');
+          }
+        }
+      }
+      oReq.onload = function (oEvent) {
+        const buffer = oReq.response;
+        let url = window.URL.createObjectURL(new Blob( [buffer], {type: "arraybuffer"}) )
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+      oReq.send(null);
+    },
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
+
+    // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+  }
+})
+</script>
+<style>
+  
+  .v-navigation-drawer-overlay {
+    z-index: 150 !important; /* 设置overlay的z-index为150，覆盖默认值 */
+  }
+  
+</style>
+<!-- crud attachment end -->
