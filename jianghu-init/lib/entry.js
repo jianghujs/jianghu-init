@@ -5,6 +5,7 @@ const CommandInitProject = require('./init_project');
 const CommandInitPage = require('./init_page');
 const CommandInitTool = require('./init_tool');
 const CommandInitByJson = require('./init_by_json');
+const CommandInitScript = require('./init_script');
 const path = require('path');
 const fs = require('fs');
 
@@ -24,7 +25,12 @@ const initTypes = [
   {
     value: 'tool',
     name: 'tool - Add some tools to manage your app.',
-  }];
+  },
+  {
+    value: 'script',
+    name: 'script - Add some scripts to manage your app.',
+  }
+];
 
 /**
  * 命令入口
@@ -74,6 +80,9 @@ module.exports = class Entry {
       case 'json':
         await new CommandInitByJson().run(process.cwd(), passArgv);
         break;
+      case 'script':
+        await new CommandInitScript().run(process.cwd(), passArgv);
+        break;
       default:
         console.log('未知的命令类型。显示帮助信息：\n');
         this.showHelp();
@@ -101,8 +110,9 @@ module.exports = class Entry {
 命令:
   project [选项]               创建一个新项目并初始化表
   page [选项]                  从数据库表生成管理或测试页面
-  tool [选项]                  添加一些工具来管理你的应用
+  tool [选项]                  添加一些脚本来管理你的应用
   json [选项]                  通过 JSON 文本初始化
+  script [选项]                添加一些脚本来管理你的应用
 
   运行 jianghu-init <命令> --help 以获取指定命令的详细用法。
   `);
