@@ -128,7 +128,7 @@ module.exports = class InitPageCommand extends CommandBase {
    */
   getParser() {
     return yargs
-      .usage('init jianghu page .\nUsage: $0 page')
+      .usage('🚀 init jianghu page .\n🔧 Usage: jianghu-init page --type=1table-page')
       .options(this.getParserOptions())
       .alias('h', 'help')
       .help();

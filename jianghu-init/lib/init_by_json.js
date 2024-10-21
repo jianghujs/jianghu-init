@@ -193,7 +193,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
    */
   getParser() {
     return yargs
-      .usage('🚀 使用init-json江湖页面 .\n🔧 用法: jianghu-init json --generateType=page --pageType=page --file=classManagement')
+      .usage('🚀 init init-json page .\n🔧 Usage: jianghu-init json --generateType=page --pageType=page --file=classManagement')
       .options(this.getParserOptions())
       .help(false)
       .version(false)

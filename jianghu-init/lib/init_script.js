@@ -79,7 +79,7 @@ module.exports = class InitToolCommand extends CommandBase {
    */
   getParser() {
     return yargs
-      .usage('init jianghu tool .\nUsage: $0 page')
+      .usage('🚀 init jianghu script .\n🔧 Usage: jianghu-init script')
       .options(this.getParserOptions())
       .alias('h', 'help')
       .help();

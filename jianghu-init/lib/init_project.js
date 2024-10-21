@@ -48,7 +48,7 @@ module.exports = class InitProjectCommand extends CommandBase {
    */
   getParser() {
     return yargs
-      .usage('init jianghu project .\nUsage: $0 project')
+      .usage('🚀 init jianghu project .\nUsage: jianghu-init project --type=1table-crud my-project')
       .options(this.getParserOptions())
       .alias('h', 'help')
       .help();
