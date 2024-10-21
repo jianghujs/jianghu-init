@@ -193,8 +193,10 @@ module.exports = class InitByJsonCommand extends CommandBase {
    */
   getParser() {
     return yargs
-      .usage('init jianghu page .\nUsage: $0 page')
+      .usage('🚀 使用init-json江湖页面 .\n🔧 用法: jianghu-init json --generateType=page --pageType=page --file=classManagement')
       .options(this.getParserOptions())
+      .help(false)
+      .version(false)
       .alias('h', 'help')
       .help();
   }
@@ -205,21 +207,25 @@ module.exports = class InitByJsonCommand extends CommandBase {
    */
   getParserOptions() {
     return {
-      type: {
+      generateType: {
         type: 'string',
-        description: 'page type',
+        description: 'Generate type [ page | component ]',
       },
-      jsonText: {
+      pageType: {
         type: 'string',
-        description: 'json text',
+        description: 'File type [ page | component ]',
       },
-      jsonFile: {
+      file: {
         type: 'string',
-        description: 'json file',
+        description: 'File name',
       },
-      excludeColumn: {
-        type: 'array',
-        description: 'exclude column',
+      table: {
+        type: 'string',
+        description: 'Select table',
+      },
+      pageId: {
+        type: 'string',
+        description: 'Generate pageId',
       },
     };
   }
