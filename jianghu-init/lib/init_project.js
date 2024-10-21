@@ -39,7 +39,8 @@ module.exports = class InitProjectCommand extends CommandBase {
     // done
     this.printGuide(targetDir, boilerplate);
 
-    this.success('jianghu init project is success');
+
+    this.success(`🎉 Successfully created project ${projectName}`);
   }
 
   /**
@@ -133,7 +134,7 @@ module.exports = class InitProjectCommand extends CommandBase {
     for (const app of apps) {
       // 目录切换
       if (await exists(path.join(process.cwd(), app))) {
-        this.success(`目录切换 ${app}`);
+        this.success(`Switching directory to ${app}`);
         process.chdir(app);
       }
 
@@ -153,17 +154,18 @@ module.exports = class InitProjectCommand extends CommandBase {
    * print usage guide
    */
   printGuide(targetDir, boilerplate) {
+    const relativeTargetDir = path.relative(process.cwd(), targetDir);
     if (this.multiDemoProject.includes(boilerplate.name)) {
-      this.success(`usage:
-      - cd ${targetDir}
+      this.success(`👉 Get started with the following commands:
+      - cd ${relativeTargetDir}
       - ls
       - cd your_app
       - npm install
       - npm start / npm run dev
     `);
     } else {
-      this.success(`usage:
-      - cd ${targetDir}
+      this.success(`👉 Get started with the following commands:
+      - cd ${relativeTargetDir}
       - npm install
       - npm start / npm run dev
     `);

@@ -48,6 +48,7 @@ module.exports = class InitBoilerplate {
   }
 
   async run(cwd, args) {
+    console.log(chalk.blue('Starting project initialization...'));
 
     const argv = this.argv = this.getParser().parse(args || []);
     this.cwd = cwd;
@@ -70,17 +71,25 @@ module.exports = class InitBoilerplate {
     this.registryUrl = this.getRegistryByType(argv.registry);
     this.log(`use registry: ${this.registryUrl}`);
 
+    console.log(chalk.green('✔ Parameter parsing completed'));
+
     if (this.needUpdate) {
+      console.log(chalk.blue('Checking for updates...'));
       // check update
       await updater({
         package: this.pkgInfo,
         registry: this.registryUrl,
         level: 'major',
       });
+      console.log(chalk.green('✔ Update check completed'));
     }
 
+    console.log(chalk.blue('Determining target directory...'));
     // ask for target dir
     this.targetDir = await this.getTargetDirectory();
+    console.log(chalk.green('✔ Target directory determined'));
+
+    console.log(chalk.blue('Getting template...'));
     // use local template
     let templateDir = await this.getTemplateDir();
     let pkgName = this.argv.package;
@@ -108,11 +117,17 @@ module.exports = class InitBoilerplate {
         pkgName = boilerplate.package;
       }
       // download boilerplate
+      console.log(chalk.blue('Downloading template...'));
       templateDir = await this.downloadBoilerplate(pkgName);
+      console.log(chalk.green('✔ Template download completed'));
     }
 
+    console.log(chalk.blue('Processing files...'));
     // copy template
     const { database } = await this.processFiles(this.targetDir, templateDir);
+    console.log(chalk.green('✔ File processing completed'));
+
+    console.log(chalk.green('✔ Project initialization completed!'));
 
     return { boilerplate, targetDir: this.targetDir, database };
   }
@@ -123,16 +138,16 @@ module.exports = class InitBoilerplate {
   checkProjectDirectory(name) {
     if (['1table-crud-enterprise'].includes(name)) {
       // 多应用下增加应用需要验证目录
-      console.log(symbols.success, chalk.blue(`${name} 模式目录验证`));
+      console.log(symbols.success, chalk.blue(`${name} mode directory verification`));
       const dirList = fs.readdirSync(process.cwd());
       // 多应用，三者缺一不可
       if (dirList.indexOf('data_repository') === -1
         || dirList.indexOf('user_app_management') === -1
         || dirList.indexOf('directory') === -1) {
-        console.log(symbols.success, chalk.red('请切换到多应用模式的项目目录下'));
+        console.log(symbols.success, chalk.red('Please switch to the project directory under multi-application mode'));
         return false;
       }
-      console.log(symbols.success, chalk.green(`${name} 模式目录验证 成功`));
+      console.log(symbols.success, chalk.green(`${name} mode directory verification successful`));
       return true;
     }
     return true;
@@ -464,7 +479,7 @@ module.exports = class InitBoilerplate {
     // if argv dir is invalid, then ask user
     const isValid = validate(targetDir);
     if (isValid !== true) {
-      this.log(isValid);
+      this.log('目标目录已存或不为空。');
       const answer = await this.inquirer.prompt({
         name: 'dir',
         message: 'Please enter target dir: ',

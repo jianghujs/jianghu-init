@@ -33,7 +33,7 @@ module.exports = class InitTableData extends CommandBase {
     // 创建表格
     await this.createTables();
 
-    this.success('初始化`数据库基本表和数据`完成');
+    this.success('Initialization of `basic database tables and data` completed');
   }
 
   /**
