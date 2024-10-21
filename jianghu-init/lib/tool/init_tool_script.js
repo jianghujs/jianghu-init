@@ -25,7 +25,7 @@ class initToolScript extends CommandBase {
   }
 
   async copyTemplateFiles() {
-    const templateDir = path.join(__dirname, '../../page-template-tool');
+    const templateDir = path.join(__dirname, '../../page-template-script');
     const targetDir = './_script';
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });

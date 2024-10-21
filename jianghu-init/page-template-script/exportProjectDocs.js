@@ -1,33 +1,29 @@
 const fs = require('fs');
 const path = require('path');
 const dirTree = require("directory-tree");
-require('dotenv').config({path: path.resolve(__dirname, '../.env')});
 const sqlFormatter = require('sql-formatter');
 
 // ---------------------改这里---------------------
-const projectName = '304.jianghu-erp';
-const database = 'jianghu_finance'
-const exportPath = path.resolve(__dirname, './docs')
+const projectName = '当前项目名称';
+const projectPath = path.resolve(__dirname, '../', projectName);
+const configPath = path.resolve(projectPath, 'config/config.local.js');
+const exportPath = path.resolve(__dirname, './docs');
 // 定义项目异常的文件路径，支持多个
 const errorFilePath = [
-    path.resolve(__dirname, `../${projectName}/app/constant/error.js`)
-]
+    path.resolve(projectPath, `app/constant/error.js`)
+];
 // ---------------------改这里---------------------
 
+// 读取配置文件
+const config = require(configPath);
 
-const connection = {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database
-};
+// 获取数据库连接信息
+const connection = config.knex.connection;
 
 const knex = require('knex')({
     client: 'mysql',
     connection
-})
-
+});
 
 async function exportTree() {
   const projectPath = path.resolve(__dirname, '../', projectName);
@@ -232,7 +228,7 @@ throw new BizError(errorInfoEnum.disable_edit_appaId)
 
 \`\`\`
 
-## 异常总览
+## 异常览
 
 `;
     for (const filePath of errorFilePath) {
@@ -266,13 +262,13 @@ throw new BizError(errorInfoEnum.disable_edit_appaId)
 }
 
 async function main() {
-    // await exportTree();
+    await exportTree();
     await exportTables()
-    // await exportTableData('_page', path.resolve(exportPath, `${projectName}-page.md`) )
-    // await exportTableData('_resource', path.resolve(exportPath, `${projectName}-resource.md`) )
-    // await exportConstant('_constant', path.resolve(exportPath, `${projectName}-constant.md`) )
-    // await exportError()
-    // await exportPageData()
+    await exportTableData('_page', path.resolve(exportPath, `${projectName}-page.md`) )
+    await exportTableData('_resource', path.resolve(exportPath, `${projectName}-resource.md`) )
+    await exportConstant('_constant', path.resolve(exportPath, `${projectName}-constant.md`) )
+    await exportError()
+    await exportPageData()
     knex.destroy();
 }
 

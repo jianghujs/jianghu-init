@@ -5,8 +5,7 @@
 const mysql = require('mysql');
 const path = require('path');
 const readline = require('readline');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-
+const config = require('../config/config.local.js');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -15,11 +14,11 @@ const rl = readline.createInterface({
 
 
 const connection = mysql.createConnection({
-    host: process.env.DB_HOST,     // 你的数据库地址
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,      // 数据库用户名
-    password: process.env.DB_PASSWORD,  // 数据库密码
-    database: 'baofeng_v3',   // 数据库名
+    host: config.knex.connection.host,
+    port: config.knex.connection.port,
+    user: config.knex.connection.user,
+    password: config.knex.connection.password,
+    database: config.knex.connection.database,
 });
 
 // id从几开始
@@ -30,10 +29,10 @@ const PAGE_ID_GAP = 20;
 connection.connect();
 
 rl.question(`
-host: ${process.env.DB_HOST}, 
-port: ${process.env.DB_PORT},
-user: ${process.env.DB_USER}, 
-database: ${process.env.DB_DATABASE}, 
+host: ${config.knex.connection.host}, 
+port: ${config.knex.connection.port},
+user: ${config.knex.connection.user}, 
+database: ${config.knex.connection.database}, 
 确定要将_resource的id重新排序吗? (yes/no) `, function (answer) {
     if (answer.toLowerCase() !== 'yes') {
         console.log('Cancelled');

@@ -1,53 +1,46 @@
 'use strict';
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const mysqldump = require('mysqldump');
 const fs = require('fs');
 
-const connection = {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-};
+// 添加新的函数来读取配置文件
+function getConnectionConfig() {
+    const configPath = path.resolve(process.cwd(), 'config/config.local.js');
+    if (!fs.existsSync(configPath)) {
+        throw new Error('配置文件 config.local.js 不存在');
+    }
+    const config = require(configPath);
+    return {
+        host: config.knex.connection.host,
+        port: config.knex.connection.port,
+        user: config.knex.connection.user,
+        password: config.knex.connection.password,
+    };
+}
 
 const noDataTables = ['_cache', '_record_history', '_user_session'];
 // 加一个不导出结构和数据的表名列表
 const noSchemaTables = ['_directory_user_session', '_group', '_role', '_user_group_role', '_user_group_role_page', '_view01_user', '_user_group_role_resource', '_view02_user_app'];
 
-async function npmInstall() {
+async function dumpSingleProject(database, targetDir) {
     try {
-        const projectList = require('./project-list.js');
-
-        for (const project of projectList) {
-            const { name, url, subProjectList } = project;
-            const projectPath = path.join(__dirname, `../${name}`);
-
-            if (!fs.existsSync(projectPath)) {
-                console.error(`${name} 未拉取，请执行项目拉取命令或手动执行`);
-                continue;
-            }
-
-            if (subProjectList) {
-                console.log(`${name} 为多应用项目，在子应用目录下执行 dump 1.init.sql`);
-                for (const subProject of subProjectList) {
-                    const { subdir, database } = subProject;
-                    if (!subProject.database) { continue;}
-                    await dumpSql({ database, targetFile: path.join(projectPath, `${subdir}/sql/1.init.sql`) });
-                    copyAndCreateSqlFiles(projectPath, subdir);
-                }
-            } else {
-                if (!project.database) { continue;}
-                await dumpSql({ database: project.database, targetFile: path.join(projectPath, 'sql/1.init.sql') });
-                copyAndCreateSqlFiles(projectPath);
-            }
+        if (!database) {
+            console.error('未提供数据库名称');
+            return;
         }
+
+        const targetFile = path.join(targetDir, 'sql/1.init.sql');
+        await dumpSql({ database, targetFile });
+        copyAndCreateSqlFiles(targetDir);
+        
+        console.log(`成功导出 ${database} 数据库到 ${targetFile}`);
     } catch (error) {
-        console.error('发生错误:', error);
+        console.error('导出过程中发生错误:', error);
     }
 }
 
 async function dumpSql({ database, targetFile, options = { data: true, schema: true } }) {
+    const connection = getConnectionConfig();
     connection.database = database;
     const res = await mysqldump({
         connection,
@@ -97,4 +90,16 @@ function copyAndCreateSqlFiles(projectPath, subdir = '') {
     }
 }
 
-npmInstall();
+// 主函数
+async function main() {
+    const args = process.argv.slice(2);
+    if (args.length < 2) {
+        console.error('使用方法: node dumpSqlFile.js <数据库名称> <目标目录>');
+        process.exit(1);
+    }
+
+    const [database, targetDir] = args;
+    await dumpSingleProject(database, targetDir);
+}
+
+main();

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // 读取文件的路径
-const filePath = path.resolve(__dirname, '../jianghu-init/page-template-json/template/page-log/init.sql');
+const filePath = path.resolve(__dirname, './init.sql');
 
 // 使用 fs.readFileSync 方法读取文件内容
 const sqlContent = fs.readFileSync(filePath, 'utf-8');
