@@ -34,7 +34,7 @@ module.exports = class InitPageTestPage extends CommandBase {
       }
     }
     await this.getKnex(this.dbSetting);
-    this.success('初始化数据库连接成功');
+    this.notice('初始化数据库连接成功');
 
     // generate testPage
     await this.generateCrud();
@@ -53,13 +53,13 @@ module.exports = class InitPageTestPage extends CommandBase {
       return;
     }
     for (const table of tables) {
-      this.info(`开始生成 ${table} 的 testPage`);
+      this.notice(`开始生成 ${table} 的 testPage`);
       // 生成 vue
       if (await this.renderVue(table)) {
         this.success(`生成 ${table} 的 vue 文件完成`);
 
         // 数据库
-        this.info(`开始生成 ${table} 的相关数据`);
+        this.notice(`开始生成 ${table} 的相关数据`);
         await this.modifyTable(table);
         this.success(`生成 ${table} 的相关数据完成`);
       }

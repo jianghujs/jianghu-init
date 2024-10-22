@@ -13,6 +13,7 @@ const lockfile = require('proper-lockfile');
 const chokidar = require('chokidar');
 const dayjs = require('dayjs');
 const _ = require('lodash');
+const chalk = require('chalk');
 
 const jsonTypes = [
   {
@@ -52,6 +53,9 @@ const pageTypeList = [
 module.exports = class InitByJsonCommand extends CommandBase {
 
   async run(cwd, args) {
+
+    this.notice('Starting json initialization...');
+
     this.argv = this.getParser().parse(args || []);
     this.cwd = cwd;
     this.jhComponent = new InitComponent();
@@ -59,7 +63,6 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.jhMobilePage = new InitMobilePage();
 
     await this.enableDevMode(args.includes('dev'));
-
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
     const jsFile = this.argv.jsFile;
@@ -234,7 +237,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     const answer = await inquirer.prompt({
       name: 'jsonType',
       type: 'list',
-      message: 'Please select a json type',
+      message: '请选择执行命令类型',
       choices: jsonTypes,
       pageSize: jsonTypes.length + 1,
     });
@@ -317,7 +320,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     });
     watcher.on('all', async (event, pathStr) => {
       if (event === 'change') {
-        this.info(`File ${pathStr.replace('app/view/init-json', '')} change ${dayjs().format('HH:mm:ss')}`);
+        console.log(chalk.gray(`File ${pathStr.replace('app/view/init-json', '')} change ${dayjs().format('HH:mm:ss')}`));
         let fileObj = {};
         try {
           // eslint-disable-next-line no-eval
@@ -335,8 +338,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
     watcher.on('error', err => {
       console.error(`监控文件变化出错: ${err.message}`);
     });
-    this.success('启动 dev 开发模式');
-    console.log('Watching ./app/view/init-json for changes...');
+    this.success('开启 dev 开发模式');
+    this.notice('Watching ./app/view/init-json for changes...');
 
     // 在进程退出时删除锁定文件
     process.on('exit', async () => {
@@ -376,7 +379,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
           this.error(`不存在的 pageType: ${fileObj.pageType}`);
           break;
       }
-      this.info(`build ${filename} success`);
+      this.success(`build ${filename} success`);
       console.log('');
     } catch (e) {
       console.log(e);

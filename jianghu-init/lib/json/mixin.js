@@ -452,10 +452,10 @@ const mixin = {
       operationByUserId,
     };
     if (existPage && (existPage.pageName !== pageData.pageName || existPage.operationByUserId !== operationByUserId)) {
-      console.log(`更新页面名称 ${existPage.pageName} => ${pageName}`);
+      this.notice(`更新页面名称 ${existPage.pageName} => ${pageName}`);
       await knex('_page').where({ id: existPage.id }).update(pageData);
     } else if (!existPage) {
-      console.log(`插入页面 ${pageName}`);
+      this.notice(`新增页面 ${pageName}`);
       await knex('_page').insert(pageData);
     }
   },
@@ -567,7 +567,7 @@ const mixin = {
       jsonConfig.pageContent.forEach(content => {
         if (content.tag === 'jh-table') {
           if (content.value && _.isArray(content.value) && content.value.find(e => e.text && e.value && e.width)) {
-            console.log('旧版key vlaue');
+            this.warning('已过期旧版headers: key vlaue');
             content.headers = content.value;
             // todo 提示 使用新版key
           }
@@ -875,10 +875,12 @@ const mixin = {
 
     const defaultColumn = [ 'operation', 'operationByUserId', 'operationByUser', 'operationAt' ];
     if (idGenerate) defaultColumn.push('idSequence');
+    const noticeFieldList = [];
     for (const column of defaultColumn) {
       if (!columnList[column]) {
         return knex.schema.table(table, t => {
           this.info(`创建依赖字段：${column}`);
+          noticeFieldList.push(column);
           // idSequence 列则在 id 后添加
           if (column === 'idSequence') {
             t.integer(column).after('id');
@@ -888,6 +890,7 @@ const mixin = {
         });
       }
     }
+    noticeFieldList.length && this.success(`创建依赖字段：${noticeFieldList.join('、')}`);
   },
   // 批量添加组件 resource --- 废弃
   async modifyComponentResource(jsonConfig) {
@@ -914,7 +917,7 @@ const mixin = {
     for (const line of resourceSql.split('\n')) {
       if (!line) continue;
       if (line.startsWith('--')) {
-        this.info(`正在执行 ${component.componentPath} ${line}`);
+        this.notice(`[4/5]正在执行 ${component.componentPath} ${line}`);
       } else {
         await knex.raw(line);
       }
@@ -947,7 +950,7 @@ const mixin = {
             }
           }
         }
-        this.info(`${y ? '默认' : ''}开始生成 ${item.componentPath} 组件`);
+        this.notice(`[3/5]${y ? '默认' : ''}开始生成 ${item.componentPath} 组件...`);
         const componentHtml = fs.readFileSync(componentPath + '/' + item.componentPath + '.html')
           .toString()
           .replace(/\/\/===\/\/ /g, '')
@@ -986,7 +989,7 @@ const mixin = {
           }
         }
       }
-      this.info(`${y ? '默认' : ''}开始生成 common service`);
+      this.notice(`[5/5]${y ? '默认' : ''}开始生成 common service`);
       fs.copyFileSync(templateTargetPath, serviceFilePath);
     }
   },

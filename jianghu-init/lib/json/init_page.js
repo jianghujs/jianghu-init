@@ -30,19 +30,19 @@ module.exports = class InitPage1Table extends CommandBase {
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
-    this.success('初始化数据库连接成功');
+    this.notice('[1/5]初始化数据库连接成功');
     // generate crud
     await this.generateCrud(jsonArgv);
   }
 
   // 生成 crud
   async generateCrud(jsonConfig) {
-    const { table } = jsonConfig;
+    const { table, pageId } = jsonConfig;
     // if (!table) {
     //   this.info('未配置table，流程结束');
     //   return;
     // }
-    this.info(`开始生成 ${table} 的 CRUD`);
+    this.notice(`[2/5]开始生成 ${pageId} 的 CRUD...`);
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
@@ -53,7 +53,7 @@ module.exports = class InitPage1Table extends CommandBase {
       await this.renderComponent(jsonConfig);
       // 生成 service
       await this.renderService(jsonConfig);
-      this.success('build page by json is success');
+      this.success(`[${pageId}]page generated successfully`);
     } else {
       this.error(`生成 ${table} 的 vue 文件失败`);
       return;
@@ -83,9 +83,9 @@ module.exports = class InitPage1Table extends CommandBase {
       // const insertBeforeHook = idGenerate ? '{"before": [{"service": "common", "serviceFunction": "generateBizIdOfBeforeHook"}]}' : '';
       // await this.executeSql('check_resource.sql', { pageId, pageName, table, insertBeforeHook });
     }
-    if (pageId) {
-      await this.executeSql('check_page.sql', { pageId, pageName, pageHook });
-    }
+    // if (pageId) {
+    //   await this.executeSql('check_page.sql', { pageId, pageName, pageHook });
+    // }
   }
 
   async executeSql(sqlFile, obj) {
@@ -108,7 +108,7 @@ module.exports = class InitPage1Table extends CommandBase {
     for (const line of sqlList) {
       if (!line) continue;
       if (line.startsWith('--')) {
-        this.info(`${label} ${line}`);
+        this.notice(`${label} ${line}`);
       } else {
         await knex.raw(line);
       }

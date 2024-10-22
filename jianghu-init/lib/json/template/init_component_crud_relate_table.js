@@ -35,7 +35,7 @@ module.exports = class InitPage1TableFile extends CommandBase {
       }
     }
     await this.getKnex(this.dbSetting);
-    this.success('初始化数据库连接成功');
+    this.notice('初始化数据库连接成功');
 
     // generate crud
     await this.generateCrud();
@@ -47,14 +47,14 @@ module.exports = class InitPage1TableFile extends CommandBase {
    * 生成 crud
    */
   async generateCrud() {
-    this.info('开始生成 CRUD');
+    this.notice('开始生成 CRUD...');
     const table = await this.promptTables('请输入你要生成 Component-CRUD 的 table', '');
     if (!table) {
       this.info('未选择 table，流程结束');
       return;
     }
     
-    this.info(`开始生成 ${table} 的 CRUD`);
+    this.notice(`开始生成 ${table} 的 CRUD...`);
     const tableCamelCase = _.camelCase(table);
     const pageId = await this.readlineMethod('主页面Id', 'xxxxManagement');
     const componentId = await this.readlineMethod('组件名', 'xxxx');

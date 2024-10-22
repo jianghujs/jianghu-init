@@ -30,7 +30,7 @@ module.exports = class InitComponent extends CommandBase {
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
-    this.success('初始化数据库连接成功');
+    this.notice('[1/5]初始化数据库连接成功');
     // generate crud
     await this.generateCrud(jsonArgv);
   }
@@ -38,12 +38,12 @@ module.exports = class InitComponent extends CommandBase {
   // 生成 crud
   async generateCrud(jsonConfig) {
     const { pageId, table, componentPath } = jsonConfig;
-    this.info('开始生成 CRUD');
+    // this.notice('开始生成 CRUD...');
     // if (!table) {
     //   this.info('未配置table，流程结束');
     //   return;
     // }
-    this.info(`开始生成 ${table} 的 CRUD`);
+    this.notice(`[2/5]开始生成 ${componentPath} 的 CRUD...`);
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
@@ -52,6 +52,7 @@ module.exports = class InitComponent extends CommandBase {
       await this.renderComponent(jsonConfig);
       // 生成 service
       await this.renderService(jsonConfig);
+      this.success(`[${componentPath}]component generated successfully`);
     } else {
       this.error(`生成 ${table} 的 vue 文件失败`);
       return;

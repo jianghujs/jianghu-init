@@ -65,7 +65,7 @@ const content = {
     {
       tag: 'jh-table',
       attrs:{},
-      value: [
+      headers: [
         { text: "学生ID", value: "studentId", type: "v-text-field", width: 80, sortable: true}, // 格式化、插槽
         { text: "学生名字", value: "name", type: "v-text-field", width: 80, sortable: true },
         { text: "性别", value: "gender", type: "v-text-field", width: 80, sortable: true },

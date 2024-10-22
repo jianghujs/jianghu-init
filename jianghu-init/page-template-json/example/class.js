@@ -69,7 +69,7 @@ const content = {
         'v-model': 'tableSelected',
         'item-key': 'classId',
       },
-      value: [
+      headers: [
         { text: "班级ID", value: "classId", type: "v-text-field", width: 80, sortable: true },
         { text: "班级名称", value: "className", type: "v-text-field", width: 80, sortable: true },
         { text: "班级类型", value: "classType", type: "v-text-field", width: 80, sortable: true, formatter: [

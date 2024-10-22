@@ -34,7 +34,7 @@ module.exports = class InitPage2Table extends CommandBase {
       }
     }
     await this.getKnex(this.dbSetting);
-    this.success('初始化数据库连接成功');
+    this.notice('初始化数据库连接成功');
 
     // generate crud
     await this.generateCrud();
@@ -46,13 +46,13 @@ module.exports = class InitPage2Table extends CommandBase {
    * 生成 crud
    */
   async generateCrud() {
-    this.info('开始生成 CRUD');
+    this.notice('开始生成 CRUD...');
     const { tableA, nameA, primaryFieldA, tableB, nameB, primaryFieldB } = await this.promptTables('请输入你要生成 CRUD 的 table', '');
     if (!tableA || !tableB) {
       this.info('未选择 table，流程结束');
       return;
     }
-    this.info(`开始生成 ${tableA} 的 CRUD`);
+    this.notice(`开始生成 ${tableA} 的 CRUD`);
 
     // 生成 vue
     const baMiddlePageId = `${_.camelCase(tableB)}ManagementOfOne${_.upperFirst(_.camelCase(tableA))}`;

@@ -121,6 +121,8 @@ module.exports = class InitJson extends CommandBase {
 
   // 生成 json
   async buildJson({ table, pageId, pageType, chartType, filename }) {
+
+    this.notice(`生成${pageId || ''}的配置文件...`);
     // 检测创建文件夹
     const generateFileDir = [ '1table-page', 'jh-mobile-page', 'jh-page' ].includes(pageType) ? './app/view/init-json/page' : './app/view/init-json/component';
     fs.mkdirSync(generateFileDir, { recursive: true });
@@ -178,7 +180,6 @@ module.exports = class InitJson extends CommandBase {
     //     this.error('pageType 只能是 jh-component、jh-page、jh-mobile-page');
     //     break;
     // }
-    this.success(`生成 ${table} 的 html 文件完成`);
     if (pageType.includes('component')) {
       this.info(`
     ---------- 引入示例 ----------
@@ -196,7 +197,6 @@ module.exports = class InitJson extends CommandBase {
   async getCrudContent({ table, pageId, pageType, fields, filename = '' }) {
     // 读取文件
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/template`;
-    this.info('表字段', fields);
     // 使用正则表达式替换占位符
     let templateFile = 'crud';
     if (pageType === 'jh-component') {
@@ -732,6 +732,7 @@ module.exports = content;
     // 把样例文件复制到项目中
     fs.copyFileSync(examplePageFilePath, './app/view/init-json/page/exampleClass.js');
     fs.copyFileSync(exampleComponentFilePath, './app/view/init-json/component/exampleStudentOfClass.js');
+    this.success('生成 init-json 样例文件成功');
 
     // sql 文件
     const sqlFilePath = examplePath + '/crud.sql';

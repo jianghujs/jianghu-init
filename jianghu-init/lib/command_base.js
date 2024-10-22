@@ -195,11 +195,15 @@ module.exports = class CommandBase {
   }
 
   warning(msg) {
-    console.log(symbols.error, chalk.yellowBright(msg));
+    console.log(symbols.info, chalk.yellowBright(msg));
   }
 
   error(msg) {
     console.error(symbols.error, chalk.red(msg));
+  }
+
+  notice(msg) {
+    console.log(symbols.info, chalk.blue(msg));
   }
 
 };

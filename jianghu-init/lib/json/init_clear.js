@@ -27,7 +27,7 @@ module.exports = class InitClear extends CommandBase {
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
-    // this.success('初始化数据库连接成功');
+    // this.notice('初始化数据库连接成功');
     // generate crud
     await this.clear(jsonArgv);
   }
@@ -106,7 +106,7 @@ module.exports = class InitClear extends CommandBase {
       this.info('未配置table，流程结束');
       return;
     }
-    this.info(`开始生成 ${table} 的 CRUD`);
+    this.notice(`开始生成 ${table} 的 CRUD...`);
     // 生成 vue
     const renderResult = await this.renderVue(jsonConfig);
     if (renderResult) {
@@ -117,7 +117,7 @@ module.exports = class InitClear extends CommandBase {
       await this.renderComponent(jsonConfig);
       // 生成 service
       await this.renderService(jsonConfig);
-      this.success('build page by json is success');
+      this.success('build page by json success');
     } else {
       this.error(`生成 ${table} 的 vue 文件失败`);
       return;

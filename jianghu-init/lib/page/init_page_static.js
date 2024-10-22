@@ -37,7 +37,7 @@ module.exports = class InitPagePublic extends CommandBase {
       }
     }
     await this.getKnex(this.dbSetting);
-    this.success('初始化数据库连接成功');
+    this.notice('初始化数据库连接成功');
 
     // generate crud
     await this.generateCrud(argv);
@@ -50,7 +50,7 @@ module.exports = class InitPagePublic extends CommandBase {
    */
   async generateCrud({ type, pageId: defaultPageId, filename, path, queryPageId = true, demo, y }) {
 
-    this.info('开始生成 CRUD');
+    this.notice('开始生成 CRUD...');
     let pageId = defaultPageId;
     if (queryPageId) {
       pageId = (await inquirer.prompt({
@@ -64,7 +64,7 @@ module.exports = class InitPagePublic extends CommandBase {
       this.info('未输入page，流程结束');
       return;
     }
-    this.info(`开始生成 ${pageId} 的 CRUD`);
+    this.notice(`开始生成 ${pageId} 的 CRUD`);
 
     // 生成 vue
     if (await this.renderVue(path, type, pageId, filename, { pageId }, y)) {
