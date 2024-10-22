@@ -54,6 +54,23 @@ const pageTypes = [
     `,
   },
   {
+    type: 'component',
+    value: 'vue-markdown-component',
+    name: 'vue-markdown-component - generate component from vue-markdown-component',
+    pageId: '',
+    filename: 'vueMarkdown',
+    path: 'vue-markdown/',
+    demo: `/**
+         * crud 操作记录组件
+         * table  {String} 关联表名
+         * pageId {String} pageId
+         * id     {String} 关联表id
+         */
+        <vue-markdown v-model="value" />
+    `,
+  },
+
+  {
     value: 'all',
     name: 'all - generate all above pages',
   }];
