@@ -14,7 +14,7 @@ const content = {
       attrs: { cols: 12, class: 'pa-0' },
       value: [
         /*html*/`
-        <iframe style="border: 0" :src="'/' + appInfo.appId + '/pageDoc'" width="100%" height="100%"></iframe>
+        <iframe style="border: 0; height: calc(100vh - 116px);" :src="'/' + appInfo.appId + '/pageDoc'" width="100%" height="100%"></iframe>
         `
       ]
     }
