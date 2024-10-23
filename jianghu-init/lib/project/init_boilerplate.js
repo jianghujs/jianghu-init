@@ -141,9 +141,9 @@ module.exports = class InitBoilerplate {
       console.log(symbols.success, chalk.blue(`${name} mode directory verification`));
       const dirList = fs.readdirSync(process.cwd());
       // 多应用，三者缺一不可
-      if (dirList.indexOf('data_repository') === -1
-        || dirList.indexOf('user_app_management') === -1
-        || dirList.indexOf('directory') === -1) {
+      if (dirList.indexOf('data-repository') === -1
+        || dirList.indexOf('base-system') === -1
+        || dirList.indexOf('base-directory') === -1) {
         console.log(symbols.success, chalk.red('Please switch to the project directory under multi-application mode'));
         return false;
       }

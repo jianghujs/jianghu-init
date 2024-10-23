@@ -31,11 +31,11 @@
         "package": "@jianghujs/jianghu-boilerplate-3table-crud",
         "description": "Jianghu 3table crud"
       },
-      "enterprise": {
+      "enterprise-v2": {
         "package": "@jianghujs/jianghu-boilerplate-enterprise",
         "description": "Jianghu multi enterprise"
       },
-      "1table-crud-enterprise": {
+      "1table-crud-enterprise-v2": {
         "package": "@jianghujs/jianghu-boilerplate-1table-crud-enterprise",
         "description": "Jianghu 1table in enterprise"
       },

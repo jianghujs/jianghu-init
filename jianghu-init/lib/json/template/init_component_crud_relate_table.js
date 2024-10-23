@@ -25,9 +25,12 @@ module.exports = class InitPage1TableFile extends CommandBase {
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     // 如果是 multi，则切换到 user_app_management 获取前缀
-    if (fs.existsSync('../user_app_management')) {
+    const enterPriseV1 = fs.existsSync('../user_app_management');
+    const enterPriseV2 = fs.existsSync('../base-system');
+    if (enterPriseV1 || enterPriseV2) {
       const oldCwd = process.cwd();
-      process.chdir('../user_app_management');
+      const systemDir = enterPriseV1 ? 'user_app_management' : 'base-system';
+      process.chdir('../' + systemDir);
       this.dbPrefix = this.readDbPrefixFromFile();
       process.chdir(oldCwd);
       if (this.dbPrefix && this.app.startsWith(this.dbPrefix)) {
@@ -162,7 +165,7 @@ module.exports = class InitPage1TableFile extends CommandBase {
     // 读取文件
     const templatePath = `${path.join(__dirname, '../../../')}page-template-json/template`;
     const fields = await this.getFields(table);
-    this.info('表字段', fields);
+    // this.info('表字段', fields);
     // 使用正则表达式替换占位符
     let listTemplate = fs.readFileSync(`${templatePath}/1table-component/component.js`, 'utf-8').toString();
     // 为了方便 ide 渲染，在模板里面约定 //===// 为无意义标示

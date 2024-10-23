@@ -24,9 +24,12 @@ module.exports = class InitPageTestPage extends CommandBase {
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     // 如果是 multi，则切换到 user_app_management 获取前缀
-    if (fs.existsSync('../user_app_management')) {
+    const enterPriseV1 = fs.existsSync('../user_app_management');
+    const enterPriseV2 = fs.existsSync('../base-system');
+    if (enterPriseV1 || enterPriseV2) {
       const oldCwd = process.cwd();
-      process.chdir('../user_app_management');
+      const systemDir = enterPriseV1 ? 'user_app_management' : 'base-system';
+      process.chdir('../' + systemDir);
       this.dbPrefix = this.readDbPrefixFromFile();
       process.chdir(oldCwd);
       if (this.dbPrefix && this.app.startsWith(this.dbPrefix)) {
@@ -147,7 +150,7 @@ module.exports = class InitPageTestPage extends CommandBase {
       },
     });
     const fields = await this.getFields(table);
-    this.info('表字段', fields);
+    // this.info('表字段', fields);
     const result = nunjucks.renderString(listTemplate, {
       table,
       tableCamelCase,

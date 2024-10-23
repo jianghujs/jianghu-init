@@ -94,6 +94,11 @@ module.exports = class InitProjectCommand extends CommandBase {
       process.chdir('user_app_management');
       dbSetting = this.readDbConfigFromFile();
       process.chdir('..');
+    } else if (this.inMultiDemoProject.includes(boilerplate.name) && fs.existsSync('base-system')) {
+      // 读取 example 中的数据库前缀
+      process.chdir('base-system');
+      dbSetting = this.readDbConfigFromFile();
+      process.chdir('..');
     } else {
       dbSetting.dbPrefix = this.tryGetDbPrefix();
       dbSetting.host = dbConfig.dbIp || await this.readlineMethod('数据库IP：', '127.0.0.1');
@@ -116,7 +121,11 @@ module.exports = class InitProjectCommand extends CommandBase {
     // 确认要处理的 app
     const apps = [];
     if (this.multiDemoProject.includes(boilerplate.name)) {
-      apps.push('data_repository', 'user_app_management', 'directory'); // , 'simple_xiaoapp'
+      if (boilerplate.name === 'enterprise-v2') {
+        apps.push('data-repository', 'base-system', 'base-directory'); // , 'simple_xiaoapp'
+      } else {
+        apps.push('data_repository', 'user_app_management', 'directory'); // , 'simple_xiaoapp'
+      }
       // 不在项目目录，则切换到项目目录
       if (projectName !== path.basename(path.resolve('.'))) {
         process.chdir(projectName);

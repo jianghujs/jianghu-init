@@ -15,7 +15,7 @@ const path = require('path');
 module.exports = class CommandBase {
   constructor() {
     this.knex = null;
-    this.multiDemoProject = ['enterprise'];
+    this.multiDemoProject = ['enterprise', 'enterprise-v2'];
     this.inMultiDemoProject = ['1table-crud-enterprise'];
     this.demoProject = ['xiaochengxu', 'workflow', '1table-crud', '3table-crud'];
   }
@@ -157,19 +157,31 @@ module.exports = class CommandBase {
       const dbPrefix = this.readDbPrefixFromFile();
       return dbPrefix || '';
     }
-    if (fs.existsSync('user_app_management/config/config.local.example.js')) {
-      const oldPath = process.cwd();
-      process.chdir('user_app_management');
-      const dbPrefix = this.readDbPrefixFromFile();
-      process.chdir(oldPath);
-      return dbPrefix || '';
+
+    const enterPriseV1 = fs.existsSync('user_app_management');
+    const enterPriseV2 = fs.existsSync('base-system');
+
+    const enterPriseUpperV1 = fs.existsSync('../user_app_management');
+    const enterPriseUpperV2 = fs.existsSync('../base-system');
+    if (enterPriseV1 || enterPriseV2) {
+      const systemDir = enterPriseV1 ? 'user_app_management' : 'base-system';
+      if (fs.existsSync(`${systemDir}/config/config.local.example.js`)) {
+        const oldPath = process.cwd();
+        process.chdir(systemDir);
+        const dbPrefix = this.readDbPrefixFromFile();
+        process.chdir(oldPath);
+        return dbPrefix || '';
+      }
     }
-    if (fs.existsSync('../user_app_management/config/config.local.example.js')) {
-      const oldPath = process.cwd();
-      process.chdir('../user_app_management');
-      const dbPrefix = this.readDbPrefixFromFile();
-      process.chdir(oldPath);
-      return dbPrefix || '';
+    if (enterPriseUpperV1 || enterPriseUpperV2) {
+      const systemDir = enterPriseUpperV1 ? '../user_app_management' : '../base-system';
+      if (fs.existsSync(`${systemDir}/config/config.local.example.js`)) {
+        const oldPath = process.cwd();
+        process.chdir(`${systemDir}`);
+        const dbPrefix = this.readDbPrefixFromFile();
+        process.chdir(oldPath);
+        return dbPrefix || '';
+      }
     }
     return '';
   }
@@ -177,7 +189,7 @@ module.exports = class CommandBase {
   /**
    * 从 example 配置文件 config.local.example.js 中读取数据库连接配置
    */
-  readDbPrefixFromFile(systemDir = 'user_app_management') {
+  readDbPrefixFromFile(systemDir = 'base-system') {
     const configData = fs.readFileSync('./config/config.local.example.js').toString();
     const regStr = 'database: [\'\"](.*)[\'\"],?';
     const reg = new RegExp(regStr);
