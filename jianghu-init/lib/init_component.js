@@ -7,8 +7,8 @@ const inquirer = require('inquirer');
 const pageTypes = [
   {
     type: 'component',
-    value: 'json-editor-component',
-    name: 'json-editor-component - generate component from json-editor',
+    value: 'json-editor',
+    name: 'json-editor - generate component from json-editor',
     pageId: 'vueJsonEditor',
     path: 'json-editor/',
     queryPageId: false,
@@ -18,8 +18,8 @@ const pageTypes = [
   },
   {
     type: 'component',
-    value: 'table-attachment-component',
-    name: 'table-attachment-component - generate component from table-attachment',
+    value: 'table-attachment',
+    name: 'table-attachment - generate component from table-attachment',
     pageId: '',
     filename: 'tableAttachment',
     path: 'table-attachment/',
@@ -38,8 +38,8 @@ const pageTypes = [
   },
   {
     type: 'component',
-    value: 'table-record-history-component',
-    name: 'table-record-history-component - generate component from table-record-history',
+    value: 'table-record-history',
+    name: 'table-record-history - generate component from table-record-history',
     pageId: '',
     filename: 'tableRecordHistory',
     path: 'table-record-history/',
@@ -55,8 +55,8 @@ const pageTypes = [
   },
   {
     type: 'component',
-    value: 'vue-markdown-component',
-    name: 'vue-markdown-component - generate component from vue-markdown-component',
+    value: 'vue-markdown',
+    name: 'vue-markdown - generate component from vue-markdown',
     pageId: '',
     filename: 'vueMarkdown',
     path: 'vue-markdown/',
@@ -69,11 +69,56 @@ const pageTypes = [
         <vue-markdown v-model="value" />
     `,
   },
-
   {
-    value: 'all',
-    name: 'all - generate all above pages',
-  }];
+    type: 'component',
+    value: 'vue-swiper',
+    name: 'vue-swiper - generate a carousel component',
+    pageId: '',
+    filename: 'vueSwiper',
+    path: 'vue-swiper/',
+    demo: `/**
+         * 轮播图组件
+         * slides {Array} 轮播图数据
+         * options {Object} Swiper配置选项
+         * pagination {Boolean} 是否显示分页器
+         * navigation {Boolean} 是否显示导航按钮
+         * scrollbar {Boolean} 是否显示滚动条
+         */
+        <vue-swiper :slides="slides" :options="options" :pagination="true" :navigation="true" />
+    `,
+  },
+  {
+    type: 'component',
+    value: 'file-preview',
+    name: 'file-preview - generate the file preview component',
+    pageId: '',
+    filename: 'filePreview',
+    path: 'file-preview/',
+    demo: `/**
+         * 文件预览组件
+         * 支持图片、音频、视频、PDF、Excel、Word等文件类型的预览
+         */
+        <file-preview ref="filePreview" />
+        // 在需要预览文件的地方调用
+        this.$refs.filePreview.open(filePath)
+    `,
+  },
+  {
+    type: 'component',
+    value: 'vue-draggable',
+    name: 'vue-draggable - generate drag and drop components',
+    pageId: '',
+    filename: 'vueDraggable',
+    path: 'vue-draggable/',
+    demo: `/**
+         * 拖拽组件
+         * 支持从左侧组件列表拖拽到右侧设计区域
+         */
+        <vue-draggable />
+    `,
+  },
+
+];
 
 
 /**

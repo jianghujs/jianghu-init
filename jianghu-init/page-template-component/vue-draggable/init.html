@@ -1,0 +1,136 @@
+<template id="vue-draggable">
+  <v-row class="itxst">
+    <v-col cols="12" md="3">
+      <div class="title">组件</div>
+      <draggable v-model="arr1" :group="{ name: 'site', pull: 'clone', put: false }" animation="300" dragClass="dragClass" ghostClass="ghostClass"
+        chosenClass="chosenClass" @start="onStart" @end="onEnd">
+        <transition-group>
+          <div class="item" v-for="item in arr1" :key="item.id">{{item.name}}</div>
+        </transition-group>
+      </draggable>
+    </v-col>
+    <v-col cols="12" md="9">
+      <draggable v-model="arr2" group="site" animation="100" dragClass="dragClass" ghostClass="ghostClass"
+        chosenClass="chosenClass" @start="onStart" @end="onEnd">
+        <transition-group>
+          <div class="item" v-for="item in arr2" :key="item.id">{{item.name}}</div>
+        </transition-group>
+      </draggable>
+
+      <v-row v-show="!arr2.length" class="ma-0 pa-0" style="width: 100%;">
+        <v-card height="100" class="ma-12" width="100%" color="#f5f8fa" style="border: 1px dashed #333333">
+          <draggable v-model="arr2" group="site" animation="100" dragClass="dragClass" ghostClass="ghostClass" class="d-flex align-center justify-center" style="height: 100%;">
+            <v-card-text class="text-center title draggable-placeholder">
+              从左侧拖入或点选组件进行内容设计
+            </v-card-text>
+          </draggable>
+        </v-card>
+      </v-row>
+
+    </v-col>
+  </v-row>
+</template>
+
+<script src="/<$ ctx.app.config.appId $>/public/lib/Sortable/Sortable.min.js">
+  </script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
+
+  <script>
+    Vue.component("vue-draggable", {
+      template: '#vue-draggable',
+      name: 'vue-draggable',
+      props: {
+
+      },
+      data() {
+        return {
+          drag: false,
+          arr1: [
+            { id: 1, name: '输入框' },
+            { id: 2, name: '单选' },
+            { id: 3, name: '多选' },
+            { id: 4, name: ' ' }
+          ],
+          arr2: [
+           
+          ]
+        };
+      },
+      methods: {
+        onStart() {
+          this.drag = true;
+        },
+        onEnd() {
+          this.drag = false;
+          // 添加这个方法来确保每个项目有唯一的 id
+          this.ensureUniqueIds();
+        },
+        // 添加这个新方法
+        ensureUniqueIds() {
+          let maxId = Math.max(...this.arr1.map(item => item.id), ...this.arr2.map(item => item.id));
+          this.arr2.forEach(item => {
+            if (this.arr1.some(a1Item => a1Item.id === item.id)) {
+              item.id = ++maxId;
+            }
+          });
+        }
+      }
+    })
+  </script>
+
+  <style scoped>
+    .ghostClass {
+      background-color: blue !important;
+    }
+
+    .chosenClass {
+      background-color: red !important;
+      opacity: 1 !important;
+    }
+
+    .dragClass {
+      background-color: blueviolet !important;
+      opacity: 1 !important;
+      box-shadow: none !important;
+      outline: none !important;
+      background-image: none !important;
+    }
+
+    .itxst {
+      margin: 10px;
+    }
+
+    .title {
+      padding: 6px 12px;
+    }
+
+    .col {
+      width: 40%;
+      flex: 1;
+      padding: 10px;
+      border: solid 1px #eee;
+      border-radius: 5px;
+      float: left;
+    }
+
+    .col+.col {
+      margin-left: 10px;
+    }
+
+    .item {
+      padding: 6px 12px;
+      margin: 0px 10px 0px 10px;
+      border: solid 1px #eee;
+      background-color: #f1f1f1;
+    }
+
+    .item:hover {
+      background-color: #fdfdfd;
+      cursor: move;
+    }
+
+    .item+.item {
+      border-top: none;
+      margin-top: 6px;
+    }
+  </style>

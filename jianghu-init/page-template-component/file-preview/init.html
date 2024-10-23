@@ -1,0 +1,106 @@
+<template id="file-preview">
+  <v-dialog v-model="dialog" max-width="800px">
+    <template v-slot:activator="{ on, attrs }">
+      <v-btn color="primary" v-bind="attrs" v-on="on">
+        预览文件
+      </v-btn>
+    </template>
+    <v-card>
+      <v-card-title>
+        <span class="headline">文件预览</span>
+        <v-spacer></v-spacer>
+        <v-btn icon @click="dialog = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+      <v-card-text>
+        <!-- 图片预览 -->
+        <v-img v-if="isImage" :src="filePath" max-height="400" contain></v-img>
+        
+        <!-- 音频预览 -->
+        <audio v-else-if="isAudio" controls style="width: 100%;">
+          <source :src="filePath" :type="fileType">
+          您的浏览器不支持音频元素。
+        </audio>
+        
+        <!-- 视频预览 -->
+        <video v-else-if="isVideo" controls style="width: 100%;">
+          <source :src="filePath" :type="fileType">
+          您的浏览器不支持视频元素。
+        </video>
+        
+        <!-- PDF预览 -->
+        <iframe v-else-if="isPDF" :src="'https://mozilla.github.io/pdf.js/web/viewer.html?file=' + encodeURIComponent(filePath)" width="100%" height="600px"></iframe>
+        
+        <!-- Excel预览 -->
+        <iframe v-else-if="isExcel" :src="'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(filePath)" width="100%" height="600px"></iframe>
+        
+        <!-- Word预览 -->
+        <iframe v-else-if="isWord" :src="'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(filePath)" width="100%" height="600px"></iframe>
+        <!-- 其他文件类型 -->
+        <v-alert v-else type="info">
+          无法预览此文件类型。请下载后查看。
+        </v-alert>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+</template>
+
+<script>
+Vue.component("file-preview", {
+  template: '#file-preview',
+  props: {
+  },
+  data() {
+    return {
+      dialog: false,
+      filePath: null,
+    };
+  },
+  computed: {
+    fileExtension() {
+      return this.filePath.split('.').pop().toLowerCase();
+    },
+    fileType() {
+      const types = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'mp3': 'audio/mpeg',
+        'wav': 'audio/wav',
+        'mp4': 'video/mp4',
+        'webm': 'video/webm',
+        'pdf': 'application/pdf'
+      };
+      return types[this.fileExtension] || 'application/octet-stream';
+    },
+    isImage() {
+      return ['jpg', 'jpeg', 'png', 'gif'].includes(this.fileExtension);
+    },
+    isAudio() {
+      return ['mp3', 'wav'].includes(this.fileExtension);
+    },
+    isVideo() {
+      return ['mp4', 'webm'].includes(this.fileExtension);
+    },
+    isPDF() {
+      return this.fileExtension === 'pdf';
+    },
+    isExcel() {
+      return this.fileExtension === 'xlsx' || this.fileExtension === 'xls';
+    },
+    isWord() {
+      return this.fileExtension === 'docx' || this.fileExtension === 'doc';
+    },
+    open(filePath) {
+        this.dialog = true
+        this.filePath = filePath
+    }
+  }
+});
+</script>
+
+<style scoped>
+/* 可以根据需要添加自定义样式 */
+</style>
