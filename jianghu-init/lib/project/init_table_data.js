@@ -33,7 +33,7 @@ module.exports = class InitTableData extends CommandBase {
     // 创建表格
     await this.createTables();
 
-    this.success('Initialization of `basic database tables and data` completed');
+    this.info('✅ 基础数据库表和数据初始化完成');
   }
 
   /**
@@ -78,12 +78,16 @@ module.exports = class InitTableData extends CommandBase {
 
   async createDatabase() {
     // 数据库创建时，knex 不能指定 database
-    const {database, ...createDbSetting} = this.dbSetting;
+    const { database, dbPrefix, defaultDatabase, ...createDbSetting } = this.dbSetting;
     let knex = await this.getKnex(createDbSetting, true);
     await knex.schema.raw(`CREATE DATABASE IF NOT EXISTS \`${database}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin`);
-    await this.getKnex(this.dbSetting, true);
+    
+    const dbSettingForImport = { ...this.dbSetting };
+    delete dbSettingForImport.dbPrefix;
+    delete dbSettingForImport.defaultDatabase;
+    await this.getKnex(dbSettingForImport, true);
 
-    importer = new Importer(this.dbSetting);
+    importer = new Importer(dbSettingForImport);
     importer.onProgress(progress => {
       const percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
       console.log(`\t [mysql importer] ${percent}% Completed`);

@@ -16,7 +16,7 @@ const rimraf = require('mz-modules/rimraf');
 const isTextOrBinary = require('istextorbinary');
 const ProxyAgent = require('proxy-agent');
 const { execSync } = require('child_process');
-
+const CommandBase = require('../command_base');
 require('colors');
 const symbols = require('log-symbols');
 const chalk = require('chalk');
@@ -24,9 +24,11 @@ const chalk = require('chalk');
 /**
  * 下载模板并生成项目
  */
-module.exports = class InitBoilerplate {
+module.exports = class InitBoilerplate extends CommandBase {
 
   constructor (options) {
+    super();
+
     options = options || {};
     this.name = options.name || 'jianghu-init';
     this.configName = options.configName || '@jianghujs/jianghu-init-config';
@@ -48,7 +50,6 @@ module.exports = class InitBoilerplate {
   }
 
   async run(cwd, args) {
-    console.log(chalk.blue('Starting project initialization...'));
 
     const argv = this.argv = this.getParser().parse(args || []);
     this.cwd = cwd;
@@ -59,7 +60,7 @@ module.exports = class InitBoilerplate {
       const proxyAgent = new ProxyAgent(proxyHost);
       this.httpClient.agent = proxyAgent;
       this.httpClient.httpsAgent = proxyAgent;
-      this.log(`use http_proxy: ${proxyHost}`);
+      this.info(`use http_proxy: ${proxyHost}`);
     }
 
     // set name and configName
@@ -69,27 +70,28 @@ module.exports = class InitBoilerplate {
 
     // detect registry url
     this.registryUrl = this.getRegistryByType(argv.registry);
-    this.log(`use registry: ${this.registryUrl}`);
+    this.info(`use registry: ${this.registryUrl}`);
 
-    console.log(chalk.green('✔ Parameter parsing completed'));
 
     if (this.needUpdate) {
-      console.log(chalk.blue('Checking for updates...'));
-      // check update
-      await updater({
-        package: this.pkgInfo,
-        registry: this.registryUrl,
-        level: 'major',
-      });
-      console.log(chalk.green('✔ Update check completed'));
+      // 检查更新
+      try {
+        await updater({
+          package: this.pkgInfo,
+          registry: this.registryUrl,
+          level: 'major',
+          timeout: 10000 // 增加超时时间到10秒
+        });
+        this.info('✅ 更新检查完成');
+      } catch (error) {
+        this.info('更新检查失败，但将继续执行');
+      }
     }
 
-    console.log(chalk.blue('Determining target directory...'));
     // ask for target dir
     this.targetDir = await this.getTargetDirectory();
-    console.log(chalk.green('✔ Target directory determined'));
+    this.info('✅ 目标目录已确定');
 
-    console.log(chalk.blue('Getting template...'));
     // use local template
     let templateDir = await this.getTemplateDir();
     let pkgName = this.argv.package;
@@ -117,17 +119,14 @@ module.exports = class InitBoilerplate {
         pkgName = boilerplate.package;
       }
       // download boilerplate
-      console.log(chalk.blue('Downloading template...'));
       templateDir = await this.downloadBoilerplate(pkgName);
-      console.log(chalk.green('✔ Template download completed'));
+      this.info('✅ 模板下载完成');
     }
 
-    console.log(chalk.blue('Processing files...'));
     // copy template
     const { database } = await this.processFiles(this.targetDir, templateDir);
-    console.log(chalk.green('✔ File processing completed'));
 
-    console.log(chalk.green('✔ Project initialization completed!'));
+    this.info('✅ 项目初始化完成！');
 
     return { boilerplate, targetDir: this.targetDir, database };
   }
@@ -138,7 +137,6 @@ module.exports = class InitBoilerplate {
   checkProjectDirectory(name) {
     if (['1table-crud-enterprise'].includes(name)) {
       // 多应用下增加应用需要验证目录
-      console.log(symbols.success, chalk.blue(`${name} mode directory verification`));
       const dirList = fs.readdirSync(process.cwd());
       // 多应用，三者缺一不可
       if (dirList.indexOf('data-repository') === -1
@@ -557,15 +555,24 @@ module.exports = class InitBoilerplate {
     const result = await this.getPackageInfo(pkgName, false);
     const tgzUrl = result.dist.tarball;
 
-    this.log(`downloading ${tgzUrl}`);
+    this.log(`开始下载 ${tgzUrl}`);
 
     const saveDir = path.join(os.tmpdir(), 'jianghu-init-boilerplate');
     await rimraf(saveDir);
 
-    const response = await this.curl(tgzUrl, { streaming: true, followRedirect: true });
+    const response = await this.curl(tgzUrl, { 
+      streaming: true, 
+      followRedirect: true,
+      onProgress: (progress) => {
+        const percent = Math.floor(progress.percent * 100);
+        this.log(`下载进度: ${percent}%`);
+      }
+    });
+
+    this.log('下载完成，开始解压...');
     await compressing.tgz.uncompress(response.res, saveDir);
 
-    this.log(`extract to ${saveDir}`);
+    this.log(`解压完成，文件保存在 ${saveDir}`);
     return path.join(saveDir, '/package');
   }
 
@@ -590,22 +597,17 @@ module.exports = class InitBoilerplate {
     const pkgName = this.registryUrl.includes('localhost:') ? pkg.split('/').pop() : pkg;
     this.log(`fetching npm info of ${pkgName} ${withFallback}`);
     try {
-      // 重要的一句话，有些node版本，会提示 `unable to get local issuer certificate`
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
-      // this.log(`线上开始 ${this.registryUrl.substring(7)} ${this.registryUrl}/${pkgName}/latest`);
-      console.log('this.registryUrl', this.registryUrl);
       const result = await this.curl(`${this.registryUrl}/${pkgName}/latest`, {
         dataType: 'json',
         followRedirect: true,
         maxRedirects: 5,
         timeout: 5000,
+        rejectUnauthorized: false
       });
-      // this.log(`线上成功 ${result}`);
       assert(result.status === 200, `npm info ${pkgName} got error: ${result.status}, ${result.data.reason}`);
       return result.data;
     } catch (err) {
-      this.log(`线上失败 ${pkgName}`);
-      // 获取当前命令运行的目录
+      this.log(`Failed to fetch online info for ${pkgName}`);
       const directory = execSync('npm root -g').toString().trim();
       if (withFallback) {
         this.log(`use fallback from ${pkgName}`);

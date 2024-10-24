@@ -41,7 +41,7 @@ module.exports = class InitProjectCommand extends CommandBase {
     this.printGuide(targetDir, boilerplate);
 
 
-    this.success(`🎉 Successfully created project ${projectName}`);
+    this.success(`🎉 成功创建项目 ${projectName}`);
   }
 
   /**
@@ -144,7 +144,7 @@ module.exports = class InitProjectCommand extends CommandBase {
     for (const app of apps) {
       // 目录切换
       if (await exists(path.join(process.cwd(), app))) {
-        this.success(`Switching directory to ${app}`);
+        // this.success(`Switching directory to ${app}`);
         process.chdir(app);
       }
 
@@ -166,7 +166,7 @@ module.exports = class InitProjectCommand extends CommandBase {
   printGuide(targetDir, boilerplate) {
     const relativeTargetDir = path.relative(process.cwd(), targetDir);
     if (this.multiDemoProject.includes(boilerplate.name)) {
-      this.success(`👉 Get started with the following commands:
+      this.success(`👉 使用以下命令开始:
       - cd ${relativeTargetDir}
       - ls
       - cd your_app
@@ -174,7 +174,7 @@ module.exports = class InitProjectCommand extends CommandBase {
       - npm start / npm run dev
     `);
     } else {
-      this.success(`👉 Get started with the following commands:
+      this.success(`👉 使用以下命令开始:
       - cd ${relativeTargetDir}
       - npm install
       - npm start / npm run dev
