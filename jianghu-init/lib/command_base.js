@@ -8,6 +8,7 @@ const inquirer = require('inquirer');
 const assert = require('assert');
 const Knex = require('knex');
 const path = require('path');
+const _ = require('lodash');
 
 /**
  * 基本类，包括一些操作 DB 的命令
@@ -16,7 +17,7 @@ module.exports = class CommandBase {
   constructor() {
     this.knex = null;
     this.multiDemoProject = ['enterprise', 'enterprise-v2'];
-    this.inMultiDemoProject = ['1table-crud-enterprise'];
+    this.inMultiDemoProject = ['1table-crud-enterprise', '1table-crud-enterprise-v2'];
     this.demoProject = ['xiaochengxu', 'workflow', '1table-crud', '3table-crud'];
   }
 
@@ -195,7 +196,7 @@ module.exports = class CommandBase {
     const reg = new RegExp(regStr);
     const matchResult = configData.match(reg);
     // console.log(regStr, configData, matchResult);
-    return matchResult[1].replace(systemDir, '');
+    return matchResult[1].replace(_.snakeCase(systemDir), '');
   }
 
   info(msg) {

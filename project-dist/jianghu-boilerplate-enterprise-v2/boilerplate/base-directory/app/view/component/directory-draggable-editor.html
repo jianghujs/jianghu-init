@@ -1,0 +1,329 @@
+<template id="directory-draggable-editor">
+  <div class="directory-edit-container pa-4 rounded-lg" :style="{'padding-right': isOtherAppListShown ? '268px !important' : '12px'}">
+    
+    <draggable class="dragArea no-gutters" tag="v-row" :list="directoryTmpConfig" :group="{ name: 'name' }" :move="onMove">
+      <v-col cols="12" v-for="(el, catalogIndex) in directoryTmpConfig" :key="el.name">
+        <div class="catalog-title pb-1" :style="{'padding-top': catalogIndex ? '12px' : '0'}">
+          <v-badge left color="primary" inline dot>
+            <span class="text-h6">{{el.name}}</span>
+          </v-badge>
+          <v-icon @click.stop="catalogAddCard(el.name)">mdi-plus</v-icon>
+        </div>
+        <draggable class="dragArea no-gutters gap-row" tag="v-row" :list="el.children" handle=".handle-item" :group="{ name: 'name' }" :move="onMove">
+          <v-col cols="3" v-for="(app, appIndex) in el.children" :key="el.name">
+            <v-card class="rounded-lg handle-item" outlined role="button" style="height: 100%;">
+              <div class="px-4 px-sm-0" style="height: 100%;">
+                <div class="d-flex align-center justify-space-between pa-2">
+                  <div class="d-flex align-center" style="flex: 1">
+                    <!-- icon -->
+                    <label :for="catalogIndex + '-' + appIndex">
+                      <div class="jh-app-icon" role="button">
+                        <v-avatar size="28" v-if="app.icon" tile>
+                          <img
+                            :src="constantObj.directoryUrl + '/<$ ctx.app.config.appId $>' + app.icon"
+                            alt="点击上传icon"
+                          >
+                        </v-avatar>
+                        <svg alt="点击上传icon" v-else t="1702548638970" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="13380" width="200" height="200"><path d="M864 144.014222H559.985778a16.042667 16.042667 0 0 0-15.985778 15.985778v304.014222c0 8.789333 7.196444 15.985778 16.014222 15.985778h303.985778c8.817778 0 16.014222-7.196444 16.014222-16.014222V160.028444a16.042667 16.042667 0 0 0-16.014222-16.014222z m0 399.985778H559.985778a16.042667 16.042667 0 0 0-15.985778 16.014222v303.985778c0 8.817778 7.196444 16.014222 16.014222 16.014222h303.985778c8.817778 0 16.014222-7.224889 16.014222-16.014222V559.985778a16.042667 16.042667 0 0 0-16.014222-15.985778zM463.985778 143.985778H160.028444a16.042667 16.042667 0 0 0-16.014222 16.014222v304.014222c0 8.789333 7.224889 15.985778 16.014222 15.985778h304.014223c8.789333 0 15.985778-7.196444 15.985777-16.014222V160.028444a16.042667 16.042667 0 0 0-16.014222-16.014222z m0 400.014222H160.028444a16.042667 16.042667 0 0 0-16.014222 16.014222v303.985778c0 8.817778 7.224889 16.014222 16.014222 16.014222h304.014223c8.789333 0 15.985778-7.224889 15.985777-16.014222V559.985778a16.042667 16.042667 0 0 0-16.014222-15.985778z" fill="#333333" fill-opacity=".65" p-id="13381"></path></svg>
+                      </div>
+                    </label>
+                    <v-file-input v-model="uploadFile" class="jh-v-input" :id="catalogIndex + '-' + appIndex" style="display: none;" dense filled single-line chips label="请选择文件" @change="doUiAction('doUploadFile', catalogIndex + '-' + appIndex)"></v-file-input>
+                    <!-- app name -->
+                    <input style="flex: 1" class="font-weight-medium text-subtitle-1 grey--text text--darken-4 mx-3" v-model="app.name"></input>
+                  </div>
+                  <div class="d-flex align-center" draggable="false">
+                    <v-icon @click="el.children.splice(appIndex, 1)" small>mdi-trash-can-outline</v-icon>
+                  </div>
+                </div>
+
+                <v-menu offset-y v-if="app.children[0] && notInAppPageList[app.children[0].appId]?.length">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn block x-small v-bind="attrs" v-on="on">
+                      <v-icon small>mdi-plus</v-icon>Page
+                    </v-btn>
+                  </template>
+                  <v-list dense>
+                    <v-list-item v-for="(page, index) in notInAppPageList[app.children[0].appId]" @click="app.children.push({
+                      name: page.pageName,
+                      type: 'page',
+                      appId: app.children[0].appId,
+                      pageId: page.pageId,
+                    })">
+                      <v-list-item-title>{{page.pageName}}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+                <!-- 子页面 -->
+
+                <!-- <div class="draggable-placeholder" style="height: 50px;" v-if="!app.children.length"></div> -->
+                <draggable class="dragArea page-list" tag="div" :list="app.children" :group="{ name: 'name' }" :move="onMove">
+                  <div v-for="(page, childIndex) in app.children" :key="childIndex" class="jh-font-size-13 grey--text text--darken-4 text-truncate py-1 px-2">
+                    <!-- <v-icon size="16" v-if="page.type == ">mdi-link-variant</v-icon> -->
+                    <v-chip x-small :color="page.type == 'app' ? 'warning' : 'default'">{{page.type}}</v-chip>
+                    <span class="ml-2">{{page.name}}</span>
+                    <v-chip v-if="page.link" x-small color="success">链接</v-chip>
+                    <v-icon class="float-right" @click="app.children.splice(childIndex, 1)" small>mdi-close</v-icon>
+                  </div>
+                </draggable>
+              </div>
+            </v-card>
+          </v-col>
+        </draggable>
+      </v-col>
+    </draggable>
+
+    <v-navigation-drawer v-model="isOtherAppListShown" right :permanent="isOtherAppListShown" absolute>
+      <div class="pl-4 pt-4 text-h6">其他应用</div>
+      <draggable class="dragArea other-app-list px-2" tag="div" :list="notInAppList" :group="{ name: 'name' }" :move="onMove">
+        <div v-for="(app, index) in notInAppList" class="pa-2">
+          <v-card class="rounded-lg pa-0" outlined role="button" style="height: 100%;">
+            <div class="px-4 px-sm-0" style="height: 100%;">
+              <div class="d-flex align-center justify-space-between pa-2">
+                <div class="d-flex align-center" style="flex: 1">
+                  <div class="font-weight-medium text-subtitle-1 grey--text text--darken-4 mx-3">{{app.name}}</div>
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </div>
+      </draggable>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn
+        elevation="0" icon absolute top right small
+        @click="isOtherAppListShown = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+
+    <v-btn
+      v-if="!isOtherAppListShown && notInAppList.length"
+      elevation="0" color="success" fab absolute top right small tile
+      @click="isOtherAppListShown = true" style="right: 0 !important; top: 120px">
+      其他
+    </v-btn>
+  </div>
+</template>
+<script>
+  var draggableElements = document.querySelectorAll('[draggable=true]');
+
+  draggableElements.forEach(function(element) {
+    element.addEventListener('dragstart', function() {
+      this.classList.add('dragging');
+    });
+
+    element.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+    });
+  });
+
+  var dropzones = document.querySelectorAll('.dropzone');
+
+  dropzones.forEach(function(dropzone) {
+    dropzone.addEventListener('dragenter', function() {
+      this.classList.add('over');
+    });
+
+    dropzone.addEventListener('dragleave', function() {
+      this.classList.remove('over');
+    });
+  });
+</script>
+<script>
+Vue.component("directory-draggable-editor", {
+  template: '#directory-draggable-editor',
+  vuetify: new Vuetify(),
+  name: 'directory-draggable-editor',
+  props: {
+    appList: {
+      type: Array,
+      default: () => []
+    },
+    directoryTmpConfig: {
+      type: Object,
+      default: () => ([])
+    },
+  },
+  data: () => ({
+    isOtherAppListShown: true,
+    uploadFile: null,
+    constantObj:{
+      directoryUrl: window.constantObj.directoryUrl
+    }
+  }),
+  watch: {
+    appList: {
+      handler: function (val, oldVal) {
+      },
+      deep: true
+    },
+    directoryTmpConfig: {
+      handler: function (val, oldVal) {
+        this.$emit('update:directoryTmpConfig', val);
+      },
+      deep: true
+    },
+  },
+  computed: {
+    notInAppList() {
+      const list = ['directory'];
+      this.directoryTmpConfig.forEach((catalog) => {
+        catalog.children.forEach((app) => {
+          if (!app.children.length) {
+            return;
+          }
+          app.children.forEach((page) => {
+            list.push(page.appId);
+          })
+        })
+      })
+      return this.appList.filter((app) => {
+        return !list.includes(app.appId);
+      }).map(e => {
+        return {
+          name: e.appName,
+          appId: e.appId,
+          type: 'app',
+          children: e.appPageList.filter(a => e.appPageDirectoryList?.includes(a.pageId)).map((page) => {
+            return {
+              name: page.pageName,
+              type: 'page',
+              appId: e.appId,
+              pageId: page.pageId,
+              children: []
+            }
+          })
+        }
+      })
+    },
+    notInAppPageList() {
+      const appObj = {};
+      this.directoryTmpConfig.forEach((catalog) => {
+
+        catalog.children.forEach((app) => {
+          if (!app.children.length) {
+            return;
+          }
+          const appId = app.children[0].appId;
+          if(!appId) return
+          if (!appObj[appId]) {
+            appObj[appId] = [];
+          }
+          if (app.children.length) {
+            appObj[appId].push(...app.children.map((page) => {
+              return page.pageId;
+            }))
+          }
+        })
+      })
+      // 获取每个 app 有哪些页面没有在内
+      const notInAppPageList = {};
+      _.forEach(appObj, (value, key) => {
+        const app = this.appList.find((app) => app.appId === key);
+        if (!app) { return; }
+        notInAppPageList[key] = app.appPageList.filter((page) => {
+          return !value.includes(page.pageId);
+        });
+      })
+      return notInAppPageList;
+    }
+  },
+  // inject: ["formItemSelect", "uuid", "optionKey"],
+  mounted () {
+  },
+  methods: {
+    async doUiAction(uiActionId,uiActionData){
+      switch(uiActionId){
+        case 'changeExpandApp':
+          await this.changeExpandApp(uiActionData);
+          break;
+        case 'doUploadFile':
+          await this.doUploadFile(uiActionData);
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          break;
+      }
+    },
+    catalogAddCard(catalogName) {
+      const catalog = this.directoryTmpConfig.find((catalog) => {
+        return catalog.name === catalogName;
+      })
+      catalog.children.unshift({
+        name: '新建应用',
+        type: 'app',
+        children: [],
+        appId: '',
+        pageId: '',
+      })
+    },
+
+    onMove(e,originalEvent){
+      const self = e.draggedContext.element;
+      const target = e.relatedContext.element;
+      if (self && target && (self.type == 'page' && target.type == 'catalog') || (self.type == 'catalog' && target.type == 'page')) {
+        return false;
+      }
+      // console.log(e.relatedContext)
+      // // 判断鼠标位置是否在 e.relatedContext 内部 padding 20px 内才允许
+      // const {clientX, clientY} = originalEvent;
+      // const {top, bottom, left, right} = e.relatedContext.element.getBoundingClientRect();
+      // if (clientX < left + 20 || clientX > right - 20 || clientY < top + 20 || clientY > bottom - 20) {
+      //   return false;
+      // }
+
+      return true;
+    },  
+
+    async doUploadFile(key) {
+      const [catalogIndex, appIndex] = key.split('-');
+      const file = this.uploadFile;
+      if (file && file.size) {
+        await window.vtoast.loading("文件上传");
+        const result = await window.jianghuAxios.httpUploadByStream({ file, fileDirectory: 'appIcon' }, {
+          onProgress: (total, loaded) => {
+            let progress = Number((loaded * 100 / total).toFixed(2))
+            window.vtoast.loading(`文件上传进度${progress}%`);
+            if (progress === 100) {
+              window.vtoast.success('文件上传成功');
+            }
+          }
+        });
+
+        if (result.data.status === 'success') {
+          const {downloadPath} = result.data.appData.resultData;
+          this.directoryTmpConfig[catalogIndex].children[appIndex].icon = '/upload' + downloadPath;
+        } else {
+          await window.vtoast.fail("文件上传失败");
+          throw new Error("文件上传失败");
+        }
+      }
+    }
+    
+  },
+})
+</script>
+
+<style scoped>
+.directory-edit-container {
+  max-height: calc(100vh - 108px);
+  overflow-y: auto;
+}
+.directory-edit-container .sortable-chosen {
+  border: 1px dashed #0088F8;
+  box-sizing: border-box;
+  background: rgba(0, 136, 249, 0.09);
+  color: #0088f9;
+  padding: 0;
+}
+.directory-edit-container .sortable-ghost {
+  border: 2px dashed #f00; /* red dashed border */
+}
+.directory-edit-container .custom-text-field input {
+  font-size: 20px !important;
+}
+.directory-edit-container div.dragArea.page-list {
+  height: calc(100% - 48px);
+  min-height: 50px;
+  padding-bottom: 10px !important;
+}
+</style>

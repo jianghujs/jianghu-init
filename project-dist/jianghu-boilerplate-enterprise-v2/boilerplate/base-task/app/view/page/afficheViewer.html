@@ -1,0 +1,269 @@
+{% extends 'template/jhTemplateV4.html'%}
+
+{% block vueTemplate %}
+
+<script type="text/html" id="app-template">
+    <div>
+
+      <v-app mobile-breakpoint="sm">
+        <div class="VPLocalNav">
+          <button id="jianghu-mobile-toggle-docMenu" class="jianghu-nav-mobile-menu" aria-expanded="false"
+            aria-controls="VPSidebarNav">
+            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" viewBox="0 0 24 24"
+              class="jianghu-nav-mobile-menu-icon">
+              <path d="M17,11H3c-0.6,0-1-0.4-1-1s0.4-1,1-1h14c0.6,0,1,0.4,1,1S17.6,11,17,11z"></path>
+              <path d="M21,7H3C2.4,7,2,6.6,2,6s0.4-1,1-1h18c0.6,0,1,0.4,1,1S21.6,7,21,7z"></path>
+              <path d="M21,15H3c-0.6,0-1-0.4-1-1s0.4-1,1-1h18c0.6,0,1,0.4,1,1S21.6,15,21,15z"></path>
+              <path d="M17,19H3c-0.6,0-1-0.4-1-1s0.4-1,1-1h14c0.6,0,1,0.4,1,1S17.6,19,17,19z"></path>
+            </svg>
+            <span class="jianghu-nav-mobile-menu-text">Menu</span></button>
+          <button id="jianghu-mobile-toggle-docAside" class="jianghu-nav-mobile-menu" aria-expanded="false"
+            aria-controls="VPSidebarNav">
+            <span class="jianghu-nav-mobile-menu-text">On this page</span></button>
+        </div>
+        <!-- doc -->
+        <main>
+
+          <!-- 内容区 -->
+          <div class="jianghu-doc-content jianghu-doc-content-has-sidebar">
+            <div class="jianghu-doc-contentDoc">
+              <div class="jianghu-doc-contentDoc-container">
+                <!-- 文档大纲 -->
+                <div class="jianghu-doc-contentDoc-aside">
+                  <div class="jianghu-doc-contentDoc-aside-container">
+                    <div class="jianghu-doc-contentDoc-aside-outline">
+                      <div class="jianghu-doc-contentDoc-aside-outline-title">On this page</div>
+                      <div id="scrollspy" class="sticky-top">
+                        <ul class="nav flex-column nav-pills menu-sidebar jianghu-doc-contentDoc-aside-menu"
+                          id="jianghu-doc-contentDoc-aside-menu"></ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- 文档正文 -->
+                <div class="jianghu-doc-contentDoc-content">
+                  <v-skeleton-loader
+                    v-bind="{
+                      class: 'mb-6',
+                      boilerplate: true,
+                      elevation: 2,
+                    }"
+                    type="article"
+                    v-if="isLoading"
+                  ></v-skeleton-loader>
+                  <div class="jianghu-doc-contentDoc-main">
+                    <div class="jianghu-doc-contentDoc-main-edit-links">
+                      <span>
+                        <a :href="pageUrl + 'articleEdit?articleId=' + article.articleId + '&title=' + article.articleTitle"
+                          class="jianghu-doc-contentDoc-main-edit-link">
+                          <i class="far fa-edit jianghu-doc-contentDoc-main-edit-icon"></i>
+                          <$ constantUiMap.common.modify $>
+                        </a>
+                        <!-- <a :href="pageUrl + 'articleEdit?&title=未命名'" target="_blank"
+                     class="jianghu-doc-contentDoc-main-edit-link">
+                    <i class="far fa-plus-square jianghu-doc-contentDoc-main-edit-icon"></i><$ constantUiMap.common.add $></a>
+                  <a :href="pageUrl + 'articleList?categoryId=' + article.categoryId"
+                     class="jianghu-doc-contentDoc-main-edit-link">
+                    <i class="fas fa-th-list jianghu-doc-contentDoc-main-edit-icon"></i><$ constantUiMap.common.manage $></a> -->
+                      </span>
+                      <span class="jianghu-doc-contentDoc-main-update-time"><i class="far fa-user"></i> {{
+                        article.articleUpdateUsername }} <i class="far fa-clock" style="margin-left: 5px;"></i> {{
+                        article.articleUpdateTime }}</span>
+                    </div>
+                    <div class="jianghu-doc-contentDoc-main-doc">
+                      <div class="markdown-body editormd-preview-container jianghu-markdown" id="doc-content">
+                        <h1 id="links-0">{{article.taskTitle}}</h1>
+                        <!-- 封面 -->
+                        <template v-if="article.articleCoverImage">
+                          <div class="items-center-box" style="margin-bottom: 20px">
+                            <img style="width: 100%; background-color: #e0e0e0"
+                              :src="'/upload/' + article.articleCoverImage" alt="" />
+                          </div>
+                        </template>
+                        <!-- 音频 -->
+                        <template v-if="article.articleAudioUrl">
+                          <audio :src="resourceUrl(article.articleAudioUrl)" style="width: 100%;" controls
+                            preload="none"></audio>
+                        </template>
+                        <!-- 视频 -->
+                        <template v-if="article.articleVideoUrl">
+                          <video :src="resourceUrl(article.articleVideoUrl)" style="width: 100%; height: auto" controls
+                            preload="none"></video>
+                        </template>
+                        <md2html :article-content="article.taskContent"></md2html>
+                      </div>
+                    </div>
+
+
+                 
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </v-app>
+
+      <jh-toast />
+      <jh-mask />
+      <jh-confirm-dialog />
+
+    </div>
+  </script>
+
+<div id="app">
+</div>
+
+{% endblock %}
+
+{% block vueScript %}
+<!-- MDB -->
+<link href="/<$ ctx.app.config.appId $>/public/articleViewer/font-awesome.min.css?v=6.0.0" rel="stylesheet" />
+<link href="/<$ ctx.app.config.appId $>/public/articleViewer/roboto-font.css?family=Roboto:300,400,500,700&display=swap"
+  rel="stylesheet" />
+<link href="/<$ ctx.app.config.appId $>/public/articleViewer/mdb.min.css" rel="stylesheet" />
+<script src="/<$ ctx.app.config.appId $>/public/lib/jquery/jquery.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/js/lib/lodash.min.js"></script>
+<script type="text/javascript" src="/<$ ctx.app.config.appId $>/public/articleViewer/mdb.min.js"></script>
+
+<!-- css -->
+{% include 'component/articleViewer/jianghuUiCss.html' %}
+{% include 'component/articleViewer/jianghuCommonCss.html' %}
+{% include 'component/articleViewer/jianghuDocCss.html' %}
+{% include 'component/articleViewer/jianghuDocDocsCss.html' %}
+{% include 'component/articleViewer/jianghuJs.html' %}
+{% include 'component/markdown2html/md2html.html' %}
+
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: () => ({
+      articleId: null,
+      article: {},
+      pageUrl: "/" + window.appInfo.appId + "/page/",
+
+      isLoading: true,
+    }),
+    computed: {
+     
+    },
+    watch: {
+      article: {
+        deep: true,
+        handler(value) {
+          this.$forceUpdate();
+        }
+      }
+    },
+    async created() {
+      await this.doUiAction("setLocationParams");
+      await this.doUiAction("getArticleDetail");
+      await this.doUiAction("initDomJs");
+    },
+    mounted() {
+
+    },
+    methods: {
+      async doUiAction(actionId, actionData) {
+        switch (actionId) {
+          case 'setLocationParams':
+            await this.setLocationParams();
+            break;
+          case 'getArticleDetail':
+            await this.getArticleDetail();
+            break;
+          case 'initDomJs':
+            await this.initDomJs();
+            break;
+        }
+      },
+      setLocationParams() {
+        const urlParams = new URLSearchParams(location.search);
+        const taskId = urlParams.get('taskId');
+        if (taskId) {
+          this.taskId = taskId;
+        } else {
+          setTimeout(() => {
+            window.vtoast.fail('页面路径缺少参数');
+          }, 1000);
+        }
+      },
+      async getArticleDetail() {
+        this.isLoading = true
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'afficheViewer',
+              actionId: 'selectItemList',
+              where: {
+                taskId: this.taskId
+              },
+            }
+          }
+        })
+        this.isLoading = false
+        const article = result.data.appData.resultData.rows[0] || {}
+
+        // article.taskContent = article.taskContent.replaceAll('__appId__', '<$ ctx.app.config.appId $>')
+        this.article = article;
+      },
+      resourceUrl(path) {
+        if (!path) {
+          return '';
+        }
+        if (path.includes('http')) {
+          return path
+        }
+        return '/<$ ctx.app.config.appId $>/upload' + path
+      },
+      initDomJs() {
+        generateSidebar();
+        // 点击大纲关闭遮罩
+        $(".jianghu-doc-contentDoc-aside-outline-link").on("click", function () {
+          closeBackdrop();
+        });
+
+      }
+    }
+  })
+</script>
+
+<style>
+  .hiddenHeader header {
+    display: none !important;
+  }
+
+  .hiddenHeader .v-main {
+    padding-top: 0 !important;
+  }
+
+  .hiddenHeader .v-main__wrap>.d-flex.px-12:first-child {
+    display: none !important;
+  }
+
+  .fullScreen {
+    min-height: 90vh;
+  }
+
+  body .v-application a {
+    color: var(--vt-c-green) !important;
+  }
+
+  .theme--light.v-data-table>.v-data-table__wrapper>table>tbody>tr>td:not(.v-data-table__mobile-row) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 500px;
+  }
+
+  .theme--light.v-data-table>.v-data-table__wrapper>table>tbody>tr {
+    cursor: pointer;
+  }
+
+  .theme--light.v-application code {
+    color: white;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,503 @@
+{% extends 'template/jhTemplateV4.html'%} {% block vueTemplate %}
+
+<script type="text/html" id="app-template">
+  <div>
+  <v-app mobile-breakpoint="sm">
+    <jh-menu />
+    <v-main class="mt-15">
+      <!-- 头部内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-second-bar px-8">
+        <v-row>
+          <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+            <div class="pt-3 text-h7 font-weight-bold">通知管理
+              <!-- 帮助页按钮 -->
+              <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline
+              </v-icon>
+            </div>
+            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          </v-col>
+          <!-- 搜索条件表单 >>>>>>>> -->
+          <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+            <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
+              <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+                <v-select clearable v-model="serverSearchInput.taskBizId" color="success" prefix="通知类型：" class="jh-v-input bg-white" :items="constantObj.noticeType" dense filled single-line></v-select>
+              </v-col>
+              <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </v-row>
+          </v-col>
+          <!-- <<<<<<<< 搜索条件表单 -->
+        </v-row>
+      </div>
+      <!-- <<<<<<<<<<<<< 头部内容 -->
+
+      <div class="jh-page-body-container px-8">
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <v-card class="rounded-lg">
+          <v-row class="ma-0 pa-4 d-flex align-center">
+           
+            <v-menu v-model="isMoreMenuShown" bottom offset-y offset-x>
+              <template v-slot:activator="{ on, attrs }">
+                <!-- icon筛选 -->
+                <v-btn outlined color="success" class="elevation-0 mr-2" v-bind="attrs" v-on="on" small>更多
+                  <v-icon size="14">
+                    mdi-chevron-down
+                  </v-icon>
+                </v-btn>
+
+              </template>
+
+              <v-card class="py-2">
+                <v-list-item @click="doUiAction('updateAllTaskReadStatus')">全部标记为已读</v-list-item>
+                <v-list-item @click="doUiAction('deleteAllTask')">删除全部已读信息</v-list-item>
+              </v-card>
+            </v-menu>
+            <v-spacer></v-spacer>
+
+            <v-switch hide-actions hide-details false-value="否" true-value="是" v-model="serverSearchInput.taskReadStatus" color="success" class="jh-v-input ma-0 mr-3" label="显示已读" dense filled single-line @change="doUiAction('getTableData')"></v-switch>
+
+            <v-col cols="12" xs="8" sm="4" md="3" class="pa-0">
+              <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+
+          <!-- 表格 -->
+          <v-data-table
+            :headers="headers"
+            :items="tableData"
+            :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+            :items-per-page="-1"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            checkbox-color="success"
+            :class="{'zebraLine': isTableZebraLineShown }"
+            fixed-header
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+
+            <template v-slot:item.taskDesc="{ item }">
+              <div v-html="item.taskDesc" @click="doUiAction('viewItem', { item })"></div>
+            </template>
+            <!-- 表格操作按钮 -->
+            <template v-slot:item.action="{ item }">
+              <span role="button" class="red--text font-weight-medium font-size-2" @click="doUiAction('deleteItem', { item })">
+                <v-icon size="16" class="red--text">mdi-trash-can-outline</v-icon>删除
+              </span>
+            </template>
+            <!-- <template v-slot:item.taskTitle="{ item }">
+              <a @click="doUiAction('viewItem', { item })">{{item.taskTitle}}</a>
+            </template> -->
+            <!-- 没有数据 -->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <!-- 表格分页 -->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+              <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            </template>
+          </v-data-table>
+        </v-card>
+        <!-- 新增抽屉 -->
+        <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="createForm" lazy-validation>
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">新建公告</span>
+            </v-row>
+            <v-divider class="jh-divider"></v-divider>
+            <!-- 抽屉表单 -->
+            <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
+            <v-row class="mt-0 px-4">
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label"><span class="red--text">*</span>公告名称</span>
+                <v-text-field :rules="validationRules.requireRules" :rules="validationRules.requireRules" class="jh-v-input" dense single-line filled v-model="createItem.taskTitle"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label"><span class="red--text">*</span>通知范围</span>
+                <v-text-field
+                  :rules="validationRules.requireRules"
+                  multiple
+                  class="jh-v-input"
+                  dense single-line filled v-model="createItem.taskMemberIdList"
+                  readonly
+                  @click="isDialogShown=true"
+                >
+                  <template v-slot:selection="{ item, index }">
+                    <v-chip v-if="index === 0">
+                      <span>{{ item }}</span>
+                    </v-chip>
+                    <span
+                      v-if="index === 1"
+                      class="grey--text text-caption"
+                    >
+                      (+{{ createItem?.taskMemberIdList?.length - 1 }} others)
+                    </span>
+                  </template>
+                </v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="12">
+                <span class="jh-input-label"><span class="red--text">*</span>公告内容</span>
+
+                <div id="editorMdContainer">
+                  <textarea style="display:none;">{{ createItem.taskContent }}</textarea>
+                </div>
+              </v-col>
+
+            </v-row>
+
+            <!-- 抽屉操作按钮 -->
+            <v-row class="justify-end mx-0 mt-8 px-6">
+              <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+              <v-btn class="elevation-0 ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+          </v-form>
+          <!-- 抽屉关闭按钮 -->
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+
+          <!-- 抽屉关闭按钮 -->
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isViewDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 页面内容 -->
+
+        <view-journal-detail-drawer ref="journalDetail" />
+        <view-task-detail-drawer ref="taskDetail" />
+        <view-notice-detail-drawer ref="noticeDetail" />
+        <view-ticket-drawer ref="ticketDetail" />
+        <view-affiche-drawer ref="afficheDrawer" />
+
+      </div>
+
+      <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+        <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#404.md`" width="100%" height="100%"></iframe>
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+
+    </v-main>
+  </v-app>
+
+  <jh-toast />
+  <jh-mask />
+  <jh-confirm-dialog />
+  </div>
+</script>
+
+<div id="app"></div>
+
+{% endblock %}
+{% block vueScript %}
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+{% include 'component/view-journal-detail-drawer.html' %}
+{% include 'component/view-notice-detail-drawer.html' %}
+{% include 'component/view-task-detail-drawer.html' %}
+{% include 'component/ticket/view-ticket-drawer.html' %}
+{% include 'component/view-affiche-drawer.html' %}
+{% include 'common/constant.html'%}
+{% include 'component/select-org-user-dialog.html' %}
+
+<link
+  rel="stylesheet"
+  href="/<$ ctx.app.config.appId $>/public/plugins/editor.md/css/editormd.min.css"
+/>
+<script src="/<$ ctx.app.config.appId $>/public/lib/jquery/jquery.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/plugins/editor.md/editormd.js"></script>
+
+<script type="module">
+  new Vue({
+    el: "#app",
+    template: "#app-template",
+    vuetify: new Vuetify(),
+    data: () => ({
+      // 面包屑
+      breadcrumbs: [
+        {
+          text: "首页",
+          disabled: true,
+        },
+        {
+          text: "通知管理",
+          disabled: true,
+        },
+      ],
+      isHelpPageDrawerShown: false,
+      isHelpPageDrawerLoaded: false,
+      isMobile: window.innerWidth < 500,
+      // 表格相关数据
+      isTableZebraLineShown: true,
+      validationRules: {
+        requireRules: [(v) => !!v || "必填"],
+      },
+      // 下拉选项
+      constantObj: {
+        ...constantObj,
+      },
+      currentSceneId: null,
+      serverSearchInput: {
+        taskType: "通知",
+        taskReadStatus: "否",
+        taskManagerId: window.userInfo.userId,
+        taskBizId: null,
+      },
+      searchInput: null,
+      isTableLoading: true,
+      tableData: [],
+      headers: [
+        { text: "应用", value: "appId", width: 120 },
+        { text: "通知名称", value: "taskTitle", width: 120 },
+        { text: "通知描述", value: "taskDesc", width: 200 },
+        { text: "创建时间", value: "taskCreateAt", width: 250 },
+        { text: "操作", value: "action", width: 150 },
+      ],
+
+      isCreateDrawerShown: false,
+      createItem: {},
+      createActionData: {},
+      deleteItem: {},
+      deleteItemId: null,
+
+      userList: [],
+      isViewDrawerShown: false,
+      viewItem: {},
+
+      isMoreMenuShown: false,
+
+      isDialogShown: false,
+    }),
+    watch: {
+      isHelpPageDrawerShown(val) {
+        if (val && !this.isHelpPageDrawerLoaded) {
+          this.isHelpPageDrawerLoaded = true;
+        }
+      },
+    },
+    async created() {},
+    mounted() {
+      this.doUiAction("initPageData");
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case "initPageData":
+            await this.getTableData();
+            await this.getPageParams();
+            break;
+          case "getTableData":
+            await this.getTableData();
+            break;
+          case "deleteItem":
+            await this.confirmDeleteDialog();
+            await this.doDeleteItem(uiActionData);
+            await this.getTableData();
+            break;
+          case "viewItem":
+            await this.doViewItem(uiActionData);
+            await this.updateTaskReadStatus(uiActionData);
+            break;
+          case "updateAllTaskReadStatus":
+            await this.updateAllTaskReadStatus(uiActionData);
+            await this.getTableData();
+            break;
+          case "deleteAllTask":
+            await this.confirmDeleteDialog();
+            await this.deleteAllTask(uiActionData);
+            await this.getTableData();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      /**
+       * 获取表格数据
+       */
+      async getTableData() {
+        this.isTableLoading = true;
+        const backendSearchData = _.pickBy(
+          this.serverSearchInput,
+          (fieldValue, fieldKey) => {
+            if (fieldValue !== null && fieldValue !== "") {
+              return true;
+            }
+          }
+        );
+        const { taskBizId, ...otherParams } = this.serverSearchInput;
+
+        const whereData = _.pickBy(otherParams, _.identity);
+        const whereLikeData = {};
+        if (taskBizId) {
+          whereLikeData.taskBizId = `${taskBizId}%`;
+        }
+
+        const rows = (
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: "noticeManagement",
+                actionId: "selectItemList",
+                actionData: {},
+                where: whereData,
+                whereLike: whereLikeData,
+                orderBy: [{ column: "operationAt", order: "desc" }],
+              },
+            },
+          })
+        ).data.appData.resultData.rows;
+        this.tableData = rows;
+        this.isTableLoading = false;
+      },
+      async getUserList() {
+        const rows = (
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: "allPage",
+                actionId: "getUserList",
+                actionData: {},
+              },
+            },
+          })
+        ).data.appData.resultData.rows;
+        this.userList = rows;
+      },
+
+     
+
+      // ---------- 删除通知 >>>>>>>>>>>>> ----------
+      async doDeleteItem({ item }) {
+        const { id } = item;
+        
+        await window.vtoast.loading("删除数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: "noticeManagement",
+              actionId: "deleteItem",
+              where: { id },
+            },
+          },
+        });
+        
+        await window.vtoast.success("删除数据成功");
+      },
+      // ---------- <<<<<<<<<<<<< 删除通知 ----------
+
+      // ---------- 查看通知 >>>>>>>>>>>>> ----------
+      async doViewItem({ item }) {
+        if (
+          !(item.taskDesc || "").includes("<a>") ||
+          (item.taskDesc || "").includes("href")
+        ) {
+          throw new Error("查看通知");
+        }
+        // appInfo.appId != item.appId
+
+        this.taskId = item.taskBizId;
+        await this.open();
+      },
+      async updateTaskReadStatus({ item }) {
+        if (item.taskReadStatus == "是") return;
+        await this.updateItem(item.id, { taskReadStatus: "是" });
+        await this.getTableData();
+      },
+      async updateItem(id, updateItem) {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: "noticeManagement",
+              actionId: "updateItem",
+              actionData: updateItem,
+              where: { id },
+            },
+          },
+        });
+      },
+      // ---------- <<<<<<<<<<<<< 查看通知 ----------
+      // ---------- 更多操作 >>>>>>>>>>>>> ----------
+      async updateAllTaskReadStatus() {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: "noticeManagement",
+              actionId: "updateAllNotReadNotice",
+              actionData: {},
+            },
+          },
+        });
+      },
+      async deleteAllTask() {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: "noticeManagement",
+              actionId: "deleteAllReadNotice",
+            },
+          },
+        });
+        await window.vtoast.success("删除全部已读通知成功");
+      },
+      async confirmDeleteDialog() {
+        if (
+          (await window.confirmDialog({
+            title: "删除",
+            content: "确定删除吗？",
+          })) === false
+        ) {
+          throw new Error("[confirmCreateFormDialog] 否");
+        }
+      },
+      // ---------- <<<<<<<<<<<<< 更多操作 ----------
+
+      // ---------- 初始化页面时参数处理 >>>>>>>>>>>>> ----------
+      async getPageParams() {
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+        var taskId = urlParams.get("taskId");
+        this.taskId = taskId;
+        if (taskId) {
+          await this.open();
+        }
+      },
+      async open() {
+        const taskId = this.taskId;
+        // 判断是taskId，弹出不同的抽屉
+        if (taskId.includes("RW")) {
+          this.$refs.taskDetail.doUiAction("open", { taskId });
+        } else if (taskId.includes("SP")) {
+          this.$refs.ticketDetail.doUiAction("open", { taskId });
+        } else if (taskId.includes("RZ")) {
+          this.$refs.journalDetail.doUiAction("open", { taskId });
+        } else if (taskId.includes("TZ")) {
+          this.$refs.noticeDetail.doUiAction("open", { taskId });
+        } else if(taskId.includes("GG")) {
+          this.$refs.afficheDrawer.doUiAction("open", { taskId });
+        }
+      },
+      // ---------- <<<<<<<<<<<<< 初始化页面时参数处理 ----------
+     
+    },
+  });
+</script>
+
+<style scoped>
+  .v-btn.filter-btn:not(.v-btn--round).v-size--default {
+    height: auto;
+  }
+</style>
+{% endblock %}

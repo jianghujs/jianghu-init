@@ -100,7 +100,7 @@
   },
 
   {
-    "projectName": "enterprise_v2",
+    "projectName": "enterprise-v2",
     "replaceList": [
       {
         "from": "jh_enterprise_v2_",
@@ -126,6 +126,24 @@
       }
     ],
     "repositoryUrl": "git@github.com:jianghujs/jianghujs-enterprise-1table-crud.git"
+  },
+  {
+    "projectName": "1table-crud-enterprise-v2",
+    "replaceList": [
+      {
+        "from": "jianghujs_enterprise_",
+        "to": "{{dbPrefix}}"
+      },
+      {
+        "from": "jianghujs-enterprise-1table-crud",
+        "to": "__name__"
+      },
+      {
+        "from": "jianghujs_enterprise_1table_crud",
+        "to": "__name__"
+      }
+    ],
+    "repositoryUrl": "git@github.com:jianghujs/jianghujs-enterprise-1table-crud-v2.git"
   },
   {
     "projectName": "advanced",

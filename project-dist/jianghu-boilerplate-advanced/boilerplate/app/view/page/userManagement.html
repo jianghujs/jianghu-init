@@ -1,265 +1,275 @@
+{% block htmlHead %}
+{% endblock %}
+
 {% extends 'template/jhTemplateV4.html'%}
-
 {% block vueTemplate %}
-
 <script type="text/html" id="app-template">
 <div>
 <v-app mobile-breakpoint="sm">
   <jh-menu />
-  <v-main class="mt-15">
+  <v-main class="mt-13">
     <!-- 头部内容 >>>>>>>>>>>>> -->
-    <div class="jh-page-second-bar px-8">
-      <v-row class="align-center">
-        <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-          <div class="py-4 text-body-1 font-weight-bold">用户管理
+    <div class="jh-page-second-bar px-3 px-sm-8">
+      <v-row class="align-center" no-gutters>
+        <v-col cols="12" sm="12" md="4" xl="3" :cols="12" :sm="6" :md="4" >
+          <div class="py-4 text-body-1 font-weight-bold align-center d-flex align-center">用户管理
             <!-- 帮助页按钮 -->
-            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
-              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
-            </span>
+            <v-icon size="15" class="black--text ml-1" @click="isHelpPageDrawerShown = true">mdi-help-circle</v-icon>
           </div>
         </v-col>
+          <!-- 自定义搜索内容 -->
+          <v-spacer ></v-spacer>
       </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
-
-    <div class="jh-page-body-container px-8">
-      <!-- 页面内容 >>>>>>>>>>>>> -->
-      <v-card class="rounded-lg">
-        <!--表格 头部 >>>>>>>>>>>>> -->
-        <v-row class="ma-0 pa-4 pb-0">
-          <!--新增按钮-->
-          <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增</v-btn>
-          <v-spacer></v-spacer>
-          <!--搜索过滤-->
-          <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
-            <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+    <!-- 页面内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-body-container px-sm-8">
+      <v-row class="pa-0 ma-0">
+        <v-col class="pa-0"  :clos="12">
+          <!-- 表格顶部栏 -->
+          <v-card  class="rounded-lg elevation-0">
+            <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0" align="center">
+              <v-spacer ></v-spacer>
+              <v-col cols="12" sm="6" md="3" :xs="8" class="pa-0">
+            <v-text-field prefix="筛选" v-model="searchInput" class="jh-v-input" dense filled single-line></v-text-field>
           </v-col>
-        </v-row>
-        <!-- <<<<<<<<<<< 表格 头部 -->
-        <!-- 数据表格 >>>>>>>>>>>>> -->
-        <v-data-table
-          :headers="headers"
-          :items="tableData"
-          :search="searchInput"
-          :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-          :items-per-page="20"
-          mobile-breakpoint="0"
-          :loading="isTableLoading"
-          :class="{'zebraLine': isTableZebraLineShown }"
-          checkbox-color="success"
-          fixed-header
-          class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
-          <!-- 表格行操作按钮 -->
-          <template v-slot:item.action="{ item }">
-            <template>
-              <!-- pc端 -->
-              <template v-if="!isMobile">
-                <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
-                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改信息
-                </span>
-                <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startResetPassword', item)">
-                  <v-icon size="16" class="success--text">mdi mdi-lock-reset</v-icon>修改密码
-                </span>
-                <template>
-                  <span role="button" class="success--text font-weight-medium font-size-2" @click="doUiAction('activeUserStatus', item)" v-if="item.userStatus !== 'active'">
+            </v-row>
+            <!-- 表格 -->
+            <v-data-table
+              :headers="headers"
+              :items="tableDataComputed"
+              :search="searchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+              :items-per-page="-1"
+              mobile-breakpoint="0"
+              :loading="isTableLoading"
+              checkbox-color="success"
+              :class="{'zebraLine': true }"
+              fixed-header
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+            >
+
+              <!-- 表格插槽 -->
+              
+
+              <!-- 自定义渲染列 -->
+              <template v-slot:item.userStatus="{item, index}">
+                
+          {{ getDisplayText({displayObj: constantObj.userStatus, displayValue: item.userStatus}) }}
+          
+              </template>
+              <template v-slot:item.clearTextPassword="{item, index}">
+                
+          <span role="button" @click="doUiAction('copyPassword', item)" class="success--text">
+            <v-icon small color="success">mdi-content-copy</v-icon>复制
+          </span>
+          
+              </template>
+              <!-- 表格操作按钮 -->
+              <template v-slot:item.action="{ item }">
+                <!-- pc端 -->
+                <template v-if="!isMobile">
+                  <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)" >
+                    <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改信息
+                  </span>
+                  <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startResetPassword', item)" >
+                    <v-icon size="16" class="success--text">mdi-lock-reset</v-icon>修改密码
+                  </span>
+                  <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('activeUserStatus', item)" v-if="item.userStatus != 'active'" >
                     <v-icon size="16" class="success--text">mdi-lock-open-variant-outline</v-icon>激活
                   </span>
-                  <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('bannedUserStatus', item)" v-if="item.userStatus === 'active'">
-                    <v-icon size="16" class="red--text text--accent-2">mdi-lock-outline</v-icon>禁用
-                  </span>
-                </template> 
-              </template>
-              <!-- 手机端 -->
-              <v-menu offset-y v-if="isMobile">
-                <template v-slot:activator="{ on, attrs }">
-                  <span role="button" class="success--text font-weight-medium font-size-2"
-                    v-bind="attrs" v-on="on">
-                    操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                  <span role="button" class="error--text font-weight-medium font-size-2 mr-2" @click="doUiAction('bannedUserStatus', item)" v-if="item.userStatus === 'active'" >
+                    <v-icon size="16" class="error--text">mdi-lock-outline</v-icon>禁用
                   </span>
                 </template>
-                <v-list dense>
-                  <v-list-item @click="doUiAction('startUpdateItem', item)">
-                    <v-list-item-title>修改信息</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item @click="doUiAction('startResetPassword', item)">
-                    <v-list-item-title>修改密码</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item @click="doUiAction('activeUserStatus', item)" v-if="item.userStatus !== 'active'">
-                    <v-list-item-title>激活</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item @click="doUiAction('bannedUserStatus', item)" v-if="item.userStatus === 'active'">
-                    <v-list-item-title>禁用</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </template>
-          </template>
-          <!-- 表格 密码复制 -->
-          <template v-slot:item.clearTextPassword="{ item }">
-            <span role="button" @click="doUiAction('copyPassword', item)" class="success--text">
-              <v-icon small color="success">mdi-content-copy</v-icon>复制
-            </span>
-          </template>
-          <!--用户类型-->
-          <template v-slot:item.userType="{ item }">
-            {{ getDisplayText({displayObj: constantObj.userType, displayValue: item.userType}) }}
-          </template>
-          <!--用户状态-->
-          <template v-slot:item.userStatus="{ item }">
-            {{ getDisplayText({displayObj: constantObj.userStatus, displayValue: item.userStatus}) }}
-          </template>
-          <!--没有数据-->
-          <template v-slot:loading>
-            <div class="jh-no-data">数据加载中</div>
-          </template>
-          <template v-slot:no-data>
-            <div class="jh-no-data">暂无数据</div>
-          </template>
-          <template v-slot:no-results>
-            <div class="jh-no-data">暂无数据</div>
-          </template>
-          <!-- 表格分页 -->
-          <template v-slot:footer.page-text="pagination">
-            <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
-            <span class="ml-1">共{{ pagination.itemsLength }}条</span>
-          </template>
-        </v-data-table>
-        <!-- <<<<<<<<<<<<< 数据表格 -->
-      </v-card>
-
-      <!-- 抽屉：修改用户密码 >>>>>>>>>>>>> -->
-      <v-navigation-drawer v-model="isResetUserPasswordDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-        <v-form ref="passwordForm" lazy-validation>
-          <!-- 抽屉标题 -->
-          <v-row no-gutters>
-            <span class="text-h7 font-weight-bold pa-4">修改密码</span>
-          </v-row>
-          <v-divider class="jh-divider"></v-divider>
-          <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-4">
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">初始密码<span class="red--text text--accent-2 ml-1">*必填</span></span>
-              <v-text-field class="jh-v-input" dense filled single-line v-model="userPasswordItem.clearTextPassword" :rules="validationRules.requireRules"></v-text-field>
-            </v-col>
-          </v-row>
-          <!-- <<<<<<<<<<< 抽屉的主体 -->
-          <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
-          <v-row class="justify-end mx-0 my-8 px-4">
-            <v-btn color="success" @click="doUiAction('resetPassword')" small>保存</v-btn>
-            <v-btn class="ml-2" @click="isResetUserPasswordDrawerShown = false" small>取消</v-btn>
-          </v-row>
-          <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
-        </v-form>
-        <!-- 抽屉的关闭按钮 -->
-        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isResetUserPasswordDrawerShown = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-navigation-drawer>
-      <!-- 抽屉： <<<<<<<<<<< 修改用户密码 -->
-
-      <!-- 抽屉：创建用户信息 >>>>>>>>>>>>> -->
-      <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-        <v-form ref="createForm" lazy-validation>
-          <!-- 抽屉标题 -->
-          <v-row no-gutters>
-            <span class="text-h7 font-weight-bold pa-4">添加信息</span>
-          </v-row>
-          <v-divider class="jh-divider"></v-divider>
-          <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-4">
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">用户ID[登陆]<span class="red--text text--accent-2 ml-1">*必填</span></span>
-              <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.userId" :rules="validationRules.requireRules"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">用户名<span class="red--text text--accent-2 ml-1">*必填</span></span>
-              <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.username" :rules="validationRules.requireRules"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">用户类型<span class="red--text text--accent-2 ml-1">*必填</span></span>
-              <v-select class="jh-v-input" dense filled single-line clearable v-model="createItem.userType" :items="constantObj.userType" :rules="validationRules.requireRules"></v-select>
-            </v-col>
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">用户状态<span class="red--text text--accent-2 ml-1">*必填</span></span>
-              <v-select class="jh-v-input" dense filled single-line clearable v-model="createItem.userStatus" :items="constantObj.userStatus" :rules="validationRules.requireRules"></v-select>
-            </v-col>
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">初始密码<span class="red--text text--accent-2 ml-1">*必填</span></span>
-              <v-text-field class="jh-v-input" dense filled single-line v-model="createItem.clearTextPassword" :rules="validationRules.requireRules"></v-text-field>
-            </v-col>
-          </v-row>
-          <!-- <<<<<<<<<<< 抽屉的主体 -->
-          <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
-          <v-row class="justify-end mx-0 my-8 px-4">
-            <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
-            <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
-          </v-row>
-          <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
-        </v-form>
-        <!-- 抽屉的关闭按钮 -->
-        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-navigation-drawer>
-      <!-- 抽屉：<<<<<<<<<<< 创建用户信息 -->
-
-      <!-- 抽屉：修改用户信息 >>>>>>>>>>>>> -->
-      <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-        <v-form ref="updateForm" lazy-validation>
-          <!-- 抽屉标题 -->
-          <v-row no-gutters>
-            <span class="text-h7 font-weight-bold pa-4">修改信息</span>
-          </v-row>
-          <v-divider class="jh-divider"></v-divider>
-          <!-- 抽屉的主体 >>>>>>>>>>>>> -->
-          <v-row class="mt-0 px-4">
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">用户ID[登陆]</span>
-              <v-text-field class="jh-v-input" dense filled single-line disabled v-model="updateItem.userId" :rules="validationRules.requireRules"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">用户名<span class="red--text text--accent-2 ml-1">*必填</span></span>
-              <v-text-field class="jh-v-input" dense filled single-line v-model="updateItem.username" :rules="validationRules.requireRules"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">用户类型<span class="red--text text--accent-2 ml-1">*必填</span></span>
-              <v-select class="jh-v-input" dense filled single-line clearable v-model="updateItem.userType" :items="constantObj.userType" :rules="validationRules.requireRules"></v-select>
-            </v-col>
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">用户状态<span class="red--text text--accent-2 ml-1">*必填</span></span>
-              <v-select class="jh-v-input" dense filled single-line clearable v-model="updateItem.userStatus" :items="constantObj.userStatus" :rules="validationRules.requireRules"></v-select>
-            </v-col>
-            <v-col cols="12" sm="12" md="4">
-              <span class="jh-input-label">初始密码</span>
-              <v-text-field class="jh-v-input" dense filled single-line disabled v-model="updateItem.clearTextPassword" :rules="validationRules.requireRules"></v-text-field>
-            </v-col>
-          </v-row>
-          <!-- <<<<<<<<<<< 抽屉的主体 -->
-          <!-- 抽屉的操作按钮 >>>>>>>>>>>>> -->
-          <v-row class="justify-end mx-0 my-8 px-4">
-            <v-btn color="success" small @click="doUiAction('updateItem')">保存</v-btn>
-            <v-btn class="ml-2" small @click="isUpdateDrawerShown = false">取消</v-btn>
-          </v-row>
-          <!-- <<<<<<<<<<< 抽屉的操作按钮 -->
-        </v-form>
-        <!-- 抽屉的关闭按钮 -->
-        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShown = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-navigation-drawer>
-      <!-- 抽屉：<<<<<<<<<<< 修改用户信息 -->
-      <!-- <<<<<<<<<<<<< 页面内容 -->
+                <!-- 手机端 -->
+                <v-menu offset-y v-if="isMobile">
+                  <template v-slot:activator="{ on, attrs }">
+                    <span role="button" class="success--text font-weight-medium font-size-2"
+                      v-bind="attrs" v-on="on">
+                      <v-icon size="20" class="success--text">mdi-chevron-down</v-icon>操作
+                    </span>
+                  </template>
+                  <v-list dense>
+                    <v-list-item @click="doUiAction('startUpdateItem', item)" >
+                      <v-list-item-title>修改信息</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('startResetPassword', item)" >
+                      <v-list-item-title>修改密码</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('activeUserStatus', item)" v-if="item.userStatus != 'active'" >
+                      <v-list-item-title>激活</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('bannedUserStatus', item)" v-if="item.userStatus === 'active'" >
+                      <v-list-item-title>禁用</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </template>
+              <!-- 没有数据 -->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <!-- 表格分页 -->
+              <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-col>
+      </v-row>
     </div>
+    <!-- <<<<<<<<<<<<< 页面内容 -->
+    <!-- 新增 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="90%" class="elevation-24" >
+      <v-form ref="createForm" lazy-validation>
+        
+        <!-- 抽屉标题 -->
+        <v-row class="jh-drawer-header px-4" no-gutters align="center">
+          <span class="text-h7 font-weight-bold py-4">新增</span>
+          <v-spacer ></v-spacer>
+          <div class="jh-drawer-action-btn-group">
+            <v-btn class="elevation-0 grey lighten-4" @click="closeCreateDrawerCheck" small>取消</v-btn>
+            <!-- 抽屉操作按钮 -->
+            <template v-if="true">
+              <v-btn color="success" small @click="doUiAction('createItem')">
+              新增
+            </v-btn>
+            </template>
+          </div>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <!-- 抽屉内容 -->
 
-    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-    <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#6.userManagement.md`" width="100%" height="100%"></iframe>
-      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+            <!-- 抽屉内容form -->
+            <v-row class="mt-0 px-4 pb-4">
+              <v-col cols="12" sm="12" md="3" >
+                <span class="jh-input-label">userId</span>
+                <v-text-field placeholder="自动生成" class="jh-v-input" dense single-line filled v-model="createItem.userId" disabled></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" >
+                <span class="jh-input-label"><span class="red--text text--accent-2 ml-1">* </span>用户名</span>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.username" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" >
+                <span class="jh-input-label"><span class="red--text text--accent-2 ml-1">* </span>用户状态</span>
+                <v-select class="jh-v-input" dense single-line filled v-model="createItem.userStatus" :rules="validationRules.requireRules" :items="constantObj.userStatus"></v-select>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" >
+                <span class="jh-input-label"><span class="red--text text--accent-2 ml-1">* </span>初始密码</span>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.clearTextPassword" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+            </v-row>
+
+             <!-- 抽屉内容组件 -->
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="closeCreateDrawerCheck">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>
-    <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+    <!-- <<<<<<<<<<<<< 新增 -->
+    <!-- 编辑 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="90%" class="elevation-24" >
+      <v-form ref="updateForm" lazy-validation>
+        
+        <!-- 抽屉标题 -->
+        <v-row class="jh-drawer-header px-4" no-gutters align="center">
+          <span class="text-h7 font-weight-bold py-4">编辑</span>
+          <v-spacer ></v-spacer>
+          <div class="jh-drawer-action-btn-group">
+            <v-btn class="elevation-0 grey lighten-4" @click="closeUpdateDrawerCheck" small>取消</v-btn>
+            <!-- 抽屉操作按钮 -->
+            <template v-if="true">
+              <v-btn color="success" small @click="doUiAction('updateItem')">
+              编辑
+            </v-btn>
+            </template>
+          </div>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <!-- 抽屉内容 -->
 
+            <!-- 抽屉内容form -->
+            <v-row class="mt-0 px-4 pb-4">
+              <v-col cols="12" sm="12" md="3" >
+                <span class="jh-input-label">userId</span>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.userId" disabled></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" >
+                <span class="jh-input-label"><span class="red--text text--accent-2 ml-1">* </span>用户名</span>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.username" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" >
+                <span class="jh-input-label"><span class="red--text text--accent-2 ml-1">* </span>用户状态</span>
+                <v-select class="jh-v-input" dense single-line filled v-model="updateItem.userStatus" :rules="validationRules.requireRules" :items="constantObj.userStatus"></v-select>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" >
+                <span class="jh-input-label"><span class="red--text text--accent-2 ml-1">* </span>初始密码</span>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.clearTextPassword" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+            </v-row>
+
+             <!-- 抽屉内容组件 -->
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="closeUpdateDrawerCheck">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 编辑 -->
+    <!-- 重置密码 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isResetUserPasswordDrawerShown" v-model="isResetUserPasswordDrawerShown" :permanent="isResetUserPasswordDrawerShown" fixed temporary right width="90%" class="elevation-24" >
+      <v-form ref="resetUserPasswordForm" lazy-validation>
+        
+        <!-- 抽屉标题 -->
+        <v-row class="jh-drawer-header px-4" no-gutters align="center">
+          <span class="text-h7 font-weight-bold py-4">重置密码</span>
+          <v-spacer></v-spacer>
+          <div class="jh-drawer-action-btn-group">
+            <v-btn class="elevation-0 grey lighten-4" @click="closeResetUserPasswordDrawerCheck" small>取消</v-btn>
+            <!-- 抽屉操作按钮 -->
+            <template v-if="true">
+              <v-btn color="success" small @click="doUiAction('resetPassword')">
+              保存
+            </v-btn>
+            </template>
+          </div>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <!-- 抽屉内容 -->
+
+            <!-- 抽屉内容form -->
+            <v-row class="mt-0 px-4 pb-4">
+              <v-col cols="12" sm="12" md="3" >
+                <span class="jh-input-label"><span class="red--text text--accent-2 ml-1">* </span>新密码</span>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="resetUserPasswordItem.clearTextPassword" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+            </v-row>
+
+             <!-- 抽屉内容组件 -->
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="closeResetUserPasswordDrawerCheck">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 重置密码 -->
+    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#userManagement.md`" width="100%" height="100%"></iframe>
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
   </v-main>
 </v-app>
 
@@ -268,170 +278,314 @@
 <jh-confirm-dialog />
 </div>
 </script>
-
-<div id="app">
-</div>
-
+<div id="app"></div>
 {% endblock %}
 
 {% block vueScript %}
-
 {% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 
 <script type="module">
+
 new Vue({
   el: '#app',
   template: '#app-template',
   vuetify: new Vuetify(),
-  data: {
+  data: () => ({
+
     isMobile: window.innerWidth < 500,
     isHelpPageDrawerShown: false,
-    // 表格斑马纹
-    isTableZebraLineShown: true,
-    // 表单验证
-    validationRules: {
-      requireRules: [
-        v => !!v || 'This is required',
-      ],
-    },
-    // 常量列表
-    constantObj: {
-      userStatus: [{value: 'active', text: '正常'}, {value: 'banned', text: '禁用'}],
-      userType: [{value: 'common', text: '普通用户'}, {value: 'staff', text: '教职工'}, {value: 'student', text: '学生'}],
-    },
-    searchInput: null,
-    isTableLoading: true,
-    tableData: [],
-
+    isHelpPageDrawerLoaded: false,
+    // ================================ 表格相关 ================================
     headers: [
-      {text: "用户ID[登陆]", value: "userId", width: 120},
-      {text: "用户名", value: "username", width: 140},
-      {text: "用户类型", value: "userType", width: 120},
-      {text: "用户状态", value: "userStatus", width: 120},
-      {text: "初始密码", value: "clearTextPassword", width: 120},
-      {text: "操作人", value: "operationByUser", width: 120},
-      {text: "操作时间", value: "operationAt", width: 250},
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 80 : 230, class: 'fixed', cellClass: 'fixed'},
+      { text: "用户ID[登陆]", value: "userId", width: 120 },
+      { text: "用户名", value: "username", width: 140 },
+      { text: "用户状态", value: "userStatus", width: 120 },
+      { text: "初始密码", value: "clearTextPassword", width: 120 },
+      { text: "操作人", value: "operationByUser", width: 120 },
+      { text: "操作时间", value: "operationAt", width: 250 },
+      { text: "操作", value: "action", align: "center", sortable: false, width:window.innerWidth < 500 ? 80 : 230, class: "fixed", cellClass: "fixed" },
     ],
-    // 新增用户
+    tableData: [],
+    tableParams: {},
+    tableDataFromBackend: [],
+    isTableLoading: false,
+    searchInput: null,
+    columnSettingGroup: {},
+    selectedColumnGroup: null,
+    serverSearchWhere: {},
+    serverSearchWhereLike: {},
+    // ================================ 新建抽屉 ================================
     isCreateDrawerShown: false,
     createItem: {},
+    createItemOrigin: {},
     createActionData: {},
-    // 修改用户
+    // ================================ 编辑抽屉 ================================
     isUpdateDrawerShown: false,
     updateItem: {},
+    updateItemOrigin: {},
     updateItemId: null,
     updateActionData: {},
-    // 激活用户
-    activeUserItem: {},
-    activeUserId: null,
-    // 禁用用户
-    bannedUserItem: {},
-    bannedUserId: null,
-    // 修改密码
+
+    // ================================ common ================================
+    constantObj: {
+      userStatus: [
+        {
+          value: "active",
+          text: "正常"
+        },
+        {
+          value: "banned",
+          text: "禁用"
+        }
+      ],
+      userType: [
+        {
+          value: "common",
+          text: "普通用户"
+        },
+        {
+          value: "staff",
+          text: "教职工"
+        },
+        {
+          value: "student",
+          text: "学生"
+        }
+      ]
+    },
+    validationRules: {
+      requireRules: [
+        v => !!v || '必填'
+      ]
+    },
+    serverSearchWhereLike: {
+      className: ""
+    },
+    serverSearchWhere: {},
+    serverSearchWhereIn: {},
+    filterMap: {},
+    isMobile: window.innerWidth < 500,
+
+    // ================================ 其他抽屉列表 ================================
     isResetUserPasswordDrawerShown: false,
-    userPasswordItem: {},
-    clearTextPassword: null,
-    resetPasswordUserId: null
+    resetUserPasswordItem: {},
+    resetUserPasswordItemOrigin: {},
+
+    
+
+
+  }),
+  watch: {
+    isHelpPageDrawerShown(val) {
+      if (val && !this.isHelpPageDrawerLoaded) {
+        this.isHelpPageDrawerLoaded = true;
+      }
+    },
   },
   computed: {
+    tableDataComputed() {
+      let tableData;
+      if(this.filterMap) {
+        tableData = this.tableData.filter(row => {
+          for (const key in this.filterMap) {
+            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+              return false;
+            }
+          }
+          return true;
+        });
+      } else {
+        tableData = this.tableData;
+      }
+      return tableData;
+    },
+    tableDataComputed() {
+          if(this.filterMap) {
+            return this.tableData.filter(row => {
+              for (const key in this.filterMap) {
+                if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+                  return false;
+                }
+              }
+              return true;
+            });
+          } else {
+            return this.tableData;
+          }
+        },
   },
-  watch: {},
   async created() {
-  },
-  mounted() {
     this.doUiAction('getTableData');
   },
   methods: {
     async doUiAction(uiActionId, uiActionData) {
-      switch (uiActionId) {
-        case 'getTableData':
-          await this.getTableData();
-          break;
-        case 'startCreateItem':
-          await this.prepareCreateItem();
-          await this.openCreateDrawer();
-          break;
-        case 'createItem':
-          await this.prepareCreateValidate();
-          await this.confirmCreateItemDialog();
-          await this.prepareDoCreateItem();
-          await this.doCreateItem();
-          await this.closeCreateDrawer();
-          await this.getTableData();
-          break;
-        case 'startUpdateItem':
-          await this.prepareUpdateItem(uiActionData);
-          await this.openUpdateDrawer();
-          break;
-        case 'updateItem':
-          await this.prepareUpdateValidate();
-          await this.confirmUpdateItemDialog();
-          await this.prepareDoUpdateItem();
-          await this.doUpdateItem();
-          await this.closeUpdateDrawer();
-          await this.getTableData();
-          break;
-        case 'activeUserStatus':
-          await this.prepareActiveUserItem(uiActionData);
-          await this.confirmActiveUserStatusDialog();
-          await this.prepareDoActiveUserStatus();
-          await this.doActiveUser();
-          await this.getTableData();
-          break;
-        case 'bannedUserStatus':
-          await this.prepareBannedUserItem(uiActionData);
-          await this.confirmBannedUserStatusDialog();
-          await this.prepareDoBannedUserStatus();
-          await this.doBannedUser();
-          await this.getTableData();
-          break;
-        case 'startResetPassword':
-          await this.prepareResetPasswordItem(uiActionData);
-          await this.openResetPasswordDrawer();
-          break;
-        case 'resetPassword':
-          await this.prepareResetPasswordValidate();
-          await this.confirmResetPasswordDialog();
-          await this.prepareDoResetPasswordItem();
-          await this.doResetPasswordItem();
-          await this.closeResetPasswordDrawer();
-          break;
-        case 'copyPassword':
-          await this.copyPassword(uiActionData);
-          break;
-        default:
-          console.error("[doUiAction] uiActionId not find", {uiActionId});
-          break;
+      try {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.prepareTableParamsDefault(uiActionData);
+            await this.prepareTableParams(uiActionData);
+            await this.getTableData(uiActionData);
+            await this.formatTableData(uiActionData);
+            break;
+          case 'startCreateItem':
+            await this.prepareCreateFormData(uiActionData);
+            await this.openCreateDrawer(uiActionData);
+            break;
+          case 'createItem':
+            await this.prepareCreateValidate(uiActionData);
+            await this.confirmCreateItemDialog(uiActionData);
+            await this.prepareDoCreateItem(uiActionData);
+            await this.doCreateItem(uiActionData);
+            await this.closeCreateDrawer(uiActionData);
+            await this.doUiAction('getTableData', uiActionData);
+            break;
+          case 'startUpdateItem':
+            await this.prepareUpdateFormData(uiActionData);
+            await this.openUpdateDrawer(uiActionData);
+            break;
+          case 'updateItem':
+            await this.prepareUpdateValidate(uiActionData);
+            await this.confirmUpdateItemDialog(uiActionData);
+            await this.prepareDoUpdateItem(uiActionData);
+            await this.doUpdateItem(uiActionData);
+            await this.closeUpdateDrawer(uiActionData);
+            await this.doUiAction('getTableData', uiActionData);
+            break;
+          case 'activeUserStatus':
+            await this.prepareActiveUserItem(uiActionData);
+            await this.confirmActiveUserStatusDialog(uiActionData);
+            await this.prepareDoActiveUserStatus(uiActionData);
+            await this.doActiveUser(uiActionData);
+            await this.doUiAction('getTableData', uiActionData);
+            break;
+          case 'bannedUserStatus':
+            await this.prepareBannedUserItem(uiActionData);
+            await this.confirmBannedUserStatusDialog(uiActionData);
+            await this.prepareDoBannedUserStatus(uiActionData);
+            await this.doBannedUser(uiActionData);
+            await this.doUiAction('getTableData', uiActionData);
+            break;
+          case 'startResetPassword':
+            await this.prepareResetPasswordItem(uiActionData);
+            await this.openResetPasswordDrawer(uiActionData);
+            break;
+          case 'resetPassword':
+            await this.prepareResetPasswordValidate(uiActionData);
+            await this.confirmResetPasswordDialog(uiActionData);
+            await this.prepareDoResetPasswordItem(uiActionData);
+            await this.doResetPasswordItem(uiActionData);
+            await this.closeResetPasswordDrawer(uiActionData);
+            break;
+          case 'copyPassword':
+            await this.copyPassword(uiActionData);
+            break;
+          case 'viewResetUserPassword':
+            await this.prepareResetUserPasswordData(uiActionData);
+            await this.openResetUserPasswordDrawer(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      } catch (error) {
+        window.jhMask && window.jhMask.hide();
+        throw error;
+      } finally {
+        window.jhMask && window.jhMask.hide();
       }
     },
+    async prepareTableParamsDefault() {
+      const where = {};
+      const whereLike = {};
+      const whereIn = {};
+      for (const fieldKey in this.serverSearchWhere) {
+        const fieldValue = this.serverSearchWhere[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            where[fieldKey] = fieldValue.trim();
+          } else {
+            where[fieldKey] = fieldValue;
+          }
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereLike) {
+        const fieldValue = this.serverSearchWhereLike[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            whereLike[fieldKey] = '%' + fieldValue.trim() + '%';
+          } else {
+            whereLike[fieldKey] = '%' + fieldValue + '%';
+          }
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereIn) {
+        const fieldValue = this.serverSearchWhereIn[fieldKey];
+        if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
+          whereIn[fieldKey] = fieldValue;
+        }
+      }
+
+      let whereOrOptions = [];
+      if (this.keyword) {
+        if (!this.keywordFieldList || this.keywordFieldList.length === 0) {
+          console.warn('keywordFieldList is empty');
+        }
+        this.keywordFieldList.forEach(fieldKey => {
+          whereOrOptions.push([fieldKey, 'like', '%' + this.keyword.trim() + '%']);
+        });
+      }
+      let orderBy = [{column: 'operationAt', order: 'desc'}];
+
+      let limit = null;
+      let offset = null;
+
+      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy, whereOrOptions };
+    },
+    // 准备请求参数-自定义
+    prepareTableParams() {
+      // TODO 增加自定义复杂判断条件
+    },
+    // 获取表格数据
     async getTableData() {
       this.isTableLoading = true;
+
       const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'userManagement',
-            actionId: 'selectItemList',
+            actionId: "selectItemList",
             actionData: {},
-            where: {},
-            orderBy: [{column: 'operationAt', order: 'desc'}]
+            ...this.tableParams
           }
         }
       });
-      this.tableData = result.data.appData.resultData.rows;
+      const { rows, count } = result.data.appData.resultData;
+      
+      this.tableDataFromBackend = rows;
       this.isTableLoading = false;
     },
-    //   --------------- 新增数据 uiAction >>>>>>>>>>  ---------------
-    async prepareCreateItem() {
-      this.createItem = {};
+    formatTableData() {
+      let tableData = this.tableDataFromBackend.map(row => {
+        row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+        return row;
+      });
+      this.tableData = tableData;
+    },
+    // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
+    // ---------- 新增数据 uiAction >>>>>>>>>> --------
+    async prepareCreateFormData() {
+      this.createItem = {
+      };
+      this.createItemOrigin = _.cloneDeep(this.createItem);
     },
     async openCreateDrawer() {
       this.isCreateDrawerShown = true;
     },
     async prepareCreateValidate() {
-      if (await this.$refs.createForm.validate() === false) {
-        throw new Error("[prepareCreateValidate] false");
+      if (await this.$refs.createForm.validate()) {
+        return true;
       }
+      throw new Error("请完善表单信息")
     },
     async confirmCreateItemDialog() {
       if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
@@ -440,52 +594,76 @@ new Vue({
     },
     prepareDoCreateItem() {
       const {id, ...data} = this.createItem;
-      this.createActionData = data;
+      this.createActionData = {
+        userId: data.userId,
+        username: data.username,
+        userStatus: data.userStatus,
+        clearTextPassword: data.clearTextPassword,
+      };
     },
     async doCreateItem() {
-      await window.vtoast.loading("保存中");
+      await window.jhMask.show();
+      await window.vtoast.loading("新增数据");
       await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'userManagement',
             actionId: 'insertItem',
-            actionData: this.createActionData,
-            where: {}
+            bizIdGenerate: {
+              type: "idSequence",
+              prefix: "E",
+              bizId: "userId",
+              tableName: "_user",
+              startValue: 10000,
+            },
+            actionData: this.createActionData
           }
         }
-      });
-      await window.vtoast.success("保存成功");
+      })
+      await window.jhMask.hide();
+      await window.vtoast.success("新增数据成功");
+    },
+    async closeCreateDrawerCheck() {
+      await this.closeCreateDrawer();
     },
     async closeCreateDrawer() {
       this.isCreateDrawerShown = false;
       this.createItem = {};
       this.createActionData = null;
     },
-    //   --------------- <<<<<<<<<<<< 新增数据 uiAction  ---------------
-    //   --------------- 编辑数据 uiAction >>>>>>>>>>>>  ---------------
-    async prepareUpdateItem(funObj) {
+    // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    async prepareUpdateFormData(funObj) {
       this.updateItem = _.cloneDeep(funObj);
+      this.updateItemOrigin = _.cloneDeep(funObj);
     },
     async openUpdateDrawer() {
       this.isUpdateDrawerShown = true;
     },
     async prepareUpdateValidate() {
-      if (await this.$refs.updateForm.validate() === false) {
-        throw new Error("[prepareUpdateValidate] false");
+      if (await this.$refs.updateForm.validate()) {
+        return true;
       }
+      throw new Error("请完善表单信息")
     },
     async confirmUpdateItemDialog() {
-      if (await window.confirmDialog({title: "编辑", content: "确定编辑吗？"}) === false) {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
         throw new Error("[confirmUpdateItemDialog] 否");
       }
     },
-    prepareDoUpdateItem() {
-      const {id, userId, ...data} = this.updateItem;
+    async prepareDoUpdateItem() {
+      const {id, ...data} = this.updateItem;
       this.updateItemId = id;
-      this.updateActionData = data;
+      this.updateActionData = {
+        userId: data.userId,
+        username: data.username,
+        userStatus: data.userStatus,
+        clearTextPassword: data.clearTextPassword,
+      };
     },
     async doUpdateItem() {
-      await window.vtoast.loading("保存中");
+      await window.jhMask.show();
+      await window.vtoast.loading("修改数据");
       await window.jianghuAxios({
         data: {
           appData: {
@@ -495,8 +673,12 @@ new Vue({
             where: {id: this.updateItemId}
           }
         }
-      });
-      await window.vtoast.success("修改成功");
+      })
+      await window.jhMask.hide();
+      await window.vtoast.success("修改数据成功");
+    },
+    async closeUpdateDrawerCheck() {
+      await this.closeUpdateDrawer();
     },
     async closeUpdateDrawer() {
       this.isUpdateDrawerShown = false;
@@ -504,118 +686,127 @@ new Vue({
       this.updateActionData = null;
       this.updateItemId = null;
     },
-    //   --------------- <<<<<<<<<<<< 编辑数据 uiAction  ---------------
-    //   --------------- 激活用户 uiAction >>>>>>>>>>>>  ---------------
-    async prepareActiveUserItem(funObj) {
-      this.activeUserItem = _.cloneDeep(funObj);
+    // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
+
+    // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+    async prepareResetUserPasswordData(funObj) {
+      this.resetUserPasswordItem = _.cloneDeep(funObj);
+      this.resetUserPasswordItemOrigin = _.cloneDeep(funObj);
     },
-    async confirmActiveUserStatusDialog() {
-      if (await window.confirmDialog({title: "激活", content: "确定激活吗？"}) === false) {
-        throw new Error("[confirmActiveUserStatusDialog] 否");
-      }
-    },
-    async prepareDoActiveUserStatus() {
-      this.activeUserId = this.activeUserItem.userId;
-    },
-    async doActiveUser() {
-      await window.vtoast.loading('正在激活');
-      await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: 'userManagement',
-            actionId: 'updateItem',
-            actionData: {userStatus: 'active'},
-            where: {userId: this.activeUserId}
-          }
-        }
-      });
-      await window.vtoast.success(`激活成功`);
-      this.activeUserItem = {};
-      this.activeUserId = null;
-    },
-    //   --------------- <<<<<<<<<<<< 激活用户 uiAction  ---------------
-    //   --------------- 禁用用户 uiAction >>>>>>>>>>>>  ---------------
-    async prepareBannedUserItem(funObj) {
-      this.bannedUserItem = _.cloneDeep(funObj);
-    },
-    async confirmBannedUserStatusDialog() {
-      if (await window.confirmDialog({title: "禁用", content: "确定禁用吗？"}) === false) {
-        throw new Error("[confirmBannedUserStatusDialog] 否");
-      }
-    },
-    async prepareDoBannedUserStatus() {
-      this.bannedUserId = this.bannedUserItem.userId;
-    },
-    async doBannedUser(funObj) {
-      await window.vtoast.loading('正在禁用');
-      await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: 'userManagement',
-            actionId: 'updateItem',
-            actionData: {userStatus: 'banned'},
-            where: {userId: this.bannedUserId}
-          }
-        }
-      });
-      await window.vtoast.success(`禁用成功`);
-      this.bannedUserItem = {};
-      this.bannedUserId = null;
-    },
-    //   --------------- <<<<<<<<<<<< 禁用用户 uiAction  ---------------
-    //   --------------- 修改密码 uiAction >>>>>>>>>>>>  ---------------
-    async prepareResetPasswordItem(funObj) {
-      this.userPasswordItem = _.cloneDeep(funObj);
-    },
-    async openResetPasswordDrawer() {
+    async openResetUserPasswordDrawer() {
       this.isResetUserPasswordDrawerShown = true;
     },
-    async prepareResetPasswordValidate() {
-      if (await this.$refs.passwordForm.validate() === false) {
-        throw new Error("[prepareResetPasswordValidate] false");
-      }
+    async closeResetUserPasswordDrawerCheck() {
+      await this.closeResetUserPasswordDrawer();
     },
-    async confirmResetPasswordDialog() {
-      if (await window.confirmDialog({title: "修改用户密码", content: "确定修改用户密码吗？"}) === false) {
-        throw new Error("[confirmResetPasswordDialog] 否");
-      }
-    },
-    async prepareDoResetPasswordItem() {
-      const {userId, clearTextPassword} = this.userPasswordItem;
-      this.clearTextPassword = clearTextPassword;
-      this.resetPasswordUserId = userId;
-    },
-    async doResetPasswordItem() {
-      await window.vtoast.loading("修改密码");
-      await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: 'userManagement',
-            actionId: 'resetUserPassword',
-            actionData: {userId: this.resetPasswordUserId, clearTextPassword: this.clearTextPassword},
-            where: {}
-          }
-        }
-      });
-      window.vtoast.success("修改密码成功");
-    },
-    async closeResetPasswordDrawer() {
+    async closeResetUserPasswordDrawer() {
       this.isResetUserPasswordDrawerShown = false;
-      this.userPasswordItem = {};
-      this.clearTextPassword = null;
-      this.resetPasswordUserId = null;
     },
-    //   --------------- <<<<<<<<<<<<< 修改密码 uiAction  ---------------
-    //   --------------- 复制密码 uiAction >>>>>>>>>>>>>  ---------------
+    // ---------- Custom uiAction >>>>>>>>>>>> --------
+    async prepareActiveUserItem(funObj) {
+          this.activeUserItem = _.cloneDeep(funObj);
+        },
+    async confirmActiveUserStatusDialog() {
+          if (await window.confirmDialog({title: "激活", content: "确定激活吗？"}) === false) {
+            throw new Error("[confirmActiveUserStatusDialog] 否");
+          }
+        },
+    async prepareDoActiveUserStatus() {
+          this.activeUserId = this.activeUserItem.userId;
+        },
+    async doActiveUser() {
+          await window.vtoast.loading('正在激活');
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'userManagement',
+                actionId: 'updateItem',
+                actionData: {userStatus: 'active'},
+                where: {userId: this.activeUserId}
+              }
+            }
+          });
+          await window.vtoast.success(`激活成功`);
+          this.activeUserItem = {};
+          this.activeUserId = null;
+        },
+    async prepareBannedUserItem(funObj) {
+          this.bannedUserItem = _.cloneDeep(funObj);
+        },
+    async confirmBannedUserStatusDialog() {
+          if (await window.confirmDialog({title: "禁用", content: "确定禁用吗？"}) === false) {
+            throw new Error("[confirmBannedUserStatusDialog] 否");
+          }
+        },
+    async prepareDoBannedUserStatus() {
+          this.bannedUserId = this.bannedUserItem.userId;
+        },
+    async doBannedUser(funObj) {
+          await window.vtoast.loading('正在禁用');
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'userManagement',
+                actionId: 'updateItem',
+                actionData: {userStatus: 'banned'},
+                where: {userId: this.bannedUserId}
+              }
+            }
+          });
+          await window.vtoast.success(`禁用成功`);
+          this.bannedUserItem = {};
+          this.bannedUserId = null;
+        },
+    async prepareResetPasswordItem(funObj) {
+          this.userPasswordItem = _.cloneDeep(funObj);
+        },
+    async openResetPasswordDrawer() {
+          this.isResetUserPasswordDrawerShown = true;
+        },
+    async prepareResetPasswordValidate() {
+          if (await this.$refs.passwordForm.validate() === false) {
+            throw new Error("[prepareResetPasswordValidate] false");
+          }
+        },
+    async confirmResetPasswordDialog() {
+          if (await window.confirmDialog({title: "修改用户密码", content: "确定修改用户密码吗？"}) === false) {
+            throw new Error("[confirmResetPasswordDialog] 否");
+          }
+        },
+    async prepareDoResetPasswordItem() {
+          const {userId, clearTextPassword} = this.userPasswordItem;
+          this.clearTextPassword = clearTextPassword;
+          this.resetPasswordUserId = userId;
+        },
+    async doResetPasswordItem() {
+          await window.vtoast.loading("修改密码");
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'userManagement',
+                actionId: 'resetUserPassword',
+                actionData: {userId: this.resetPasswordUserId, clearTextPassword: this.clearTextPassword},
+                where: {}
+              }
+            }
+          });
+          window.vtoast.success("修改密码成功");
+        },
+    async closeResetPasswordDrawer() {
+          this.isResetUserPasswordDrawerShown = false;
+          this.userPasswordItem = {};
+          this.clearTextPassword = null;
+          this.resetPasswordUserId = null;
+        },
     async copyPassword(funObj) {
-      await navigator.clipboard.writeText(funObj.clearTextPassword);
-      return window.vtoast.success("复制密码成功！")
-    },
-    //   --------------- <<<<<<<<<<<<< 复制密码 uiAction  ---------------
+          await navigator.clipboard.writeText(funObj.clearTextPassword);
+          return window.vtoast.success("复制密码成功！")
+        },
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
+
   }
 })
 </script>
 
 <style scoped>
-</style>
-{% endblock %}
+</style>{% endblock %}

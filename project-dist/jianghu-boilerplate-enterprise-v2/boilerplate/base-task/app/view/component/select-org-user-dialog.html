@@ -1,0 +1,239 @@
+<template id="select-org-user-dialog">
+  <v-dialog v-model="show" width="80%">
+    <v-card>
+      <v-row no-gutters>
+        <span class="text-h7 font-weight-bold pa-4">请选择</span>
+      </v-row>
+      <v-divider class="jh-divider"></v-divider>
+      <v-progress-linear
+        indeterminate
+        v-if="isLoading"
+        color="primary"
+      ></v-progress-linear>
+      <v-card-text>
+        <v-row>
+          <v-col cols="6" style="height: 400px; overflow: auto">
+            <v-text-field
+              v-model="search"
+              label="搜索"
+              class="jh-v-input mt-4"
+              dense
+              single-line
+              filled
+              clear-icon="mdi-close-circle-outline"
+            ></v-text-field>
+
+            <v-treeview
+              :items="treeData"
+              v-model="selectedIds"
+              selectable
+              :search="search"
+              activatable
+              open-on-click
+              :filter="filter"
+              :open.sync="open"
+            ></v-treeview>
+          </v-col>
+          <v-col cols="6">
+            <v-card>
+              <v-card-title>已选择的人员</v-card-title>
+              <v-list dense>
+                <div v-for="(item, index) in selectedItems" :key="index">
+                  <v-list-item>
+                    <v-list-item-avatar>
+                      <v-avatar color="primary" size="30">
+                        <span class="white--text">{{ item.username[0] }}</span>
+                      </v-avatar>
+                    </v-list-item-avatar>
+
+                    <v-list-item-title>{{ item.username }}</v-list-item-title>
+                  </v-list-item>
+                  <v-divider></v-divider>
+                </div>
+              </v-list>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="primary" text @click="doUiAction('confirm')">
+          确定
+        </v-btn>
+        <v-btn text @click="$emit('update:show', false)"> 取消 </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+</template>
+
+<script type="module">
+  Vue.component("select-org-user-dialog", {
+    template: "#select-org-user-dialog",
+    props: {
+      show: {
+        type: Boolean,
+        default: false,
+      },
+      selectedIds: {
+        type: Array,
+        default: () => [],
+      },
+      // 用于判断是否禁用
+      selectedOriginItems: {
+        type: Array,
+        default: () => [],
+      },
+      // 显示类型，按组织结构显示还是直接显示，org: 按组织结构显示，user: 直接显示
+      showType: {
+        type: String,
+        default: "org",
+      },
+    },
+    data: () => ({
+      userList: [],
+      treeData: [],
+
+      search: null,
+      open: [],
+
+      isLoading: false,
+    }),
+    created() {
+      this.doUiAction("getUserList");
+    },
+    computed: {
+      filter() {
+        return (item, search, textKey) => item[textKey].indexOf(search) > -1;
+      },
+      selectedItems() {
+        const data = [];
+        this.selectedIds.map((id) => {
+          const currentUser = this.userList.find((item) => item.userId === id);
+          
+          if (currentUser) {
+            let readonly = currentUser.readonly;
+            if (this.selectedOriginItems) {
+              const currentOriginUser = this.selectedOriginItems.find((item) => item.userId === id);
+              if (currentOriginUser) {
+                readonly = currentOriginUser.readonly;
+              }
+            }
+            
+            data.push({
+              id: currentUser.id,
+              username: currentUser.username,
+              userId: currentUser.userId,
+              position: currentUser.position,
+              qiweiId: currentUser.qiweiId,
+              readonly,
+            });
+          }
+        });
+        return data;
+      },
+    },
+    watch: {
+      show(val) {
+        if (val) {
+          this.buildTreeData();
+        }
+      }
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case "getUserList":
+            await this.getUserList(uiActionData);
+            await this.buildTreeData();
+            break;
+          case "confirm":
+            this.$emit("confirm", this.selectedItems);
+            this.$emit("update:selectedIds", this.selectedIds);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      async getUserList() {
+        this.isLoading = true;
+        const rows = (
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: "allPage",
+                actionId: "getUserList",
+                actionData: {},
+              },
+            },
+          })
+        ).data.appData.resultData.rows;
+        this.isLoading = false;
+
+        this.userList = rows;
+      },
+      async buildTreeData() {
+        let data = [...this.userList];
+        if (this.selectedOriginItems) {
+          data = data.map((item) => {
+            item.disabled = false;
+            this.selectedOriginItems.map((user) => {
+              if (item.userId === user.userId) {
+                item.disabled = user.readonly;
+              }
+            });
+            return item;
+          });
+        }
+
+        if (this.showType === "user") {
+          this.treeData = data.map((item) => ({
+            id: item.userId,
+            userId: item.userId,
+            name: item.username,
+            disabled: item.disabled,
+          }));
+          return;
+        }
+       
+        const treeData = [];
+
+        data.forEach((item, index) => {
+          const items = item.orgFullName || item.groupAllName || "";
+          const parts = items.split("-");
+          let currentLevel = treeData;
+
+          parts.forEach((part, partIndex) => {
+            let existingNode = currentLevel.find((node) => node.name === part);
+            if (!existingNode) {
+              const newNode = {
+                id: `${index}-${partIndex}`,
+                name: part,
+                children: [],
+              };
+              currentLevel.push(newNode);
+              currentLevel = newNode.children;
+            } else {
+              currentLevel = existingNode.children;
+            }
+          });
+
+          currentLevel.push({
+            id: item.userId,
+            userId: item.userId,
+            name: item.username,
+            disabled: item.disabled,
+          });
+        });
+        console.log("------------------------------------");
+        console.log("treeData", treeData);
+        console.log("------------------------------------");
+        this.treeData = treeData;
+      },
+
+    },
+  });
+</script>
+
+<style scoped></style>

@@ -1,0 +1,364 @@
+{% block htmlHead %}
+{% endblock %}
+
+{% extends 'template/jhTemplateV4.html'%}
+{% block vueTemplate %}
+<script type="text/html" id="app-template">
+<div>
+<v-app mobile-breakpoint="sm">
+  <jh-menu />
+  <v-main class="mt-13">
+    <!-- 头部内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-second-bar px-3 px-sm-8">
+      <v-row class="align-center" no-gutters>
+        <v-col cols="12" sm="12" md="4" xl="3" :cols="12" :sm="6" :md="4" >
+          <div class="py-4 text-body-1 font-weight-bold align-center d-flex align-center">组织权限分配
+            <!-- 帮助页按钮 -->
+            <v-icon size="15" class="black--text ml-1" @click="isHelpPageDrawerShown = true">mdi-help-circle</v-icon>
+          </div>
+        </v-col>
+          <!-- 自定义搜索内容 -->
+          <v-spacer ></v-spacer>
+          <!-- 自定义搜索内容 -->
+          <v-btn color="success" small :loading="isAppLoading" @click="doUiAction('updateUserGroupRolePage')">
+              保存
+            </v-btn>
+      </v-row>
+    </div>
+    <!-- <<<<<<<<<<<<< 头部内容 -->
+    <!-- 页面内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-body-container px-sm-8">
+      <v-row class="pa-0 ma-0">
+        <v-col cols="12" sm="6" md="3" class="pa-0 border-r pr-4">
+        
+        <select-group-tree @change-active="changeActiveGroup" hide-admin @change-group-list="constantObj.groupList = $event"></select-group-tree>
+      
+      </v-col>
+        <v-col cols="12" sm="6" md="9" class="pa-0">
+        
+        <group-role-page :app-list="constantObj.appList" :role-list="constantObj.roleList" :loading="isAppLoading" :active-role="activeRole" v-model="activePageList" :group="activeGroup" @change-role="changeRole" @refresh-role-list="getRoleData"></group-role-page>
+      
+      </v-col>
+      </v-row>
+    </div>
+    <!-- <<<<<<<<<<<<< 页面内容 -->
+    <!-- 组件列表 -->
+    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#groupAuthorityManagement.md`" width="100%" height="100%"></iframe>
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+  </v-main>
+</v-app>
+
+<jh-toast />
+<jh-mask />
+<jh-confirm-dialog />
+</div>
+</script>
+<div id="app"></div>
+{% endblock %}
+
+{% block vueScript %}
+{% include "common/jianghuJs/fixedTableHeightV4.html" %}
+{% include "component/select-group-tree.html" %}
+{% include "component/group-role-page.html" %}
+
+<script type="module">
+
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+
+    isMobile: window.innerWidth < 500,
+    isHelpPageDrawerShown: false,
+    isHelpPageDrawerLoaded: false,
+
+    // ================================ 表格相关 ================================
+    tableData: [],
+    isTableLoading: false,
+    searchInput: null,
+    columnSettingGroup: {},
+    selectedColumnGroup: null,
+    serverSearchWhere: {},
+    serverSearchWhereLike: {},
+
+    // ================================ common ================================
+    constantObj: {
+      appType: [
+        {
+          value: "internal",
+          text: "内部应用"
+        },
+        {
+          value: "external",
+          text: "外部应用"
+        }
+      ],
+      tabList: [
+        "组织权限"
+      ],
+      appList: [],
+      groupList: [],
+      roleList: []
+    },
+    validationRules: {
+      requireRules: [
+        v => !!v || '必填'
+      ]
+    },
+    testString: '测试字符串',
+    serverSearchWhereLike: {
+      className: ""
+    },
+    filterMap: {},
+    tableDataBackUp: [],
+    tabActive: 0,
+    activeGroup: null,
+    activeGroupName: null,
+    activeGroupPath: null,
+    activeRole: '*',
+    activePageList: [],
+    isMobile: window.innerWidth < 500,
+
+    // ================================ 其他抽屉列表 ================================
+
+    
+
+
+  }),
+  watch: {
+    isHelpPageDrawerShown(val) {
+      if (val && !this.isHelpPageDrawerLoaded) {
+        this.isHelpPageDrawerLoaded = true;
+      }
+    },
+    activePageList(val) {
+      console.log('activePageList', val)
+    },
+  },
+  computed: {
+    tableDataComputed() {
+      if(this.filterMap) {
+        return this.tableData.filter(row => {
+          for (const key in this.filterMap) {
+            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+              return false;
+            }
+          }
+          return true;
+        });
+      } else {
+        return this.tableData;
+      }
+    },
+    tabList() {
+      return this.constantObj.tabList;
+    },
+    tableData() {
+      return this.tableDataBackUp.filter(e => (e.groupPath || '').startsWith(this.activeGroupPath || ''));
+    },
+  },
+  async created() {
+    this.doUiAction('getAppData');
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      try {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.getTableData(uiActionData);
+            break;
+          case 'getAppData':
+            await this.getAppData(uiActionData);
+            break;
+          case 'getUserGroupRolePage':
+            await this.getUserGroupRolePage(uiActionData);
+            break;
+          case 'updateUserGroupRolePage':
+            await this.doUpdateUserGroupRolePage(uiActionData);
+            await this.getUserGroupRolePage(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      } catch (error) {
+        window.jhMask && window.jhMask.hide();
+        throw error;
+      } finally {
+        window.jhMask && window.jhMask.hide();
+      }
+    },
+
+    // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+    // ---------- Custom uiAction >>>>>>>>>>>> --------
+    async getTableData() {
+      this.isTableLoading = true;
+      const where = {};
+      const whereIn = {};
+      if (this.activeGroupPath) {
+        where.groupPath = `${this.activeGroupPath}`;
+        where.groupId = `${this.activeGroup}`;
+      } else {
+        // whereIn.groupId = this.constantObj.groupList.map(e => e.value);
+        whereIn.groupId = [this.activeGroup];
+      }
+      const rows = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'groupAuthorityManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where,
+            whereIn,
+            orderBy: [{column: 'userId', order: 'asc'}]
+          }
+        }
+      })).data.appData.resultData.rows;
+    
+      rows.forEach(row => {
+        row.operationAt = dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss');
+      })
+      const list = [];
+      const groupBy = _.groupBy(rows, 'userId');
+      Object.keys(groupBy).forEach(key => {
+        const item = groupBy[key][0];
+        item.username = groupBy[key][0].username;
+        item.roleName = groupBy[key].map(e => (e.roleName || '默认权限')).join(',');
+        item.roleId = groupBy[key].map(e => e.roleId);
+        item.operationByUser = groupBy[key][0].operationByUser;
+        item.operationAt = groupBy[key][0].operationAt;
+        item.ids = groupBy[key].map(e => e.id);
+        list.push(item);
+      })
+      this.tableDataBackUp = list;
+      this.isTableLoading = false;
+    },
+    async getAppData() {
+      this.isAppLoading = true;
+      const rows = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'groupAuthorityManagement',
+            actionId: 'selectAppList',
+            actionData: {},
+            where: {},
+            orderBy: [{column: 'appGroup', order: 'base'}]
+          }
+        }
+      })).data.appData.resultData.rows
+      rows.forEach(row => {
+        row.appPageList = JSON.parse(row.appPageList || '[]');
+      })
+      this.constantObj.appList = rows;
+      this.isAppLoading = false;
+    },
+    async getRoleData() {
+      this.isAppLoading = true;
+      const rows = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'groupAuthorityManagement',
+            actionId: 'selectRoleList',
+            actionData: {},
+            whereLike: {roleId: `${this.activeGroup}|%`},
+            orderBy: [{column: 'operationAt', order: 'asc'}]
+          }
+        }
+      })).data.appData.resultData.rows;
+    
+      rows.forEach(row => {
+        row.operationAt = dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss');
+      })
+      this.constantObj.roleList = [{roleId: '*', roleName: '默认权限'}, ...rows];
+      this.isAppLoading = false;
+    },
+    async getUserGroupRolePage() {
+      this.isAppLoading = true;
+      const rows = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'groupAuthorityManagement',
+            actionId: 'getUserGroupRolePage',
+            actionData: {},
+            where: {group: this.activeGroup, role: this.activeRole},
+            orderBy: [{column: 'id', order: 'asc'}]
+          }
+        }
+      })).data.appData.resultData.rows
+      const pageList = [];
+      rows.forEach(row => {
+        const list = row.page.split(',');
+        list.forEach(e => {
+          pageList.push(row.appId + '|' + e);
+        })
+      })
+      this.activePageList = pageList;
+      this.isAppLoading = false;
+    },
+    changeActiveGroup(item) {
+      this.activeGroup = item.groupId ? item.groupId : item.groupPath + '-' + item.groupLastId;
+      this.activeGroupName = item.groupName;
+      this.activeGroupPath = item.groupPath;
+      this.getRoleData();
+      this.changeRole('*');
+      this.getTableData();
+    },
+    changeRole(role) {
+      this.activeRole = role;
+      this.getUserGroupRolePage();
+    },
+    async doUpdateUserGroupRolePage() {
+      const activePageList = this.clearActivePageList();
+      const updateList = [];
+      activePageList.forEach(e => {
+        const [appId, pageId] = e.split('|');
+        // 过滤脏数据
+        if (pageId != '*' && !this.constantObj.appList.find(e => e.appId == appId)?.appPageList.some(e => e.pageId == pageId)) {
+          return;
+        } 
+        updateList.push({appId, pageId});
+      })
+      await window.vtoast.loading("正在保存");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'groupAuthorityManagement',
+            actionId: 'updateUserGroupRolePage',
+            actionData: {dataList: updateList, group: this.activeGroup, role: this.activeRole},
+          }
+        }
+      })
+      await window.vtoast.success("保存成功");
+    },
+    clearActivePageList() {
+      const activePageList = this.activePageList.filter(e => e.includes('|*'));
+      const otherPageList = this.activePageList.filter(e => !e.includes('|*'));
+      const otherList = [];
+      otherPageList.forEach(e => {
+        const [appId, pageId] = e.split('|');
+        if (!activePageList.includes(appId + '|*')) {
+          otherList.push(e);
+        }
+      })
+      return [...activePageList, ...otherList];
+    },
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
+
+  }
+})
+</script>
+
+<style scoped>
+  
+  .border-r {
+    border-right: 1px solid #e0e0e0;
+  }
+  
+</style>{% endblock %}

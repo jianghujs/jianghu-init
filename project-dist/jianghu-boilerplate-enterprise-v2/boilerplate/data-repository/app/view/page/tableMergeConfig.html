@@ -1,0 +1,650 @@
+{% extends 'template/jhTemplateV4.html'%}
+
+{% block vueTemplate %}
+
+<script type="text/html" id="app-template">
+<div>
+  <v-app mobile-breakpoint="sm">
+    <jh-menu />
+    <v-main class="mt-15">
+      <!-- 头部内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-second-bar px-8">
+        <v-row class="align-center">
+          <v-col cols="12" xs="12" sm="12" md="3" xl="3">
+            <div class="py-4 text-body-1 font-weight-bold">合并表管理
+              <!-- 帮助页按钮 -->
+              <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+                <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+              </span>
+            </div>
+          </v-col>
+          <v-col cols="12" xs="12" sm="12" md="9" xl="9" class="d-flex align-center mt-3 mt-md-0">
+            <v-row class="align-center jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
+              <v-btn class="w-sm-full" color="success" small @click="doUiAction('getTableData')">
+                <v-icon size="14">mdi-magnify</v-icon>查询
+              </v-btn>
+            </v-row>
+          </v-col>
+        </v-row>
+      </div>
+      <!-- <<<<<<<<<<<<< 头部内容 -->
+
+      <div class="jh-page-body-container px-8">
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <v-card class="rounded-lg">
+          <v-row class="ma-0 pa-4 align-center">
+            <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem', null)" small>新增合并表</v-btn>
+            <v-btn color="primary" dark class="elevation-0 mr-2" @click="doUiAction('manualSyncAll', null)" small>全部执行</v-btn>
+            <v-chip small color="default">定时合并: {{ dataSyncStatus }}</v-chip>
+            <v-spacer></v-spacer>
+            <v-col cols="12" xs="12" sm="4" md="3" xl="2" class="pa-0 pt-xs-2">
+              <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+          <v-data-table
+            :headers="headers"
+            :items="tableData"
+            :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+            :items-per-page="-1"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            :class="{'zebraLine': isTableZebraLineShown }"
+            checkbox-color="success"
+            fixed-header
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <template v-slot:item.sourceList="{ item }">
+              <template v-for="(source, index) in item.sourceList" :key="index">
+                <div>
+                  {{ source.database }}.{{ source.tableName }}
+                  <v-chip small color="success" class="mt-1">{{ source.appId }}</v-chip>
+                </div>
+              </template>
+            </template>
+            <!-- 表格行操作按钮 -->
+            <template v-slot:item.action="{ item }">
+              <template>
+                <!-- pc端 -->
+                <template v-if="!isMobile">
+                  <span
+                    role="button" class="success--text font-weight-medium font-size-2 mr-2"
+                    @click="doUiAction('manualSyncOneTable', item)">
+                    <v-icon size="16" class="success--text">mdi-sync</v-icon>合并
+                  </span>
+                  <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+                    <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
+                  </span>
+                  <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                    <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>删除
+                  </span>
+                </template>
+                <!-- 手机端 -->
+                <v-menu offset-y v-if="isMobile">
+                  <template v-slot:activator="{ on, attrs }">
+                    <span role="button" class="success--text font-weight-medium font-size-2"
+                      v-bind="attrs" v-on="on">
+                      操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                    </span>
+                  </template>
+                  <v-list dense>
+                    <v-list-item @click="doUiAction('manualSyncOneTable', item)">
+                      <v-list-item-title>合并</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('startUpdateItem', item)">
+                      <v-list-item-title>修改</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('deleteItem', item)">
+                      <v-list-item-title>删除</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </template>
+            </template>
+            <!--没有数据-->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <!--表格分页-->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+              <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            </template>
+            <template v-slot:item.lastMergeTime="{ item }">
+              {{ item.lastMergeTime && dayjs(item.lastMergeTime).format('YYYY-MM-DD HH:mm:ss') }}
+            </template>
+
+          </v-data-table>
+        </v-card>
+
+        <!-- 新增抽屉 -->
+        <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="createForm" lazy-validation>
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+              <span class="text-h7 font-weight-bold pa-4">添加信息</span>
+            </v-row>
+            <v-divider class="jh-divider"></v-divider>
+
+            <!--抽屉表单主体-->
+            <v-row class="mt-0 px-4">
+              <v-col cols="12" offset="8" v-if="createItem.sourceList.length==0">
+                <v-btn color="success" text x-small @click="createItem.sourceList.splice(0, 0, {})"><v-icon size="14">mdi-plus</v-icon></v-btn>
+              </v-col>
+              <template v-for="(source, index) in createItem.sourceList" :key="index">
+                <v-col cols="12" sm="6" md="3" class="pb-0 pt-0">
+                  <span class="jh-input-label">合并-源库<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                  <v-autocomplete
+                    class="jh-v-input" dense filled single-line clearable label="数据库" :rules="validationRules.requireRules" v-model="source.database"
+                    :items="constantObj.sourceDatabase"></v-autocomplete>
+                </v-col>
+                <v-col cols="12" sm="6" md="3" class="pb-0 pt-0">
+                  <span class="jh-input-label">合并-源表<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                  <v-text-field class="jh-v-input" dense single-line filled v-model="source.tableName" :rules="validationRules.requireRules"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="4" md="2" class="pb-0 pt-0">
+                  <span class="jh-input-label">合并-源appId<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                  <v-text-field class="jh-v-input" dense single-line filled v-model="source.appId"></v-text-field>
+                </v-col>
+                <!-- vuetifyjs switch 标签 -->
+
+                <span class="mt-10">
+                  <v-btn color="success" text x-small @click="createItem.sourceList.splice(index+1, 0, {})"><v-icon size="14">mdi-plus</v-icon></v-btn>
+                  <v-btn color="error" text x-small @click="createItem.sourceList.splice(index, 1)"><v-icon size="14">mdi-delete</v-icon></v-btn>
+                  <v-chip v-if="index==0" small color="success" class="mt-1">主表</v-chip>
+                </span>
+                <v-col cols="12" class="pa-0"></v-col>
+              </template>
+
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">合并-目标库<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                <v-autocomplete
+                  class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createItem.targetDatabase"
+                  :items="constantObj.sourceDatabase"></v-autocomplete>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">合并-目标表<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                <v-text-field class="jh-v-input" dense single-line filled 
+                  v-model="createItem.targetTable" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+            </v-row>
+            <!--抽屉操作按钮-->
+            <v-row class="justify-end mx-0 my-8 px-4">
+              <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+              <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+          </v-form>
+          <!--抽屉关闭按钮-->
+          <v-btn
+            elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+
+        <!-- 编辑抽屉 -->
+        <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="updateForm" lazy-validation>
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+              <span class="text-h7 font-weight-bold pa-4">修改信息</span>
+            </v-row>
+            <v-divider class="jh-divider"></v-divider>
+            <!--抽屉表单主体-->
+            <v-row class="mt-0 px-4">
+              <v-col cols="12" offset="8" v-if="updateItem.sourceList.length==0">
+                <v-btn color="success" text x-small @click="updateItem.sourceList.splice(0, 0, {})"><v-icon size="14">mdi-plus</v-icon></v-btn>
+              </v-col>
+              <template v-for="(source, index) in updateItem.sourceList" :key="index">
+                <v-col cols="12" sm="6" md="3" class="pb-0 pt-0">
+                  <span class="jh-input-label">合并-源库<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                  <v-autocomplete
+                    class="jh-v-input" dense filled single-line clearable label="数据库" :rules="validationRules.requireRules" v-model="source.database"
+                    :items="constantObj.sourceDatabase"></v-autocomplete>
+                </v-col>
+                <v-col cols="12" sm="6" md="3" class="pb-0 pt-0">
+                  <span class="jh-input-label">合并-源表<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                  <v-text-field class="jh-v-input" dense single-line filled v-model="source.tableName" :rules="validationRules.requireRules"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="4" md="2" class="pb-0 pt-0">
+                  <span class="jh-input-label">合并-源appId<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                  <v-text-field class="jh-v-input" dense single-line filled v-model="source.appId"></v-text-field>
+                </v-col>
+                <!-- vuetifyjs switch 标签 -->
+
+                <span class="mt-10">
+                  <v-btn color="success" text x-small @click="updateItem.sourceList.splice(index+1, 0, {})"><v-icon size="14">mdi-plus</v-icon></v-btn>
+                  <v-btn color="error" text x-small @click="updateItem.sourceList.splice(index, 1)"><v-icon size="14">mdi-delete</v-icon></v-btn>
+                  <v-chip v-if="index==0" small color="success" class="mt-1">主表</v-chip>
+                </span>
+                <v-col cols="12" class="pa-0"></v-col>
+              </template>
+
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">合并-目标库<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                <v-autocomplete
+                  class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateItem.targetDatabase"
+                  :items="constantObj.sourceDatabase"></v-autocomplete>
+              </v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">合并-目标表<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                <v-text-field class="jh-v-input" dense single-line filled 
+                  v-model="updateItem.targetTable" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+            </v-row>
+            <!--抽屉操作按钮-->
+            <v-row class="justify-end mx-0 my-8 px-4">
+              <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+              <v-btn class="ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+          </v-form>
+          <!--抽屉关闭按钮-->
+          <v-btn
+            elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 页面内容 -->
+      </div>
+
+      <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+        <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?markdownPath#1.tableSyncConfig.md`" width="100%" height="100%"></iframe>
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+
+    </v-main>
+  </v-app>
+
+  <jh-toast />
+  <jh-mask />
+  <jh-confirm-dialog />
+</div>
+</script>
+
+<div id="app">
+</div>
+
+
+{% endblock %}
+
+{% block vueScript %}
+
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: {
+    isHelpPageDrawerShown: false,
+    isTableZebraLineShown: true,
+    isMobile: window.innerWidth < 500,
+    // 表格相关数据
+    dataSyncStatus: "<$ ctx.app.config.dataSyncStatus $>",
+    validationRules: {
+      requireRules: [v => !!v || 'This is required',],
+      numberRules: [v => !_.isEmpty(_.trim(v)) && !isNaN(v) || 'This is number'],
+    },
+
+    constantObj: {
+      sourceDatabase: [],
+      sourceTable: []
+    },
+    isEditDrawerShow: false,
+    searchInput: null,
+    isTableLoading: true,
+    tableData: [],
+    headers: [
+      {text: "合并-源表", value: "sourceList"},
+      {text: "合并-目标库", value: "targetDatabase"},
+      {text: "合并-目标表", value: "targetTable"},
+      {text: "合并状态", value: "mergeDesc", width: 120},
+      {text: "合并触发时间", value: "lastMergeTime", width: 150},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 80 : 180, class: 'fixed', cellClass: 'fixed'},
+    ],
+    // 新增数据
+    isCreateDrawerShown: false,
+    createItem: {},
+    createActionData: {},
+    // 编辑数据
+    isUpdateDrawerShown: false,
+    updateItem: {},
+    updateItemId: null,
+    updateActionData: {},
+    // 删除数据
+    deleteItemId: null,
+    // 合并配置
+    syncItem: null,
+  },
+  watch: {
+    createItem: {
+      handler(value, oldValue) {
+        if (!_.isEmpty(value.sourceDatabase)) {
+          this.doUiAction('getSourceTable', {sourceDatabase: value.sourceDatabase});
+        }
+      },
+      deep: true
+    },
+    updateItem: {
+      handler(value, oldValue) {
+        if (!_.isEmpty(value.sourceDatabase)) {
+          this.doUiAction('getSourceTable', {sourceDatabase: value.sourceDatabase});
+        }
+      },
+      deep: true
+    }
+  },
+  async created() {
+    await this.doUiAction('getTableData');
+
+    // Tip: 测试代码
+    // await this.doUiAction('startCreateItem');
+    // await this.doUiAction('startUpdateItem', this.tableData[0]);
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getTableData':
+          await this.getTableData(uiActionData);
+          await this.getAppList(uiActionData);
+          break;
+        case 'getSourceTable':
+          await this.getSourceTable(uiActionData);
+          break;
+        case 'startCreateItem':
+          await this.prepareCreateFormData();
+          await this.openCreateDrawer();
+          break;
+        case 'createItem':
+          await this.prepareCreateValidate();
+          await this.confirmCreateItemDialog();
+          await this.prepareDoCreateItem();
+          await this.doCreateItem();
+          await this.closeCreateDrawer();
+          await this.getTableData();
+          break;
+        case 'startUpdateItem':
+          await this.prepareUpdateFormData(uiActionData);
+          await this.openUpdateDrawer();
+          break;
+        case 'updateItem':
+          await this.prepareUpdateValidate();
+          await this.confirmUpdateItemDialog();
+          await this.prepareDoUpdateItem();
+          await this.doUpdateItem();
+          await this.closeUpdateDrawer();
+          await this.getTableData();
+          break;
+        case 'deleteItem':
+          await this.prepareDeleteFormData(uiActionData);
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteItem();
+          await this.getTableData();
+          break;
+        case 'manualSyncOneTable':
+          await this.prepareSyncOnTable(uiActionData);
+          // await this.confirmSyncOneTableDialog();
+          await this.doManualSyncOneTable();
+          await this.getTableData();
+          break;
+        case 'manualSyncAll':
+          await this.confirmManualSyncAllDialog();
+          await this.doManualSyncAll();
+          await this.getTableData();
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
+    async getTableData() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableMergeConfig',
+            actionId: 'selectItemList',
+            orderBy: [{column: 'targetTable', order: 'asc'}]
+          }
+        }
+      });
+      const { rows } = result.data.appData.resultData;
+      rows.forEach((row) => row.sourceList = JSON.parse(row.sourceList || '[]'));
+      this.tableData = rows;
+      this.isTableLoading = false;
+    },
+    // ---------- 获取数据库列表 uiAction >>>>>>>>>> --------
+    async getAppList() {
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableMergeConfig',
+            actionId: 'selectSourceDatabase',
+          }
+        }
+      });
+      this.constantObj.sourceDatabase = result.data.appData.resultData.rows.map((row) => {
+        return {"value": row.sourceDatabase, "text": row.sourceDatabase}
+      })
+    },
+    // ---------- <<<<<<<<<<<< 获取数据库列表 uiAction --------
+    // ---------- 获取数据库的table表 uiAction >>>>>>>>>> --------
+    async getSourceTable(funObj) {
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableMergeConfig',
+            actionId: 'selectSourceTable',
+            actionData: {sourceDatabase: funObj.sourceDatabase},
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+      this.constantObj.sourceTable = result.data.appData.resultData.rows.map((table) => {
+        return {"value": table.sourceTable, "text": table.sourceTable}
+      });
+    },
+    // ---------- <<<<<<<<<<<< 获取数据库的table表 uiAction --------
+    // ---------- 新增数据 uiAction >>>>>>>>>> --------
+    async prepareCreateFormData() {
+      this.createItem = {
+        sourceList: [],
+      };
+    },
+
+    async openCreateDrawer() {
+      this.isCreateDrawerShown = true;
+    },
+    async prepareCreateValidate() {
+      if (await this.$refs.createForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息", await this.$refs.createForm.validate())
+    },
+
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("[confirmCreateFormDialog] 否");
+      }
+    },
+
+    prepareDoCreateItem() {
+      const {id, ...data} = this.createItem;
+      data.sourceList = JSON.stringify(data.sourceList);
+      this.createActionData = data;
+    },
+
+    async doCreateItem() {
+      await window.jhMask.show();
+      await window.vtoast.loading("新增合并配置");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableMergeConfig',
+            actionId: 'insertTable',
+            actionData: this.createActionData
+          }
+        }
+      })
+      await window.jhMask.hide();
+      await window.vtoast.success("新增合并配置成功");
+    },
+    async closeCreateDrawer() {
+      this.isCreateDrawerShown = false;
+      this.createItem = {};
+      this.createActionData = null;
+    },
+    // ---------- <<<<<<<<<<< 新增数据 uiAction  --------
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    async prepareUpdateFormData(funObj) {
+      this.updateItem = _.cloneDeep(funObj);
+    },
+
+    async openUpdateDrawer() {
+      this.isUpdateDrawerShown = true;
+    },
+
+    async prepareUpdateValidate() {
+      if (await this.$refs.updateForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息")
+    },
+
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("[confirmUpdateItemDialog] 否");
+      }
+    },
+
+    async prepareDoUpdateItem() {
+      const {id, ...data} = this.updateItem;
+      data.sourceList = JSON.stringify(data.sourceList);
+      this.updateItemId = id;
+      this.updateActionData = data;
+      delete this.updateActionData['sourceDatabaseShowName'];
+    },
+
+    async doUpdateItem() {
+      await window.jhMask.show();
+      await window.vtoast.loading("修改合并配置");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableMergeConfig',
+            actionId: 'updateTable',
+            actionData: this.updateActionData,
+            where: {id: this.updateItemId}
+          }
+        }
+      })
+
+      await window.jhMask.hide();
+      await window.vtoast.success("修改合并配置成功");
+    },
+
+    async closeUpdateDrawer() {
+      this.isUpdateDrawerShown = false;
+      this.updateItem = {};
+      this.updateActionData = null;
+      this.updateItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 修改数据 uiAction  --------
+    // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+    async prepareDeleteFormData(funObj) {
+      this.deleteItemId = funObj.id;
+    },
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("[confirmDeleteItemDialog] 否");
+      }
+    },
+    async doDeleteItem() {
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableMergeConfig',
+            actionId: 'deleteTable',
+            actionData: {},
+            where: {id: this.deleteItemId}
+          }
+        }
+      });
+      await window.vtoast.success("删除数据成功");
+      this.deleteItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 删除数据 uiAction  --------
+    // ---------- 数据合并 uiAction >>>>>>>>>>>> --------
+    async prepareSyncOnTable(funObj) {
+      this.syncItem = _.cloneDeep(funObj);
+    },
+    // 单表数据合并
+    async confirmSyncOneTableDialog() {
+      if (await window.confirmDialog({title: "确定要合并这张表吗", content: "确定合并吗？"}) === false) {
+        throw new Error("[confirmSyncOneTableDialog] 否");
+      }
+    },
+    async doManualSyncOneTable() {
+      window.vtoast.loading({ message: "合并中", time: -1});
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableMergeConfig',
+            actionId: 'doTableMerge',
+            actionData: {
+              id: this.syncItem.id,
+            }
+          }
+        }
+      });
+      window.vtoast.success("合并成功");
+      this.syncItem = {};
+    },
+    // 全部数据表合并
+    async confirmManualSyncAllDialog() {
+      if (await window.confirmDialog({title: "确定要全部合并吗", content: "确定合并吗？"}) === false) {
+        throw new Error("[confirmSyncOneTableDialog] 否");
+      }
+    },
+    async doManualSyncAll() {
+      window.vtoast.loading({ message: "合并中", time: -1 });
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'tableMergeConfig',
+            actionId: 'doTableMerge',
+            actionData: {}
+          }
+        }
+      });
+      window.vtoast.success("手动合并成功")
+    },
+    // ---------- <<<<<<<<<<<< 数据合并 uiAction --------
+
+    dayjs: dayjs,
+  }
+})
+</script>
+
+<style scoped>
+@media (max-width: 500px) {
+  .v-application .pt-xs-2 {
+    padding-top: 8px!important;
+  }
+}
+</style>
+{% endblock %}

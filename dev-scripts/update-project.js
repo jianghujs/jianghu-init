@@ -3,7 +3,7 @@ const exec = util.promisify(require('child_process').exec);
 const fse = require('fs-extra');
 const replace = require('replace-in-file');
 const path = require('path')
-const projectConfig = require('./update-project-config.all.json')
+const projectConfig = require('./update-project-config.json')
 const { execute } = require('./generate-boilerplate-update');
 
 const handler = async (config) => {

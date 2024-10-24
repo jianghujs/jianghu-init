@@ -1,0 +1,369 @@
+{% extends 'template/jhTemplateV4.html'%}
+{% block vueTemplate %}
+<script type="text/html" id="app-template">
+  <div>
+    <v-app mobile-breakpoint="sm">
+      <jh-menu />
+      <v-main class="mt-13">
+        <!-- 头部内容 >>>>>>>>>>>>> -->
+        <div class="jh-page-second-bar px-8">
+          <v-row class="align-center">
+            <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+              <div class="py-4 text-body-1 font-weight-bold d-flex align-center">目录设置
+                <!-- 帮助页按钮 -->
+                <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+                  <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+                </span>
+              </div>
+            </v-col>
+            <!-- pc端的搜索条件表单 >>>>>>>> -->
+            <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+              <v-row class="jh-backend-form-container justify-end ma-0 py-3">
+                <v-btn class="elevation-0 mt-2 mt-md-0 mr-md-2" color="success" small @click="isJsonEditModel = !isJsonEditModel">
+                  切换{{ isJsonEditModel ? '拖拽' : 'JSON' }}模式
+                </v-btn>
+                <v-btn class="elevation-0 mt-2 mt-md-0" color="success" small @click="doUiAction('saveDirectoryConfig')">
+                  保存
+                </v-btn>
+              </v-row>
+            </v-col>
+            <!-- <<<<<<<< pc端的搜索条件表单 -->
+          </v-row>
+        </div>
+        <!-- <<<<<<<<<<<<< 头部内容 -->
+
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <div class="jh-page-body-container px-8">
+          <v-card class="jh-wrapper-card">
+            <v-row dense no-gutters>
+              <!-- 目录 -->
+              <v-col cols="12" xs="12" class="pa-3" v-if="isJsonEditModel">
+                <vue-json-editor v-model="directoryConfig" height="calc(100vh - 141px)"
+                      ></vue-json-editor>
+              </v-col>
+
+              <!-- 应用 -->
+              <v-col cols="12" xs="12" v-else>
+                <directory-draggable-editor class="jh-directory-card" :app-list="constantObj.appList" :directory-tmp-config.sync="directoryTmpConfig"></directory-draggable-editor>
+              </v-col>
+            </v-row>
+
+            <!-- 空数据 -->
+            <div v-else class="text-center pt-10">暂无数据~</div>
+          </v-card>
+        </div>
+        <!-- <<<<<<<<<<<<< 页面内容 -->
+
+        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+        <v-navigation-drawer v-model="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#1.directory.md`" width="100%" height="100%"></iframe>
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+      </v-main>
+      </v-app>
+    <jh-toast />
+    <jhMask />
+    <jhConfirmDialog />
+  </div>
+</script>
+<div id="app">
+</div>
+{% endblock %}
+
+{% block vueScript %}
+
+<!-- 引入额外的库文件 >>>>>>>>>>>>> -->
+<script src="/<$ ctx.app.config.appId $>/public/lib/jquery/jquery.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/lib/sortable/Sortable.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/draggable/vuedraggable.umd.min.js"></script>
+<!-- <<<<<<<<<<<<< 引入额外的库文件 -->
+{% include 'component/directory-draggable-editor.html' %}
+{% include 'component/vueJsonEditor.html' %}
+{% include 'common/constantUtil.html' %}
+
+<script type="module">
+
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: {
+      constantObj: {
+        appList: []
+      },
+      isMobile: window.innerWidth < 500,
+      isHelpPageDrawerShown: false,
+      appTreeObj: null,
+      
+      isDirectoryLoading: true,
+      directoryList: null,
+      activeDirectory: null,
+      expandApp: [],
+      directoryTmpConfig: [],
+      directoryConfig: [],
+      isJsonEditModel: false,
+    },
+    computed: { },
+    watch: {
+      isJsonEditModel(val){
+        if(val){
+          this.buildDirectoryConfig();
+        }else{
+          this.buildDirectoryTmpConfig();
+        }
+      }
+    },
+    async created() { },
+    async mounted() {
+      await Promise.all([
+        this.doUiAction('getAppData'),
+        this.doUiAction('getConstantData'),
+      ]);
+      this.buildDirectoryTmpConfig();
+    },
+    methods: {
+      async doUiAction(uiActionId,uiActionData){
+        switch(uiActionId){
+          case 'getAppData':
+            await this.getAppData();
+            break;
+          case 'getConstantData':
+            await this.getConstantData();
+            break;
+          case 'changeExpandApp':
+            await this.changeExpandApp(uiActionData);
+            break;
+          case 'jump':
+            await this.jump(uiActionData);
+            break;
+          case 'saveDirectoryConfig':
+            await this.saveDirectoryConfig(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+
+      /**
+       * 获取表格数据
+       */
+      async getAppData() {
+        this.isDirectoryLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'directoryEditor',
+              actionId: 'selectAppList',
+              orderBy: [{column: 'operationAt', order: 'desc'}]
+            }
+          }
+        });
+
+        const rows = result.data.appData.resultData.rows;
+        rows.forEach(row => {
+          row.appPageList = JSON.parse(row.appPageList);
+          row.appPageDirectoryList = JSON.parse(row.appPageDirectoryList);
+        });
+        this.constantObj.appList = rows;
+        this.isDirectoryLoading = false;
+      },
+      async getConstantData() {
+        const [row] = (
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'allPage',
+                actionId: 'getConstantList',
+                where: {
+                  constantKey: 'directoryConfig'
+                }
+              }
+            }
+          })
+        ).data.appData.resultData.rows;
+        this.directoryConfig = JSON.parse(row?.constantValue || '[]');
+        this.directoryConfigId = row?.id || null;
+      },
+      changeExpandApp(funObj){
+        const { item, actionType } = funObj;
+        if(actionType === 'collapse'){
+          this.expandApp.splice(_.indexOf(this.expandApp, item.appId), 1)
+        }else if(actionType === 'expand'){
+          this.expandApp.push(item.appId);
+        }
+      },
+      jump(url) {
+        window.open(url);
+      },
+      async saveDirectoryConfig() {
+        await window.vtoast.loading("保存中");
+        !this.isJsonEditModel && this.buildDirectoryConfig();
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'directoryEditor',
+              actionId: this.directoryConfigId ? 'saveDirectoryConfig' : 'insertDirectoryConfig',
+              actionData: { constantValue: JSON.stringify(this.directoryConfig) },
+              where: {
+                id: this.directoryConfigId
+              }
+            }
+          }
+        });
+        await window.vtoast.success("保存成功");
+      },
+      buildDirectoryConfig() {
+        const directoryConfig = _.cloneDeep(this.directoryTmpConfig);
+        const list = directoryConfig.map(catalog => {
+          const catalogItem = {
+            name: catalog.name,
+            children: []
+          };
+          catalog.children.forEach(appTmp => {
+            const appItem = {
+              name: appTmp.name,
+              icon: appTmp.icon,
+              children: appTmp.children.map(pageTmp => {
+                let { appId, pageId, link, name, children, type } = pageTmp;
+                if (type == 'app') {
+                  appId = children[0]?.appId;
+                }
+                const it = {
+                  name,
+                  appId,
+                  pageId,
+                  type
+                };
+                if (link) {
+                  it.link = link;
+                }
+                return it;
+              })
+            };
+            catalogItem.children.push(appItem);
+          });
+          return catalogItem;
+        });
+        this.directoryConfig = list;
+      },
+
+      buildDirectoryTmpConfig() {
+        const directoryConfig = _.cloneDeep(this.directoryConfig && this.directoryConfig.length ? this.directoryConfig : this.getDefaultDirectoryConfig());
+        const list = directoryConfig.map(catalog => {
+          const catalogItem = {
+            name: catalog.name,
+            type: 'catalog',
+            children: []
+          };
+          catalog.children.forEach(appTmp => {
+            const appItem = {
+              name: appTmp.name,
+              type: 'app',
+              icon: appTmp.icon,
+              children: appTmp.children.map(pageTmp => {
+                const { appId, pageId, link, name, type } = pageTmp;
+                const currentApp = this.constantObj.appList.find(e => e.appId == appId);
+                let pageLine = {}
+                if (!appId || !pageId) {
+                  pageLine = {
+                    name: name,
+                    type: type,
+                    link: link
+                  }
+                }else{
+                  pageLine = {
+                    name: pageId ? name : currentApp.appPageList.find(e => e.pageId == pageId)?.pageName,
+                    type: pageId ? 'page' : 'app',
+                    appId,
+                    pageId
+                  };
+                }
+                if (pageLine.type == 'app') {
+                  pageLine.children = currentApp.appPageList.filter(e => currentApp.appPageDirectoryList?.includes(e.pageId)).map(e => ({
+                    name: e.pageName,
+                    type: 'page',
+                    appId,
+                    pageId: e.pageId
+                  }));
+                }
+                if (link) {
+                  pageLine.link = link;
+                }
+                return pageLine
+              })
+            };
+            catalogItem.children.push(appItem);
+          });
+          return catalogItem;
+        });
+        this.directoryTmpConfig = list;
+      },
+      getDefaultDirectoryConfig() {
+        const catalogList = [];
+
+        const groupByCatalog = _.groupBy(
+          this.constantObj.appList.filter(e => e.appId != 'directory'),
+          'appType'
+        );
+
+        for (const appType in groupByCatalog) {
+          const childList = groupByCatalog[appType];
+
+          const catalog = {
+            name: appType,
+            children: childList.map(app => ({
+              name: app.appName,
+              appId: app.appId,
+              children: app.appPageList
+                .filter(e => (app.appPageDirectoryList || []).includes(e.pageId))
+                .map(page => ({
+                  name: page.pageName,
+                  appId: app.appId,
+                  pageId: page.pageId,
+                }))
+            }))
+          };
+
+          catalogList.push(catalog);
+        }
+
+        return catalogList;
+      }
+    }
+  })
+</script>
+
+<style scoped>
+  .jh-wrapper-card{
+    min-height: calc(100vh - 151px);
+  }
+  .jh-directory-card{
+    height: 100%;
+    min-height: calc(100vh - 151px); 
+    border-right: 1px solid #F4F5F6 !important;
+  }
+  .jh-app-card{
+    box-shadow: 0 1px 20px 0 rgb(0 0 0 / 3%) !important;
+  }
+  .jh-app-icon svg{
+    width: 28px;
+    height: 28px;
+    vertical-align: middle;
+  }
+
+  /* 移动端适配 >>>>>>>>>>>>> */
+  @media (max-width: 600px){
+    .jh-wrapper-card{
+      min-height: auto;
+    }
+    .jh-directory-card{
+      min-height: auto;
+    }
+  }
+  /* <<<<<<<<<<<<< 移动端适配 */
+</style>
+{% endblock %}

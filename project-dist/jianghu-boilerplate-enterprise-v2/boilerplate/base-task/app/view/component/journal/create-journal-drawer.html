@@ -1,0 +1,262 @@
+<template id="create-journal-drawer">
+  <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed
+    temporary right width="80%" class="elevation-24">
+    <!-- 抽屉标题 -->
+    <v-row no-gutters>
+      <span class="text-h7 font-weight-bold pa-4">新建{{ticketApplyType}}</span>
+    </v-row>
+    <v-divider class="jh-divider"></v-divider>
+    <!-- 抽屉表单 -->
+    <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
+    <v-form ref="form" lazy-validation>
+      <v-row class="mt-0 px-4">
+        <v-col cols="12" sm="12" md="12" v-for="(item, index) in createItem.taskContent">
+          <span class="jh-input-label">
+            <span v-if="item.component.required" class="red--text">*</span>
+            {{item.component.label}}</span>
+          <v-menu :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y
+            min-width="auto" v-if="item.component.type === 'date'">
+            <template v-slot:activator="{ on, attrs }">
+              <v-text-field class="jh-v-input" v-model="item.component.value" dense single-line filled v-bind="attrs"
+                v-on="on" :rules="item.component.required && [v=> !!v || '必填']"></v-text-field>
+            </template>
+            <v-date-picker v-model="item.component.value" no-title scrollable></v-date-picker>
+          </v-menu>
+
+
+          <task-attachment-list :files="item.component.value"
+            v-else-if="item.component.type === 'file'"></task-attachment-list>
+
+
+          <component v-else class="jh-v-input" v-model="item.component.value" :items="item.component.items.split(',')"
+            dense single-line filled :key="index" :rules="item.component.required && [v=> !!v || '必填']"
+            :is="item.component.tag" :placeholder="`请输入${item.component.label}`"></component>
+        </v-col>
+        <v-col cols="12" sm="12" md="12">
+          <span class="jh-input-label">
+            发送给
+          </span>
+          <div class="d-flex flex-wrap">
+            <div cols="3" class="mr-2 mb-2" v-for="item in createItem.taskNoticeConfig">
+              <div class="small-card px-4">
+                <v-avatar tile color="primary" size="25">
+                  <span class="white--text">{{ item.username[0] }}</span>
+                </v-avatar>
+                <span class="ml-1 primary--text">{{item.username}}</span>
+                <v-btn icon x-small v-if="!item.readonly" class="ml-2" @click="doUiAction('removePerson')">
+                  <v-icon>mdi-close</v-icon>
+                </v-btn>
+              </div>
+
+
+            </div>
+            <div class="small-card add-block" @click="doUiAction('startAddPerson')">
+              <v-icon color="primary" size="24">mdi-plus</v-icon>
+            </div>
+          </div>
+        </v-col>
+      </v-row>
+    </v-form>
+
+    <select-org-user-dialog :show.sync="isDialogShown" show-type="user" :selected-ids.sync="selectedIds"
+      @confirm="doUiAction('addPerson', $event)"></select-org-user-dialog>
+
+    <!-- 抽屉操作按钮 -->
+    <v-row class="justify-end mx-0 mt-8 px-6">
+      <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+      <v-btn class="elevation-0 ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+    </v-row>
+    <!-- 抽屉关闭按钮 -->
+    <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+      @click="isCreateDrawerShown = false">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+  </v-navigation-drawer>
+</template>
+
+<script type="module">
+  Vue.component("create-journal-drawer", {
+    template: "#create-journal-drawer",
+
+    data: () => ({
+      isCreateDrawerShown: false,
+
+      createItem: {},
+
+      step: 1,
+      validationRules: {
+        requireRules: [(v) => !!v || "必填"],
+      },
+
+      selectedIds: [],
+      selectedItems: [],
+      isDialogShown: false,
+    }),
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case "open":
+            await this.open(uiActionData);
+            break;
+          case "createItem":
+            await this.prepareCreateValidate();
+            await this.confirmCreateItemDialog();
+            await this.prepareDoCreateItem();
+            await this.doCreateItem();
+            await this.closeCreateDrawer();
+            break;
+          case "startAddPerson":
+            await this.startAddPerson(uiActionData);
+            break;
+          case "addPerson":
+            await this.addPerson(uiActionData);
+            break;
+          case "removePerson":
+            this[uiActionData.key] = this[uiActionData.key].filter(
+              (item) => item.userId !== uiActionData.userId
+            );
+            this.$emit(`update:${[uiActionData.key]}`, this[uiActionData.key]);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      async open({ item = {} } = {}) {
+        this.isCreateDrawerShown = true;
+        this.ticketApplyType = item.name;
+
+        const { userId } = window.userInfo;
+
+        const taskAuditConfig = JSON.parse(item.taskTemplatePersonList || "[]");
+        const taskNoticeConfig = JSON.parse(
+          item.taskTemplateNoticePersonList || "[]"
+        );
+
+        this.createItem = {
+          taskTemplateId: item.taskTemplateId,
+          taskTitle: `${item.taskTemplateName}-${window.userInfo.username
+            }-${dayjs().format("YYYYMMDDHHmmss")}`,
+          taskNoticeConfig,
+          taskContent: JSON.parse(item.taskTemplateForm),
+          taskManagerId: userId,
+        };
+      },
+      // ---------- 新增数据 uiAction >>>>>>>>>> --------
+      async prepareCreateFormData() { },
+
+      async openCreateDrawer() {
+        this.isCreateDrawerShown = true;
+      },
+
+      async prepareCreateValidate() {
+        // if (await this.$refs.form.validate()) {
+        //   return true;
+        // }
+        this.createItem.taskContent.forEach((item) => {
+
+          if (item.component.required && _.isEmpty(item.component.value)) {
+            window.vtoast.fail(`[${item.component.label}]不能为空`);
+            throw new Error(`请完善表单信息`);
+          }
+        });
+       
+      },
+
+      async confirmCreateItemDialog() {
+        if (
+          (await window.confirmDialog({
+            title: "新增",
+            content: "确定新增吗？",
+          })) === false
+        ) {
+          throw new Error("[confirmCreateFormDialog] 否");
+        }
+      },
+
+      prepareDoCreateItem() {
+        const { id, ...data } = this.createItem;
+        data.taskMemberIdList = data.taskNoticeConfig
+          .map((item) => item.userId)
+          .join(",");
+          
+        data.taskNoticeConfig = JSON.stringify(data.taskNoticeConfig);
+        data.taskContent = JSON.stringify(data.taskContent);
+
+        data.taskType = "日志";
+        data.taskCreateAt = dayjs().format("YYYY-MM-DD HH:mm:ss");
+
+        this.createActionData = data;
+      },
+
+      async doCreateItem() {
+
+        await window.vtoast.loading("新增数据");
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: "ticketManagement",
+              actionId: "insertItem",
+              actionData: this.createActionData,
+              bizIdGenerate: {
+                tableName: "task",
+                prefix: "RZ",
+                type: "idSequence",
+                bizId: "taskId",
+              },
+            },
+          },
+        });
+
+        await this.addNotice({
+          ...this.createActionData,
+          rowId: result.data.appData.resultData.rows[0],
+        });
+
+
+        await window.vtoast.success("新增数据成功");
+      },
+      async closeCreateDrawer() {
+        this.isCreateDrawerShown = false;
+        this.createItem = {};
+        this.createActionData = null;
+      },
+      // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
+      async addNotice(item) {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: "allPage",
+              actionId: "addNotice",
+              actionData: item,
+            },
+          },
+        });
+      },
+
+      async startAddPerson() {
+        this.isDialogShown = true;
+      },
+      async addPerson(selectedItems) {
+        this.createItem.taskNoticeConfig = selectedItems
+        this.isDialogShown = false;
+      },
+    },
+  });
+</script>
+
+<style scoped>
+  .small-card {
+    background: rgba(220, 235, 253, 0.5);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    height: 45px;
+  }
+
+  .add-block {
+    width: 45px;
+    justify-content: center;
+  }
+</style>

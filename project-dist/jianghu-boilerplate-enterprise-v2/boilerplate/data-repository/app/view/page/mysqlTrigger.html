@@ -1,0 +1,293 @@
+{% block htmlHead %}
+{% endblock %}
+
+{% extends 'template/jhTemplateV4.html'%}
+{% block vueTemplate %}
+<script type="text/html" id="app-template">
+<div>
+<v-app mobile-breakpoint="sm">
+  <jh-menu />
+  <v-main class="mt-13">
+    <!-- 头部内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-second-bar px-3 px-sm-8">
+      <v-row class="align-center" no-gutters>
+        <v-col cols="12" sm="12" md="4" xl="3" :cols="12" :sm="6" :md="4" >
+          <div class="py-4 text-body-1 font-weight-bold align-center d-flex align-center">MySQL触发器
+            <!-- 帮助页按钮 -->
+            <v-icon size="15" class="black--text ml-1" @click="isHelpPageDrawerShown = true">mdi-help-circle</v-icon>
+          </div>
+        </v-col>
+      </v-row>
+    </div>
+    <!-- <<<<<<<<<<<<< 头部内容 -->
+    <!-- 页面内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-body-container px-sm-8">
+      <v-row class="pa-0 ma-0">
+        <v-col class="pa-0"  :clos="12">
+          <!-- 表格顶部栏 -->
+          <v-card  class="rounded-lg elevation-0">
+            <!-- 表格 -->
+            <v-data-table
+              :headers="headers"
+              :items="tableDataComputed"
+              :search="searchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+              :items-per-page="-1"
+              mobile-breakpoint="0"
+              :loading="isTableLoading"
+              checkbox-color="success"
+              :class="{'zebraLine': true }"
+              fixed-header
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+            >
+
+              <!-- 表格插槽 -->
+              
+
+              <!-- 自定义渲染列 -->
+              <!-- 没有数据 -->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <!-- 表格分页 -->
+              <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+    <!-- <<<<<<<<<<<<< 页面内容 -->
+    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#mysqlTrigger.md`" width="100%" height="100%"></iframe>
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+  </v-main>
+</v-app>
+
+<jh-toast />
+<jh-mask />
+<jh-confirm-dialog />
+</div>
+</script>
+<div id="app"></div>
+{% endblock %}
+
+{% block vueScript %}
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+
+<script type="module">
+
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+
+    isMobile: window.innerWidth < 500,
+    isHelpPageDrawerShown: false,
+    isHelpPageDrawerLoaded: false,
+    // ================================ 表格相关 ================================
+    headers: [
+      { text: "触发器-所在仓库", value: "TRIGGER_SCHEMA", width: 150 },
+      { text: "触发器", value: "TRIGGER_NAME", width: 80 },
+      { text: "触发器-事件", value: "EVENT_MANIPULATION", width: 80 },
+      { text: "触发器-源表", value: "EVENT_OBJECT_TABLE", width: 80 },
+    ],
+    tableData: [],
+    tableParams: {},
+    tableDataFromBackend: [],
+    isTableLoading: false,
+    searchInput: null,
+    columnSettingGroup: {},
+    selectedColumnGroup: null,
+    serverSearchWhere: {},
+    serverSearchWhereLike: {},
+
+    // ================================ common ================================
+    constantObj: {},
+    validationRules: {
+      requireRules: [
+        v => !!v || '必填'
+      ]
+    },
+    serverSearchWhereLike: {
+      className: ""
+    },
+    serverSearchWhere: {},
+    serverSearchWhereIn: {},
+    filterMap: {},
+    isMobile: window.innerWidth < 500,
+
+    // ================================ 其他抽屉列表 ================================
+
+    
+
+
+  }),
+  watch: {
+    isHelpPageDrawerShown(val) {
+      if (val && !this.isHelpPageDrawerLoaded) {
+        this.isHelpPageDrawerLoaded = true;
+      }
+    },
+  },
+  computed: {
+    tableDataComputed() {
+      let tableData;
+      if(this.filterMap) {
+        tableData = this.tableData.filter(row => {
+          for (const key in this.filterMap) {
+            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+              return false;
+            }
+          }
+          return true;
+        });
+      } else {
+        tableData = this.tableData;
+      }
+      return tableData;
+    },
+    tableDataComputed() {
+      if(this.filterMap) {
+        return this.tableData.filter(row => {
+          for (const key in this.filterMap) {
+            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+              return false;
+            }
+          }
+          return true;
+        });
+      } else {
+        return this.tableData;
+      }
+    },
+  },
+  async created() {
+    this.doUiAction('getTableData');
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      try {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.prepareTableParamsDefault(uiActionData);
+            await this.prepareTableParams(uiActionData);
+            await this.getTableData(uiActionData);
+            await this.formatTableData(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      } catch (error) {
+        window.jhMask && window.jhMask.hide();
+        throw error;
+      } finally {
+        window.jhMask && window.jhMask.hide();
+      }
+    },
+    async prepareTableParamsDefault() {
+      const where = {};
+      const whereLike = {};
+      const whereIn = {};
+      for (const fieldKey in this.serverSearchWhere) {
+        const fieldValue = this.serverSearchWhere[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            where[fieldKey] = fieldValue.trim();
+          } else {
+            where[fieldKey] = fieldValue;
+          }
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereLike) {
+        const fieldValue = this.serverSearchWhereLike[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            whereLike[fieldKey] = '%' + fieldValue.trim() + '%';
+          } else {
+            whereLike[fieldKey] = '%' + fieldValue + '%';
+          }
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereIn) {
+        const fieldValue = this.serverSearchWhereIn[fieldKey];
+        if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
+          whereIn[fieldKey] = fieldValue;
+        }
+      }
+      let orderBy = [
+        {
+          "column": "TRIGGER_SCHEMA",
+          "order": "desc"
+        },
+        {
+          "column": "TRIGGER_NAME",
+          "order": "desc"
+        }
+      ];
+
+      let limit = null;
+      let offset = null;
+
+      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
+    },
+    // 准备请求参数-自定义
+    prepareTableParams() {
+      // TODO 增加自定义复杂判断条件
+    },
+    // 获取表格数据
+    async getTableData() {
+      this.isTableLoading = true;
+
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'mysqlTrigger',
+            actionId: "selectItemList",
+            actionData: {},
+            ...this.tableParams
+          }
+        }
+      });
+      const { rows, count } = result.data.appData.resultData;
+      
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    },
+    formatTableData() {
+      let tableData = this.tableDataFromBackend.map(row => {
+        row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+        return row;
+      });
+      this.tableData = tableData;
+    },
+    // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
+
+    // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+    // ---------- Custom uiAction >>>>>>>>>>>> --------
+    formatTableData() {
+      this.tableData = this.tableDataFromBackend.filter(row => row.TRIGGER_SCHEMA != 'sys');
+    },
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
+
+  }
+})
+</script>
+
+<style scoped>
+</style>{% endblock %}

@@ -8,6 +8,7 @@ require('colors');
 const fs = require('fs');
 const util = require('util');
 const exists = util.promisify(fs.exists);
+const _ = require('lodash');
 
 /**
  * 生成项目，初始化数据库，初始化 view
@@ -148,7 +149,7 @@ module.exports = class InitProjectCommand extends CommandBase {
       }
 
       // 数据库初始化
-      dbSetting.database = dbSetting.dbPrefix + (dbSetting.defaultDatabase || app);
+      dbSetting.database = dbSetting.dbPrefix + _.snakeCase((dbSetting.defaultDatabase || app));
       // console.log(dbSetting);
       await new InitTableData({ boilerplate, app, dbSetting }).run(process.cwd());
 

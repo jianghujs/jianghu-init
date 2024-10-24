@@ -1,0 +1,73 @@
+<template id="task-child-list">
+  <div>
+    <v-btn v-if="!readonly"  outlined color="primary" small @click="addTodo">
+      <!-- 添加icon -->
+      <v-icon size="14">mdi-plus</v-icon>
+      子任务</v-btn>
+
+    <v-card class="mt-2 todo-list">
+      <div v-for="(todo, index) in todos" :key="index" class="todo-item d-flex align-center" style="border: 1px solid #eee">
+        <v-checkbox :disabled="readonly" hide-details hide-actions hide-controls v-model="todo.completed" class="mr-2 pa-0 ma-0"></v-checkbox>
+        <v-text-field :disabled="readonly" class="pa-0 ma-0" hide-details hide-actions hide-controls v-if="!todo.completed" v-model="todo.text"></v-text-field>
+        <p v-else class="text-decoration-line-through ma-0 todo-item-text">{{ todo.text }}</p>
+        <v-menu offset-y>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn v-if="!readonly" icon small v-bind="attrs" v-on="on">
+              <v-icon size="14">mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item @click="deleteTodo(index)">
+              <v-list-item-title>删除</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+    </v-card>
+  </div>
+</template>
+
+<script type="module">
+  Vue.component("task-child-list", {
+    template: '#task-child-list',
+    props: {
+      todos: {
+        type: Array,
+        default: () => [],
+      },
+      // 是否只读
+      readonly: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data: () => ({
+    }),
+    created() {
+    },
+    methods: {
+      addTodo() {
+        this.todos.push({ text: '', completed: false });
+        this.$emit('update:todos', this.todos)
+      },
+      deleteTodo(index) {
+        this.todos.splice(index, 1);
+        this.$emit('update:todos', this.todos)
+      },
+    },
+  })
+</script>
+<style scoped>
+  .text-decoration-line-through {
+    text-decoration: line-through;
+  }
+  .todo-item {
+    padding: 4px 0 4px 4px;
+  }
+  .todo-item input {
+    padding: 0;
+  }
+  .todo-item-text {
+    width: 100%;
+  }
+</style>

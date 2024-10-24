@@ -1,0 +1,143 @@
+<template id="view-journal-drawer">
+  <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed
+    temporary right width="80%" class="elevation-24">
+    <!-- 抽屉标题 -->
+    <v-row no-gutters>
+      <span class="text-h7 font-weight-bold pa-4">查看【{{updateItem.taskTitle}}】</span>
+    </v-row>
+    <v-divider class="jh-divider"></v-divider>
+    <!-- 抽屉表单 -->
+    <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
+    <v-row class="mt-0 px-4">
+      <v-col cols="12" sm="12" md="12" v-for="(item, index) in updateItem.taskContent">
+
+        <span class="jh-input-label">{{item.component.label}}：</span>
+
+        <task-attachment-list :files="item.component.value" readonly
+          v-if="item.component.type === 'file'"></task-attachment-list>
+        <span v-else class="font-weight-bold">{{item.component.value}}</span>
+      </v-col>
+
+
+      <v-col cols="12" sm="12" md="12">
+        <span class="jh-input-label">评论列表
+          <span class="grey--text text-caption">(评论将自动通知当前及之前节点的审批人)</span>
+        </span>
+        <task-comment-list :readonly="updateItem.taskManagerId!=userId" :comments.sync="updateItem.taskCommentList"
+          @confirm="postComment" />
+      </v-col>
+    </v-row>
+
+    <!-- 抽屉关闭按钮 -->
+    <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+      @click="isUpdateDrawerShown = false">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+  </v-navigation-drawer>
+</template>
+{% include 'component/task-comment-list.html' %}
+<script type="module">
+  Vue.component("view-journal-drawer", {
+    template: "#view-journal-drawer",
+
+    data: () => ({
+      isUpdateDrawerShown: false,
+      userId: window.userInfo.userId,
+
+      updateItem: {
+      },
+
+      isAudited: false,
+      validationRules: {
+        requireRules: [(v) => !!v || "必填"],
+      },
+      constantObj: {
+
+      },
+
+      remark: '',
+    }),
+    watch: {
+      isUpdateDrawerShown(val) {
+        if (!val) this.remark = null
+      }
+    },
+    computed: {
+
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case "open":
+            await this.open(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      async open({ item = {}, taskId } = {}) {
+        let updateItem = item
+        if (taskId) {
+          this.taskId = taskId
+          updateItem = await this.getTaskDetail(taskId);
+        }
+        const newItem = { ...updateItem }
+        newItem.taskAuditConfig = JSON.parse(newItem.taskAuditConfig);
+        newItem.taskNoticeConfig = JSON.parse(newItem.taskNoticeConfig);
+        newItem.taskContent = JSON.parse(newItem.taskContent);
+        newItem.taskCommentList = JSON.parse(newItem.taskCommentList || '[]');
+        this.updateItem = newItem;
+        this.isUpdateDrawerShown = true;
+
+      },
+      async getTaskDetail() {
+        const rows = (await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'ticketManagement',
+              actionId: 'selectItemList',
+              actionData: {},
+              where: { taskId: this.taskId },
+              orderBy: [{ column: 'operationAt', order: 'desc' }]
+            }
+          }
+        })).data.appData.resultData.rows;
+
+        const row = rows[0] || {}
+        return row
+      },
+
+      async close() {
+        this.isUpdateDrawerShown = false;
+      },
+
+      async postComment() {
+        const { id, ...data } = this.updateItem
+        data.taskCommentList = JSON.stringify(data.taskCommentList)
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'allPage',
+              actionId: 'updateTask',
+              actionData: { taskCommentList: data.taskCommentList },
+              where: { id },
+            }
+          }
+        })
+
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'allPage',
+              actionId: 'addCommentNotice',
+              actionData: data,
+            }
+          }
+        })
+      },
+    },
+  });
+</script>
+
+<style scoped></style>

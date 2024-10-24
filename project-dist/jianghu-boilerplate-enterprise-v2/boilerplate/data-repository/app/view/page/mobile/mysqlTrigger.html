@@ -1,0 +1,403 @@
+{% block htmlHead %}
+{% endblock %}
+
+{% extends 'template/jhMobileTemplateV4.html'%}
+{% block vueTemplate %}
+<script type="text/html" id="app-template">
+<div>
+<v-app mobile-breakpoint="sm">
+  <jh-menu>
+    <template v-slot:title>
+      <!-- 高级搜索 -->
+      MySQL触发器
+    </template>
+  </jh-menu>
+  <v-main class="mt-13">
+    <!-- 头部内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-second-bar p-3 px-sm-8 bg-gray-100">
+      <v-row class="align-center" no-gutters>
+        <!-- 排序 -->
+        <div class="inline-flex bg-white px-3 h-8 leading-8 rounded-lg mr-3 text-sm text-gray-600" :class="{'text-green-600': !!usePageOrder}" @click="isPageOrderDrawerShown = true">
+          <v-icon :color="usePageOrder ? 'primary' : ''" size="16" class="mr-1">mdi-sort-ascending</v-icon>
+          排序
+        </div>
+        <!-- 自定义搜索内容 -->
+        <v-spacer ></v-spacer>
+        <v-menu
+          nudge-bottom="36"
+          class="elevation-0"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <div 
+              class="inline-flex bg-white px-3 h-8 leading-8 rounded-lg font-medium text-sm"
+              v-bind="attrs"
+              v-on="on">
+              <v-icon size="16" class="mr-1">mdi-view-carousel-outline</v-icon>
+              {{ viewMode == 'simple' ? '简洁模式' : '详细模式' }}
+            </div>
+          </template>
+
+          <div class="flex flex-col p-2 pb-0">
+            <v-btn small class="mb-2" @click="viewMode = 'simple'" :class="{primary: viewMode == 'simple', '!text-white': viewMode == 'simple'}">
+              <v-list-item-title>简洁模式</v-list-item-title>
+            </v-btn>
+            <v-btn small class="mb-2" @click="viewMode = 'detail'" :class="{primary: viewMode == 'detail', '!text-white': viewMode == 'detail'}">
+              <v-list-item-title>详细模式</v-list-item-title>
+            </v-btn>
+          </v-list>
+        </v-menu>
+      </v-row>
+    </div>
+    <!-- 页面内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-body-container px-sm-8">
+      <v-row class="pa-0 ma-0">
+      <v-col :cols="12" :cols="12" class="p-0 pb-7" :style="`height: calc(100vh - 140px); overflow-y: auto;overscroll-behavior: contain`" >
+        <div class="flex p-3 border-b relative items-center" v-for="(item, index) in tableDataComputed" @click="viewMode == 'simple' && doUiAction('startDetailItem', item)">
+          <div class="flex-1">
+            <div class="flex items-center items-center">
+              <span class="font-medium text-base">{{ item.TRIGGER_SCHEMA }}</span>
+              
+            </div>
+            <div v-show="viewMode != 'detail'" class="text-sm pt-2">
+              <div class="text-gray-500 pr-8 flex items-center" >触发器：{{ item.TRIGGER_NAME }}</div>
+            </div>
+
+            <div v-show="viewMode == 'detail'" class="text-sm pt-2">
+              <div class="text-gray-500 pr-8 flex items-center" >触发器：{{ item.TRIGGER_NAME }}</div>
+              <div class="text-gray-500 pr-8 flex items-center" >触发器-事件：{{ item.EVENT_MANIPULATION }}</div>
+              <div class="text-gray-500 pr-8 flex items-center" >触发器-源表：{{ item.EVENT_OBJECT_TABLE }}</div>
+              <!-- action 操作按钮显示 -->
+            </div>
+          </div>
+          <div v-if="viewMode == 'simple'" class="h-full flex absolute top-0 right-3 items-center text-gray-500">
+            
+            <v-icon size="20" class="text-gray-500">mdi-chevron-right</v-icon>
+          </div>
+        </div>
+        <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
+          <div class=" flex justify-space-between items-center">
+            每页 {{ tableOptions.limit }} 项，
+            共 {{ tableOptions.totalCount == tableDataComputed.length ? tableOptions.totalCount : tableDataComputed.length + '/' + tableOptions.totalCount }} 项
+
+            <div>
+              <!-- 上一页 icon -->
+              <v-icon v-if="tableOptions.page > 1" @click="tableOptions.page--; doUiAction('getTableData')">mdi-chevron-left</v-icon>
+              <v-icon v-else color="#eaeaea">mdi-chevron-left</v-icon>
+    
+              <!-- 页码 -->
+              <span><span class="primary--text font-weight-medium text-sm">{{ tableOptions.page }}</span> / {{ Math.ceil(tableOptions.totalCount / tableOptions.limit) }}</span>
+    
+              <!-- 下一页 icon -->
+              <v-icon v-if="tableOptions.totalCount > tableOptions.page * tableOptions.limit" @click="tableOptions.page++; doUiAction('getTableData')">mdi-chevron-right</v-icon>
+              <v-icon v-else color="#eaeaea">mdi-chevron-right</v-icon>
+            </div>
+          </div>
+          <div class="jh-safe-bottom"></div>
+        </div>
+
+        <!-- 暂无更多 -->
+        <div class="text-center text-gray-500 py-2" v-if="tableDataComputed.length === 0">暂无更多</div>
+      </v-col>
+      
+      <!-- v-overlay -->
+      <v-overlay v-if="isTableLoading" :value="isTableLoading" opacity="0.1">
+        <v-progress-circular
+          light
+          indeterminate
+          color="primary"
+        ></v-progress-circular>
+      </v-overlay>
+      </v-row>
+    </div>
+    <!-- <<<<<<<<<<<<< 页面内容 -->
+    <v-bottom-sheet v-if="isPageOrderDrawerShown" v-model="isPageOrderDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
+        <!-- 标题 -->
+        <v-card-title class="px-4">
+          <span class="text-base">排序</span>
+        </v-card-title>
+        <v-card-text class="px-4">
+          <!-- 单独 text field 搜索 -->
+            
+          <!-- 列表list容器 循环 -->
+          <div style="min-height: 150px;">
+            <v-row>
+              <v-col cols="12" class="pb-0" v-for="(item, index) in tableDataOrderList">
+                <v-btn block class="p-3 rounded" :color="isEqual(tableDataOrder, item.value) ? 'primary' : 'gray'" @click="tableDataOrder = item.value">
+                  {{ item.text }}
+                </v-btn>
+              </v-col>
+            </v-row>
+          </div>
+        </v-card-text>
+        <v-card-actions class="flex justify-space-around px-4 pb-6">
+          <v-btn @click="usePageOrder = false;tableDataOrder = tableDataOrderList[0].value">重置</v-btn>
+          <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+        </v-card-actions>
+      
+      </v-card>
+    </v-bottom-sheet>
+    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#mobile/mysqlTrigger.md`" width="100%" height="100%"></iframe>
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+
+  </v-main>
+</v-app>
+
+<jh-toast />
+<jh-mask />
+<jh-confirm-dialog />
+</div>
+</script>
+<div id="app"></div>
+{% endblock %}
+
+{% block vueScript %}
+
+<script type="module">
+
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    isHelpPageDrawerShown: false,
+    isHelpPageDrawerLoaded: false,
+
+    isMobile: window.innerWidth < 500,
+    tableData: [],
+    tableParams: {},
+    tableDataFromBackend: [],
+    isTableLoading: false,
+    tableDataOrderList: [],
+    tableDataOrder: [{column: 'operationAt', order: 'desc'}],
+    tableOptions: {
+      page: 1,
+      limit: 10,
+      totalCount: 0,
+    },
+
+    viewMode: 'simple',
+    isPageOrderDrawerShown: false,
+    usePageOrder: false,
+
+    // ================================ common ================================
+    constantObj: {},
+    validationRules: {
+      requireRules: [
+        v => !!v || '必填'
+      ]
+    },
+    serverSearchWhereLike: {
+      className: ""
+    },
+    serverSearchWhere: {},
+    serverSearchWhereIn: {},
+    filterMap: {},
+    tableDataOrder: [
+      {
+        column: "TRIGGER_SCHEMA",
+        order: "desc"
+      },
+      {
+        column: "TRIGGER_NAME",
+        order: "desc"
+      }
+    ],
+    tableDataOrderList: [
+      {
+        text: "触发器-所在仓库",
+        value: [
+          {
+            column: "TRIGGER_SCHEMA",
+            order: "desc"
+          },
+          {
+            column: "TRIGGER_NAME",
+            order: "desc"
+          }
+        ]
+      }
+    ],
+    viewMode: 'detail',
+    isMobile: window.innerWidth < 500,
+
+    // ================================ 其他抽屉列表 ================================
+
+  }),
+  watch: {
+    isHelpPageDrawerShown(val) {
+      if (val && !this.isHelpPageDrawerLoaded) {
+        this.isHelpPageDrawerLoaded = true;
+      }
+    },
+  },
+  computed: {
+    tableDataComputed() {
+      if(this.filterMap) {
+        return this.tableData.filter(row => {
+          for (const key in this.filterMap) {
+            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+              return false;
+            }
+          }
+          return true;
+        });
+      } else {
+        return this.tableData;
+      }
+    },
+    tableDataComputed() {
+      if(this.filterMap) {
+        return this.tableData.filter(row => {
+          for (const key in this.filterMap) {
+            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+              return false;
+            }
+          }
+          return true;
+        });
+      } else {
+        return this.tableData;
+      }
+    },
+  },
+  created() {
+    this.doUiAction('getTableData');
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      try {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.prepareTableParamsDefault(uiActionData);
+            await this.prepareTableParams(uiActionData);
+            await this.getTableData(uiActionData);
+            await this.formatTableData(uiActionData);
+            break;
+          case 'startDetailItem':
+            break;
+          case 'getTableData':
+            await this.getTableData();
+            break;
+
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      } catch (error) {
+        window.jhMask && window.jhMask.hide();
+        throw error;
+      } finally {
+        window.jhMask && window.jhMask.hide();
+      }
+    },
+    async prepareTableParamsDefault() {
+      const where = {};
+      const whereLike = {};
+      const whereIn = {};
+      for (const fieldKey in this.serverSearchWhere) {
+        const fieldValue = this.serverSearchWhere[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            where[fieldKey] = fieldValue.trim();
+          } else {
+            where[fieldKey] = fieldValue;
+          }
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereLike) {
+        const fieldValue = this.serverSearchWhereLike[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            whereLike[fieldKey] = '%' + fieldValue.trim() + '%';
+          } else {
+            whereLike[fieldKey] = '%' + fieldValue + '%';
+          }
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereIn) {
+        const fieldValue = this.serverSearchWhereIn[fieldKey];
+        if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
+          whereIn[fieldKey] = fieldValue;
+        }
+      }
+
+      let orderBy = this.tableDataOrder || [{column: 'operationAt', order: 'desc'}];
+      if ((!this.tableDataOrder || !this.tableDataOrder.length) && this.tableDataOrderList && this.tableDataOrderList.length) {
+        orderBy = this.tableDataOrderList[0].value;
+      }
+      const limit = this.tableOptions.limit === -1 ? 10000 : this.tableOptions.limit;
+      const offset = (this.tableOptions.page - 1) * limit;
+
+      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
+    },
+    // 准备请求参数-自定义
+    prepareTableParams() {
+      // TODO 增加自定义复杂判断条件
+    },
+    // 获取表格数据
+    async getTableData() {
+      this.isTableLoading = true;
+
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'mobile/mysqlTrigger',
+            actionId: "selectItemList",
+            actionData: {},
+            ...this.tableParams
+          }
+        }
+      });
+      const { rows, count } = result.data.appData.resultData;
+
+      this.tableOptions.totalCount = count || rows.length;
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    },
+    // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
+
+    // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+
+    getSearchItemText(searchItem, items, label) {
+      const item = items.find(item => {
+        if (_.isObject(searchItem) && _.isObject(item.value)) {
+          return _.isEqual(searchItem, item.value);
+        } else {
+          return item.value === searchItem || item === searchItem;
+        }
+      });
+      if (!item) {
+        return label;
+      }
+      return _.isString(item) ? item : item.text;
+    },
+
+    // 判断是否相等的方法，兼容对象
+    isEqual(a, b) {
+      if (_.isObject(a) && _.isObject(b)) { 
+        return _.isEqual(a, b);
+      }
+      return a === b;
+    },
+    // ---------- Custom uiAction >>>>>>>>>>>> --------
+    formatTableData() {
+      this.tableData = this.tableDataFromBackend.filter(row => row.TRIGGER_SCHEMA != 'sys');
+    },
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
+
+  }
+})
+</script>
+
+<style scoped>
+  .v-navigation-drawer--bottom.v-navigation-drawer--is-mobile {
+    max-height: 80%;
+  }
+</style>{% endblock %}

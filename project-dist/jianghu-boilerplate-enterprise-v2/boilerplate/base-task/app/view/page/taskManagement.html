@@ -1,0 +1,806 @@
+{% extends 'template/jhTemplateV4.html'%} {% block vueTemplate %}
+
+<script type="text/html" id="app-template">
+  <div>
+  <v-app mobile-breakpoint="sm">
+    <jh-menu />
+    <v-main class="mt-15">
+      <!-- 头部内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-second-bar px-8">
+        <v-row>
+          <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+            <div class="pt-3 text-h7 font-weight-bold">任务管理
+              <!-- 帮助页按钮 -->
+              <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline
+              </v-icon>
+            </div>
+            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          </v-col>
+          <!-- 搜索条件表单 >>>>>>>> -->
+          <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+            <!-- <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
+              <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+                <v-select v-model="serverSearchInput.gender" color="success" prefix="性别：" class="jh-v-input bg-white" :items="constantObj.gender" dense filled single-line></v-select>
+              </v-col>
+              <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </v-row> -->
+          </v-col>
+          <!-- <<<<<<<< 搜索条件表单 -->
+        </v-row>
+      </div>
+      <!-- <<<<<<<<<<<<< 头部内容 -->
+
+      <div class="jh-page-body-container px-8">
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <v-card class="rounded-lg">
+          <v-row class="ma-0 pa-4">
+            <!-- 新增按钮 -->
+            <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('startCreateItem')" small>新增任务
+            </v-btn>
+            <v-btn color="success" class="elevation-0 mr-2" @click="doUiAction('exportExcel')" small outlined>导出
+            </v-btn>
+            <task-filter-btn :user-list="userList" :filter-options="serverSearchInput" @save="doUiAction('getTableData')" />
+            <v-spacer></v-spacer>
+            <!-- 搜索过滤 -->
+
+
+            <v-col cols="12" xs="12" sm="4" md="3" xl="2" class="pa-0 text-md-right">
+              <v-btn-toggle :value="0"  @change="doUiAction('useScene', sceneList[$event])" class="mr-2 mt-2 mt-md-0" color="success" small>
+                <v-btn v-for="scene in sceneList" small>{{scene.name}}</v-btn>
+              </v-btn-toggle>
+            </v-col>
+            <v-col cols="12" xs="12" sm="4" md="3" xl="2" class="pa-0 mt-2 mt-md-0">
+              <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+          <!-- 表格 -->
+          <v-data-table
+            :headers="headers"
+            :items="tableData"
+            :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+            :items-per-page="-1"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            checkbox-color="success"
+            :class="{'zebraLine': isTableZebraLineShown }"
+            fixed-header
+            item-key="taskId"
+            show-select="false"
+            single-select
+            v-model="selectedTaskItem"
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <!-- <template v-slot:item="{ item }">
+              <tr>
+                <td>
+                  <v-checkbox
+                    v-model="item.taskStatus"
+                    hide-details hide-actions hide-controls
+                    true-value="已完成"
+                    false-value="进行中"
+                    primary
+                    class="pa-0 ma-0"
+                    @change="doUiAction('updateTaskStatus', {item})"
+                  ></v-checkbox>
+                </td>
+                <td v-for="header in headers">
+                  <a  @click="doUiAction('startUpdateItem', {item})" v-if="header.value == 'taskTitle'" :class="`${item.taskStatus=='已完成' && 'text-decoration-line-through'}`">{{item.taskTitle}}</a>
+                  <span v-else-if="header.value == 'taskChildList'">{{item.taskChildList.length}}</span>
+                  <span v-else>{{ item[header.value] }}</span>
+                </td>
+              </tr>
+            </template> -->
+            <template v-slot:item.taskTitle="{ item }">
+              <a @click="doUiAction('startUpdateTask', { item })">{{ item.taskTitle }}</a>
+            </template>
+            <template v-slot:item.taskStatus="{ item }">
+              <v-select :items="constantObj.taskStatus" v-model="item.taskStatus"class="jh-v-input" dense filled single-line @change="doUiAction('updateTask', { key: 'taskStatus', value: $event, item })">
+                <template v-slot:item="{ item }">
+                  <v-chip :color="item.color" dark x-small>{{item.text}}</v-chip>
+                </template>
+                <template v-slot:selection="{ item }">
+                  <v-chip :color="item.color" dark x-small>{{item.text}}</v-chip>
+                </template>
+
+              </v-select>
+            </template>
+            <template v-slot:item.taskLevel="{ item }">
+              <v-select :items="constantObj.taskLevel" v-model="item.taskLevel"class="jh-v-input" dense filled single-line @change="doUiAction('updateTask', { key: 'taskLevel', value: $event, item })">
+                <template #prepend-inner>
+                  <v-icon :color="constantObj.taskLevel.find(l=> l.text==item.taskLevel)?.color">mdi-circle-medium</v-icon>
+                </template>
+                <template v-slot:item="{ item }">
+                  <v-icon :color="item.color">mdi-circle-medium</v-icon>
+                  <span>{{item.text}}</span>
+                </template>
+              </v-select>
+            </template>
+            <template v-slot:item.taskManagerId="{ item }">
+              <v-autocomplete :items="userList" class="jh-v-input" item-text="username" item-value="userId" dense single-line filled v-model="item.taskManagerId" @change="doUiAction('updateTask', { key: 'taskManagerId', value: $event, item })"></v-autocomplete>
+            </template>
+            <template v-slot:item.taskStartAt="{ item }">
+              <v-menu
+                v-model="item.isStartAtMenuShown"
+                :close-on-content-click="false"
+                :nudge-right="40"
+                transition="scale-transition"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    class="jh-v-input"
+                    dense
+                    single-line
+                    filled
+                    v-model="item.taskStartAt"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker v-model="item.taskStartAt" @change="doUiAction('updateTask', { key: 'taskStartAt', value: $event, item })" no-title scrollable></v-date-picker>
+              </v-menu>
+            </template>
+            <template v-slot:item.taskEndAt="{ item }">
+              <v-menu
+                v-model="item.isEndAtMenuShown"
+                :close-on-content-click="false"
+                :nudge-right="40"
+                transition="scale-transition"
+                offset-y
+                min-width="auto"
+
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    class="jh-v-input"
+                    dense
+                    single-line
+                    filled
+                    v-model="item.taskEndAt"
+                    v-bind="attrs"
+                    v-on="on"
+
+                  ></v-text-field>
+                </template>
+                <v-date-picker v-model="item.taskEndAt" @change="doUiAction('updateTask', { key: 'taskEndAt', value: $event, item })" no-title scrollable></v-date-picker>
+              </v-menu>
+            </template>
+
+
+            <!-- 没有数据 -->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <!-- 表格分页 -->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+              <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            </template>
+          </v-data-table>
+        </v-card>
+        <!-- 新增抽屉 -->
+        <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="createForm" lazy-validation>
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">新增信息</span>
+            </v-row>
+            <v-divider class="jh-divider"></v-divider>
+            <!-- 抽屉表单 -->
+            <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
+            <v-row class="mt-0 px-4">
+
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label"><span class="red--text">*</span>任务名称</span>
+                <v-text-field :rules="validationRules.requireRules" class="jh-v-input" dense single-line filled v-model="createItem.taskTitle"></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">负责人</span>
+                <v-autocomplete :items="userList" class="jh-v-input" item-text="username" item-value="userId" dense single-line filled v-model="createItem.taskManagerId"></v-autocomplete>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">参与人</span>
+                <v-autocomplete multiple :items="userList" class="jh-v-input" item-text="username" item-value="userId" dense single-line filled v-model="createItem.taskMemberIdList"></v-autocomplete>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="12">
+                <span class="jh-input-label">任务描述</span>
+                <v-textarea class="jh-v-input" dense single-line filled v-model="createItem.taskDesc"></v-textarea>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">任务优先级</span>
+                <v-autocomplete :items="constantObj.taskLevel" class="jh-v-input" dense single-line filled v-model="createItem.taskLevel"></v-autocomplete>
+              </v-col>
+              
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">任务标签</span>
+                <v-combobox
+                  v-model="createItem.taskTag"
+                  :items="[]"
+                  class="jh-v-input"
+                  multiple
+                  chips
+                  deletable-chips
+                  dense single-line filled
+                  small
+                ></v-combobox>
+              </v-col>
+              <v-col cols="12" sm="12" md="4"></v-col>
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">任务开始时间</span>
+                <!-- 时间选择 -->
+                <v-menu ref="taskStartAtMenu" v-model="isTaskStartAtMenuShown" :close-on-content-click="false" :nudge-right="40" :return-value.sync="createItem.taskStartAt" transition="scale-transition" offset-y min-width="auto">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field append-icon="mdi-calendar" class="jh-v-input" dense single-line filled v-model="createItem.taskStartAt" v-bind="attrs" v-on="on"></v-text-field>
+                  </template>
+                  <v-date-picker v-model="createItem.taskStartAt" no-title scrollable>
+                    <v-spacer></v-spacer>
+                    <v-btn text color="primary" @click="isTaskStartAtMenuShown = false">取消</v-btn>
+                    <v-btn text color="primary" @click="$refs.taskStartAtMenu.save(createItem.taskStartAt)">确定</v-btn>
+                  </v-date-picker>
+                </v-menu>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">任务结束时间</span>
+                <v-menu ref="taskStartEndMenu" v-model="isTaskEndAtMenuShown" :close-on-content-click="false" :nudge-right="40" :return-value.sync="createItem.taskEndAt" transition="scale-transition" offset-y min-width="auto">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field append-icon="mdi-calendar" class="jh-v-input" dense single-line filled v-model="createItem.taskEndAt" v-bind="attrs" v-on="on"></v-text-field>
+                  </template>
+                  <v-date-picker v-model="createItem.taskEndAt" no-title scrollable>
+                    <v-spacer></v-spacer>
+                    <v-btn text color="primary" @click="isTaskEndAtMenuShown = false">取消</v-btn>
+                    <v-btn text color="primary" @click="$refs.taskStartEndMenu.save(createItem.taskEndAt)">确定</v-btn>
+                  </v-date-picker>
+                </v-menu>
+              </v-col>
+
+
+              <!-- <v-col cols="12" sm="12" md="4"></v-col>
+                <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">任务关联的信息列表</span>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.taskRelationList"></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="jh-input-label">任务关联的附件列表</span>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.taskFileList"></v-text-field>
+              </v-col> -->
+
+              <v-col cols="12" sm="12" md="12">
+                <span class="jh-input-label">子任务列表todo</span>
+                <task-child-list :todos.sync="createItem.taskChildList" />
+              </v-col>
+              <v-col cols="12" sm="12" md="12">
+                <span class="jh-input-label">附件列表
+                <task-attachment-list :files.sync="createItem.taskFileList" />
+              </v-col>
+            </v-row>
+
+            <!-- 抽屉操作按钮 -->
+            <v-row class="justify-end mx-0 mt-8 px-6">
+              <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+              <v-btn class="elevation-0 ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+          </v-form>
+          <!-- 抽屉关闭按钮 -->
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+
+        <!-- <<<<<<<<<<<<< 页面内容 -->
+        <task-detail-drawer :user-list="userList" ref="taskDetail" @save="doUiAction('getTableData')" />
+      </div>
+
+      <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+        <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#404.md`" width="100%" height="100%"></iframe>
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+
+    </v-main>
+  </v-app>
+
+  <jh-toast />
+  <jh-mask />
+  <jh-confirm-dialog />
+  </div>
+</script>
+
+<div id="app"></div>
+
+{% endblock %} {% block vueScript %}
+
+{% include 'common/constantUtil.html' %}
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+{% include 'component/task-filter-btn.html' %}
+{% include 'component/task-child-list.html' %}
+{% include 'common/excelUtil.html' %}
+{% include 'component/view-task-detail-drawer.html' %}
+{% include 'component/task-attachment-list.html' %}
+{% include 'component/task-detail-drawer.html' %}
+{% include 'component/select-file-dialog.html' %}
+
+<link rel="stylesheet" href="/<$ ctx.app.config.appId $>/public/plugins/editor.md/css/editormd.min.css" />
+<script src="/<$ ctx.app.config.appId $>/public/lib/jquery/jquery.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/plugins/editor.md/editormd.js"></script>
+
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: () => ({
+      // 面包屑
+      breadcrumbs: [
+        {
+          text: '首页',
+          disabled: true,
+        },
+        {
+          text: '任务管理',
+          disabled: true,
+        },
+      ],
+      isHelpPageDrawerShown: false,
+      isHelpPageDrawerLoaded: false,
+      isMobile: window.innerWidth < 500,
+      // 表格相关数据
+      isTableZebraLineShown: true,
+      validationRules: {
+        requireRules: [(v) => !!v || '必填'],
+      },
+      // 下拉选项
+      constantObj: {
+        ...constantObj,
+       
+      },
+      sceneList: [
+        {
+          form: { taskManagerId: window.userInfo.userId, taskType: '任务' },
+          name: '我负责的',
+          id: 'scene-fixed-1',
+        },
+        {
+          form: {
+            taskMemberIdList: `%${window.userInfo.userId}%`,
+            taskType: '任务',
+          },
+          name: '我参与的',
+          id: 'scene-fixed-2',
+        },
+      ],
+      currentSceneId: null,
+
+      serverSearchInput: {
+        taskType: '任务',
+        taskManagerId: window.userInfo.userId,
+        taskEndAt: null,
+        taskLevel: null,
+        taskStatus: null,
+      },
+      searchInput: null,
+      isTableLoading: true,
+      tableData: [],
+      headers: [
+        { text: '任务名称', value: 'taskTitle', width: 200 },
+        { text: '优先级', value: 'taskLevel', width: 120 },
+        { text: '任务状态', value: 'taskStatus', width: 120 },
+        { text: '开始时间', value: 'taskStartAt', width: 120 },
+        { text: '结束时间', value: 'taskEndAt', width: 120 },
+        { text: '负责人', value: 'taskManagerId', width: 120 },
+        { text: '操作者', value: 'operationByUser', width: 120 },
+        { text: '操作时间', value: 'operationAt', width: 250 },
+        {
+          text: '操作',
+          value: 'action',
+          align: 'center',
+          sortable: false,
+          width: 120,
+          class: 'fixed',
+          cellClass: 'fixed',
+        },
+      ],
+
+      isCreateDrawerShown: false,
+      createItem: {},
+      createActionData: {},
+      isUpdateDrawerShown: false,
+      updateItem: {},
+      updateItemId: null,
+      updateActionData: {},
+      deleteItem: {},
+      deleteItemId: null,
+
+      selectedTaskManagerIndex: 0,
+      isTaskStartAtMenuShown: false,
+      isTaskEndAtMenuShown: false,
+      userList: [],
+      selectedTaskItem: [],
+    }),
+    computed: {},
+    watch: {
+      isHelpPageDrawerShown(val) {
+        if (val && !this.isHelpPageDrawerLoaded) {
+          this.isHelpPageDrawerLoaded = true;
+        }
+      },
+    },
+    async created() {
+      // 测试代码
+      // this.doUiAction('startCreateItem')
+    },
+    mounted() {
+      this.doUiAction('getTableData');
+      this.doUiAction('getUserList');
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.getTableData();
+            break;
+          case 'startCreateItem':
+            await this.prepareCreateFormData();
+            await this.openCreateDrawer();
+            break;
+          case 'createItem':
+            await this.prepareCreateValidate();
+            await this.confirmCreateItemDialog();
+            await this.prepareDoCreateItem();
+            await this.doCreateItem();
+            await this.closeCreateDrawer();
+            await this.getTableData();
+            break;
+      
+          case 'deleteItem':
+            await this.prepareDeleteFormData(uiActionData);
+            await this.confirmDeleteItemDialog();
+            await this.prepareDoDeleteItem();
+            await this.doDeleteItem();
+            await this.clearDeleteItem();
+            await this.getTableData();
+            break;
+          case 'getUserList':
+            await this.getUserList();
+            break;
+          case 'exportExcel':
+            await this.exportExcel();
+            break;
+          case 'updateTaskStatus':
+            const { id, taskStatus } = uiActionData.item;
+            this.updateItemId = uiActionData.item.id;
+            this.updateActionData = {
+              taskStatus,
+            };
+            await this.updateTaskStatus();
+            break;
+          case 'useScene':
+            await this.useScene(uiActionData);
+            await this.getTableData();
+            break;
+          case 'startUpdateTask':
+            await this.$refs.taskDetail.doUiAction('open', uiActionData.item);
+            break;
+          case 'updateTask':
+            await this.updateTask(uiActionData);
+            break;
+          default:
+            console.error('[doUiAction] uiActionId not find', { uiActionId });
+            break;
+        }
+      },
+      /**
+       * 获取表格数据
+       */
+      async getTableData() {
+        this.isTableLoading = true;
+        const { taskMemberIdList, ...otherParams } = this.serverSearchInput;
+
+        const whereData = _.pickBy(otherParams, _.identity);
+        const whereLikeData = {};
+        if (taskMemberIdList) {
+          whereLikeData.taskMemberIdList = taskMemberIdList;
+        }
+        const rows = (
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'taskManagement',
+                actionId: 'selectItemList',
+                actionData: {},
+                where: whereData,
+                whereLike: whereLikeData,
+                orderBy: [{ column: 'operationAt', order: 'desc' }],
+              },
+            },
+          })
+        ).data.appData.resultData.rows;
+
+        rows.forEach((row) => {
+          row.taskChildList = JSON.parse(row.taskChildList || '[]');
+          row.taskFileList = JSON.parse(row.taskFileList || '[]');
+        });
+        this.selectedTaskItem = rows.filter(
+          (item) => item.taskStatus == '已完成'
+        );
+        this.tableData = rows;
+        this.isTableLoading = false;
+      },
+      async getUserList() {
+        const rows = (
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'allPage',
+                actionId: 'getUserList',
+                actionData: {},
+              },
+            },
+          })
+        ).data.appData.resultData.rows;
+        this.userList = rows;
+      },
+      // ---------- 新增数据 uiAction >>>>>>>>>> --------
+      async prepareCreateFormData() {
+        const { userId } = window.userInfo;
+        this.createItem = {
+          taskLevel: '无',
+          taskManagerId: userId,
+          taskMemberIdList: [userId],
+          taskChildList: [],
+          taskTitle: `任务${+new Date()}`,
+        };
+      },
+
+      async openCreateDrawer() {
+        this.isCreateDrawerShown = true;
+      },
+
+      async prepareCreateValidate() {
+        if (await this.$refs.createForm.validate()) {
+          return true;
+        }
+        throw new Error('请完善表单信息');
+      },
+
+      async confirmCreateItemDialog() {
+        if (
+          (await window.confirmDialog({
+            title: '新增',
+            content: '确定新增吗？',
+          })) === false
+        ) {
+          throw new Error('[confirmCreateFormDialog] 否');
+        }
+      },
+
+      prepareDoCreateItem() {
+        const { id, ...data } = this.createItem;
+
+        data.taskMemberIdList = data.taskMemberIdList.join(',');
+        data.taskChildList = JSON.stringify(data.taskChildList);
+        data.taskCreateAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
+        data.taskType = '任务';
+        data.taskFileList = JSON.stringify(data.taskFileList);
+        this.createActionData = data;
+      },
+
+      async doCreateItem() {
+        
+        await window.vtoast.loading('新增数据');
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'taskManagement',
+              actionId: 'insertItem',
+              actionData: this.createActionData,
+              bizIdGenerate: {
+                tableName: 'task',
+                prefix: 'RW',
+                type: 'idSequence',
+                bizId: 'taskId',
+              },
+            },
+          },
+        });
+        await this.addNotice({
+          ...this.createActionData,
+          rowId: result.data.appData.resultData.rows[0],
+        });
+        
+        await window.vtoast.success('新增数据成功');
+      },
+      async closeCreateDrawer() {
+        this.isCreateDrawerShown = false;
+        this.createItem = {};
+        this.createActionData = null;
+      },
+      // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
+      // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+      async prepareUpdateFormData(funObj) {
+        funObj.taskMemberIdList = (funObj.taskMemberIdList || '').split(',');
+        this.updateItem = _.cloneDeep(funObj);
+      },
+
+      async openUpdateDrawer() {
+        this.isUpdateDrawerShown = true;
+      },
+
+      async prepareUpdateValidate() {
+        if (await this.$refs.updateForm.validate()) {
+          return true;
+        }
+        throw new Error('请完善表单信息');
+      },
+
+      async confirmUpdateItemDialog() {
+        if (
+          (await window.confirmDialog({
+            title: '修改',
+            content: '确定修改吗？',
+          })) === false
+        ) {
+          throw new Error('[confirmUpdateItemDialog] 否');
+        }
+      },
+
+      async prepareDoUpdateItem() {
+        const { id, ...data } = this.updateItem;
+        this.updateItemId = id;
+        data.taskMemberIdList = data.taskMemberIdList.join(',');
+        data.taskChildList = JSON.stringify(data.taskChildList);
+        data.taskFileList = JSON.stringify(data.taskFileList);
+        this.updateActionData = data;
+      },
+
+      async doUpdateItem() {
+        
+        await window.vtoast.loading('修改数据');
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'taskManagement',
+              actionId: 'updateItem',
+              actionData: this.updateActionData,
+              where: { id: this.updateItemId },
+            },
+          },
+        });
+
+        await this.addNotice({
+          rowId: this.updateItemId,
+          ...this.updateActionData,
+        });
+        
+        await window.vtoast.success('修改数据成功');
+      },
+
+      async closeUpdateDrawer() {
+        this.isUpdateDrawerShown = false;
+        this.updateItem = {};
+        this.updateActionData = null;
+        this.updateItemId = null;
+      },
+      // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
+      // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+      async prepareDeleteFormData(funObj) {
+        this.deleteItem = _.cloneDeep(funObj);
+      },
+      async confirmDeleteItemDialog() {
+        if (
+          (await window.confirmDialog({
+            title: '删除',
+            content: '确定删除吗？',
+          })) === false
+        ) {
+          throw new Error('[confirmDeleteItemDialog] 否');
+        }
+      },
+      async prepareDoDeleteItem() {
+        const { id } = this.deleteItem;
+        this.deleteItemId = id;
+      },
+      async doDeleteItem() {
+        await window.vtoast.loading('删除数据');
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'taskManagement',
+              actionId: 'deleteItem',
+              actionData: {},
+              where: { id: this.deleteItemId },
+            },
+          },
+        });
+        await window.vtoast.success('删除数据成功');
+      },
+      async clearDeleteItem() {
+        this.deleteItem = {};
+        this.deleteItemId = null;
+      },
+      // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
+      async exportExcel() {
+        const params = {
+          header: this.headers
+            .filter((header) => header.text != '操作')
+            .map((header) => header.text),
+          key: this.headers
+            .filter((header) => header.text != '操作')
+            .map((header) => header.value),
+          data: this.tableData,
+          filename: dayjs().format('YYYYMMDDHHmmss') + '_' + '任务',
+        };
+        excelUtil.exportData(params);
+      },
+      async updateTaskStatus() {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'taskManagement',
+              actionId: 'updateItem',
+              actionData: this.updateActionData,
+              where: { id: this.updateItemId },
+            },
+          },
+        });
+      },
+      // ---------- 添加通知 >>>>>>>>>>>>> ----------
+      async addNotice(item) {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'allPage',
+              actionId: 'addNotice',
+              actionData: item,
+            },
+          },
+        });
+      },
+      // ---------- <<<<<<<<<<<<< 添加通知 ----------
+      async useScene(funObj) {
+        this.currentSceneId = funObj.id;
+        this.serverSearchInput = _.cloneDeep(funObj.form);
+      },
+
+      // ---------- 更新任务 >>>>>>>>>>>>> ----------
+      async updateTask({ value, item, key }) {
+        const { id } = item;
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'allPage',
+              actionId: 'updateTask',
+              actionData: { [key]: value },
+              where: { id }
+            },
+          }
+        })
+      },
+      // ---------- <<<<<<<<<<<<< 更新任务 ----------
+    },
+  });
+</script>
+
+<style scoped>
+  .text-decoration-line-through {
+    text-decoration: line-through;
+  }</style
+>{% endblock %}

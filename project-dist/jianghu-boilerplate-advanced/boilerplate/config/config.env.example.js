@@ -6,9 +6,6 @@ require('dotenv').config({path: path.resolve(__dirname, '../../.env')});
 module.exports = appInfo => {
 
   return {
-    appType: 'multiApp',
-    appDirectoryLink: '/directory',
-    appDirectoryLink: 'https://panshi.openjianghu.org',
     jiangHuConfig: {
       packageIdCheck: true,
       updateRequestDemoAndResponseDemo: false,

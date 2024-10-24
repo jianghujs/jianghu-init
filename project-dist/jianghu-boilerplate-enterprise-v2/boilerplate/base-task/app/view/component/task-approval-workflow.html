@@ -1,0 +1,163 @@
+<template id="task-approval-workflow">
+  <div>
+    <v-timeline dense align-top>
+      <v-timeline-item
+        color="grey"
+        icon="mdi-check-decagram"
+        fill-dot
+        small
+        left
+      >
+        <div class="font-weight-bold">审批人<span class="red--text">*</span>
+        </span></div>
+
+        <div class="d-flex flex-wrap">
+          <div cols="3" class="mr-2 mb-2" v-for="item in approvalPersonList">
+            <div class="small-card px-4">
+              <v-avatar tile color="primary" size="25">
+                <span class="white--text">{{ item.username[0] }}</span>
+              </v-avatar>
+              <span class="ml-1 primary--text">{{item.username}}</span>
+              <v-btn
+                icon
+                x-small
+                v-if="!item.readonly"
+                class="ml-2"
+                @click="doUiAction('removePerson', {key: 'approvalPersonList', userId: item.userId})"
+              >
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </div>
+          </div>
+          <div
+            class="small-card add-block"
+            v-if="!readonly"
+            @click="doUiAction('startAddPerson', {key: 'approvalPersonList'})"
+          >
+            <v-icon color="primary" size="24">mdi-plus</v-icon>
+          </div>
+        </div>
+      </v-timeline-item>
+      <v-timeline-item color="grey" icon="mdi-send-circle" fill-dot small left>
+        <div class="font-weight-bold">抄送人</div>
+
+        <div class="d-flex flex-wrap">
+          <div cols="3" class="mr-2" v-for="item in noticePersonList">
+            <div class="small-card px-4">
+              <v-avatar tile color="primary" size="25">
+                <span class="white--text">{{ item.username[0] }}</span>
+              </v-avatar>
+              <span class="ml-1 primary--text">{{item.username}}</span>
+              <v-btn
+                icon
+                x-small
+                v-if="!item.readonly"
+                class="ml-2"
+                @click="doUiAction('removePerson', {key: 'noticePersonList', userId: item.userId})"
+              >
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </div>
+          </div>
+          <div
+            class="small-card add-block"
+            @click="doUiAction('startAddPerson', {key: 'noticePersonList'})"
+            v-if="!readonly"
+          >
+            <v-icon color="primary" size="24">mdi-plus</v-icon>
+          </div>
+        </div>
+
+      </v-timeline-item>
+    </v-timeline>
+    <select-org-user-dialog
+      :show.sync="isDialogShown"
+      :show-type="showType"
+      :selected-ids.sync="selectedIds"
+      :selected-origin-items="selectedItems"
+      @confirm="doUiAction('addPerson', $event)"
+    ></select-org-user-dialog>
+  </div>
+</template>
+
+<script type="module">
+  Vue.component("task-approval-workflow", {
+    template: "#task-approval-workflow",
+    props: {
+      // 显示类型，按组织结构显示还是直接显示，org: 按组织结构显示，user: 直接显示
+      showType: {
+        type: String,
+        default: "org",
+      },
+      approvalPersonList: {
+        type: Array,
+        default: () => [],
+      },
+      noticePersonList: {
+        type: Array,
+        default: () => [],
+      },
+      readonly: {
+        type: Boolean,
+        default: false,
+      }
+    },
+    data: () => ({
+      isDialogShown: false,
+      userList: [],
+      treeData: [],
+      selectedIds: [],
+      selectedItems: [],
+    }),
+
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case "startAddPerson":
+            await this.startAddPerson(uiActionData);
+            break;
+          case "addPerson":
+            await this.addPerson(uiActionData);
+            break;
+          case "removePerson":
+            this[uiActionData.key] = this[uiActionData.key].filter(
+              (item) => item.userId !== uiActionData.userId
+            );
+            this.$emit(`update:${[uiActionData.key]}`, this[uiActionData.key]);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+
+      async startAddPerson({ key }) {
+        this.isDialogShown = true;
+        this.updateKey = key;
+        this.selectedIds = this[key].map((item) => item.userId);
+        this.selectedItems = this[key]
+      },
+      async addPerson(selectedItems) {
+        this.$emit(`update:${this.updateKey}`, selectedItems);
+        this.isDialogShown = false;
+      },
+    },
+  });
+</script>
+<style scoped>
+  .small-card {
+    background: rgba(220, 235, 253, 0.5);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    height: 45px;
+  }
+  .add-block {
+    width: 45px;
+    justify-content: center;
+  }
+  .v-timeline {
+    margin-left: -40px;
+  }
+</style>

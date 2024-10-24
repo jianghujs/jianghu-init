@@ -1,0 +1,821 @@
+{% block htmlHead %}
+{% endblock %}
+
+{% extends 'template/jhMobileTemplateV4.html'%}
+{% block vueTemplate %}
+<script type="text/html" id="app-template">
+<div>
+<v-app mobile-breakpoint="sm">
+  <jh-menu>
+    <template v-slot:title>
+      <!-- 高级搜索 -->
+      应用管理
+    </template>
+  </jh-menu>
+  <v-main class="mt-13">
+    <!-- 头部内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-second-bar p-3 px-sm-8 bg-gray-100">
+      <v-row class="align-center" no-gutters>
+        <!-- 排序 -->
+        <div class="inline-flex bg-white px-3 h-8 leading-8 rounded-lg mr-3 text-sm text-gray-600" :class="{'text-green-600': !!usePageOrder}" @click="isPageOrderDrawerShown = true">
+          <v-icon :color="usePageOrder ? 'primary' : ''" size="16" class="mr-1">mdi-sort-ascending</v-icon>
+          排序
+        </div>
+        <!-- 筛选 -->
+        <div class="inline-flex bg-white px-3 h-8 leading-8 rounded-lg text-sm text-gray-600" :class="{'text-green-600': !!usePageSearch}" @click="isPageSearchDrawerShown = true">
+          <v-icon :color="usePageSearch ? 'primary' : ''" size="16" class="mr-1">mdi-filter-multiple-outline</v-icon>
+          筛选
+        </div>
+        <!-- 自定义搜索内容 -->
+        <v-spacer ></v-spacer>
+        <v-menu
+          nudge-bottom="36"
+          class="elevation-0"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <div 
+              class="inline-flex bg-white px-3 h-8 leading-8 rounded-lg font-medium text-sm"
+              v-bind="attrs"
+              v-on="on">
+              <v-icon size="16" class="mr-1">mdi-view-carousel-outline</v-icon>
+              {{ viewMode == 'simple' ? '简洁模式' : '详细模式' }}
+            </div>
+          </template>
+
+          <div class="flex flex-col p-2 pb-0">
+            <v-btn small class="mb-2" @click="viewMode = 'simple'" :class="{primary: viewMode == 'simple', '!text-white': viewMode == 'simple'}">
+              <v-list-item-title>简洁模式</v-list-item-title>
+            </v-btn>
+            <v-btn small class="mb-2" @click="viewMode = 'detail'" :class="{primary: viewMode == 'detail', '!text-white': viewMode == 'detail'}">
+              <v-list-item-title>详细模式</v-list-item-title>
+            </v-btn>
+          </v-list>
+        </v-menu>
+      </v-row>
+    </div>
+    <!-- 页面内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-body-container px-sm-8">
+      <v-row class="pa-0 ma-0">
+      <v-col :cols="12" :cols="12" class="p-0 pb-7" :style="`height: calc(100vh - 140px); overflow-y: auto;overscroll-behavior: contain`" >
+        <div class="flex p-3 border-b relative items-center" v-for="(item, index) in tableDataComputed" @click="viewMode == 'simple' && doUiAction('startDetailItem', item)">
+          <div class="flex-1">
+            <div class="flex items-center items-center">
+              <span class="font-medium text-base">{{ item.appName }}</span>
+              
+            </div>
+            <div v-show="viewMode != 'detail'" class="text-sm pt-2">
+              <div class="text-gray-500 pr-8 flex items-center" >应用ID：{{ item.appId }}</div>
+              <div class="text-gray-500 pr-8 flex items-center" >应用类型：{{ item.appType }}</div>
+            </div>
+
+            <div v-show="viewMode == 'detail'" class="text-sm pt-2">
+              <div class="text-gray-500 pr-8 flex items-center" >应用ID：{{ item.appId }}</div>
+              <div class="text-gray-500 pr-8 flex items-center" >应用类型：{{ item.appType }}</div>
+              <div class="text-gray-500 pr-8 flex items-center" >操作人：{{ item.operationByUser }}</div>
+              <div class="text-gray-500 pr-8 flex items-center" >操作时间：{{ item.operationAt }}</div>
+              <div class="flex justify-end items-center">
+                <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)" >
+                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>编辑
+                </span>
+                <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('viewUserList', item)" >
+                  <v-icon size="16" class="success--text">mdi-account-supervisor</v-icon>用户列表
+                </span>
+                <span role="button" class="error--text font-weight-medium font-size-2 mr-2" @click="doUiAction('deleteItem', item)" >
+                  <v-icon size="16" class="error--text">mdi-trash-can-outline</v-icon>删除
+                </span>
+              </div>
+              <!-- action 操作按钮显示 -->
+            </div>
+          </div>
+          <div v-if="viewMode == 'simple'" class="h-full flex absolute top-0 right-3 items-center text-gray-500">
+            
+            <v-icon size="20" class="text-gray-500">mdi-chevron-right</v-icon>
+          </div>
+        </div>
+        <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
+          <div class=" flex justify-space-between items-center">
+            每页 {{ tableOptions.limit }} 项，
+            共 {{ tableOptions.totalCount == tableDataComputed.length ? tableOptions.totalCount : tableDataComputed.length + '/' + tableOptions.totalCount }} 项
+
+            <div>
+              <!-- 上一页 icon -->
+              <v-icon v-if="tableOptions.page > 1" @click="tableOptions.page--; doUiAction('getTableData')">mdi-chevron-left</v-icon>
+              <v-icon v-else color="#eaeaea">mdi-chevron-left</v-icon>
+    
+              <!-- 页码 -->
+              <span><span class="primary--text font-weight-medium text-sm">{{ tableOptions.page }}</span> / {{ Math.ceil(tableOptions.totalCount / tableOptions.limit) }}</span>
+    
+              <!-- 下一页 icon -->
+              <v-icon v-if="tableOptions.totalCount > tableOptions.page * tableOptions.limit" @click="tableOptions.page++; doUiAction('getTableData')">mdi-chevron-right</v-icon>
+              <v-icon v-else color="#eaeaea">mdi-chevron-right</v-icon>
+            </div>
+          </div>
+          <div class="jh-safe-bottom"></div>
+        </div>
+
+        <!-- 暂无更多 -->
+        <div class="text-center text-gray-500 py-2" v-if="tableDataComputed.length === 0">暂无更多</div>
+      </v-col>
+      
+      <!-- v-overlay -->
+      <v-overlay v-if="isTableLoading" :value="isTableLoading" opacity="0.1">
+        <v-progress-circular
+          light
+          indeterminate
+          color="primary"
+        ></v-progress-circular>
+      </v-overlay>
+      </v-row>
+    </div>
+    <!-- <<<<<<<<<<<<< 页面内容 -->
+    <!-- 新增 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="90%" class="elevation-24" >
+      <v-form ref="createForm" lazy-validation>
+        
+        <!-- 抽屉标题 -->
+        <v-row class="jh-drawer-header px-4 relative pl-[30px] md:pl-0" no-gutters align="center">
+          <!-- 取消icon -->
+          <v-icon @click="closeCreateDrawerCheck" class="mr-2">mdi-chevron-left</v-icon>
+          <div class="flex justify-center py-3 flex-1 w-full align-center">
+            <span class="text-h7 font-weight-bold">新增</span>
+          <v-spacer ></v-spacer>
+          </div>
+          <!-- <v-icon >mdi-dots-vertical</v-icon> -->
+          <!-- 抽屉操作按钮 -->
+          <div class="jh-drawer-action-btn-group pa-3">
+            <!-- 抽屉操作按钮 -->
+            <div class="w-full gap-x-3 grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2" v-if="true">
+              <v-btn color="success" small class="ml-2" @click="doUiAction('createItem')">
+                新增
+              </v-btn>
+            </div>
+          </div>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <!-- 抽屉内容 -->
+
+            <!-- 抽屉内容form -->
+            <v-row class="mt-0 px-3 pb-16">
+              <v-col cols="12" sm="12" md="3" class="">
+                <div class="text-sm d-inline-block text-weight-bold py-1"><span class="red--text text--accent-2 ml-1">* </span>应用ID</div>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.appId" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" class="">
+                <div class="text-sm d-inline-block text-weight-bold py-1"><span class="red--text text--accent-2 ml-1">* </span>应用名</div>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.appName" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" class="">
+                <div class="text-sm d-inline-block text-weight-bold py-1">应用类型</div>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.appType"></v-text-field>
+              </v-col>
+            </v-row>
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" :color="isMobile ? 'white' : 'success'" fab absolute top left small tile class="drawer-close-float-btn" @click="closeCreateDrawerCheck">
+        <v-icon v-if="isMobile" size="30">mdi-chevron-left</v-icon>
+        <v-icon v-else>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 新增 -->
+    <!-- 编辑 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isUpdateDrawerShown" v-model="isUpdateDrawerShown" :permanent="isUpdateDrawerShown" fixed temporary right width="90%" class="elevation-24" >
+      <v-form ref="updateForm" lazy-validation>
+        
+        <!-- 抽屉标题 -->
+        <v-row class="jh-drawer-header px-4 relative pl-[30px] md:pl-0" no-gutters align="center">
+          <!-- 取消icon -->
+          <v-icon @click="closeUpdateDrawerCheck" class="mr-2">mdi-chevron-left</v-icon>
+          <div class="flex justify-center py-3 flex-1 w-full align-center">
+            <span class="text-h7 font-weight-bold">编辑</span>
+          <v-spacer ></v-spacer>
+          </div>
+          <!-- <v-icon >mdi-dots-vertical</v-icon> -->
+          <!-- 抽屉操作按钮 -->
+          <div class="jh-drawer-action-btn-group pa-3">
+            <!-- 抽屉操作按钮 -->
+            <div class="w-full gap-x-3 grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2" v-if="true">
+              <v-btn color="success" @click="doUiAction('updateItem')">
+                保存
+              </v-btn>
+            </div>
+          </div>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <!-- 抽屉内容 -->
+
+            <!-- 抽屉内容form -->
+            <v-row class="mt-0 px-3 pb-16">
+              <v-col cols="12" sm="12" md="3" class="">
+                <div class="text-sm d-inline-block text-weight-bold py-1">应用ID</div>
+                <v-text-field disabled class="jh-v-input" dense single-line filled v-model="updateItem.appId"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" class="">
+                <div class="text-sm d-inline-block text-weight-bold py-1"><span class="red--text text--accent-2 ml-1">* </span>应用名</div>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.appName" :rules="validationRules.requireRules"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" class="">
+                <div class="text-sm d-inline-block text-weight-bold py-1">应用类型</div>
+                <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.appType"></v-text-field>
+              </v-col>
+            </v-row>
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" :color="isMobile ? 'white' : 'success'" fab absolute top left small tile class="drawer-close-float-btn" @click="closeUpdateDrawerCheck">
+        <v-icon v-if="isMobile" size="30">mdi-chevron-left</v-icon>
+        <v-icon v-else>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 编辑 -->
+    <!-- 编辑 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isDetailDrawerShown" v-model="isDetailDrawerShown" :permanent="isDetailDrawerShown" fixed temporary right width="90%" class="elevation-24" >
+      <v-form ref="detailForm" lazy-validation>
+        
+        <!-- 抽屉标题 -->
+        <v-row class="jh-drawer-header px-4 relative pl-[30px] md:pl-0" no-gutters align="center">
+          <!-- 取消icon -->
+          <v-icon @click="closeDetailDrawerCheck" class="mr-2">mdi-chevron-left</v-icon>
+          <div class="flex justify-center py-3 flex-1 w-full align-center">
+            <span class="text-h7 font-weight-bold">编辑</span>
+          <v-spacer ></v-spacer>
+          </div>
+          <!-- <v-icon >mdi-dots-vertical</v-icon> -->
+          <!-- 抽屉操作按钮 -->
+          <div class="jh-drawer-action-btn-group pa-3">
+            <!-- 抽屉操作按钮 -->
+            <div class="w-full gap-x-3 grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2" v-if="true">
+              <v-btn color="primary" @click="doUiAction('startUpdateItem', detailItem); closeDetailDrawer()">
+                编辑
+              </v-btn>
+              <v-btn color="primary" @click="doUiAction('viewUserList', detailItem); closeDetailDrawer()">
+                用户列表
+              </v-btn>
+              <v-btn color="error" @click="doUiAction('deleteItem', detailItem); closeDetailDrawer()">
+                删除
+              </v-btn>
+            </div>
+          </div>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <!-- 抽屉内容 -->
+
+            <!-- 抽屉内容form -->
+            <v-row class="mt-0 px-3 pb-15">
+              <v-col cols="12" sm="12" md="3" class="border-b py-3 flex justify-between">
+                <span class="text-sm w-28 font-medium text-gray-600">应用ID</span>
+                <span class="jh-v-input" :dense="true" :single-line="true" :filled="true" v-model="detailItem.appId">{{ detailItem.appId }}</span>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" class="border-b py-3 flex justify-between">
+                <span class="text-sm w-28 font-medium text-gray-600">应用名</span>
+                <span class="jh-v-input" :dense="true" :single-line="true" :filled="true" v-model="detailItem.appName">{{ detailItem.appName }}</span>
+              </v-col>
+              <v-col cols="12" sm="12" md="3" class="border-b py-3 flex justify-between">
+                <span class="text-sm w-28 font-medium text-gray-600">应用类型</span>
+                <span class="jh-v-input" :dense="true" :single-line="true" :filled="true" v-model="detailItem.appType">{{ detailItem.appType }}</span>
+              </v-col>
+            </v-row>
+             <!-- 抽屉内容组件 -->
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" :color="isMobile ? 'white' : 'success'" fab absolute top left small tile class="drawer-close-float-btn" @click="closeDetailDrawerCheck">
+        <v-icon v-if="isMobile" size="30">mdi-chevron-left</v-icon>
+        <v-icon v-else>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 编辑 -->
+    <!-- 用户列表 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isUserListDrawerShown" v-model="isUserListDrawerShown" :permanent="isUserListDrawerShown" fixed temporary right width="90%" class="elevation-24" >
+      <v-form ref="userListForm" lazy-validation>
+        
+        <!-- 抽屉标题 -->
+        <v-row class="jh-drawer-header px-4 relative pl-[30px] md:pl-0" no-gutters align="center">
+          <!-- 取消icon -->
+          <v-icon @click="closeUserListDrawerCheck" class="mr-2">mdi-chevron-left</v-icon>
+          <div class="flex justify-center py-3 flex-1 w-full align-center">
+            <span class="text-h7 font-weight-bold">用户列表</span>
+          <v-spacer ></v-spacer>
+          </div>
+          <!-- <v-icon >mdi-dots-vertical</v-icon> -->
+          <!-- 抽屉操作按钮 -->
+          <div class="jh-drawer-action-btn-group pa-3">
+            <!-- 抽屉操作按钮 -->
+            <div class="w-full gap-x-3 grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2" v-if="true">
+              
+            </div>
+          </div>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <!-- 抽屉内容 -->
+
+            <!-- 抽屉内容form -->
+            <user-list :app-id="userListItem.appId" class="px-0 px-md-4 pa-4"/>
+      </v-form>
+      <!-- 抽屉关闭按钮 -->
+      <v-btn elevation="0" :color="isMobile ? 'white' : 'success'" fab absolute top left small tile class="drawer-close-float-btn" @click="closeUserListDrawerCheck">
+        <v-icon v-if="isMobile" size="30">mdi-chevron-left</v-icon>
+        <v-icon v-else>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 用户列表 -->
+    <v-bottom-sheet v-if="isPageSearchDrawerShown" v-model="isPageSearchDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
+        <!-- 标题 -->
+        <v-card-title class="px-4">
+          <span class="text-base">高级搜索</span>
+        </v-card-title>
+        <v-card-text class="px-4">
+          <!-- 单独 text field 搜索 -->
+            
+          <!-- 列表list容器 循环 -->
+          <div style="min-height: 150px;">
+            <v-row class="py-2">
+              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 pb-0" >
+                <v-select prefix="用户状态：" :items="constantObj.userStatus" class="jh-v-input" dense single-line filled v-model="serverSearchWhere.userStatus" clearable></v-select>
+              </v-col>
+            </v-row>
+          </div>
+        </v-card-text>
+        <v-card-actions class="flex justify-space-around px-4 pb-6">
+          <v-btn @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
+          <v-btn color="success" class="flex-1 ml-3" @click="usePageSearch = true;isPageSearchDrawerShown = false;doUiAction('getTableData')">确认</v-btn>
+        </v-card-actions>
+      
+      </v-card>
+    </v-bottom-sheet>
+    <v-bottom-sheet v-if="isPageOrderDrawerShown" v-model="isPageOrderDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
+        <!-- 标题 -->
+        <v-card-title class="px-4">
+          <span class="text-base">排序</span>
+        </v-card-title>
+        <v-card-text class="px-4">
+          <!-- 单独 text field 搜索 -->
+            
+          <!-- 列表list容器 循环 -->
+          <div style="min-height: 150px;">
+            <v-row>
+              <v-col cols="12" class="pb-0" v-for="(item, index) in tableDataOrderList">
+                <v-btn block class="p-3 rounded" :color="isEqual(tableDataOrder, item.value) ? 'primary' : 'gray'" @click="tableDataOrder = item.value">
+                  {{ item.text }}
+                </v-btn>
+              </v-col>
+            </v-row>
+          </div>
+        </v-card-text>
+        <v-card-actions class="flex justify-space-around px-4 pb-6">
+          <v-btn @click="usePageOrder = false;tableDataOrder = tableDataOrderList[0].value">重置</v-btn>
+          <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+        </v-card-actions>
+      
+      </v-card>
+    </v-bottom-sheet>
+    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#mobile/appManagement.md`" width="100%" height="100%"></iframe>
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+
+  </v-main>
+</v-app>
+
+<jh-toast />
+<jh-mask />
+<jh-confirm-dialog />
+</div>
+</script>
+<div id="app"></div>
+{% endblock %}
+
+{% block vueScript %}
+{% include 'component/userList.html' %}
+
+<script type="module">
+
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    isHelpPageDrawerShown: false,
+    isHelpPageDrawerLoaded: false,
+
+    isMobile: window.innerWidth < 500,
+    tableData: [],
+    tableParams: {},
+    tableDataFromBackend: [],
+    isTableLoading: false,
+    tableDataOrderList: [],
+    tableDataOrder: [{column: 'operationAt', order: 'desc'}],
+    tableOptions: {
+      page: 1,
+      limit: 20,
+      totalCount: 0,
+    },
+
+    viewMode: 'simple',
+    isPageOrderDrawerShown: false,
+    usePageOrder: false,
+    isPageSearchDrawerShown: false,
+    usePageSearch: false,
+    // ================================ 详情抽屉 ================================
+    isDetailDrawerShown: false,
+    detailItem: {},
+    detailItemOrigin: {},
+    // ================================ 新建抽屉 ================================
+    isCreateDrawerShown: false,
+    createItem: {},
+    createItemOrigin: {},
+    createActionData: {},
+    // ================================ 编辑抽屉 ================================
+    isUpdateDrawerShown: false,
+    updateItem: {},
+    updateItemOrigin: {},
+    updateItemId: null,
+    updateActionData: {},
+    // ================================ 删除 ================================
+    deleteItem: {},
+    deleteItemId: null,
+
+    // ================================ common ================================
+    constantObj: {},
+    validationRules: {
+      requireRules: [
+        v => !!v || '必填'
+      ]
+    },
+    testString: '测试字符串',
+    serverSearchWhereLike: {
+      className: ""
+    },
+    filterMap: {},
+    isMobile: window.innerWidth < 500,
+
+    // ================================ 其他抽屉列表 ================================
+    isUserListDrawerShown: false,
+    userListItem: {},
+    userListItemOrigin: {},
+
+  }),
+  watch: {
+    isHelpPageDrawerShown(val) {
+      if (val && !this.isHelpPageDrawerLoaded) {
+        this.isHelpPageDrawerLoaded = true;
+      }
+    },
+  },
+  computed: {
+    tableDataComputed() {
+      if(this.filterMap) {
+        return this.tableData.filter(row => {
+          for (const key in this.filterMap) {
+            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+              return false;
+            }
+          }
+          return true;
+        });
+      } else {
+        return this.tableData;
+      }
+    },
+  },
+  created() {
+    this.doUiAction('getTableData')
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      try {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.prepareTableParamsDefault(uiActionData);
+            await this.prepareTableParams(uiActionData);
+            await this.getTableData(uiActionData);
+            await this.formatTableData(uiActionData);
+            break;
+          case 'startCreateItem':
+            await this.prepareCreateFormData(uiActionData);
+            await this.openCreateDrawer(uiActionData);
+            break;
+          case 'createItem':
+            await this.prepareCreateValidate(uiActionData);
+            await this.confirmCreateItemDialog(uiActionData);
+            await this.prepareDoCreateItem(uiActionData);
+            await this.doCreateItem(uiActionData);
+            await this.closeCreateDrawer(uiActionData);
+            await this.doUiAction('getTableData', uiActionData);
+            break;
+          case 'startUpdateItem':
+            await this.prepareUpdateFormData(uiActionData);
+            await this.openUpdateDrawer(uiActionData);
+            break;
+          case 'updateItem':
+            await this.prepareUpdateValidate(uiActionData);
+            await this.confirmUpdateItemDialog(uiActionData);
+            await this.prepareDoUpdateItem(uiActionData);
+            await this.doUpdateItem(uiActionData);
+            await this.closeUpdateDrawer(uiActionData);
+            await this.doUiAction('getTableData', uiActionData);
+            break;
+          case 'startDetailItem':
+            await this.prepareDetailFormData(uiActionData);
+            await this.openDetailDrawer(uiActionData);
+            break;
+          case 'deleteItem':
+            await this.prepareDeleteFormData(uiActionData);
+            await this.confirmDeleteItemDialog(uiActionData);
+            await this.prepareDoDeleteItem(uiActionData);
+            await this.doDeleteItem(uiActionData);
+            await this.doUiAction('getTableData', uiActionData);
+            break;
+          case 'viewUserList':
+            await this.prepareUserListData(uiActionData);
+            await this.openUserListDrawer(uiActionData);
+            break;
+          case 'getTableData':
+            await this.getTableData();
+            break;
+
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      } catch (error) {
+        window.jhMask && window.jhMask.hide();
+        throw error;
+      } finally {
+        window.jhMask && window.jhMask.hide();
+      }
+    },
+    async prepareTableParamsDefault() {
+      const where = {};
+      const whereLike = {};
+      const whereIn = {};
+      for (const fieldKey in this.serverSearchWhereLike) {
+        const fieldValue = this.serverSearchWhereLike[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            whereLike[fieldKey] = '%' + fieldValue.trim() + '%';
+          } else {
+            whereLike[fieldKey] = '%' + fieldValue + '%';
+          }
+        }
+      }
+
+      let orderBy = this.tableDataOrder || [{column: 'operationAt', order: 'desc'}];
+      if ((!this.tableDataOrder || !this.tableDataOrder.length) && this.tableDataOrderList && this.tableDataOrderList.length) {
+        orderBy = this.tableDataOrderList[0].value;
+      }
+      const limit = this.tableOptions.limit === -1 ? 10000 : this.tableOptions.limit;
+      const offset = (this.tableOptions.page - 1) * limit;
+
+      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy };
+    },
+    // 准备请求参数-自定义
+    prepareTableParams() {
+      // TODO 增加自定义复杂判断条件
+    },
+    // 获取表格数据
+    async getTableData() {
+      this.isTableLoading = true;
+
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'mobile/appManagement',
+            actionId: "selectItemList",
+            actionData: {},
+            ...this.tableParams
+          }
+        }
+      });
+      const { rows, count } = result.data.appData.resultData;
+
+      this.tableOptions.totalCount = count || rows.length;
+      this.tableDataFromBackend = rows;
+      this.isTableLoading = false;
+    },
+    formatTableData() {
+      let tableData = this.tableDataFromBackend.map(row => {
+        row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+        return row;
+      });
+      this.tableData = tableData;
+    },
+    // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
+    // ---------- 新增数据 uiAction >>>>>>>>>> --------
+    async prepareCreateFormData() {
+      this.createItem = {
+      };
+      this.createItemOrigin = _.cloneDeep(this.createItem);
+    },
+    async openCreateDrawer() {
+      this.isCreateDrawerShown = true;
+    },
+    async prepareCreateValidate() {
+      if (await this.$refs.createForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息")
+    },
+    async confirmCreateItemDialog() {
+      if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+        throw new Error("[confirmCreateFormDialog] 否");
+      }
+    },
+    prepareDoCreateItem() {
+      const {id, ...data} = this.createItem;
+      this.createActionData = {
+        appId: data.appId,
+        appName: data.appName,
+        appType: data.appType,
+      };
+    },
+    async doCreateItem() {
+      await window.jhMask.show();
+      await window.vtoast.loading("新增数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'mobile/appManagement',
+            actionId: 'insertItem',
+            actionData: this.createActionData
+          }
+        }
+      })
+      await window.jhMask.hide();
+      await window.vtoast.success("新增数据成功");
+    },
+    async closeCreateDrawerCheck() {
+      await this.closeCreateDrawer();
+    },
+    async closeCreateDrawer() {
+      this.isCreateDrawerShown = false;
+      this.createItem = {};
+      this.createActionData = null;
+    },
+    // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    async prepareUpdateFormData(funObj) {
+      this.updateItem = _.cloneDeep(funObj);
+      this.updateItemOrigin = _.cloneDeep(funObj);
+    },
+    async openUpdateDrawer() {
+      this.isUpdateDrawerShown = true;
+    },
+    async prepareUpdateValidate() {
+      if (await this.$refs.updateForm.validate()) {
+        return true;
+      }
+      throw new Error("请完善表单信息")
+    },
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("[confirmUpdateItemDialog] 否");
+      }
+    },
+    async prepareDoUpdateItem() {
+      const {id, ...data} = this.updateItem;
+      this.updateItemId = id;
+      this.updateActionData = {
+        appId: data.appId,
+        appName: data.appName,
+        appType: data.appType,
+      };
+    },
+    async doUpdateItem() {
+      await window.jhMask.show();
+      await window.vtoast.loading("修改数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'mobile/appManagement',
+            actionId: 'updateItem',
+            actionData: this.updateActionData,
+            where: {id: this.updateItemId}
+          }
+        }
+      })
+      await window.jhMask.hide();
+      await window.vtoast.success("修改数据成功");
+    },
+    async closeUpdateDrawerCheck() {
+      await this.closeUpdateDrawer();
+    },
+    async closeUpdateDrawer() {
+      this.isUpdateDrawerShown = false;
+      this.updateItem = {};
+      this.updateActionData = null;
+      this.updateItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
+    // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+    async prepareDeleteFormData(funObj) {
+      this.deleteItem = _.cloneDeep(funObj);
+    },
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+        throw new Error("[confirmDeleteItemDialog] 否");
+      }
+    },
+    async prepareDoDeleteItem() {
+      const {id} = this.deleteItem;
+      this.deleteItemId = id;
+    },
+    async doDeleteItem() {
+      await window.vtoast.loading("删除数据");
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'mobile/appManagement',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: {id: this.deleteItemId}
+          }
+        }
+      });
+      await window.vtoast.success("删除数据成功");
+    },
+    async clearDeleteItem() {
+      this.deleteItem = {};
+      this.deleteItemId = null;
+    },
+    // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
+
+    // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+    async prepareUserListData(funObj) {
+      this.userListItem = _.cloneDeep(funObj);
+      this.userListItemOrigin = _.cloneDeep(funObj);
+    },
+    async openUserListDrawer() {
+      this.isUserListDrawerShown = true;
+    },
+    async closeUserListDrawerCheck() {
+      await this.closeUserListDrawer();
+    },
+    async closeUserListDrawer() {
+      this.isUserListDrawerShown = false;
+    },
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    async prepareDetailFormData(funObj) {
+      this.detailItem = _.cloneDeep(funObj);
+      this.detailItemOrigin = _.cloneDeep(funObj);
+    },
+    async openDetailDrawer() {
+      this.isDetailDrawerShown = true;
+    },
+    async closeDetailDrawerCheck() {
+      await this.closeDetailDrawer();
+    },
+    async closeDetailDrawer() {
+      this.isDetailDrawerShown = false;
+      this.detailItem = {};
+      this.detailActionData = null;
+      this.detailItemId = null;
+    },
+
+    getSearchItemText(searchItem, items, label) {
+      const item = items.find(item => {
+        if (_.isObject(searchItem) && _.isObject(item.value)) {
+          return _.isEqual(searchItem, item.value);
+        } else {
+          return item.value === searchItem || item === searchItem;
+        }
+      });
+      if (!item) {
+        return label;
+      }
+      return _.isString(item) ? item : item.text;
+    },
+    clearServerSearch() {
+      for (const key in this.serverSearchWhere) {
+        this.serverSearchWhere[key] = '';
+      }
+      for (const key in this.serverSearchWhereLike) {
+        this.serverSearchWhereLike[key] = '';
+      }
+      for (const key in this.serverSearchWhereIn) {
+        this.serverSearchWhereIn[key] = [];
+      }
+    },
+
+    // 判断是否相等的方法，兼容对象
+    isEqual(a, b) {
+      if (_.isObject(a) && _.isObject(b)) { 
+        return _.isEqual(a, b);
+      }
+      return a === b;
+    },
+    // ---------- Custom uiAction >>>>>>>>>>>> --------
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
+
+  }
+})
+</script>
+
+<style scoped>
+  .v-navigation-drawer--bottom.v-navigation-drawer--is-mobile {
+    max-height: 80%;
+  }
+</style>{% endblock %}

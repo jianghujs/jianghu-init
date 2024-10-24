@@ -1,0 +1,377 @@
+<template id="group-role-page">
+  <div class="group-role-page-container">
+    <div class="group-role-page-container-box pl-4">
+      <v-row class="ma-0"> 
+        <v-col cols="12" class="pa-0">
+          <v-tabs vertical @change="changeTab(roleList[$event].roleId)" v-model="tabActive" slider-size="0" right>
+            <v-tab v-for="(item, index) in roleList" :value="item.roleId" class="pa-0" style="justify-content:flex-end">
+              <div>
+                <div class="align-center" v-if="item.roleId === '*'"><v-chip x-small>直属成员</v-chip></div>
+                <span style="font-weight: 600px;">{{item.roleName}}</span>
+                <v-icon @click="doUiAction('deleteItem', item)">mdi-close-circle</v-icon>
+              </div>
+            </v-tab>
+            <!-- <div @click="doUiAction('startCreateItem')" class="v-tab pa-0" style="justify-content:flex-end">
+              <div>
+                <span style="font-weight: 600px;">新增角色</span>
+                <v-icon>mdi-plus-box-outline</v-icon>
+              </div>
+            </div> -->
+            <v-btn @click="doUiAction('startCreateItem')" small outlined block style="max-height: 32px;">
+              添加角色
+            </v-btn>
+            <v-tab-item v-model="tabActive">
+              <div class="ml-4 pl-1 d-flex flex-row justify-start jh-fixed-table-height border-l">
+                
+                <div style="overflow-y: auto; flex: 1" @scroll="handleScroll">
+                  <div v-for="(app, index) in appList" :key="index" class="pa-0 pl-1 pb-4" :id="app.appName">
+                    <v-card outlined class="pa-3">
+                      <v-row no-gutters>
+                        <v-col cols="12" class="d-flex align-center align-center">
+                          <v-badge dot inline left>
+                            <span class="body-2">{{app.appName}}</span> 
+                          </v-badge>
+                          <v-chip x-small class="ml-1">{{app.appId}}</v-chip>
+                          <v-checkbox
+                            v-model="value"
+                            label="管理员"
+                            :value="app.appId + '|*'"
+                            class="jh-v-input mt-0 d-inline-block ml-1"
+                            hide-details
+                          ></v-checkbox>
+                        </v-col>
+                        <template v-if="!value.includes(app.appId + '|*')">
+                          <v-col cols="3" v-for="page in app.appPageList.filter(e => !['help', 'login', 'manual'].includes(e.pageId))">
+                            <v-checkbox
+                              v-model="value"
+                              :label="page.pageName"
+                              :value="app.appId + '|' + page.pageId"
+                              class="jh-v-input mt-0"
+                              hide-details
+                            ></v-checkbox>
+                          </v-col>
+                        </template>
+                      </v-row>
+                    </v-card>
+                  </div>
+                </div>
+                <div outlined class="d-inline-block rounded-lg" style="width: 90px; height: 100%; overflow: hidden; overflow-y: auto;">
+                  <v-list nav dense class="pt-0 pr-0">
+                    <v-list-item-group
+                      color="primary"
+                      v-model="selectedAppItem"
+                    >
+                      <v-list-item
+                        v-for="(item, i) in appList"
+                        :key="i"
+                        @click="location.href = '/<$ ctx.app.config.appId $>/page/groupAuthorityManagement#' + item.appName"
+                      >
+                        <v-list-item-content>
+                          <v-list-item-title v-text="item.appName"></v-list-item-title>
+                        </v-list-item-content>
+                      </v-list-item>
+                    </v-list-item-group>
+                  </v-list>
+                </div>
+              </div>
+              
+            </v-tab-item>
+          </v-tabs>
+        </v-col>
+      </v-row>
+    </div>
+
+    <v-overlay :value="loading" color="white" dark absolute :opacity="0.7">
+      <v-progress-circular indeterminate size="32" color="grey"></v-progress-circular>
+    </v-overlay>
+
+      <!-- 新增抽屉 -->
+      <v-navigation-drawer v-if="isCreateDrawerShown" v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%" class="elevation-24">
+        <v-form ref="createForm" lazy-validation>
+          <!-- 抽屉标题 -->
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">添加角色</span>
+          </v-row>
+          <v-divider class="jh-divider"></v-divider>
+          <!-- 抽屉表单 -->
+          <v-row class="mt-0 px-4">
+            <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
+             
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">角色</span><span style="color: red;margin-left: 2px;">*</span>
+              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.roleName"></v-text-field>
+            </v-col>
+
+            <!-- <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">角色类型</span><span style="color: red;margin-left: 2px;">*</span>
+              <v-select class="jh-v-input" dense single-line filled v-model="createItem.roleType" :items="constantObj.roleType"></v-select>
+            </v-col> -->
+             
+            <v-col cols="12" sm="12" md="4">
+              <span class="jh-input-label">角色描述</span>
+              <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.roleDesc"></v-text-field>
+            </v-col>
+             
+          </v-row>
+
+          <!-- 抽屉操作按钮 -->
+          <v-row class="justify-end mx-0 mt-8 px-4">
+            <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+            <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+          </v-row>
+        </v-form>
+        <!-- 抽屉关闭按钮 -->
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+  </div>
+
+</template>
+
+<script>
+  Vue.component('group-role-page', {
+    template: '#group-role-page',
+    props: {
+      appList: {
+        type: Array,
+        default: () => []
+      },
+      roleList: {
+        type: Array,
+        default: () => []
+      },
+      loading: {
+        type: Boolean,
+        default: false
+      },
+      value: {
+        type: Array,
+        default: () => []
+      },
+      group: {
+        type: String,
+        default: ''
+      },
+      activeRole: {
+        type: String,
+        default: '*'
+      },
+    },
+    vuetify: new Vuetify(),
+    data: () => ({
+      validationRules: {
+        requireRules: [
+          v => !!v || 'This is required',
+        ],
+      },
+      // 下拉选项
+      constantObj: {
+        roleType:["正式角色","临时角色"]
+      },
+      serverSearchInput: {
+      },
+      searchInput: null,
+
+      isCreateDrawerShown: false,
+      createItem: {},
+      createActionData: {},
+      deleteItem: {},
+      deleteItemId: null,
+      tabActive: 0,
+      selectedAppItem: 0,
+    }),
+    computed: {
+    },
+    watch: {
+      activeRole(val) {
+        this.$emit('change-role', this.activeRole);
+      },
+      value(val) {
+        this.$emit('input', val);
+      },
+      group(val) {
+        this.tabActive = 0
+      },
+    },
+    async created() {
+    },
+    mounted() {
+      console.log('group-role-page mounted');
+      resetTableMaxHeight();
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.getTableData();
+            break;
+          case 'startCreateItem':
+            await this.prepareCreateFormData();
+            await this.openCreateDrawer();
+            break;
+          case 'createItem':
+            await this.prepareCreateValidate();
+            await this.confirmCreateItemDialog();
+            await this.prepareDoCreateItem();
+            await this.doCreateItem();
+            await this.closeCreateDrawer();
+            await this.getTableData();
+            break;
+          case 'startUpdateItem':
+            await this.prepareUpdateFormData(uiActionData);
+            await this.openUpdateDrawer();
+            break;
+          case 'updateItem':
+            await this.prepareUpdateValidate();
+            await this.confirmUpdateItemDialog();
+            await this.prepareDoUpdateItem();
+            await this.doUpdateItem();
+            await this.closeUpdateDrawer();
+            await this.getTableData();
+            break;
+          case 'deleteItem':
+            await this.prepareDeleteFormData(uiActionData);
+            await this.confirmDeleteItemDialog();
+            await this.prepareDoDeleteItem();
+            await this.doDeleteItem();
+            await this.clearDeleteItem();
+            await this.getTableData();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      },
+
+      /**
+       * 获取表格数据
+       */
+      async getTableData() {
+        this.$emit('refresh-role-list');
+      },
+      // ---------- 新增数据 uiAction >>>>>>>>>> --------
+      async prepareCreateFormData() {
+        this.createItem = {
+          // roleType: "正式角色",
+        };
+      },
+
+      async openCreateDrawer() {
+        this.isCreateDrawerShown = true;
+      },
+
+      async prepareCreateValidate() {
+        if (await this.$refs.createForm.validate()) {
+          return true;
+        }
+        throw new Error("请完善表单信息")
+      },
+
+      async confirmCreateItemDialog() {
+        if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+          throw new Error("[confirmCreateFormDialog] 否");
+        }
+      },
+
+      prepareDoCreateItem() {
+        const {id, ...data} = this.createItem;
+        this.createActionData = {...data, roleId: this.group + '|' + data.roleName};
+      },
+
+      async doCreateItem() {
+        await window.vtoast.loading("新增数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'groupAuthorityManagement',
+              actionId: 'insertRoleItem',
+              actionData: this.createActionData
+            }
+          }
+        })
+        await window.vtoast.success("新增数据成功");
+      },
+      async closeCreateDrawer() {
+        this.isCreateDrawerShown = false;
+        this.createItem = {};
+        this.createActionData = null;
+      },
+      // ---------- <<<<<<<<<<< 新增数据 uiAction ---------
+      // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+      async prepareDeleteFormData(funObj) {
+        this.deleteItem = _.cloneDeep(funObj);
+      },
+      async confirmDeleteItemDialog() {
+        if (await window.confirmDialog({title: "删除角色", content: "确定删除角色吗？"}) === false) {
+          throw new Error("[confirmDeleteItemDialog] 否");
+        }
+      },
+      async prepareDoDeleteItem() {
+        const {id} = this.deleteItem;
+        this.deleteItemId = id;
+      },
+      async doDeleteItem() {
+        await window.vtoast.loading("删除角色数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'groupAuthorityManagement',
+              actionId: 'deleteItem',
+              actionData: {
+                roleId: this.deleteItem.roleId,
+                groupId: this.group
+              },
+            }
+          }
+        });
+        await window.vtoast.success("删除角色数据成功");
+      },
+      async clearDeleteItem() {
+        this.deleteItem = {};
+        this.deleteItemId = null;
+      },
+      // ---------- <<<<<<<<<<< 删除数据 uiAction ---------
+      changeTab(val){
+        this.activeRole = val
+      },
+      handleScroll(e) {
+        // 计算滚动到第几个容器了、之后设置 selectedAppItem 的 index
+        let scrollTop = e.target.scrollTop;
+        let appList = this.appList;
+        let index = 0;
+        for (let i = 0; i < appList.length; i++) {
+          let app = appList[i];
+          let appElement = document.getElementById(app.appName);
+          if (appElement.offsetTop <= scrollTop) {
+            index = i;
+          }
+        }
+        this.selectedAppItem = index;
+      }
+    }
+  })
+</script>
+<style scoped>
+  .group-role-page-container-box {
+    height: calc(100vh - 108px);
+    overflow-y: auto;
+    padding-top: 0;
+    box-sizing: border-box;
+  }
+  v-slide-group__content {
+    align-items: center;
+  }
+  .border-l {
+    border-left: 1px solid #e0e0e0;
+  }
+  .theme--light.v-list-item:not(.v-list-item--active):not(.v-list-item--disabled) {
+    color: #666;
+  }
+  .v-list--dense .v-list-item .v-list-item__content, .v-list-item--dense .v-list-item__content {
+    padding: 4px 0;
+  }
+  .v-list--dense .v-list-item, .v-list-item--dense {
+    min-height: 32px;
+  }
+</style>

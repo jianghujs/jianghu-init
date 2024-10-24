@@ -1,0 +1,311 @@
+{% extends 'template/jhTemplateV4.html'%} {% block vueTemplate %}
+
+<script type="text/html" id="app-template">
+  <div>
+    <v-app mobile-breakpoint="sm">
+      <jh-menu />
+      <v-main class="mt-15">
+        <!-- 头部内容 >>>>>>>>>>>>> -->
+        <div class="jh-page-second-bar px-8">
+          <v-row>
+            <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+              <div class="pt-3 text-h7 font-weight-bold">
+                审批首页
+                <!-- 帮助页按钮 -->
+                <v-icon
+                  @click="isHelpPageDrawerShown = true"
+                  color="success"
+                  small
+                  >mdi-help-circle-outline
+                </v-icon>
+              </div>
+              <v-breadcrumbs
+                class="pb-3 pt-0 pl-0"
+                :items="breadcrumbs"
+                divider="-"
+              ></v-breadcrumbs>
+            </v-col>
+            <!-- 搜索条件表单 >>>>>>>> -->
+            <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+              <!-- <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
+              <v-col cols="12" xs="6" sm="6" md="4" xl="3" class="pa-xs-0 pb-2 pl-1 pl-xs-1">
+                <v-select v-model="serverSearchInput.gender" color="success" prefix="性别：" class="jh-v-input bg-white" :items="constantObj.gender" dense filled single-line></v-select>
+              </v-col>
+              <v-btn class="jh-backend-search-btn elevation-0 ml-0 mt-3" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </v-row> -->
+            </v-col>
+            <!-- <<<<<<<< 搜索条件表单 -->
+          </v-row>
+        </div>
+        <!-- <<<<<<<<<<<<< 头部内容 -->
+
+        <div class="jh-page-body-container px-8">
+          <!-- 页面内容 >>>>>>>>>>>>> -->
+          <div class="rounded-lg pa-4 white">
+            <p>本月审批(01.01-01.04): 审批次数(2次) 审批时效(1小时/次)</p>
+
+            <v-row>
+              <v-col cols="6">
+                <v-card elevation="2">
+                  <v-card-title>申请</v-card-title>
+                  <v-card-text class="relative">
+                    <v-row>
+                      <v-col cols="4" v-for="item in commonTicketList">
+                        <div @click="doUiAction('startCreateTicket', { item })" class="grey lighten-4 pa-2">
+                          <a class="d-flex align-center black--text rounded">
+                            <div :class="`${item.color} pa-2 rounded`">
+                              <v-icon size="20" color="white">{{item.icon}}</v-icon>
+                            </div>
+                            <div class="ml-2">{{item.name}}</div>
+                          </a>
+                        </div>
+                      </v-col>
+                    </v-row>
+
+                    <div class="text-center mt-10" style="position: absolute; bottom: 20px; left: 40%;">
+                      <v-btn @click="doUiAction('startTicketApply')" small color="primary">发起其他申请</v-btn>
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+              <v-col cols="6">
+                <v-card elevation="2">
+                  <v-card-title>
+                    <v-row class="align-center" no-gutters>
+                      <div>待办</div>
+                      <v-spacer></v-spacer>
+                      <a
+                        class="text-body-2"
+                        :href="`/${appInfo.appId}/page/ticketManagement`"
+                        target="_blank"
+                        >查看更多></a
+                      >
+                    </v-row>
+                  </v-card-title>
+
+                  <v-card-text>
+                    <p class="text-center">暂无待办</p>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+              <v-col cols="6">
+                <v-card elevation="2">
+                  <v-card-title>
+                    <v-row class="align-center" no-gutters>
+                      <div>跟踪</div>
+                      <v-spacer></v-spacer>
+                      <a
+                        class="text-body-2"
+                        :href="`/${appInfo.appId}/page/ticketManagement`"
+                        target="_blank"
+                        >查看更多></a
+                      >
+                    </v-row>
+                  </v-card-title>
+                  <v-card-text class="px-8 py-4">
+                    <!-- <p class="text-center">暂无跟踪</p> -->
+                    <div>
+                      <p>请假申请</p>
+                      <v-stepper flat alt-labels>
+                        <v-stepper-header>
+                          <v-stepper-step step="1"> admin </v-stepper-step>
+
+                          <v-divider></v-divider>
+
+                          <v-stepper-step step="2"> colin </v-stepper-step>
+                        </v-stepper-header>
+                      </v-stepper>
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+              <v-col cols="6">
+                <v-card elevation="2">
+                  <v-card-title>快捷入口</v-card-title>
+                  <v-card-text>
+                    <v-row>
+                      <v-col cols="1" v-for="item in quickEntryList">
+                        <div class="pa-2">
+                          <a
+                            class="d-flex align-center black--text rounded flex-column"
+                          >
+                            <div class="green lighten-5 pa-2 rounded">
+                              <v-icon size="20" color="green">{{item.icon}}</v-icon>
+                            </div>
+                            <div class="mt-2">{{item.name}}</div>
+                          </a>
+                        </div>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </div>
+          <!-- <<<<<<<<<<<<< 页面内容 -->
+
+          <select-ticket-type-dialog ref="selectTicketTypeDialog" @handleClick="doUiAction('startCreateTicket', $event)" />
+          <create-ticket-drawer ref="createTicketDrawer" />
+        </div>
+
+        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+        <v-navigation-drawer
+          v-if="isHelpPageDrawerLoaded"
+          v-model="isHelpPageDrawerShown"
+          :permanent="isHelpPageDrawerShown"
+          fixed
+          temporary
+          right
+          width="80%"
+          class="elevation-24"
+        >
+          <iframe
+            style="border: 0"
+            :src="`/${appInfo.appId}/pageDoc#404.md`"
+            width="100%"
+            height="100%"
+          ></iframe>
+          <v-btn
+            elevation="0"
+            color="success"
+            fab
+            absolute
+            top
+            left
+            small
+            tile
+            class="drawer-close-float-btn"
+            @click="isHelpPageDrawerShown = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+      </v-main>
+    </v-app>
+
+    <jh-toast />
+    <jh-mask />
+    <jh-confirm-dialog />
+  </div>
+</script>
+
+<div id="app"></div>
+
+{% endblock %} {% block vueScript %}
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+{% include 'component/task-filter-btn.html' %}
+{% include 'common/excelUtil.html' %}
+{% include 'component/task-attachment-list.html' %}
+{% include 'component/ticket/select-ticket-type-dialog.html' %}
+{% include 'component/ticket/create-ticket-drawer.html' %}
+
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    data: () => ({
+      // 面包屑
+      breadcrumbs: [
+        {
+          text: '首页',
+          disabled: true,
+        },
+        {
+          text: '审批首页',
+          disabled: true,
+        },
+      ],
+      isHelpPageDrawerShown: false,
+      isHelpPageDrawerLoaded: false,
+      isMobile: window.innerWidth < 500,
+      // 快捷入口
+      quickEntryList: [
+        {
+          name: '归档',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '草稿',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+      ],
+      // 常用申请列表
+      commonTicketList: [
+        {
+          name: '请假申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '补卡申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '外出申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '出差申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '加班申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '销请假申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '销外出申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+      ],
+    }),
+    watch: {},
+    async created() {},
+    mounted() {},
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'startTicketApply':
+            this.$refs.selectTicketTypeDialog.doUiAction('open');
+            break;
+          case 'startCreateTicket':
+            this.$refs.createTicketDrawer.doUiAction('open', uiActionData);
+            break;
+          default:
+            console.error('[doUiAction] uiActionId not find', { uiActionId });
+            break;
+        }
+      },
+    },
+  });
+</script>
+
+<style scoped>
+  .v-card {
+    height: 300px;
+  }</style
+>{% endblock %}

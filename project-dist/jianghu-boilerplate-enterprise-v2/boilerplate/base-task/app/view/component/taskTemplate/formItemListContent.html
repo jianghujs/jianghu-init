@@ -1,0 +1,189 @@
+<template id="form-item-list-content">
+  <div>
+    <draggable
+      v-show="formItemList.length > 0"
+      :list="formItemList"
+      :animation="300"
+      :class="keyId"
+      group="componentGroup"
+    >
+      <v-hover
+        v-for="(formItem, index) in formItemList"
+        :key="index"
+        v-slot:default="{ hover }"
+      >
+        <v-card
+          outlined
+          @click.native.stop="formItemSelect(formItem.id)"
+          :elevation="hover ? 12 : 2"
+          :class="['my-2', selectCanvaId === formItem.id && !hover ? 'formItem-selected' : 'formItem-body']"
+          style="cursor: move"
+          dense
+        >
+          <v-list-item :id="formItem.id">
+            <span class="jh-input-label mr-2">
+              <span v-if="formItem.component.required" class="red--text">*</span>
+              {{formItem.component.label}}
+            </span>
+            <v-list-item-content
+              v-if="formItem.component.type === 'date'"
+            >
+            <v-menu
+                :close-on-content-click="false"
+                :nudge-right="40"
+                transition="scale-transition"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    class="jh-v-input"
+                    dense
+                    single-line
+                    filled
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker no-title scrollable></v-date-picker>
+              </v-menu>
+
+            </v-list-item-content>
+
+            <v-list-item-content v-else>
+              <component
+                class="jh-v-input"
+                dense
+                single-line
+                filled
+                :key="index"
+                :is="formItem.component.tag"
+                :items="formItem.component.items.split(',')"
+                :placeholder="`请输入${formItem.component.label}`"
+              ></component>
+            </v-list-item-content>
+
+            <v-list-item-action
+              v-if="selectCanvaId === formItem.id"
+              class="justify-start"
+            >
+              <v-btn x-small icon @click.stop="formItemCopy(index, formItem)">
+                <v-icon color="primary">mdi-content-duplicate</v-icon>
+              </v-btn>
+              <v-btn x-small icon @click.stop="formItemDelete(index)">
+                <v-icon color="error">mdi-close-box</v-icon>
+              </v-btn>
+            </v-list-item-action>
+          </v-list-item>
+        </v-card>
+      </v-hover>
+    </draggable>
+
+    <v-row
+      v-show="!formItemList.length"
+      align="center"
+      justify="center"
+      class="ma-0 pa-0"
+      style="width: 100%"
+    >
+      <v-card
+        height="100"
+        class="ma-12"
+        width="100%"
+        color="#f5f8fa"
+        style="border: 1px dashed #333333"
+      >
+        <draggable
+          :class="keyId"
+          :list="[]"
+          :animation="300"
+          group="componentGroup"
+          style="position: relative; height: 100%"
+        >
+          <v-card-text class="text-center title draggable-placeholder">
+            {{emptyTip}}
+          </v-card-text>
+        </draggable>
+      </v-card>
+    </v-row>
+  </div>
+</template>
+
+<script>
+  Vue.component("form-item-list-content", {
+    template: "#form-item-list-content",
+    vuetify: new Vuetify(),
+    name: "form-item-list-content",
+
+    props: {
+      keyId: String,
+      formItemList: {
+        type: Array,
+        default: () => [],
+      },
+      selectedFormItem: {
+        type: Object,
+        default: () => ({}),
+      },
+      selectCanvaId: {
+        type: String,
+        default: "",
+      },
+      emptyTip: {
+        type: String,
+        default: "从左侧拖入或点选组件进行表单设计",
+      },
+    },
+    data: () => ({
+      markdownReady: [],
+    }),
+    computed: {
+      optionKey() {
+        return assignmentUtil.getOptionKey();
+      },
+    },
+    watch: {
+      formItemList: {
+        deep: true,
+        handler(val, oldVal) {
+          console.log(JSON.stringify(val));
+          console.log("formItemList:", val, oldVal);
+          this.$emit("change", val);
+        },
+      },
+    },
+    created() {},
+    methods: {
+      uuid: assignmentUtil.uuid,
+      formItemSelect(data) {
+        eventBus.$emit("updateSelectCanvaId", data);
+      },
+      updateMarkdownValue(event) {
+        if (!this.selectedFormItem.component) return;
+        this.selectedFormItem.component.answer = event;
+      },
+      formItemCopy(index, formItem) {
+        const newFormItem = _.cloneDeep(formItem);
+        (newFormItem.id = `${newFormItem.component.type}_${this.uuid(8)}`),
+          this.formItemList.splice(index + 1, 0, newFormItem);
+        this.formItemSelect(newFormItem.id);
+      },
+
+      formItemDelete(index) {
+        // 如果删除当前焦点题目、则自动焦点至上一题
+        if (this.selectCanvaId === index) {
+          // this.formItemSelect(index - 1)
+        }
+        if (index > -1) {
+          this.formItemList.splice(index, 1);
+        }
+      },
+    },
+  });
+</script>
+
+<style scoped>
+  .formItem-title {
+    white-space: pre-line !important;
+  }
+</style>

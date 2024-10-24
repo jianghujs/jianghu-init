@@ -1,0 +1,79 @@
+<template id="task-filter-btn">
+  <v-menu v-model="menu" :close-on-content-click="false" bottom offset-y offset-x>
+    <template v-slot:activator="{ on, attrs }">
+      <!-- icon筛选 -->
+      <v-btn outlined color="grey" class="filter-btn elevation-0 mr-2" samll v-bind="attrs" v-on="on">
+        <v-icon size="14">
+          mdi-filter-variant
+        </v-icon>
+        筛选</v-btn>
+    </template>
+
+    <v-card>
+      <v-card-title>
+        <span class="headline">筛选</span>
+      </v-card-title>
+      <v-card-text>
+        <v-autocomplete :items="userList" label="负责人" v-model="filterOptions.taskManagerId" item-text="username" item-value="userId" class="jh-v-input mb-2" dense
+          single-line filled></v-autocomplete>
+        <v-menu ref="taskStartAtMenu" v-model="isMenuShown" :close-on-content-click="false" :nudge-right="40"
+          :return-value.sync="filterOptions.taskEndAt" transition="scale-transition" offset-y min-width="auto">
+          <template v-slot:activator="{ on, attrs }">
+            <v-text-field label="截止时间" class="jh-v-input mb-2" dense single-line filled
+              v-model="filterOptions.taskEndAt" v-bind="attrs" v-on="on" dense single-line filled></v-text-field>
+          </template>
+          <v-date-picker v-model="filterOptions.taskEndAt" no-title scrollable>
+            <v-spacer></v-spacer>
+            <v-btn text color="primary" @click="isMenuShown = false">取消</v-btn>
+            <v-btn text color="primary" @click="$refs.taskStartAtMenu.save(filterOptions.taskEndAt)">确定</v-btn>
+          </v-date-picker>
+        </v-menu>
+
+        <v-autocomplete :items="constantObj.taskLevel" v-model="filterOptions.taskLevel" label="优先级" class="jh-v-input mb-2" dense single-line filled></v-autocomplete>
+        <v-switch v-model="filterOptions.taskStatus" label="显示已完成" class="jh-v-input" true-value="已完成" false-value="进行中" dense single-line
+          filled></v-switch>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn small color="primary" @click="applyFilter">保存</v-btn>
+        <v-btn small color="primary primary-1" text @click="menu = false">取消</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-menu>
+</template>
+
+<script type="module">
+  Vue.component("task-filter-btn", {
+    template: '#task-filter-btn',
+    props: {
+      userList: Array,
+      filterOptions: Object,
+    },
+    data: () => ({
+      menu: false,
+      isMenuShown: false,
+      managers: ['Manager1', 'Manager2', 'Manager3'],
+      constantObj: {
+        // 优先级
+        taskLevel: [
+          { text: '无', value: null },
+          { text: '中', value: '中' },
+          { text: '低', value: '低' },
+          { text: '高', value: '高' },
+        ],
+      },
+    }),
+    methods: {
+      applyFilter() {
+        this.menu = false;
+        this.$emit('save')
+      },
+    },
+  })
+</script>
+
+<style scoped>
+  .v-btn.filter-btn:not(.v-btn--round).v-size--default {
+    height: auto;
+  }
+</style>

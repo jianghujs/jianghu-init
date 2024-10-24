@@ -1,0 +1,87 @@
+<template id="view-affiche-drawer">
+  <v-navigation-drawer v-model="isDrawerShown" :permanent="isDrawerShown" fixed temporary right width="80%"
+    class="elevation-24">
+    <!-- 抽屉标题 -->
+    <v-row no-gutters>
+      <span class="text-h7 font-weight-bold pa-4">查看公告</span>
+    </v-row>
+    <v-divider class="jh-divider"></v-divider>
+    <!-- 抽屉表单 -->
+
+    <v-skeleton-loader
+      v-bind="{
+        class: 'mb-6',
+        boilerplate: true,
+        elevation: 2,
+      }"
+      type="article"
+      v-if="isLoading"
+    ></v-skeleton-loader>
+    
+    <div class="jianghu-doc-contentDoc-main-doc">
+      <div class="markdown-body editormd-preview-container jianghu-markdown" id="doc-content">
+        <h1 id="links-0">{{article.taskTitle}}</h1>
+        <md2html :article-content="article.taskContent"></md2html>
+      </div>
+    </div>
+
+    <!-- 抽屉关闭按钮 -->
+    <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+      @click="isDrawerShown = false">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+  </v-navigation-drawer>
+</template>
+{% include 'component/markdown2html/md2html.html' %}
+<script type="module">
+  Vue.component("view-affiche-drawer", {
+    template: '#view-affiche-drawer',
+    data: () => ({
+      isDrawerShown: false,
+      article: {},
+      isLoading: false,
+    }),
+    created() {
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'open':
+            await this.open(uiActionData);
+            await this.getArticleDetail(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      async open({ taskId }) {
+        this.isDrawerShown = true;
+        this.taskId = taskId
+      },
+      async getArticleDetail() {
+        this.isLoading = true
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'afficheViewer',
+              actionId: 'selectItemList',
+              where: {
+                taskId: this.taskId
+              },
+            }
+          }
+        })
+        this.isLoading = false
+        const article = result.data.appData.resultData.rows[0] || {}
+        this.article = article;
+      },
+
+    },
+  })
+</script>
+<style scoped>
+  .markdown-body img {
+    max-height: 350px;
+  }
+</style>

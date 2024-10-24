@@ -1,0 +1,164 @@
+<template id="select-ticket-type-dialog">
+  <v-dialog
+    v-model="isDialogShown"
+    transition="dialog-bottom-transition"
+    max-width="800"
+    max-height="700"
+  >
+    <v-card height="500">
+      <v-card-title>
+        <v-row class="align-center" no-gutters>
+          <span class="text-h7 font-weight-bold pa-4">发起审批类型</span>
+          <v-spacer></v-spacer>
+          <!-- 关闭icon -->
+            <v-icon
+            @click="isDialogShown = false"
+            color="grey"
+            size="30"
+            class="mr-4 font-weight-bold"
+            >mdi-close</v-icon>
+        </v-row>
+      </v-card-title>
+      <v-card-text style="background-color: rgb(255, 255, 255);">
+        <v-row>
+          <v-col cols="4" v-for="item in ticketList">
+            <div class="grey lighten-4 pa-2 ticket-item" @click="doUiAction('handleClick', {item})">
+              <a class="d-flex align-center black--text rounded">
+                <div :class="`${item.color} pa-2 rounded`">
+                  <v-icon size="20" color="white">{{item.icon}}</v-icon>
+                </div>
+                <div class="ml-2">{{item.name}}</div>
+              </a>
+            </div>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+</template>
+
+<script type="module">
+  Vue.component('select-ticket-type-dialog', {
+    template: '#select-ticket-type-dialog',
+    props: {},
+    data: () => ({
+      ticketList: [
+      {
+          name: '请假申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '补卡申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '外出申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '出差申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '加班申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '销请假申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '销外出申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '销出差申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '停车申请登记表',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '用印申请',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '通用审批',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '培训请假申请（风神商学院）',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '课程审核（风神商学院）',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+        {
+          name: '培训计划审核（风神商学院）',
+          icon: 'mdi-file',
+          color: 'green',
+          url: '/211.jianghujs-enterprise-v2/page/ticketManagement',
+        },
+      ],
+      isDialogShown: false,
+    }),
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'open':
+            await this.open(uiActionData);
+            await this.getTaskDetail();
+            break;
+          case 'handleClick':
+            await this.handleClick(uiActionData);
+            break;
+          default:
+            console.error('[doUiAction] uiActionId not find', { uiActionId });
+            break;
+        }
+      },
+      async open() {
+        this.isDialogShown = true;
+      },
+      async handleClick(uiActionData) {
+        this.isDialogShown = false;
+        this.$emit('handleClick', uiActionData);
+      }
+    },
+  });
+</script>
+
+<style scoped>
+.v-application .grey.lighten-4.ticket-item:hover {
+  background-color: #ddd!important;
+  border-color: #ddd!important;
+}
+</style>

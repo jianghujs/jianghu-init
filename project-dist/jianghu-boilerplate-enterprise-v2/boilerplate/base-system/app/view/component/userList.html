@@ -1,0 +1,215 @@
+<!-- userList.html start -->
+<script type="text/x-template" id="user-list">
+  <div>
+    <!-- 页面内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-body-container">
+      <v-card  class="rounded-lg elevation-0">
+        <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0" align="center">
+          <v-chip >
+            用户列表 {{ tableDataComputed.length }}
+          </v-chip>
+          <v-spacer ></v-spacer>
+          <v-col cols="12" sm="6" md="4" :xs="8" class="pa-0">
+            <v-text-field prefix="筛选" v-model="searchInput" class="jh-v-input" dense filled single-line></v-text-field>
+          </v-col>
+        </v-row>
+        <!-- 表格 -->
+        <v-data-table
+          :headers="headers"
+          :items="tableDataComputed"
+          :search="searchInput"
+          :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+          :items-per-page="-1"
+          mobile-breakpoint="0"
+          :loading="isTableLoading"
+          checkbox-color="success"
+          :class="{'zebraLine': true }"
+          fixed-header
+          :items="tableDataComputed"
+          :hide-default-footer="true"
+          class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+        >
+
+          <!-- 表格插槽 -->
+          
+
+          <!-- 自定义渲染列 -->
+          <!-- 没有数据 -->
+          <template v-slot:loading>
+            <div class="jh-no-data">数据加载中</div>
+          </template>
+          <template v-slot:no-data>
+            <div class="jh-no-data">暂无数据</div>
+          </template>
+          <template v-slot:no-results>
+            <div class="jh-no-data">暂无数据</div>
+          </template>
+          <!-- 表格分页 -->
+          <template v-slot:footer.page-text="pagination">
+            <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+            <span class="ml-1">共{{pagination.itemsLength}}条</span>
+          </template>
+        </v-data-table>
+      </v-card>
+    </div>
+    <!-- <<<<<<<<<<<<< 页面内容 -->
+  </div>
+</script>
+<script>
+Vue.component("user-list", {
+  template: '#user-list',
+  vuetify: new Vuetify(),
+  name: 'user-list',
+  props: {
+    appId: {
+      type: String,
+      default: ""
+    }
+  },
+  data: () => ({
+
+    isMobile: window.innerWidth < 500,
+
+    // ================================ 表格相关 ================================
+    headers: [
+      { text: "账号", value: "userId", width: 90 },
+      { text: "姓名", value: "username", width: 100 },
+      { text: "部门角色", value: "groupRoleName" },
+    ],
+    tableData: [],
+    isTableLoading: false,
+    searchInput: null,
+    serverSearchWhere: {},
+    serverSearchWhereLike: {},
+
+    // ================================ common ================================ 
+    constantObj: {}, 
+    validationRules: {
+      requireRules: [
+        v => !!v || '必填'
+      ]
+    }, 
+    testString: '测试字符串', 
+    serverSearchWhereLike: {
+      className: ""
+    }, 
+    serverSearchWhere: {}, 
+    isMobile: window.innerWidth < 500,
+
+    // ================================ 其他抽屉列表 ================================
+  }),
+  watch: {
+  },
+  computed: {
+     
+    tableDataComputed() {
+      if(this.filterMap) {
+        return this.tableData.filter(row => {
+          for (const key in this.filterMap) {
+            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+              return false;
+            }
+          }
+          return true;
+        });
+      } else {
+        return this.tableData;
+      }
+    },
+    tableDataComputed() {
+      return this.tableData;
+    },
+  },async created() {
+    this.serverSearchWhere.appId = this.appId;
+    await this.getTableData();
+  },mounted() {
+    resetTableMaxHeight()
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      try {
+        switch (uiActionId) { 
+          case 'getTableData': 
+            await this.getTableData(uiActionData);
+            break;
+
+
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      } catch (error) {
+        window.jhMask && window.jhMask.hide();
+        throw error;
+      } finally {
+        window.jhMask && window.jhMask.hide();
+      }
+    },
+    // ---------- 获取表格数据 uiAction >>>>>>>>>> --------
+    async getTableData() {
+      this.isTableLoading = true;
+      const where = {};
+      const whereLike = {};
+      const whereIn = {};
+      for (const fieldKey in this.serverSearchWhere) {
+        const fieldValue = this.serverSearchWhere[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            where[fieldKey] = fieldValue.trim();
+          } else {
+            where[fieldKey] = fieldValue;
+          }
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereLike) {
+        const fieldValue = this.serverSearchWhereLike[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            whereLike[fieldKey] = '%' + fieldValue.trim() + '%';
+          } else {
+            whereLike[fieldKey] = '%' + fieldValue + '%';
+          }
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereIn) {
+        const fieldValue = this.serverSearchWhereIn[fieldKey];
+        if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
+          whereIn[fieldKey] = fieldValue;
+        }
+      }
+      let orderBy = [{column: 'operationAt', order: 'desc'}];
+
+      const {rows, count} = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'appManagement',
+            actionId: "userList-selectItemList",
+            actionData: {},
+            where,
+            whereLike,
+            whereIn,
+            orderBy
+          }
+        }
+      })).data.appData.resultData;
+      
+      this.tableData = this.formatTableData(rows);
+      this.isTableLoading = false;
+    },
+    formatTableData(rows) {
+      rows.forEach(row => {
+        row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+      });
+      return rows;
+    },
+    // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
+
+    // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+    // ---------- Custom uiAction >>>>>>>>>>>> --------
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
+  }
+})
+</script>
+<style>
+</style>
+<!-- userList.html end -->

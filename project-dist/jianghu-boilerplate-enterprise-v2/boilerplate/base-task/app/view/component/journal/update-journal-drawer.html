@@ -1,0 +1,308 @@
+<template id="update-journal-drawer">
+  <v-navigation-drawer
+    v-if="isUpdateDrawerShown"
+    v-model="isUpdateDrawerShown"
+    :permanent="isUpdateDrawerShown"
+    fixed
+    temporary
+    right
+    width="80%"
+    class="elevation-24"
+  >
+    <v-form ref="updateForm" lazy-validation>
+      <!-- 抽屉标题 -->
+      <v-row no-gutters>
+        <span class="text-h7 font-weight-bold pa-4"
+          >修改【{{updateItem.taskTitle}}】</span
+        >
+      </v-row>
+      <v-divider class="jh-divider"></v-divider>
+      <!-- 抽屉表单 -->
+      <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="updateItem.xxxId" :rules="validationRules.requireRules"></v-text-field> -->
+      <v-form ref="form" lazy-validation>
+        <v-row class="mt-0 px-4">
+          <v-col
+            cols="12"
+            sm="12"
+            md="12"
+            v-for="(item, index) in updateItem.taskContent"
+          >
+            <span class="jh-input-label">
+              <span v-if="item.component.required" class="red--text">*</span>
+              {{item.component.label}}</span
+            >
+            <v-menu
+              :close-on-content-click="false"
+              :nudge-right="40"
+              transition="scale-transition"
+              offset-y
+              min-width="auto"
+              v-if="item.component.type === 'date'"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  class="jh-v-input"
+                  v-model="item.component.value"
+                  dense
+                  single-line
+                  filled
+                  v-bind="attrs"
+                  v-on="on"
+                  :required="item.component.required"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="item.component.value"
+                no-title
+                scrollable
+              ></v-date-picker>
+            </v-menu>
+
+            <task-attachment-list
+              :files="item.component.value"
+              v-else-if="item.component.type === 'file'"
+            ></task-attachment-list>
+            <component
+              v-else
+              class="jh-v-input"
+              v-model="item.component.value"
+              dense
+              single-line
+              :items="item.component.items.split(',')"
+
+              filled
+              :key="index"
+              :required="item.component.required"
+              :is="item.component.tag"
+              :placeholder="`请输入${item.component.label}`"
+            ></component>
+          </v-col>
+          <v-col
+            cols="12"
+            sm="12"
+            md="12"
+          >
+            <span class="jh-input-label">
+              发送给
+            </span>
+
+            <div class="d-flex flex-wrap">
+              <div cols="3" class="mr-2 mb-2" v-for="item in updateItem.taskNoticeConfig">
+                <div class="small-card px-4">
+                  <v-avatar tile color="primary" size="25">
+                    <span class="white--text">{{ item.username[0] }}</span>
+                  </v-avatar>
+                  <span class="ml-1 primary--text">{{item.username}}</span>
+                  <v-btn icon x-small v-if="!item.readonly" class="ml-2" @click="doUiAction('removePerson')">
+                    <v-icon>mdi-close</v-icon>
+                  </v-btn>
+                </div>
+  
+  
+              </div>
+              <div class="small-card add-block" @click="doUiAction('startAddPerson')">
+                <v-icon color="primary" size="24">mdi-plus</v-icon>
+              </div>
+            </div>
+
+          </v-col>
+        </v-row>
+
+        <v-col cols="12" sm="12" md="12" v-if="updateItem.taskManagerId===userId">
+          <span class="jh-input-label">评论列表
+            <span class="grey--text text-caption">(评论将自动通知当前及之前节点的审批人)</span>
+          </span>
+          <task-comment-list :comments.sync="updateItem.taskCommentList" @confirm="postComment" />
+        </v-col>
+      </v-form>
+
+      <!-- 抽屉操作按钮 -->
+      <v-row class="justify-end mx-0 mt-8 px-6">
+        <v-btn color="success" @click="doUiAction('updateItem')" small
+          >保存</v-btn
+        >
+        <v-btn
+          class="elevation-0 ml-2"
+          @click="isUpdateDrawerShown = false"
+          small
+          >取消</v-btn
+        >
+      </v-row>
+    </v-form>
+    <!-- 抽屉关闭按钮 -->
+    <v-btn
+      elevation="0"
+      color="success"
+      fab
+      absolute
+      top
+      left
+      small
+      tile
+      class="drawer-close-float-btn"
+      @click="isUpdateDrawerShown = false"
+    >
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+  </v-navigation-drawer>
+</template>
+
+<script type="module">
+  Vue.component("update-journal-drawer", {
+    template: "#update-journal-drawer",
+
+    data: () => ({
+      isUpdateDrawerShown: false,
+      userId: window.userInfo.userId,
+
+      updateItem: {},
+
+      step: 1,
+      validationRules: {
+        requireRules: [(v) => !!v || "必填"],
+      },
+    }),
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case "open":
+            await this.open(uiActionData);
+            break;
+          case "updateItem":
+            await this.prepareUpdateValidate();
+            await this.confirmUpdateItemDialog();
+            await this.prepareDoUpdateItem();
+            await this.doUpdateItem();
+            await this.closeUpdateDrawer();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      async open({ item = {} } = {}) {
+        this.isUpdateDrawerShown = true;
+        const newItem = {...item}
+
+        newItem.taskNoticeConfig = JSON.parse(newItem.taskNoticeConfig);
+        newItem.taskContent = JSON.parse(newItem.taskContent);
+        newItem.taskCommentList = JSON.parse(newItem.taskCommentList || '[]');
+
+        this.updateItem = newItem;
+      },
+      // ---------- 修改数据 uiAction >>>>>>>>>> --------
+      async prepareUpdateFormData() {
+      
+      },
+
+      async openUpdateDrawer() {
+        this.isUpdateDrawerShown = true;
+      },
+
+      async prepareUpdateValidate() {
+        // if (await this.$refs.updateForm.validate()) {
+        //   return true;
+        // }
+        // throw new Error("请完善表单信息");
+        this.updateItem.taskContent.forEach((item) => {
+          
+          if (item.component.required && _.isEmpty(item.component.value)) {
+            window.vtoast.fail(`[${item.component.label}]不能为空`);
+            throw new Error(`请完善表单信息`);
+          }
+        });
+
+      },
+
+      async confirmUpdateItemDialog() {
+        if (
+          (await window.confirmDialog({
+            title: "修改",
+            content: "确定修改吗？",
+          })) === false
+        ) {
+          throw new Error("[confirmupdateFormDialog] 否");
+        }
+      },
+
+      prepareDoUpdateItem() {
+        const { id, ...data } = this.updateItem;
+
+        data.taskMemberIdList = data.taskNoticeConfig
+          .map((item) => item.userId)
+          .join(",");
+
+        data.taskNoticeConfig = JSON.stringify(data.taskNoticeConfig);
+        data.taskContent = JSON.stringify(data.taskContent);
+
+        this.updateId = id;
+        this.updateActionData = data;
+      },
+
+      async doUpdateItem() {
+        
+        await window.vtoast.loading("修改数据");
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: "ticketSubmitManagement",
+              actionId: "updateItem",
+              actionData: this.updateActionData,
+              where: { id: this.updateId}
+            },
+          },
+        });
+
+        // await this.addNotice({
+        //   ...this.updateActionData,
+        //   rowId: result.data.appData.resultData.rows[0],
+        // });
+        this.$emit('success')
+        
+        await window.vtoast.success("修改数据成功");
+      },
+      async closeUpdateDrawer() {
+        this.isUpdateDrawerShown = false;
+        this.updateItem = {};
+        this.updateActionData = null;
+      },
+      // ---------- <<<<<<<<<<< 修改数据 uiAction ---------
+      async addNotice(item) {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: "allPage",
+              actionId: "addNotice",
+              actionData: item,
+            },
+          },
+        });
+      },
+      async postComment() {
+        const { id, ...data } = this.updateItem
+        data.taskCommentList = JSON.stringify(data.taskCommentList)
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'allPage',
+              actionId: 'updateTask',
+              actionData: { taskCommentList: data.taskCommentList },
+              where: { id },
+            }
+          }
+        })
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'allPage',
+              actionId: 'addCommentNotice',
+              actionData: data,
+            }
+          }
+        })
+      },
+    },
+  });
+</script>
+
+<style scoped></style>

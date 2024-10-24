@@ -1,0 +1,412 @@
+<template id="form-item-list-generator">
+  <v-card
+    color="#f5f8fa"
+    style="max-height: 500px"
+    :class="{'d-flex': !isMobile, 'form-item-list-generator-content': !isMobile}"
+  >
+    <v-card
+      style="max-height: 100%; overflow-y: auto"
+      :style="{'width': isMobile ? '100%' : '300px'}"
+      :class="{'pa-4': !isMobile, 'pa-2': isMobile, 'mr-6': !isMobile}"
+    >
+      <div class="left-component-item-title" :style="{'white-space': 'nowrap'}">
+        <v-icon>mdi-puzzle-outline</v-icon>
+        <span style="transform: translateY(2px); display: inline-block"
+          >组件</span
+        >
+      </div>
+      <draggable
+        :group="{ name: 'componentGroup', pull: 'clone', put: false }"
+        :list="componentList"
+        draggable=".left-component-item"
+        :clone="cloneComponent"
+        @end="leftComponentDraggableOnEnd"
+      >
+        <div
+          class="left-component-item"
+          v-for="(component, index) in componentList"
+          :key="index"
+          @click="addFormItem(component)"
+        >
+          <div class="left-component-item-body">
+            <v-icon small class="mr-1">{{ component.icon }}</v-icon>
+            {{ component.typeDesc }}
+          </div>
+        </div>
+      </draggable>
+    </v-card>
+
+    <v-card
+      class="formItemList pt-5 px-4"
+      style="position: relative;height:500px; overflow-y: auto"
+    >
+      <div class="d-flex justify-end">
+        <!--v-btn small color="primary" @click="$emit('onImportQuestionBank')" class="mr-2">
+          <span>导入题库</span>
+        </v-btn-->
+
+        <span>请注意：如果本文已发布，先撤销发布，再修改保存。</span>
+        <slot name="toolbar"></slot>
+      </div>
+      <form-item-list-content
+        :select-canva-id="selectCanvaId"
+        :selected-form-item="selectedFormItem"
+        :form-item-list="formItemList"
+      />
+    </v-card>
+
+    <v-card
+      style="max-height: 100%; overflow-y: auto"
+      :style="{'width': isMobile ? 'auto' : '300px'}"
+      class="pa-4"
+      :class="{'ml-6': !isMobile}"
+    >
+      <div class="property-title">
+        <v-icon>mdi-application-edit-outline</v-icon>
+        <span style="transform: translateY(2px); display: inline-block"
+          >组件属性</span
+        >
+      </div>
+      <div v-if="selectCanvaId && selectedFormItem">
+        <v-row no-gutters>
+          <v-col cols="12" md="12" class="mt-2">
+              <span class="jh-input-label">名称</span>
+              <v-text-field class="jh-v-input" dense single-line filled v-model="selectedFormItem.component.label"></v-text-field>
+          </v-col>
+          <v-col cols="12" md="12" class="mt-2">
+            <span class="jh-input-label">其他可选</span>
+            <v-checkbox label="必填" class="jh-v-input mt-0 pt-0" dense single-line filled v-model="selectedFormItem.component.required"></v-checkbox>
+        </v-col>
+        <v-col cols="12" md="12" class="mt-2" v-if="selectedFormItem.component.type == 'select'">
+          <span class="jh-input-label">选项(英文逗号分隔)</span>
+          <v-textarea class="jh-v-input" dense single-line filled v-model="selectedFormItem.component.items"></v-textarea>
+      </v-col>
+        <v-row>
+      </div>
+    </v-card>
+  </v-card>
+</template>
+
+<script src="/<$ ctx.app.config.appId $>/public/lib/Sortable.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/lib/vuedraggable.umd.min.js"></script>
+
+<script>
+  // 1. v-main 滚动条
+  // 2. v-navigation-drawer 小屏幕 不要关闭
+  Vue.component("form-item-list-generator", {
+    template: "#form-item-list-generator",
+    vuetify: new Vuetify(),
+    name: "form-item-list-generator",
+    props: {
+      formItemList: {
+        type: Array,
+        default: () => [],
+      },
+      selectCanvaId: {
+        type: String,
+        default: "",
+      },
+    },
+    data: () => ({
+      constantCollection: {
+        // text - 题目 input - 填空
+        fillBlankType: {
+          text: "题目",
+          input: "填空",
+        },
+      },
+      componentList: [
+        {
+          typeDesc: "单行文本框",
+          type: "input",
+          tag: "v-text-field",
+          icon: "mdi-format-text-rotation-none",
+          label: '单行文本框',
+        },
+        {
+          typeDesc: "日期选择框",
+          type: "date",
+          tag: "v-date-picker",
+          icon: "mdi-calendar-range",
+          label: '日期选择框',
+        },
+        {
+          typeDesc: "多行文本框",
+          type: "textarea",
+          tag: "v-textarea",
+          icon: "mdi-form-textarea",
+          label: '多行文本框',
+        },
+        {
+          typeDesc: "选择框",
+          type: "select",
+          tag: "v-autocomplete",
+          icon: "mdi-select",
+          label: '选择框',
+        },
+        { typeDesc: "复选框", type: "checkbox", tag: "v-checkbox", icon: "mdi-checkbox-outline", label: '复选框', },
+        { typeDesc: "单选框", type: "radio", tag: "v-radio", icon: "mdi-radiobox-marked", label: '单选框', },
+        { typeDesc: "开关", type: "switch", tag: "v-switch", icon: "mdi-toggle-switch-off-outline", label: '开关', },
+        {
+          typeDesc: "上传文件",
+          type: "file",
+          tag: "v-file-input",
+          icon: "mdi-file-account-outline",
+          label: '上传文件',
+        },
+      ],
+      tempComponent: null,
+
+      // 当 needle 是空字符串时，我们应当返回什么值呢？这是一个在面试中很好的问题。
+
+      // 对于本题而言，当 needle 是空字符串时我们应当返回 0 。这与 C 语言的 strstr() 以及 Java 的 indexOf() 定义相符。
+      // 著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。
+      // `,
+      //             property: {}, icon: 'mdi-checkbox-marked-circle'
+      //           },
+      //           formItemData: {}
+      //         }
+      //       ],
+      selectedFormItemId: null,
+      rightPanels: [0, 1, 2, 3, 4],
+    }),
+
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+      optionKey() {
+        return assignmentUtil.getOptionKey();
+      },
+
+      selectedFormItem() {
+        let filteredSelectedFormItem = null;
+        try {
+          this.formItemList.forEach((item) => {
+            if (item.id === this.selectCanvaId) {
+              filteredSelectedFormItem = item;
+              throw Error();
+            }
+            const itemList = item.component.itemList;
+            if (Array.isArray(itemList)) {
+              itemList.forEach((item2) => {
+                if (item2.id === this.selectCanvaId) {
+                  filteredSelectedFormItem = item2;
+                  throw Error();
+                }
+              });
+            }
+          });
+        } catch (e) {}
+
+        console.log("filteredSelectedFormItem", filteredSelectedFormItem);
+        return filteredSelectedFormItem;
+      },
+    },
+    mounted() {},
+    destroyed() {},
+    async created() {},
+    methods: {
+      uuid: assignmentUtil.uuid,
+      formItemSelect(data) {
+        eventBus.$emit("updateSelectCanvaId", data);
+      },
+      emptyCanva() {
+        this.formItemList = [];
+        this.$emit("change", []);
+      },
+      cloneComponent(component) {
+        this.tempComponent = component;
+      },
+      leftComponentDraggableOnEnd(event) {
+        console.log("leftComponentDraggableOnEnd event:", event);
+        if (event.from !== event.to) {
+          const newIndex = event.newIndex;
+          this.addFormItem(this.tempComponent, newIndex, event);
+        }
+        this.tempComponent = null;
+      },
+      addFormItem(_component, targetIndex, event) {
+        const component = {
+          items: '',
+          value: null,
+          label: null,
+          required: false,
+          ..._component,
+        };
+        if (_component.type === "select") {
+          component.items = (_component.items || '');
+        }
+        if (_component.type === "file") {
+          component.value = [];
+        }
+
+        const { type } = component;
+        const formItem = {
+          id: `${type}_${this.uuid(8)}`,
+          component: _.cloneDeep(component),
+        };
+
+        if (!this.formItemList) {
+          this.formItemList = [];
+        }
+        this.formItemList.push(formItem)
+        this.$emit("change", this.formItemList);
+        setTimeout(() => {
+          this.formItemSelect(formItem.id);
+        }, 500);
+      },
+
+      getFormItemList() {
+        return this.formItemList;
+      },
+    },
+  });
+</script>
+
+<style scoped>
+  .form-item-list-generator-content {
+    align-items: stretch;
+    height: 100%;
+  }
+
+  .componentList {
+    padding: 8px;
+    box-sizing: border-box;
+    width: 256px;
+    overflow-y: auto;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .left-component-item {
+    width: 100%;
+    margin: 8px 0;
+    transition: transform 0ms !important;
+  }
+
+  .left-component-item-title {
+    font-size: 14px;
+    color: #222;
+    margin: 6px 2px;
+  }
+
+  .left-component-item-body {
+    padding: 8px 10px;
+    background: #f5f8fa;
+    font-size: 12px;
+    cursor: move;
+    border: 1px dashed #f5f8fa;
+    border-radius: 3px;
+  }
+
+  .left-component-item-body:hover {
+    border: 1px dashed #4caf50;
+    background: #f5f8fa;
+    color: #4caf50;
+  }
+
+  .left-component-item-body:hover .v-icon {
+    color: #4caf50;
+  }
+
+  .formItemList {
+    flex: 1;
+    overflow-y: auto;
+    height: 100%;
+    max-height: calc(100vh - 200px);
+  }
+
+  .formItemList .formItem-selected {
+    border: 1px dashed #4caf50 !important;
+    background: #e6fde3;
+  }
+
+  .formItem-title {
+    white-space: normal;
+  }
+
+  .property {
+    width: 360px;
+    overflow-y: auto;
+    max-height: calc(100vh - 105px);
+    padding: 10px;
+  }
+
+  .property .property-title {
+    margin-bottom: 10px;
+  }
+
+  .property .v-expansion-panel .v-expansion-panel-header {
+    min-height: auto;
+  }
+
+  .property .v-expansion-panel-content__wrap {
+    padding: 0px;
+  }
+
+  .property .v-expansion-panel .v-list-item__action,
+  .v-list-item__avatar,
+  .v-list-item__icon {
+    display: inline-block;
+    min-width: 24px;
+  }
+
+  .propertyList::-webkit-scrollbar {
+    width: 5px;
+    background: #f5f8fa;
+    border-radius: 5px;
+  }
+
+  .propertyList::-webkit-scrollbar-thumb {
+    width: 5px;
+    background: #606060;
+    border-radius: 5px;
+  }
+
+  body
+    .theme--light.v-text-field--filled.cus-v-input.black
+    > .v-input__control
+    > .v-input__slot {
+    background: #e6ebee;
+  }
+
+  .draggable-placeholder {
+    position: absolute;
+    left: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    opacity: 0.3;
+  }
+
+  .fill-blank {
+    display: inline-block;
+  }
+
+  .fill-blank-input {
+    padding-left: 10px;
+    padding-right: 10px;
+    border-bottom: 2px solid gray;
+    margin-left: 5px;
+    margin-right: 5px;
+    display: inline-block;
+  }
+
+  @media (max-width: 500px) {
+    .left-component-item {
+      width: auto;
+      display: inline-block;
+      margin: 8px 4px;
+      transition: transform 0ms !important;
+    }
+
+    .formItemList {
+      border-top: 2px solid #cccccc !important;
+      border-bottom: 2px solid #cccccc !important;
+      border-radius: unset !important;
+      height: auto;
+      max-height: none;
+      overflow: hidden;
+    }
+  }
+</style>

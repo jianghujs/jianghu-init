@@ -1,0 +1,240 @@
+<template id="task-attachment-list">
+  <div class="task-attachment-list">
+    <v-btn
+      v-if="!readonly"
+      color="primary"
+      outlined
+      small
+      @click="startUploadFile"
+    >
+      <!-- 添加icon -->
+      <v-icon size="14">mdi-plus</v-icon>
+      添加</v-btn
+    >
+
+    <v-list dense>
+      <template v-for="(item, index) in files" :key="index">
+        <v-list-item class="mb-2" @click="jumpPreviewPage(item)">
+          <v-list-item-avatar>
+            <v-img :src="getFileAvatar(item)"></v-img>
+          </v-list-item-avatar>
+
+          <v-list-item-content>
+            <v-list-item-title v-html="item.filename"></v-list-item-title>
+            <v-list-item-subtitle
+              v-html="getFileSize(item.binarySize)"
+            ></v-list-item-subtitle>
+          </v-list-item-content>
+
+          <v-list-item-icon v-if="!readonly" @click.stop="deleteFile(index)">
+            <v-icon color="grey"> mdi-trash-can-outline </v-icon>
+          </v-list-item-icon>
+        </v-list-item>
+      </template>
+    </v-list>
+
+    <!-- 预览 -->
+    <div>
+      <viewer ref="viewer" :images="previewFileUrl" class="images clearfix">
+        <template slot-scope="scope">
+          <img style="display: none" :src="previewFileUrl" class="image" />
+        </template>
+      </viewer>
+
+      <v-overlay absolute :value="showOverlay">
+        <!-- 关闭icon -->
+        <v-icon
+          style="position: fixed; right: 10px; top: 5px; z-index: 50000"
+          large
+          color="white"
+          @click="showOverlay = false"
+        >
+          mdi-close-circle
+        </v-icon>
+        <!-- 视频 -->
+        <video
+          v-if="previewFileType === 'video'"
+          class="mx-auto"
+          :src="previewFileUrl"
+          controls
+          style="max-width: 100%; height: 100vh"
+        ></video>
+        <!-- pdf -->
+        <iframe
+          v-else-if="previewFileType === 'pdf'"
+          :src="'/<$ ctx.app.config.appId $>/public/pdf/web/viewer.html?file=' + previewFileUrl"
+          frameborder="0"
+          style="width: 75vw; height: 100vh; padding: 50px 0 0 0"
+        ></iframe>
+        <!-- wps -->
+        <iframe
+          v-else-if="previewFileType === 'wps'"
+          :src="'https://view.officeapps.live.com/op/view.aspx?src=' + previewFileUrl"
+          frameborder="0"
+          style="width: 75vw; height: 100vh; padding: 50px 0 0 0"
+        ></iframe>
+      </v-overlay>
+    </div>
+
+    <select-file-dialog ref="selectFileDialog" @confirm="handleFileUpload" />
+  </div>
+</template>
+
+<link
+  href="/<$ ctx.app.config.appId $>/public/lib/viewerjs/viewer.min.css"
+  rel="stylesheet"
+/>
+<script src="/<$ ctx.app.config.appId $>/public/lib/viewerjs/viewer.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/lib/viewerjs/v-viewer.min.js"></script>
+
+<script type="module">
+  Vue.use(VueViewer.default);
+
+  Vue.component("task-attachment-list", {
+    template: "#task-attachment-list",
+    props: {
+      files: {
+        type: Array,
+        default: () => [],
+      },
+      // 是否只读
+      readonly: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data: () => ({
+      previewFileUrl: null,
+      previewFileType: null,
+
+      showOverlay: false,
+    }),
+    created() {},
+    methods: {
+      getFileAvatar(item) {
+        let avatarUrl = "https://example.com/default-avatar.png";
+        const { downloadBasePath, downloadPath, filename } = item;
+
+        const fileType = this.getFileType(item);
+
+        switch (fileType) {
+          case 'image':
+            avatarUrl = `${window.location.origin}${downloadBasePath}${downloadPath}`;
+            break;
+          case 'video':
+            avatarUrl = `/<$ ctx.app.config.appId $>/public/img/icon-video.png`;
+            break;
+          case 'pdf':
+            avatarUrl = `/<$ ctx.app.config.appId $>/public/img/icon-pdf.png`;
+            break;
+          case 'wps':
+            avatarUrl = `/<$ ctx.app.config.appId $>/public/img/icon-wps.png`;
+            break;
+          default:
+            break;
+        }
+      
+        return avatarUrl;
+      },
+      getFileSize(sizeInBytes) {
+        let units = ["B", "KB", "MB", "GB", "TB"];
+        let unitIndex = 0;
+        let size = sizeInBytes;
+
+        while (size >= 1024 && unitIndex < units.length - 1) {
+          size /= 1024;
+          unitIndex++;
+        }
+
+        return `${Number(size).toFixed(2)} ${units[unitIndex]}`;
+      },
+      deleteFile(index) {
+        this.files.splice(index, 1);
+        this.$emit("update:files", this.files);
+      },
+      downloadFile(item) {
+        const { downloadBasePath, downloadPath, filename } = item;
+        const fileUrl = `${window.origin}${downloadBasePath}${downloadPath}`;
+
+        // 下载文件
+        const link = document.createElement("a");
+        link.href = fileUrl;
+
+        // 设置链接元素的下载属性和文件名（如果需要）
+        link.setAttribute("download", filename); // 可以更改文件名
+
+        // 模拟点击链接以触发下载
+        link.click();
+      },
+      startUploadFile() {
+        this.$refs.selectFileDialog.doUiAction("open");
+      },
+      async handleFileUpload(item) {
+        this.files.push(item);
+        this.$emit("update:files", this.files);
+      },
+      getFileType(item) {
+        const { downloadPath } = item;
+
+        const ext = downloadPath.substring(downloadPath.lastIndexOf(".") + 1);
+        if (ext) {
+          if (
+            ["jpg", "jpeg", "png", "gif", "ico", "svg"].includes(
+              ext.toLowerCase()
+            )
+          ) {
+            return "image";
+          }
+          if (["mp4"].includes(ext.toLowerCase())) {
+            return "video";
+          }
+          if (["pdf"].includes(ext.toLowerCase())) {
+            return "pdf";
+          }
+          if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext.toLowerCase())) {
+            return "wps";
+          }
+        }
+      },
+      async jumpPreviewPage(item) {
+        const { downloadBasePath, downloadPath } = item;
+        this.previewFileUrl = `${window.location.origin}${downloadBasePath}${downloadPath}`;
+
+        const fileType = this.getFileType(item);
+        this.previewFileType = fileType;
+
+        if (fileType === "image") {
+          this.$refs.viewer.$viewer.show();
+        }
+        if (['video', 'pdf', 'wps'].includes(fileType)) {
+          this.showOverlay = true;
+        }
+      },
+    },
+  });
+</script>
+<style scoped>
+  .text-decoration-line-through {
+    text-decoration: line-through;
+  }
+
+  .todo-item {
+    padding: 4px 0 4px 4px;
+  }
+
+  .todo-item input {
+    padding: 0;
+  }
+
+  .todo-item-text {
+    width: 100%;
+  }
+  .task-attachment-list .v-list-item {
+    border: 1px dashed #4caf50;
+  }
+  .task-attachment-list .v-list--dense .v-list-item .v-list-item__icon,
+  .v-list-item--dense .v-list-item__icon {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+</style>

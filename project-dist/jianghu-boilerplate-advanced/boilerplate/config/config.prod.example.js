@@ -5,11 +5,6 @@ const path = require('path');
 module.exports = appInfo => {
 
   return {
-    appDirectoryLink: 'https://panshi.openjianghu.org',
-    jiangHuConfig: {
-      packageIdCheck: true,
-      updateRequestDemoAndResponseDemo: false,
-    },
     knex: {
       client: {
         dialect: 'mysql',

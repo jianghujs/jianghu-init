@@ -32,7 +32,7 @@
         "description": "Jianghu 3table crud"
       },
       "enterprise-v2": {
-        "package": "@jianghujs/jianghu-boilerplate-enterprise",
+        "package": "@jianghujs/jianghu-boilerplate-enterprise-v2",
         "description": "Jianghu multi enterprise"
       },
       "1table-crud-enterprise-v2": {

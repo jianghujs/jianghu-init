@@ -1,209 +1,398 @@
-{% extends 'template/jhTemplateV4.html'%}
+{% block htmlHead %}
+{% endblock %}
 
+{% extends 'template/jhTemplateV4.html'%}
 {% block vueTemplate %}
 <script type="text/html" id="app-template">
 <div>
 <v-app mobile-breakpoint="sm">
   <jh-menu />
-  <v-main class="mt-15">
+  <v-main class="mt-13">
     <!-- 头部内容 >>>>>>>>>>>>> -->
-    <div class="jh-page-second-bar px-8">
-      <v-row class="align-center">
-        <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-          <div class="py-4 text-body-1 font-weight-bold">页面访问日志
+    <div class="jh-page-second-bar px-3 px-sm-8">
+      <v-row class="align-center" no-gutters>
+        <v-col cols="12" sm="12" md="4" xl="3" :cols="12" :sm="6" :md="4" >
+          <div class="py-4 text-body-1 font-weight-bold align-center d-flex align-center">页面访问日志
             <!-- 帮助页按钮 -->
-            <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
-              <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
-            </span>
+            <v-icon size="15" class="black--text ml-1" @click="isHelpPageDrawerShown = true">mdi-help-circle</v-icon>
           </div>
         </v-col>
-        <!-- pc端的搜索条件表单 >>>>>>>> -->
-        <v-col cols="12" xs="12" sm="12" md="8" xl="9">
-          <v-row class="jh-backend-form-container justify-end ma-0 py-3">
-              <v-col cols="12" xs="12" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-sm-2">
-                <v-select v-model="logFileSelected" :items="constantCollection.logFile" prefix="文件：" class="jh-v-input bg-white" dense filled single-line hide-details/>
-              </v-col>
-              <div class="jh-backend-search-btn">
-                <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
-                  查询
-                </v-btn>
-              </div>
+          <!-- 自定义搜索内容 -->
+          <v-spacer ></v-spacer>
+        <!-- 服务端搜索 -->
+        <v-col cols="12" xs="12" sm="12" md="8" xl="9" class="pl-md-2 mb-2 mb-md-0" :cols="12" :sm="6" :md="8" >
+          <v-row class="jh-backend-form-container justify-end py-md-3" no-gutters>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 " :md="5">
+              <v-select prefix="文件" :items="constantObj.logFile" class="jh-v-input" dense single-line filled v-model="serverSearchWhere.logFile"></v-select>
+            </v-col>
+            <div class="jh-backend-search-btn ml-2">
+              <v-btn class="elevation-0 float-right mt-2 mt-sm-0" color="success" small @click="tableOptions.page = 1; doUiAction('getTableData')">
+                查询
+              </v-btn>
+            </div>
           </v-row>
-        </v-col>
-        <!-- <<<<<<<< pc端的搜索条件表单 -->
-      </v-row>  
+      </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
-    <div class="jh-page-body-container px-8">
-      <v-card class="rounded-lg">
-        <v-row class="ma-0 pa-4 pb-0">
-          <v-spacer></v-spacer>
-          <!--搜索过滤-->
-          <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
-            <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+    <!-- 页面内容 >>>>>>>>>>>>> -->
+    <div class="jh-page-body-container px-sm-8">
+      <v-row class="pa-0 ma-0">
+        <v-col class="pa-0"  :clos="12">
+          <!-- 表格顶部栏 -->
+          <v-card  class="rounded-lg elevation-0">
+            <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0" align="center">
+              <v-btn color="success" class="mr-2" @click="doUiAction('startCreateItem')" small>
+            新增
+          </v-btn>
+              <v-spacer ></v-spacer>
+              <v-col cols="12" sm="6" md="3" :xs="8" class="pa-0">
+            <v-text-field prefix="筛选" v-model="searchInput" class="jh-v-input" dense filled single-line></v-text-field>
           </v-col>
-        </v-row>
-        <v-data-table fixed-header
-                :headers="headers"
-                :items="tableData"
-                :search="searchInput"
-                :footer-props="{ itemsPerPageOptions: [100, 200, 500, 1000, 6000] }"
-                :items-per-page="100"
-                mobile-breakpoint="0"
-                :loading="isTableLoading"
-                checkbox-color="success"
-                class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-        </v-data-table>
-      </v-card>  
+            </v-row>
+            <!-- 表格 -->
+            <v-data-table
+              :headers="headers"
+              :items="tableDataComputed"
+              :search="searchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+              :options.sync="tableOptions"
+              :server-items-length="tableOptions.totalCount"
+              :items-per-page="50"
+              mobile-breakpoint="0"
+              :loading="isTableLoading"
+              checkbox-color="success"
+              :class="{'zebraLine': true }"
+              fixed-header
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+            >
+
+              <!-- 表格插槽 -->
+              
+
+              <!-- 自定义渲染列 -->
+              <!-- 没有数据 -->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <!-- 表格分页 -->
+              <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-col>
+      </v-row>
     </div>
+    <!-- <<<<<<<<<<<<< 页面内容 -->
     <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-    <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
-      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#10.pageLog.md`" width="100%" height="100%"></iframe>
+    <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#pageLog.md`" width="100%" height="100%"></iframe>
       <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
-        <v-icon>mdi-close</v-icon>
+          <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>
-    <!-- <<<<<<<<<<< 帮助页抽屉 -->
+    <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
   </v-main>
- </v-app>
+</v-app>
 
 <jh-toast />
 <jh-mask />
 <jh-confirm-dialog />
-</div>   
-</script>
-
-<div id="app">
 </div>
+</script>
+<div id="app"></div>
 {% endblock %}
 
 {% block vueScript %}
-
 {% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 
 <script type="module">
+
 new Vue({
   el: '#app',
   template: '#app-template',
   vuetify: new Vuetify(),
   data: () => ({
-    // 表格相关数据
-    isFormValid: true,
-    requireRules: [
-      v => !!v || 'This is required',
-    ],
-    constantCollection: {
-      logFile: [],
-    },
-    breadcrumbs: [
-      {text: '首页', disabled: true,},
-      {text: '页面访问日志', disabled: true,}
-    ],
+
+    isMobile: window.innerWidth < 500,
     isHelpPageDrawerShown: false,
-
-    logFileSelected: null,
-    searchInput: null,
-    isTableLoading: true,
-
-    tableDataFromBackend: [],
+    isHelpPageDrawerLoaded: false,
+    // ================================ 表格相关 ================================
     headers: [
-      {text: "访问时间", value: "date", width: 200, class: 'fixed', cellClass: 'fixed'}, 
-      {text: "访问页面", value: "pageName", width: 200, class: 'fixed', cellClass: 'fixed'}, 
-      {text: "访问页面Id", value: "pageId", width: 220}, 
-      {text: "访问用户Id", value: "userId", width: 120}, 
-      {text: "访问用户名", value: "username", width: 120}, 
-      {text: "设备Id", value: "deviceId", width: 120}, 
-      {text: "设备类型", value: "deviceType", width: 120}, 
-      {text: "服务器主机名", value: "hostname", width: 220}, 
-      {text: "服务进程Id", value: "pid", width: 120}, 
+      { text: "访问时间", value: "date", width: 200, class: "fixed", cellClass: "fixed" },
+      { text: "访问页面", value: "pageName", width: 200, class: "fixed", cellClass: "fixed" },
+      { text: "访问页面Id", value: "pageId", width: 220 },
+      { text: "访问用户Id", value: "userId", width: 120 },
+      { text: "访问用户名", value: "username", width: 120 },
+      { text: "设备Id", value: "deviceId", width: 120 },
+      { text: "设备类型", value: "deviceType", width: 120 },
+      { text: "服务器主机名", value: "hostname", width: 220 },
+      { text: "服务进程Id", value: "pid", width: 120 },
     ],
-  }),
-  computed: {
-    isMobile() {
-      return window.innerWidth < 600;
+    tableData: [],
+    tableParams: {},
+    tableDataFromBackend: [],
+    isTableLoading: false,
+    searchInput: null,
+    columnSettingGroup: {},
+    selectedColumnGroup: null,
+    serverSearchWhere: {},
+    serverSearchWhereLike: {},
+    tableOptions: {
+      page: 1,
+      itemsPerPage: 50,
+      totalCount: 0,
+      sortBy: [],
+      sortDesc: [],
     },
-    tableData() {
-      return this.tableDataFromBackend;
-    }
-  },
+
+    // ================================ common ================================
+    constantObj: {
+      logFile: []
+    },
+    validationRules: {
+      requireRules: [
+        v => !!v || '必填'
+      ]
+    },
+    serverSearchWhereLike: {
+      className: ""
+    },
+    serverSearchWhere: {},
+    serverSearchWhereIn: {},
+    filterMap: {},
+    isMobile: window.innerWidth < 500,
+
+    // ================================ 其他抽屉列表 ================================
+
+    
+
+
+  }),
   watch: {
-    logFileSelected() {
-      this.doUiAction('refreshTableData');
-    }
-  },
-  async created() {
-    await this.doUiAction('selectLogFileList');
-    if (this.constantCollection.logFile.length > 0) {
-      this.logFileSelected = this.constantCollection.logFile[0].filename;
-    }
-    await this.doUiAction('refreshTableData');
-  },
-  mounted() {},
-  methods: {
-    async doUiAction(uiActionId, uiActionData) {
-      switch (uiActionId) {
-        case 'selectLogFileList':
-          await this.selectLogFileList();
-          break;
-        case 'refreshTableData':
-          await this.refreshTableData();
-          break;
-        default:
-          console.error("[doUiAction] uiActionId not find", { uiActionId });
-          break;
+    isHelpPageDrawerShown(val) {
+      if (val && !this.isHelpPageDrawerLoaded) {
+        this.isHelpPageDrawerLoaded = true;
       }
     },
-    // =================================uiAction 公共方法 start ======================================
-    async selectLogFileList() {
-      this.isTableLoading = true;
-      const result = await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: 'pageLog',
-            actionId: 'selectLogFileList',
-            actionData: {},
-          }
-        }
-      });
-      const { rows } = result.data.appData.resultData;
-      this.constantCollection.logFile = rows.map(item => {
-        const { filename } = item;
-        return { text: filename, value: filename, filename };
-      });
+    'tableOptions.itemsPerPage'(val) {
+      this.tableOptions.page = 1;
+      this.doUiAction('getTableData');
     },
-    async refreshTableData() {
+    'tableOptions.page'(val) {
+      this.doUiAction('getTableData');
+    },
+    'tableOptions.sortDesc'(val, oldVal) {
+      // TODO:: 初始化会异常调用加载2次，暂时跳过，后续优化
+      if (oldVal.length === 0 && val.length === 0) return;
+      this.doUiAction('getTableData');
+    },
+    logFileSelected() {
+          this.doUiAction('getTableData');
+        },
+  },
+  computed: {
+    tableDataComputed() {
+      let tableData;
+      if(this.filterMap) {
+        tableData = this.tableData.filter(row => {
+          for (const key in this.filterMap) {
+            if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+              return false;
+            }
+          }
+          return true;
+        });
+      } else {
+        tableData = this.tableData;
+      }
+      // 服务端搜索筛选 searchInput
+      if (this.searchInput) {
+        tableData = tableData.filter(row => {
+          return Object.values(row).some(val => {
+            return String(val).toLowerCase().includes(this.searchInput.toLowerCase());
+          });
+        });
+      }
+      return tableData;
+    },
+    isMobile() {
+          return window.innerWidth < 600;
+        },
+  },
+  async created() {
+        await this.doUiAction('selectLogFileList');
+        if (this.constantObj.logFile.length > 0) {
+          this.serverSearchWhere.logFile = this.constantObj.logFile[0].filename;
+        }
+        await this.doUiAction('getTableData');
+      },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      try {
+        switch (uiActionId) {
+          case 'selectLogFileList':
+            await this.selectLogFileList(uiActionData);
+            break;
+          case 'getTableData':
+            await this.getTableData(uiActionData);
+            await this.formatTableData(uiActionData);
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      } catch (error) {
+        window.jhMask && window.jhMask.hide();
+        throw error;
+      } finally {
+        window.jhMask && window.jhMask.hide();
+      }
+    },
+    async prepareTableParamsDefault() {
+      const where = {};
+      const whereLike = {};
+      const whereIn = {};
+      for (const fieldKey in this.serverSearchWhere) {
+        const fieldValue = this.serverSearchWhere[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            where[fieldKey] = fieldValue.trim();
+          } else {
+            where[fieldKey] = fieldValue;
+          }
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereLike) {
+        const fieldValue = this.serverSearchWhereLike[fieldKey];
+        if(!!fieldValue && fieldValue != '全部') {
+          if (_.isString(fieldValue)) {
+            whereLike[fieldKey] = '%' + fieldValue.trim() + '%';
+          } else {
+            whereLike[fieldKey] = '%' + fieldValue + '%';
+          }
+        }
+      }
+      for (const fieldKey in this.serverSearchWhereIn) {
+        const fieldValue = this.serverSearchWhereIn[fieldKey];
+        if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
+          whereIn[fieldKey] = fieldValue;
+        }
+      }
+
+      let whereOrOptions = [];
+      if (this.keyword) {
+        if (!this.keywordFieldList || this.keywordFieldList.length === 0) {
+          console.warn('keywordFieldList is empty');
+        }
+        this.keywordFieldList.forEach(fieldKey => {
+          whereOrOptions.push([fieldKey, 'like', '%' + this.keyword.trim() + '%']);
+        });
+      }
+      let orderBy = [{column: 'operationAt', order: 'desc'}];
+
+      let limit = null;
+      let offset = null;
+      if (this.tableOptions.sortBy.length) {
+        orderBy = this.tableOptions.sortBy.map((item, index) => {
+          return {
+            column: item,
+            order: this.tableOptions.sortDesc[index] ? 'desc' : 'asc'
+          }
+        });
+      }
+      limit = this.tableOptions.itemsPerPage === -1 ? 10000 : this.tableOptions.itemsPerPage;
+      offset = (this.tableOptions.page - 1) * limit;
+
+      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy, whereOrOptions };
+    },
+    // 准备请求参数-自定义
+    prepareTableParams() {
+      // TODO 增加自定义复杂判断条件
+    },
+    // 获取表格数据
+    async getTableData() {
       this.isTableLoading = true;
+
       const result = await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'pageLog',
-            actionId: 'selectItemListFromLogFile',
-            actionData: { logFile: this.logFileSelected },
+            actionId: "selectItemList",
+            actionData: {},
+            ...this.tableParams
           }
         }
       });
-      const { rows } = result.data.appData.resultData;
-
+      const { rows, count } = result.data.appData.resultData;
+      
+      this.tableOptions.totalCount = count || rows.length;
       this.tableDataFromBackend = rows;
       this.isTableLoading = false;
     },
-    // =================================uiAction 公共方法 end ======================================
+    formatTableData() {
+      let tableData = this.tableDataFromBackend.map(row => {
+        row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
+        return row;
+      });
+      this.tableData = tableData;
+    },
+    // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
+
+    // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+    // ---------- Custom uiAction >>>>>>>>>>>> --------
+    async selectLogFileList() {
+          this.isTableLoading = true;
+          const result = await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'pageLog',
+                actionId: 'selectLogFileList',
+                actionData: {},
+              }
+            }
+          });
+          const { rows } = result.data.appData.resultData;
+          this.constantObj.logFile = rows.map(item => {
+            const { filename } = item;
+            return { text: filename, value: filename, filename };
+          });
+        },
+    async getTableData() {
+          this.isTableLoading = true;
+  
+          const result = await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'pageLog',
+                actionId: 'selectItemListFromLogFile',
+                actionData: { logFile: this.serverSearchWhere.logFile },
+              }
+            }
+          });
+          const { rows, count } = result.data.appData.resultData;
+          
+          this.tableOptions.totalCount = count || rows.length;
+          this.tableDataFromBackend = rows;
+          this.isTableLoading = false;
+        },
     reloadPage() {
-      //console.log('captured page expire')
-      this.tableDataFromBackend = [];
-      window.location.reload();
-    }
+          //console.log('captured page expire')
+          this.tableDataFromBackend = [];
+          window.location.reload();
+        },
+    // ---------- <<<<<<<<<<< Custom uiAction ---------
+
   }
 })
 </script>
 
-<style>
-.v-application .pr-xs-0 {
-  padding-right: 0 !important;
-}
-
-.v-application .pt-xs-2 {
-  padding-top: 8px !important;
-}
-</style>
-{% endblock %}
+<style scoped>
+</style>{% endblock %}

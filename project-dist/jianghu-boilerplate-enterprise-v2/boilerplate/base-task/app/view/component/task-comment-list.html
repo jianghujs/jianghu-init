@@ -1,0 +1,155 @@
+<template id="task-comment-list">
+  <div>
+    <!-- 评论框 -->
+    <div class="d-flex" v-if="!readonly">
+      <v-avatar color="primary" size="25" class="mr-2">
+        <span class="white--text font-weight-bold">{{username[0]}}</span>
+      </v-avatar>
+
+      <div class="flex-grow-1 right-content px-4 py-2 text-right">
+        <textarea v-model="newComment" style="width: 100%; outline: none;" :counter="2000" @focus="expandInput"></textarea>
+        <v-btn color="primary" small v-if="isInputExpanded" @click="postComment">评论</v-btn>
+        <v-btn small v-if="isInputExpanded" @click="cancelComment">取消</v-btn>
+      </div>
+    </div>
+
+    <!-- 评论列表 -->
+    <div class="comment-list mt-4">
+      <div class="comment-list-item d-flex" v-for="comment in reversedComments" :key="comment.id">
+        <v-avatar color="primary" size="25" class="mr-2">
+          <span class="white--text font-weight-bold">{{comment.username[0]}}</span>
+        </v-avatar>
+        <div class="right-content pa-4">
+          <div class="content font-weight-bold">{{ comment.content }}</div>
+          <div class="bottom-content">
+            <div class="user-info">
+              <span>{{comment.username}}</span>
+              <span class="time">{{ comment.time | timeAgo}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</template>
+<script src="/<$ ctx.app.config.appId $>/public/lib/dayjs/relativeTime.js"></script>
+
+<script type="module">
+  Vue.component("task-comment-list", {
+    template: '#task-comment-list',
+    props: {
+      comments: {
+        type: Array,
+        default: () => [],
+      },
+      // 是否只读
+      readonly: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data: () => ({
+      newComment: '',
+      isInputExpanded: false,
+      username: userInfo.username
+    }),
+    created() {
+      dayjs.extend(dayjs_plugin_relativeTime);
+    },
+    filters: {
+      timeAgo: (time) => time ? dayjs(time).fromNow() : '',
+    },
+    computed: {
+      // 倒序评论列表
+      reversedComments() {
+        return this.comments.slice().reverse();
+      },
+    },
+    methods: {
+      expandInput() {
+        this.isInputExpanded = true;
+      },
+      postComment() {
+        // 添加评论逻辑
+        this.comments.push({
+          id: this.comments.length + 1,
+          username: userInfo.username,
+          userId: userInfo.userId,
+          content: this.newComment,
+          time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        })
+        this.newComment = null
+        this.$emit('update:comments', this.comments)
+        this.$emit('confirm')
+        this.isInputExpanded = false;
+      },
+      cancelComment() {
+        this.newComment = '';
+        this.isInputExpanded = false;
+      },
+    },
+  })
+</script>
+<style scoped>
+  .comment-list .comment-list-item {
+    color: #42526e
+  }
+
+
+
+  .comment-list .comment-list-item {
+    margin-top: 32px
+  }
+
+  .right-content {
+    position: relative;
+    width: 100%;
+    padding-top: 8px;
+    margin-left: 10px;
+    border: 1px solid #dfe1e6;
+    border-radius: 3px
+  }
+
+  .right-content:before {
+    position: absolute;
+    top: 5px;
+    left: -12px;
+    width: 0;
+    height: 0;
+    content: "";
+    border: 6px solid #dfe1e6;
+    border-color: transparent #dfe1e6 transparent transparent
+  }
+
+  .right-content:after {
+    position: absolute;
+    top: 5px;
+    left: -10px;
+    width: 0;
+    height: 0;
+    content: "";
+    border: 6px solid transparent;
+    border-color: transparent #fff transparent transparent
+  }
+
+  .comment-list .comment-list-item .right-content .bottom-content {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex
+  }
+
+  .comment-list .comment-list-item .time {
+    margin-left: 8px;
+    color: #42526e;
+  }
+
+  .comment-list .comment-list-item .content {
+    line-height: 1.5;
+    color: #42526e;
+    word-break: break-all;
+    word-wrap: break-word;
+    white-space: pre-wrap
+  }
+</style>

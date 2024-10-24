@@ -1,0 +1,1140 @@
+{% extends 'template/jhTemplateV4.html'%}
+
+{% block vueTemplate %}
+
+<script type="text/html" id="app-template">
+  <div>
+    <v-app mobile-breakpoint="sm">
+      <jh-menu />
+      <v-main class="mt-15">
+        <!-- 头部内容 >>>>>>>>>>>>> -->
+        <div class="jh-page-second-bar px-8">
+          <v-row class="align-center">
+            <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+              <div class="py-4 text-body-1 font-weight-bold">用户列表【员工】
+                <!-- 帮助页按钮 -->
+              </div>
+            </v-col>
+          </v-row>
+        </div>
+        <!-- <<<<<<<<<<<<< 头部内容 -->
+
+        <!-- 页面主要内容 -->
+        <div class="jh-page-body-container px-8">
+          <!-- 页面内容 >>>>>>>>>>>>> -->
+          <v-card class="rounded-lg">
+            <v-row class="ma-0 pa-4">
+              <v-col cols="12" sm="6" md="6" xl="6" class="pa-0">
+                <!-- <v-btn color="success" class="mr-1" @click="doUiAction('startAddApp', null)" small outlined>批量增加APP权限</v-btn> -->
+                <v-btn color="success" class="mr-1" @click="exportExcel" small>账户密码导出</v-btn>
+                <v-btn color="success" class="mr-1 mt-2 mt-sm-0" @click="doUiAction('startCreateItem', null)" small>同步新增员工</v-btn>
+                <v-btn color="error" class="mr-1 mt-2 mt-sm-0" @click="doUiAction('startDeleteItem', null)" small>同步离职员工</v-btn>
+                <!-- <span class="body-2">共{{ tableData.length }}条记录</span> -->
+              </v-col>
+
+              <v-spacer></v-spacer>
+
+              <v-col cols="12" sm="3" md="2" xl="2" class="pa-0 pt-2 pt-sm-0 pr-0 pr-sm-2">
+                <v-select class="jh-v-input" v-model="currentUserStatusType" :items="tableUserStatusList" :label="tableUserStatusList.label"
+                          prefix="用户状态：" dense
+                          item-text="label" item-value="value" dense filled single-line></v-select>
+              </v-col>
+
+              <!-- 搜索过滤 -->
+
+              <v-col cols="12" sm="3" md="2" xl="2" class="pa-0 pt-2 pt-sm-0">
+                <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense
+                  filled single-line></v-text-field>
+              </v-col>
+            </v-row>
+            <v-data-table 
+              fixed-header
+              :headers="headers"
+              :items="tableData"
+              :search="searchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+              :items-per-page="-1"
+              mobile-breakpoint="0"
+              :loading="isTableLoading"
+              checkbox-color="success"
+              :class="{'zebraLine': isTableZebraLineShown }"
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
+            >
+              <template v-slot:item.clearTextPassword="{ item }">
+                <v-icon small 
+                  @click="doUiAction('copyPassword',{item})"
+                >
+                mdi-content-copy
+                </v-icon>
+              </template>
+
+              <template v-slot:item.userStatus="{ item }">
+                <v-chip small :color="item.userStatus | statusColor">{{item.userStatus | getConstantObjText(constantObj.userStatus)}}</v-chip>
+              </template>
+              <template v-slot:item.action="{ item }">
+                
+                <!-- pc端 -->
+                <template v-if="!isMobile">
+                  <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', {item})">
+                    <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改信息
+                  </span>
+                  <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startResetPassword', {item})">
+                    <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改密码
+                  </span>
+                  <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('openAppDrawer', item.userId)">
+                    <v-icon size="16" class="success--text">mdi-account-supervisor</v-icon>APP查看
+                  </span> 
+                  <span role="button" v-if="item.userStatus != 'active'" class="success--text font-weight-medium font-size-2" @click="doUiAction('activeUserStatus', {item})">
+                    <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>激活用户
+                  </span>
+                  <span role="button" v-if="item.userStatus == 'active'" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('bannedUserStatus', {item})">
+                    <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>禁用
+                  </span>
+                </template>
+                <!-- 手机端 -->
+                <v-menu offset-y v-if="isMobile">
+                  <template v-slot:activator="{ on, attrs }">
+                    <span role="button" class="success--text font-weight-medium font-size-2"
+                      v-bind="attrs" v-on="on">
+                      操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                    </span>
+                  </template>
+                  <v-list dense>
+                    <v-list-item @click="doUiAction('startUpdateItem', {item})">
+                      <v-list-item-title>修改</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('activeUserStatus', {item})">
+                      <v-list-item-title>激活用户</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('bannedUserStatus', {item})">
+                      <v-list-item-title>禁用用户</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('startResetPassword', {item})">
+                      <v-list-item-title>修改密码</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="jump(`/${appInfo.appId}/page/appManagementOfOneUser?id=${item.userId}&title=${item.username}`)">
+                      <v-list-item-title>用户的APP管理</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </template>
+            </v-data-table>
+          </v-card>
+      
+
+          <!-- 编辑抽屉 -->
+          <v-navigation-drawer v-model="isUpdateDrawerShown" fixed temporary right width="80%"
+                              :permanent="isEditDrawerPermanent"
+                              class="elevation-24">
+            <v-form v-model="isFormValid" v-if="isUpdateDrawerShown" ref="form" lazy-validation>
+              <v-row no-gutters>
+                <span class="text-h7 font-weight-bold pa-4">修改</span>
+              </v-row>
+              <v-divider class="jh-divider"></v-divider>
+              <v-row v-if="currentClickButton.action === 'resetUserPassword'" class="mt-0 px-4">
+                <v-col cols="12" sm="12" md="4" xl="3">
+                  <span class="jh-input-label">初始密码</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="初始密码" v-model="editItem.clearTextPassword" :rules="requireRules"></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row v-else class="mt-0 px-4">
+                <v-col cols="12" sm="12" md="4" xl="3">
+                  <span class="jh-input-label">用户ID</span>
+                  <v-text-field class="jh-v-input" disabled dense filled single-line label="用户ID" v-model="editItem.userId"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="12" md="4" xl="3">
+                  <span class="jh-input-label">用户名</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="用户名" v-model="editItem.username" :rules="requireRules"></v-text-field>
+                </v-col>
+                <!-- <v-col cols="12" sm="12" md="4" xl="3">
+                  <v-select class="jh-v-input" dense filled single-line clearable label="用户状态" v-model="editItem.userStatus" :items="constantObj.userStatus"></v-select>
+                </v-col> -->
+                <v-col v-if="currentClickButton.action === 'add'" cols="12" sm="12" md="4" xl="3">
+                  <span class="jh-input-label">初始密码</span>
+                  <v-text-field class="jh-v-input" dense filled single-line label="初始密码" v-model="editItem.clearTextPassword" :rules="requireRules"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" sm="12" md="4">
+                  <span class="jh-input-label">手机号码</span>
+                  <v-text-field class="jh-v-input" dense filled single-line v-model="editItem.phoneNumber"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="12" md="4">
+                  <span class="jh-input-label">邮箱</span>
+                  <v-text-field class="jh-v-input" dense filled single-line v-model="editItem.email"></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row class="justify-end mx-0 px-4 py-8">
+                <v-btn color="success" @click="doUiAction(dialogSaveInfoAction)" small>保存</v-btn>
+                <v-btn class="ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+              </v-row>
+            </v-form>
+            <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+            @click="isUpdateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-navigation-drawer>
+
+
+          <!-- 新增抽屉 -->
+          <v-navigation-drawer v-model="isUserListAddApp" :permanent="isUserListAddApp" fixed temporary right width="80%"
+            class="elevation-24">
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+              <span class="text-h7 font-weight-bold pa-4">员工列表</span>
+            </v-row>
+            <v-divider class="jh-divider"></v-divider>
+
+            <v-row class="ma-0 pa-4">
+
+              <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pa-0">
+
+                <v-dialog
+                  v-model="isUserListAddAppDialog"
+                  persistent
+                  max-width="500"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      color="success"
+                      v-bind="attrs"
+                      v-on="on"
+                      small
+                      :disabled="!selectStaffIdListOfAddApp.length"
+                    >
+                      批量-添加权限
+                    </v-btn>
+                  </template>
+                  <v-card>
+                    <v-card-title class="text-h5">
+                      请选择批量用户的应用权限
+                    </v-card-title>
+                    <v-card-text>
+                      <v-select
+                        v-model="defaultUserAppList"
+                        :items="constantObj.appList"
+                        filled
+                        single-line
+                        small-chips
+                        multiple
+                      ></v-select>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        text
+                        @click="isUserListAddAppDialog = false"
+                      >
+                        取消
+                      </v-btn>
+                      <v-btn
+                        color="green"
+                        class="white--text"
+                        @click="doUiAction('batchStaffUserAddApp', {})"
+                      >
+                        确定添加权限
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+                <!-- <span class="body-2">共{{ noAccountStaffList.length }}条记录</span> -->
+              </v-col>
+
+              <v-spacer></v-spacer>
+
+              <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-0">
+                <v-text-field v-model="addAppSearchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
+              </v-col>
+
+            </v-row>
+
+            <v-data-table fixed-header
+              :headers="appHeaders"
+              :items="tableData"
+              :search="addAppSearchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+              :items-per-page="-1"
+              mobile-breakpoint="0"
+              :loading="isAddTableLoading"
+              checkbox-color="success"
+              item-key="userId"
+              show-select
+              v-model="selectStaffIdListOfAddApp"
+              :class="{'zebraLine': isTableZebraLineShown }"
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+
+              <template v-slot:item.appList="{ item }">
+                <div class="py-2">
+                  <v-chip class="mr-1" v-for="app in item.appList" x-small outlined color="success">{{app}}</v-chip>
+                </div>
+              </template>
+            </v-data-table>
+
+            <!-- 抽屉关闭按钮 -->
+            <v-btn
+              elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+              @click="isUserListAddApp = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-navigation-drawer>
+
+          <!-- 新增抽屉 -->
+          <v-navigation-drawer v-model="isCreateDrawerShown" :permanent="isCreateDrawerShown" fixed temporary right width="80%"
+            class="elevation-24">
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+              <span class="text-h7 font-weight-bold pa-4">员工列表</span>
+            </v-row>
+            <v-divider class="jh-divider"></v-divider>
+
+            <v-row class="ma-0 pa-4">
+
+              <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pa-0 pr-0 pr-sm-2">
+                <v-btn small color="success" @click="doUiAction('batchAddUser', {})" :disabled="!selectStaffIdList.length" outlined>批量-创建用户</v-btn>
+                <!-- <span class="body-2">共{{ noAccountStaffList.length }}条记录</span> -->
+              </v-col>
+
+              <v-spacer></v-spacer>
+
+              <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-0">
+                <v-text-field v-model="addSearchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
+              </v-col>
+
+            </v-row>
+
+            <v-data-table fixed-header
+              :headers="staffHeaders"
+              :items="noAccountStaffList"
+              :search="addSearchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+              :items-per-page="-1"
+              mobile-breakpoint="0"
+              :loading="isAddTableLoading"
+              checkbox-color="success"
+              item-key="employeeId"
+              show-select
+              v-model="selectStaffIdList"
+              :class="{'zebraLine': isTableZebraLineShown }"
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+              <template v-slot:item.action="{ item }">
+                <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('showCreateStaffDailog', {item})">
+                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>创建用户
+                </span>
+              </template>
+            </v-data-table>
+
+            <!-- 抽屉关闭按钮 -->
+            <v-btn
+              elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+              @click="isCreateDrawerShown = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-navigation-drawer>
+
+          <!-- 离职抽屉 -->
+          <v-navigation-drawer v-model="isDeleteDrawerShow" :permanent="isDeleteDrawerShow" fixed temporary right width="80%"
+            class="elevation-24">
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+              <span class="text-h7 font-weight-bold pa-4">员工列表</span>
+            </v-row>
+            <v-divider class="jh-divider"></v-divider>
+
+            <v-row class="ma-0 pa-4">
+
+              <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pa-0 pr-0 pr-sm-2">
+                <v-btn small color="success" @click="doUiAction('batchDeleteStaffUser', {})" :disabled="!selectStaffIdList.length" outlined>批量-禁用用户</v-btn>
+                <span class="body-2">共{{ bannedAccountStaffList.length }}条记录</span>
+              </v-col>
+
+              <v-spacer></v-spacer>
+
+              <v-col cols="12" xs="8" sm="4" md="3" xl="3" class="pa-0">
+                <v-text-field v-model="deleteSearchInput" label="表格过滤" class="jh-v-input" dense filled single-line></v-text-field>
+              </v-col>
+
+            </v-row>
+
+            <v-data-table fixed-header
+              :headers="staffHeaders"
+              :items="bannedAccountStaffList"
+              :search="deleteSearchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+              :items-per-page="-1"
+              mobile-breakpoint="0"
+              :loading="isAddTableLoading"
+              checkbox-color="success"
+              item-key="employeeId"
+              show-select
+              v-model="selectStaffIdList"
+              :class="{'zebraLine': isTableZebraLineShown }"
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+              <template v-slot:item.action="{ item }">
+                <v-btn small color="success" @click="doUiAction('disableStaff', { item })">禁用</v-btn>
+              </template>
+            </v-data-table>
+
+            <!-- 抽屉关闭按钮 -->
+            <v-btn
+              elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+              @click="isDeleteDrawerShow = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-navigation-drawer>
+
+          <v-dialog
+            v-model="insertItemDialog"
+            persistent
+            max-width="600px"
+            >
+          <v-card>
+            <v-card-title>
+              <span class="text-h5">创建用户-员工</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-col cols="12">
+                    <span class="jh-input-label">用户ID[登陆]</span>
+                    <v-text-field dense class="jh-v-input" single-line filled v-model="insertItemData.userId" label="用户ID(登陆ID)" :disabled="true" required></v-text-field>
+                  </v-col>
+                  <v-col cols="12">
+                    <span class="jh-input-label">用户名</span>
+                    <v-text-field dense class="jh-v-input" single-line filled v-model="insertItemData.username" label="用户名" :disabled="true" required></v-text-field>
+                  </v-col>
+                  <!-- <v-col cols="12">
+                    <span class="jh-input-label">用户类型</span>
+                    <v-select dense class="jh-v-input" single-line filled v-model="insertItemData.userType" label="用户类型" :items="constantObj.userType" :disabled="true" required></v-select>
+                  </v-col> -->
+                  <v-col cols="12">
+                    <span class="jh-input-label">密码<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                    <v-text-field dense class="jh-v-input" single-line filled v-model="insertItemData.clearTextPassword" label="密码" required>
+                      <!-- 最后添加后缀icon change 刷新密码 -->
+                      <template v-slot:append-outer>
+                        <v-icon @click="insertItemData.clearTextPassword = Math.random().toString(36).slice(-8)">mdi-refresh</v-icon>
+                      </template>
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn  text @click="insertItemDialog = false">
+                取消
+              </v-btn>
+              <v-btn color="success darken-1" text @click="doUiAction('doCreateStaff', {})">
+                创建用户
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+          </v-dialog>
+        </div>
+
+        <!-- 抽屉：打开APP管理 >>>>>>>>>>>>> -->
+        <v-navigation-drawer v-model="isAppDrawerShown"  fixed temporary right width="80%" class="elevation-24">
+          <!-- 抽屉标题 -->
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">查看用户的APP列表</span>
+          </v-row>
+          <v-divider class="jh-divider"></v-divider>
+          <v-row class="mt-0 px-4">
+            <v-col class="mt-0 px-4">
+              <v-data-table
+                :headers="drawerHeaders"
+                :items="constantObj.appList"
+                :footer-props="{ itemsPerPageOptions: [15, 50, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+                :items-per-page="15"
+                item-key="userId"
+                class="elevation-0"
+                >
+                <!-- 表格分页 -->
+                <template v-slot:footer.page-text="pagination">
+                  <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+                  <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+                </template>
+              </v-data-table>
+            </v-col>
+          </v-row>
+          <!--抽屉关闭按钮-->
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isAppDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- 抽屉：<<<<<<<<<<< 打开APP管理 -->
+        
+        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+        <v-navigation-drawer v-if="isHelpPageDrawerShown" v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary
+          right width="80%" class="elevation-24">
+          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#2.studentList.md`" width="100%"
+            height="100%"></iframe>
+
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+            @click="isHelpPageDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+
+      </v-main>
+    </v-app>
+
+<jh-toast />
+<jh-mask />
+<jh-confirm-dialog />
+
+</div>
+</script>
+
+<div id="app">
+</div>
+
+
+{% endblock %}
+
+{% block vueScript %}
+
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
+<script src="/<$ ctx.app.config.appId $>/public/xlsx/xlsx.full.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/xlsx/Export2Excel.js"></script>
+
+
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vuetify: new Vuetify(),
+    filters: {
+      getConstantObjText(value, constantObjList) {
+        return constantObjList.find(({ value: v }) => v == value)?.text || value;
+      },
+      statusColor(value) {
+        return value === 'active' ? 'success' : 'error';
+      }
+    },
+    data: {
+      appInfo: window.appInfo,
+      isMobile: window.innerWidth < 500,
+      isHelpPageDrawerShown: false,
+
+      // 表格相关数据
+      isTableZebraLineShown: true,
+      isFormValid: true,
+      requireRules: [
+        v => !!v || '此项为必填',
+      ],
+      constantObj: {
+        userStatus: [{ "value": "active", "text": "正常" }, { "value": "banned", "text": "禁用" }],
+        appList: []
+      },
+      currentUserStatusType: 'active',
+      tableUserStatusList: [
+        { label: '全部', value: 'all' },
+        { label: '正常', value: 'active' },
+        { label: '禁用', value: 'banned' }
+      ],
+      isUpdateDrawerShown: false,
+      isEditDrawerPermanent: false,
+
+      searchInput: null,
+      isTableLoading: true,
+      tableDataFromBackend: [],
+      headers: [
+        { text: "用户ID", value: "userId", align: "start", sortable: true, width: 80, class: 'fixed', cellClass: 'fixed' },
+        { text: "用户名", value: "username", align: "start", sortable: true, width: 100 },
+        { text: "用户状态", value: "userStatus", align: "start", sortable: true, width: 80 },
+        {text: "组织角色", value: "groupRoleList", width: 380},
+        {text: "部门职位", value: "hrOrgRoleList", width: 280},
+        {text: "手机号码", value: "phoneNumber", width: 180},
+        {text: "邮箱", value: "email", width: 180},
+        { text: "密码", value: "clearTextPassword", align: "start", sortable: true, width: 80 },
+
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 60 : 300, class: 'fixed', cellClass: 'fixed' },
+      ],
+      appHeaders: [
+        { text: "用户ID", value: "userId", align: "start", sortable: true, width: 80 },
+        { text: "用户名", value: "username", align: "start", sortable: true, width: 90 },
+        { text: "权限", value: "appList", align: "start", sortable: true, width: 400 },
+      ],
+
+      currentClickButton: { title: '新增', action: 'add' },
+      editItem: {},
+      dialogSaveInfoAction: '',
+
+      isUserListAddApp: false,
+      isCreateDrawerShown: false,
+      isAddTableLoading: false,
+
+      staffList: [],
+      insertItemData: {},
+      insertItemDialog: false,
+      addAppSearchInput: null,
+      addSearchInput: null,
+      staffHeaders: [
+        // {value: "employeeId", text: "员工ID", width: 100, required: true, fixed: "left", class: "fixed", align: "left fixed"},
+        { value: "employeeId", text: "员工ID", width: 80 },
+        { value: "employeeName", text: "员工名", width: 90 },
+        { value: "gender", text: "性别", width: 60 },
+        { value: "contactNumber", text: "联系方式", width: 130 },
+        // { value: "educationBackground", text: "教育背景", width: 150 },
+        // { value: "academicQualification", text: "学历", width: 150 },
+        // { value: "title", text: "职位", width: 100 },
+        // { value: "segment", text: "学部", width: 100 },
+        // { value: "teachingSubject", text: "教学科目", width: 150 },
+        // { value: "hometown", text: "籍贯", width: 150 },
+        // { value: "contractStartDate", text: "合同开始日期", width: 150 },
+        // { value: "contractExpiryDate", text: "合同截止日期", width: 150 },
+        // { value: "lastDateOfService", text: "工作截止日期", width: 150 },
+        // { value: "teacherStatus", text: "员工状态", width: 150 },
+        { value: "entryStatus", text: "员工状态", width: 80 },
+        { value: "remarks", text: "备注", width: 250 },
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 100, class: 'fixed', cellClass: 'fixed' },
+
+      ],
+
+      selectStaffIdList: [],
+      isUserListAddAppDialog: false,
+      defaultUserAppList: ['hr', 'notice', 'lesson', 'leave', 'exam_v1'],
+      selectStaffIdListOfAddApp: [],
+      
+      // 批量离职禁用用户
+      isDeleteDrawerShow: false,
+      deleteSearchInput: null,
+
+      isAppDrawerShown: false,
+
+      drawerHeaders:[
+        {text: "应用名", value: "appName", width: 180},
+        // {text: "组织角色（待实现）", value: "groupRoleName"},
+      ],
+    },
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+
+      tableData() {
+        if (!this.currentUserStatusType || this.currentUserStatusType === 'all') {
+          return this.tableDataFromBackend;
+        }
+        return this.tableDataFromBackend.filter(({ userStatus }) => userStatus === this.currentUserStatusType);
+      },
+      computedEditItem() {
+        return this.editItem;
+      },
+      noAccountStaffList() {
+        return this.staffList.filter(item => {
+          return ["在职", '待入职'].includes(item.entryStatus) && !this.tableDataFromBackend.some(v => v.userId === item.employeeId);
+        });
+      },
+      bannedAccountStaffList() {
+        return this.staffList.filter(item => {
+          return item.entryStatus === '已离职' && this.tableDataFromBackend.some(e => e.userId == item.employeeId && e.userStatus === 'active');
+        });
+      },
+    },
+    watch: {},
+    async created() {
+    },
+    async mounted() {
+      await this.doUiAction('getTableData');
+      await this.getAppList();
+    },
+    methods: {
+
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.getTableData();
+            break;
+          case 'startAddApp':
+            await this.openAddAppDialog();
+            break;
+          case 'startCreateItem':
+            await this.clearItemData();
+            await this.openCreateItemDialog();
+            await this.getStaffList();
+            break;
+          case 'createItem':
+            await this.prepareValidate();
+            await this.confirmCreateItemDialog();
+            await this.doCreateItem();
+            await this.getTableData();
+            await this.closeDrawerShow();
+            break;
+          case 'startDeleteItem':
+            await this.openDeleteItemDialog();
+            await this.getStaffList();
+            break;
+          case 'batchStaffUserAddApp':
+            await this.batchStaffUserAddApp();
+            await this.getTableData();
+            await this.closeUserAppDrawerShow();
+            break;
+          case 'batchAddUser':
+            await this.batchAddUser();
+            await this.getTableData();
+            await this.closeDrawerShow();
+            break;
+          case 'batchDeleteStaffUser':
+            await this.prepareBatchDeleteSelect();
+            await this.doDisableStaffUser();
+            await this.getTableData();
+            this.isDeleteDrawerShow = false;
+            break;
+          case 'disableStaff':
+            await this.prepareDeleteSelect(uiActionData);
+            await this.doDisableStaffUser();
+            await this.getTableData();
+            this.isDeleteDrawerShow = false;
+            break;
+          case 'startUpdateItem':
+            await this.prepareItemData(uiActionData);
+            await this.openUpdateItemDialog();
+            break;
+          case 'updateItem':
+            await this.prepareValidate();
+            await this.confirmUpdateItemDialog();
+            await this.doUpdateItem();
+            await this.getTableData();
+            await this.closeDrawerShow();
+            break;
+          case 'activeUserStatus':
+            await this.confirmActiveUserStatusDialog();
+            await this.prepareItemData(uiActionData);
+            await this.doActiveUserStatus(uiActionData);
+            await this.getTableData();
+            break;
+          case 'startResetPassword':
+            await this.prepareItemData(uiActionData);
+            await this.openResetUserPasswordDialog();
+            break;
+          case 'resetUserPassword':
+            await this.confirmResetUserPasswordDialog();
+            await this.doResetUserPassword(uiActionData);
+            await this.getTableData();
+            await this.closeDrawerShow();
+            break;
+          case 'bannedUserStatus':
+            await this.confirmBannedUserStatusDialog();
+            await this.prepareItemData(uiActionData);
+            await this.doBannedUserStatus(uiActionData);
+            await this.getTableData();
+            break;
+          case 'showCreateStaffDailog':
+            await this.showCreateStaffDailog(uiActionData);
+            break;
+          case 'doCreateStaff':
+            await this.doCreateStaff();
+            break;
+          case 'copyPassword':
+            await this.copyPassword(uiActionData);
+            break;
+          case 'openAppDrawer':
+            await this.prepareAppData(uiActionData)
+            await this.openAppDrawer();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      async getAppList() {
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'selectAppList',
+              actionData: {},
+              where: {},
+              orderBy: [{ column: 'operationAt', order: 'desc' }]
+            }
+          }
+        });
+        this.constantObj.appList = result.data.appData.resultData.rows.map(item => {
+          return {
+            value: item.appId,
+            text: item.appName,
+          }
+        });
+      },
+      /**
+       * 获取表格数据
+       */
+      async getTableData() {
+        this.isTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'selectItemList',
+              actionData: {},
+              orderBy: [{column: 'userId', order: 'asc'}]
+            }
+          }
+        });
+        const rows = result.data.appData.resultData.rows;
+        rows.forEach(row => {
+          row.appList = row.appList ? row.appList.split(',') : [];
+          row.operationAt = dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss');
+        })
+        this.tableDataFromBackend = result.data.appData.resultData.rows;
+        this.isTableLoading = false;
+      },
+
+
+      async showCreateStaffDailog({ item }) {
+        this.insertItemData = {
+          userId: item.employeeId,
+          username: item.employeeName,
+          clearTextPassword: Math.random().toString(36).slice(-8),
+          phoneNumber: item.contactNumber,
+        }
+        this.insertItemDialog = true;
+      },
+
+      async openAddAppDialog() {
+        this.selectStaffIdListOfAddApp = [];
+        this.isUserListAddApp = true;
+      },
+
+      // startCreateItem
+      async clearItemData() {
+        this.editItem = Object.assign({}, this.defaultItem);
+      },
+      
+      async openCreateItemDialog() {
+        // this.currentClickButton = {action: 'add', title: '新增'};
+        this.isCreateDrawerShown = true;
+        this.dialogSaveInfoAction = 'createItem';
+      },
+
+      async getStaffList() {
+        this.isAddTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'selectStaffList',
+              actionData: {},
+              whereIn: { entryStatus: ["在职", '待入职', '已离职'] },
+              orderBy: [{ column: 'id', order: 'asc' }]
+            }
+          }
+        });
+        this.staffList = result.data.appData.resultData.rows;
+        this.isAddTableLoading = false;
+      },
+
+      // createItem
+      async prepareValidate() {
+        if (!this.$refs.form.validate()) { throw new Error("[from validate] 失败"); };
+      },
+
+      // createItem
+      async confirmCreateItemDialog() {
+        if (await window.confirmDialog({ title: "新增", content: "确定新增吗？" }) === false) { throw new Error("[confirmCreateFormDialog] 否"); }
+      },
+
+      async batchStaffUserAddApp() {
+        await window.vtoast.loading("批量添加权限");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'batchStaffUserAddApp',
+              actionData: {
+                userIdList: this.selectStaffIdListOfAddApp.map(e => e.userId),
+                appList: this.defaultUserAppList
+              }
+            }
+          }
+        })
+        await window.vtoast.success("批量添加权限成功");
+      },
+
+      async closeUserAppDrawerShow() {
+        this.isUserListAddApp = false;
+      },
+
+      /**
+       * 新增用户
+       */
+      async doCreateItem() {
+        const actionData = this.insertItemData;
+        await window.vtoast.loading("新增用户");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'insertItem',
+              actionData: actionData
+            }
+          }
+        })
+        await window.vtoast.success("新增用户成功");
+      },
+
+
+      async batchAddUser() {
+        const selectStaffIdList = this.selectStaffIdList;
+        if (selectStaffIdList.length < 1) {
+          await window.vtoast.fail("请选择要创建的账户");
+          throw new Error("请选择要创建的账户");
+        }
+        if (await window.confirmDialog({ title: "批量-创建用户", content: "密码是随机的, 确定批量创建吗？" }) === false) { throw new Error("[confirmCreateFormDialog] 否"); }
+        await window.vtoast.loading("批量-创建用户");
+        const userList = selectStaffIdList.map(v => {
+          return { 
+            userId: v.employeeId,
+            username: v.employeeName, 
+            phoneNumber: v.contactNumber,
+          }
+        });
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'batchAddUser',
+              actionData: {
+                userList
+              }
+            }
+          }
+        })
+        await window.vtoast.success("批量-创建用户");
+      },
+
+
+      async doCreateStaff() {
+        const actionData = this.insertItemData;
+        await window.vtoast.loading("新增用户");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'insertItem',
+              actionData: actionData
+            }
+          }
+        })
+        await window.vtoast.success("新增用户成功");
+        this.insertItemDialog = false;
+        this.getTableData();
+      },
+
+      async closeDrawerShow() {
+        this.isUpdateDrawerShown = false;
+      },
+
+      // startUpdateItem
+      async prepareItemData({ item }) {
+        this.editItem = { ...item };
+      },
+
+      async openUpdateItemDialog() {
+        this.currentClickButton = { action: 'edit', title: '修改' };
+        this.isUpdateDrawerShown = true;
+        this.dialogSaveInfoAction = 'updateItem';
+      },
+
+      // updateItem
+      async confirmUpdateItemDialog() {
+        this.isEditDrawerPermanent = true;
+        if (await window.confirmDialog({ title: "修改", content: "确定修改吗？" }) === false) { throw new Error("[confirmCreateFormDialog] 否"); }
+      },
+
+      /**
+       * 保存用户
+       */
+      async doUpdateItem() {
+        this.isEditDrawerPermanent = false;
+        const { id, userId } = this.computedEditItem;
+        const { username, phoneNumber, email } = this.computedEditItem;
+        await window.vtoast.loading("修改用户");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'updateItem',
+              actionData: { username, phoneNumber, email },
+              where: { userId }
+            }
+          }
+        })
+        await window.vtoast.success("修改用户成功");
+      },
+
+      async confirmActiveUserStatusDialog() {
+        if (await window.confirmDialog({ title: "激活", content: "确定激活吗？" }) === false) { throw new Error("[confirmCreateFormDialog] 否"); }
+      },
+
+      /**
+       * 激活用户
+       */
+      async doActiveUserStatus({ item }) {
+        const { userId } = item;
+        await window.vtoast.loading('正在激活');
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'updateItem',
+              actionData: { userStatus: 'active' },
+              where: { userId }
+            }
+          }
+        });
+        await window.vtoast.success(`激活成功`);
+      },
+
+      async confirmBannedUserStatusDialog() {
+        if (await window.confirmDialog({ title: "禁用", content: "确定禁用吗？" }) === false) { throw new Error("[confirmCreateFormDialog] 否"); }
+      },
+
+      /**
+       * 禁用用户
+       */
+      async doBannedUserStatus({ item }) {
+        const { userId } = item;
+        await window.vtoast.loading('正在禁用');
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'updateItem',
+              actionData: { userStatus: 'banned' },
+              where: { userId }
+            }
+          }
+        });
+        await window.vtoast.success(`禁用成功`);
+      },
+
+      async openResetUserPasswordDialog() {
+        this.currentClickButton = { action: 'resetUserPassword', title: '修改用户密码' };
+        this.dialogSaveInfoAction = 'resetUserPassword';
+        this.isUpdateDrawerShown = true;
+      },
+
+      // updateItem
+      async confirmResetUserPasswordDialog() {
+        this.isEditDrawerPermanent = true;
+        if (await window.confirmDialog({ title: "修改密码", content: "确定修改密码吗？" }) === false) { throw new Error("[confirmCreateFormDialog] 否"); }
+      },
+
+      async doResetUserPassword() {
+        this.isEditDrawerPermanent = false;
+        const { userId, clearTextPassword } = this.computedEditItem;
+        await window.vtoast.loading("修改密码");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'resetUserPassword',
+              actionData: { userId, clearTextPassword },
+            }
+          }
+        })
+        await window.vtoast.success("修改密码成功");
+      },
+
+      copyPassword({ item }) {
+        navigator.clipboard.writeText(item.clearTextPassword);
+        window.vtoast.success("复制密码成功！")
+      },
+
+      async prepareAppData(userId){
+        const rows = (await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement',
+              actionId: 'getAppList',
+              actionData: {},
+              where: {
+                userId: userId
+              },
+              orderBy: [{column: 'operationAt', order: 'desc'}]
+            }
+          }
+        })).data.appData.resultData.rows;
+        const groupBy = _.groupBy(rows, 'appId');
+        const list = []
+
+        Object.keys(groupBy).forEach(key => {
+          const item = {};
+          item.appId = groupBy[key][0].appId;
+          item.appName = groupBy[key][0].appName;
+          item.userId = groupBy[key][0].userId;
+          item.username = groupBy[key][0].username;
+          list.push(item);
+        })
+
+        this.constantObj.appList = list
+      },
+      async openAppDrawer(){
+        this.isAppDrawerShown = true
+      },
+      async closeAppDrawer(){
+        this.isAppDrawerShown = false
+      },
+
+      jump(url) {
+        window.location.href = url;
+      },
+
+      // ---------- 批量禁用 uiAction >>>>>>>>>> ---------
+      async openDeleteItemDialog() {
+        this.isDeleteDrawerShow = true;
+        this.dialogSaveInfoAction = 'batchDeleteStaffUser';
+      },
+      async prepareBatchDeleteSelect() {
+        this.deleteUserIdList = this.selectStaffIdList.map(e => e.employeeId);
+      },
+      async prepareDeleteSelect({item}) {
+        this.deleteUserIdList = [item.employeeId];
+      },
+      async doDisableStaffUser() {
+        await window.vtoast.loading("禁用用户");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'userManagement2',
+              actionId: 'updateItem',
+              actionData: { userStatus: 'banned' },
+              whereIn: { userId: this.deleteUserIdList }
+            }
+          }
+        })
+        await window.vtoast.success("禁用用户成功");
+      },
+
+      // ---------- 导出数据 uiAction >>>>>>>>>>>> --------
+      async exportExcel() {
+        
+        const tHeader = ['用户id', '姓名', '明文密码'];
+        const filterVal = ['userId', 'username', 'clearTextPassword'];
+        const body = this.formatJson(filterVal, this.tableData);
+
+        export_json_to_excel({
+          header: tHeader,
+          data: body,
+          filename: dayjs().format('YYYY-MM-DD') + '账户密码列表',
+        });
+      },
+      formatJson(filterVal, jsonData) {
+        return jsonData.map((v) =>
+          filterVal.map((j) => {
+            return v[j];
+          })
+        );
+      },
+      // ---------- <<<<<<<<<<< 导出数据 uiAction  --------
+    }
+  })
+</script>
+
+<style scoped>
+</style>
+{% endblock %}

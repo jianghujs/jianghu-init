@@ -1,0 +1,102 @@
+<template id="view-journal-detail-drawer">
+  <v-navigation-drawer v-model="isDrawerShown" :permanent="isDrawerShown" fixed temporary right width="80%"
+    class="elevation-24">
+    <!-- 抽屉标题 -->
+    <v-row no-gutters>
+      <span class="text-h7 font-weight-bold pa-4">查看日志</span>
+    </v-row>
+    <v-divider class="jh-divider"></v-divider>
+
+    <v-progress-linear v-if="isLoading" indeterminate color="primary"></v-progress-linear>
+
+
+    <!-- 抽屉表单 -->
+    <v-row v-else class="mt-0 pa-4">
+      <v-col cols="12" sm="12" md="4">
+        <span class="jh-input-label grey--text">创建人</span>
+        <div>{{detail.taskManagerId}}</div>
+      </v-col>
+      <v-col cols="12" sm="12" md="4">
+        <span class="jh-input-label grey--text">创建时间</span>
+        <div>{{detail.taskCreateAt}}</div>
+      </v-col>
+      <v-col cols="12" sm="12" md="4">
+        <span class="jh-input-label grey--text">发给谁</span>
+        <div>{{detail.taskMemberIdList}}</div>
+      </v-col>
+      <v-col cols="12" sm="12" md="12">
+        <span class="jh-input-label grey--text">内容</span>
+        <div>{{detail.taskContent}}</div>
+      </v-col>
+    </v-row>
+    <!-- 抽屉关闭按钮 -->
+    <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+      @click="isDrawerShown = false">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+  </v-navigation-drawer>
+</template>
+
+<script type="module">
+  Vue.component("view-journal-detail-drawer", {
+    template: '#view-journal-detail-drawer',
+    data: () => ({
+      isDrawerShown: false,
+      detail: {},
+      isLoading: false,
+    }),
+    created() {
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'open':
+            await this.open(uiActionData);
+            await this.getTaskDetail();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+      async open({ taskId }) {
+        this.isDrawerShown = true;
+        this.taskId = taskId;
+      },
+      async getTaskDetail() {
+        this.isLoading = true;
+        const rows = (await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'noticeManagement',
+              actionId: 'selectItemList',
+              actionData: {},
+              where: { taskId: this.taskId },
+              orderBy: [{ column: 'operationAt', order: 'desc' }]
+            }
+          }
+        })).data.appData.resultData.rows;
+        this.isLoading = false;
+
+        this.detail = rows[0] || {}
+      },
+    },
+  })
+</script>
+<style scoped>
+  .text-decoration-line-through {
+    text-decoration: line-through;
+  }
+
+  .todo-item {
+    padding: 4px 0 4px 4px;
+  }
+
+  .todo-item input {
+    padding: 0;
+  }
+
+  .todo-item-text {
+    width: 100%;
+  }
+</style>

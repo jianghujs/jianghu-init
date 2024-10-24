@@ -1,0 +1,273 @@
+<template id="select-group-tree">
+  <div class="select-group-tree-container">
+    <!-- 平铺容器样式 -->
+    <v-row class="ma-0" style="max-width: 100%" no-gutters>
+      <v-col class="pb-3">
+        <div class="d-flex justify-space-between align-center">
+          <v-text-field v-model="searchInput" :loading="isTableLoading" 
+            class="jh-v-input" dense single-line filled prefix="过滤"></v-text-field>
+          <!-- <v-btn color="success" small class="ml-2" @click="doUiAction('startCreateItem')">
+            <v-icon small>mdi-plus</v-icon>
+            新增组织
+          </v-btn> -->
+        </div>
+      </v-col>
+      <v-col cols="12" class="jh-fixed-table-height overflow-y-auto" 
+        style="padding-bottom: 50px; min-width: 260px;">
+        <!-- <v-list nav dense class="pa-0">
+          <v-list-item-group
+            mandatory
+            v-model="selectedItem"
+            color="primary"
+          >
+            <v-list-item
+              v-for="(item, i) in tableData"
+              :key="i"
+            >
+              <v-list-item-content>
+                <v-list-item-title v-text="item.groupName"></v-list-item-title>
+              </v-list-item-content>
+
+              <v-list-item-icon>
+                <v-btn color="success" icon x-small>
+                  <v-icon @click="doUiAction('startUpdateItem', item)">mdi-note-edit-outline</v-icon>
+                </v-btn>
+                <v-btn color="error" icon x-small class="ml-1" v-if="item.groupId != 'supperAdmin'">
+                  <v-icon @click="doUiAction('deleteItem', item)">mdi-trash-can-outline</v-icon>
+                </v-btn>
+              </v-list-item-icon>
+            </v-list-item>
+          </v-list-item-group> -->
+
+          <v-treeview
+            hoverable
+            activatable
+            :open="openIdList"
+            :items="tableDataTree"
+            dense
+            item-key="groupId"
+            item-text="groupName"
+            :search="searchInput"
+            :filter="filter"
+            class="jh-fixed-table-height"
+            @update:active="onTreeChange"
+            :active="selectedItem"
+          >
+            <!-- <template v-slot:append="{ item, open }">
+              <v-chip
+                  color="orange"
+                  small
+                  label
+                  outlined
+                >
+                <span>{{item.groupId ? item.groupId : item.groupPath + '-' + item.groupLastId}}</span>
+              </v-chip>
+            </template> -->
+          </v-treeview>
+        </v-list>
+      </v-col>
+      <v-overlay :value="isTableLoading" color="white" dark absolute :opacity="0.7">
+        <v-progress-circular indeterminate size="32" color="grey"></v-progress-circular>
+      </v-overlay>
+    </v-row>
+  </div>
+
+</template>
+
+<script>
+  Vue.component('select-group-tree', {
+    template: '#select-group-tree',
+    props: {
+      clearable: {
+        type: Boolean,
+        default: true,
+      },
+      levelFilter: {
+        type: String,
+        default: '', // 无下级科目、有下级科目、全部
+      },
+      openAll: {
+        type: Boolean,
+        default: false,
+      },
+      serverInput: {
+        type: Boolean,
+        default: false,
+      },
+      openOnClick: {
+        type: Boolean,
+        default: false,
+      },
+      showAssistList: {
+        type: Boolean,
+        default: false,
+      },
+      hideAdmin: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    vuetify: new Vuetify(),
+    data: () => ({
+      isHelpPageDrawerShown: false,
+      isHelpPageDrawerLoaded: false,
+      isMobile: window.innerWidth < 500,
+      // 表格相关数据
+      isTableZebraLineShown: true,
+      validationRules: {
+        requireRules: [
+          v => !!v || 'This is required',
+        ],
+      },
+      // 下拉选项
+      constantObj: {
+        gender: [{"value": null, "text": "全部"}, {"value": "male", "text": "男"}, {"value": "female", "text": "女"}],
+      },
+      searchInput: null,
+      isTableLoading: true,
+      tableData: [],
+      headers: [
+        {text: "ID", value: "id", width: 90},
+        
+        {text: "groupId", value: "groupId", width: 120}, 
+        {text: "group name", value: "groupName", width: 120}, 
+        {text: "group desc", value: "groupDesc", width: 120}, 
+        {text: "操作者", value: "operationByUser", width: 90},
+        {text: "操作时间", value: "operationAt", width: 150},
+        {text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 60 : 120, class: 'fixed', cellClass: 'fixed'},
+      ],
+
+      isCreateDrawerShown: false,
+      createItem: {},
+      createActionData: {},
+      isUpdateDrawerShown: false,
+      updateItem: {},
+      updateItemId: null,
+      updateActionData: {},
+      deleteItem: {},
+      deleteItemId: null,
+
+      selectedItem: [],
+      openIdList: [],
+      tableDataTree: [],
+    }),
+    computed: {
+      value() {
+        if (!this.value) {
+          return ;
+        }
+        return [this.value];
+      },
+    },
+    watch: {},
+    async created() {
+    },
+    async mounted() {
+      await this.doUiAction('getTableData');
+      if (localStorage.getItem('groupId')) {
+        await this.onTreeChange([localStorage.getItem('groupId')]);
+      }
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'getTableData':
+            await this.getTableData();
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", {uiActionId});
+            break;
+        }
+      },
+      /**
+       * 获取表格数据
+       */
+      async getTableData() {
+        this.isTableLoading = true;
+        let rows = (await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'allPage',
+              actionId: 'selectGroupList',
+              actionData: {},
+              orderBy: [{column: 'groupName', order: 'desc'}]
+            }
+          }
+        })).data.appData.resultData.rows;
+
+        rows.forEach(row => {
+          row.operationAt = dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss');
+        })
+        if (this.hideAdmin) {
+          rows = rows.filter(row => row.groupId !== '超级管理员');
+        }
+        this.tableData = rows
+        this.tableDataTree = this.buildTableTree(rows)
+        this.isTableLoading = false;
+      },
+      buildTableTree(rows) {
+        const data = rows.filter(item => !item.groupPath);
+        // 递归  子 groupPath === 父 groupId
+        const buildTree = (data) => {
+          data.forEach(item => {
+            item.name = item.groupName;
+            item.principalIdList = item.principalId;
+            const children = rows.filter(child => {
+              const parentPath = item.groupId ? item.groupId : item.groupPath + '-' + item.groupLastId;
+              return child.groupPath == parentPath;
+            }).map(child=>{
+              child.principalIdList = child.principalId == null ? item.principalIdList : item.principalIdList + ',' + child.principalId
+              return child
+            })
+            if (children.length) {
+              this.openIdList.push(item.groupId);
+              item.children = children;
+              buildTree(children);
+              
+            }
+          });
+        };
+        buildTree(data);
+        return data;
+      },
+
+      onTreeChange(event) {
+        if (!event.length) {
+          return;
+        }
+        // 设置缓存
+        localStorage.setItem('groupId', event[0]);
+        this.selectedItem = [event[0]];
+        const item = this.tableData.find(item => item.groupId === event[0]);
+        this.$emit('change-active', item);
+        this.$emit('check-principal-auth', item);
+      },
+      // 重写搜索方法
+      filter (value, search) {
+        let newItem = _.pick(value,['groupId','groupAllName'])
+        const result = _.some(newItem, itemValue =>  itemValue && itemValue.toString().includes(search));
+        if(result){
+          return true
+        }else{
+          // 特殊操作
+          let {test} = value;
+          return _.some(test, itemValue =>{ 
+            return _.isString(itemValue.name) && itemValue['name'].includes(search)
+          });
+        }
+      },
+    }
+  })
+</script>
+<style>
+  .select-group-adjust-container {
+    min-width: 250px;
+  }
+  .select-group-box {
+    height: 400px;
+    overflow: auto;
+  }
+  .v-btn:not(.v-btn--round).v-size--x-small {
+    padding: 0 8px;
+  }
+</style>

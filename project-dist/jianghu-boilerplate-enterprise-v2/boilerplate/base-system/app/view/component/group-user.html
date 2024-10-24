@@ -1,0 +1,737 @@
+<template id="group-user">
+    <div class="group-role-page-container">
+      <div class="group-role-page-container-box">
+        <v-row class="ma-0"> 
+          <v-col cols="12" class="pa-2">
+            <v-row class="ma-0 pa-1">
+              <template v-if="isPrincipal">
+                <v-col cols="12" sm="4" md="4" xl="2" class="pa-0">
+                  <div class="d-flex align-center py-0">
+                      <!-- 新增按钮 -->
+                      <v-btn color="success" small @click="doUiAction('startCreateItem')">分配员工</v-btn> 
+                      <v-checkbox
+                        v-if="groupId != '超级管理员'"
+                        v-model="isContainSub"
+                        label="包含子部门"
+                        class="ml-2 mt-0"
+                        hide-details
+                      ></v-checkbox>
+                  </div>
+                </v-col>
+              </template>
+              <v-spacer></v-spacer>
+              <!--搜索过滤-->
+              <v-col cols="12" sm="4" md="4" xl="2" class="pa-0">
+                  <v-text-field v-model="searchInput" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+              </v-col>
+            </v-row>
+            <v-row  class="ma-0 pa-1">
+              <v-col cols="12" class="pa-0">
+                <v-card outlined>
+                    <v-data-table
+                      :headers="headers"
+                      :items="tableData"
+                      :search="searchInput"
+                      :custom-filter="customFilter"
+                      :footer-props="{ itemsPerPageOptions: [50, 100, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
+                      :items-per-page="50"
+                      mobile-breakpoint="0"
+                      :class="{'zebraLine': isTableZebraLineShown }"
+                      checkbox-color="success"
+                      fixed-header
+                      class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+                      <!-- 表格行操作按钮 -->
+                      <template v-slot:item.action="{ item }">
+                        <template>
+                            <!-- pc端 -->
+                            <template v-if="!isMobile">
+                            <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateItem', item)">
+                                <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改员工信息
+                            </span>
+                            <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('deleteItem', item)">
+                                <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>移除员工
+                            </span>
+                            </template>
+                            <!-- 手机端 -->
+                            <v-menu offset-y v-if="isMobile">
+                            <template v-slot:activator="{ on, attrs }">
+                                <span role="button" class="success--text font-weight-medium font-size-2"
+                                v-bind="attrs" v-on="on">
+                                操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                                </span>
+                            </template>
+                            <v-list dense>
+                                <v-list-item @click="doUiAction('startUpdateItem', item)">
+                                <v-list-item-title>修改员工信息</v-list-item-title>
+                                </v-list-item>
+                                <v-list-item @click="doUiAction('deleteItem', item)">
+                                <v-list-item-title>移除员工</v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                            </v-menu>
+                        </template>
+                      </template>
+                      <!-- 应用类型 -->
+                      <template v-slot:item.role-name="{ item }">
+                        <v-chip class="mr-2" v-for="(roleItem, roleIndex) in item.roleName.split(',').filter(item=>item!='无角色')" text-color="white" color="orange" small label>
+                          {{roleItem}}
+                        </v-chip>
+                      </template>
+                      <!--没有数据-->
+                      <template v-slot:loading>
+                          <div class="jh-no-data">数据加载中</div>
+                      </template>
+                      <template v-slot:no-data>
+                          <div class="jh-no-data">暂无数据</div>
+                      </template>
+                      <template v-slot:no-results>
+                          <div class="jh-no-data">暂无数据</div>
+                      </template>
+                      <!--表格分页-->
+                      <template v-slot:footer.page-text="pagination">
+                          <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                          <span class="ml-1">共{{pagination.itemsLength}}条</span>
+                      </template>
+                    </v-data-table>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
+      </div>
+  
+      <v-overlay :value="loading" color="white" dark absolute :opacity="0.7">
+        <v-progress-circular indeterminate size="32" color="grey"></v-progress-circular>
+      </v-overlay>
+  
+    <!-- 新增抽屉 -->
+    <v-navigation-drawer v-model="isCreateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+        <v-form ref="createForm" lazy-validation>
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">添加信息</span>
+            </v-row>
+            <v-divider class="jh-divider"></v-divider>
+            <!--抽屉表单主体-->
+            <v-row class="mt-0 px-4">
+              <v-col cols="12" sm="12" md="6">
+                  <span class="jh-input-label">员工组织</span>
+                  <!-- <v-text-field class="jh-v-input" dense single-line filled v-model="createItem.groupId" :rules="validationRules.requireRules" readonly></v-text-field> -->
+                  <v-autocomplete class="jh-v-input" dense single-line filled v-model="createItem.groupId" :items="constantObj.groupList" item-text="groupAllName" item-value="groupId" readonly></v-autocomplete>
+              </v-col>
+              <v-col cols="12" sm="12" md="6">
+                  <span class="jh-input-label">员工姓名<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                  <v-autocomplete class="jh-v-input" dense single-line filled v-model="createItem.userId" :items="constantObj.userList"></v-autocomplete>
+              </v-col>
+              <v-col cols="12" sm="12" md="12">
+                  <span class="jh-input-label">员工角色<span class="red--text text--accent-2 ml-1">*必填</span></span>
+                  <v-autocomplete class="jh-v-input" dense single-line filled v-model="createItem.roleId" :items="constantObj.roleList?.filter(item=> item.roleId == '无角色' || item.roleId.includes(createItem.groupId+'|'))"
+                     item-value="roleId" item-text="roleName" multiple :rules="validationRules.requireRules">
+                    <template v-slot:selection="data">
+                      <v-chip
+                        small
+                        class="ma-1"
+                        :color="data.item.roleType == '临时角色' ? 'orange' : 'success'"
+                        outlined
+                      >
+                        【{{data.item.roleType[0]}}】
+                        <span>
+                          {{data.item.roleName}}
+                        </span>
+                      </v-chip>
+                    </template>
+                    <template v-slot:item="data">
+                      <v-chip
+                        small
+                        class="ma-1"
+                        :color="data.item.roleType == '临时角色' ? 'orange' : 'success'"
+                        text-color="white"
+                      >
+                        {{data.item.roleType[0]}}
+                      </v-chip>
+                      <span>
+                        {{data.item.roleName}}
+                      </span>
+                    </template>
+                  </v-autocomplete>
+              </v-col>
+              <template v-if="createRoleConfig.filter(item => item.roleType == '临时角色')?.length > 0">
+                <v-col cols="12" sm="12" md="12">
+                  <span class="jh-input-label">设置临时角色期限</span>
+                  <v-card outlined>
+                      <v-data-table
+                        :headers="roleCreateHeaders"
+                        :items="createRoleConfig.filter(i => i.roleType == '临时角色')"
+                      >
+                      <template v-slot:item.role-deadline-1="{ item }">
+                        <v-autocomplete class="jh-v-input" dense single-line filled v-model="item.roleDeadline" :items="constantObj.roleDeadlineItem" item-value="days" item-text="text">
+                        </v-autocomplete>
+                      </template>
+                    </v-data-table>
+                  </v-card>
+                </v-col>
+              </template>
+            </v-row>
+            <!--抽屉操作按钮-->
+            <v-row class="justify-end mx-0 my-8 px-4">
+              <v-btn color="success" @click="doUiAction('createItem')" small>保存</v-btn>
+              <v-btn class="ml-2" @click="isCreateDrawerShown = false" small>取消</v-btn>
+            </v-row>
+        </v-form>
+        <!--抽屉关闭按钮-->
+        <v-btn
+            elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isCreateDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+        </v-btn>
+    </v-navigation-drawer>
+
+    <!-- 编辑抽屉 -->
+    <v-navigation-drawer v-model="isUpdateDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+    <v-form ref="updateForm" lazy-validation>
+        <!-- 抽屉标题 -->
+        <v-row no-gutters>
+        <span class="text-h7 font-weight-bold pa-4">修改员工信息</span>
+        </v-row>
+        <v-divider class="jh-divider"></v-divider>
+        <!--抽屉表单主体-->
+        <v-row class="mt-0 px-4">
+          <v-col cols="12" sm="12" md="6">
+            <span class="jh-input-label">员工姓名</span>
+            <v-autocomplete class="jh-v-input" dense single-line filled v-model="updateItem.userId" :items="constantObj.userList" readonly></v-autocomplete>
+        </v-col>
+        <v-col cols="12" sm="12" md="6">
+            <span class="jh-input-label">员工组织<span class="red--text text--accent-2 ml-1">*必填</span></span>
+            <v-autocomplete class="jh-v-input" dense single-line filled v-model="updateItem.groupId" :items="filterGroupList" item-text="groupAllName" item-value="groupId" 
+            @change="updateItem.roleId = []" :rules="validationRules.requireRules"></v-autocomplete>
+        </v-col>
+        <v-col cols="12" sm="12" md="12">
+            <span class="jh-input-label">员工角色<span class="red--text text--accent-2 ml-1">*必填</span></span>
+            <v-autocomplete class="jh-v-input" dense single-line filled v-model="updateItem.roleId" 
+                :items="filterRoleList" item-value="roleId" item-text="roleName" multiple :rules="validationRules.requireRules">
+              <template v-slot:selection="data">
+                <v-chip
+                  small
+                  class="ma-1"
+                  :color="data.item.roleType == '临时角色' ? 'orange' : 'success'"
+                  outlined
+                >
+                  【{{data.item.roleType[0]}}】
+                  <span>
+                    {{data.item.roleName}}
+                  </span>
+                </v-chip>
+              </template>
+              <template v-slot:item="data">
+                <v-chip
+                  small
+                  class="ma-1"
+                  :color="data.item.roleType == '临时角色' ? 'orange' : 'success'"
+                  text-color="white"
+                >
+                  {{data.item.roleType[0]}}
+                </v-chip>
+                <span>
+                  {{data.item.roleName}}
+                </span>
+              </template>
+            </v-autocomplete>
+        </v-col>
+        <template v-if="updateRoleConfig.filter(item => item.roleType == '临时角色')?.length > 0">
+          <v-col cols="12" sm="12" md="12">
+            <span class="jh-input-label">设置临时角色期限</span>
+            <v-card outlined>
+                <v-data-table
+                  :headers="roleUpdateHeaders"
+                  :items="updateRoleConfig.filter(i => i.roleType == '临时角色')"
+                >
+                <template v-slot:item.role-deadline-2="{ item }">
+                  <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto">
+                    <template v-slot:activator="{on, attrs}">
+                      <datetime-picker color="success" elevation="20" label="收款时间"
+                        v-model="item.roleDeadline" :rules="validationRules.requireRules"></datetime-picker>
+                    </template>
+                  </v-menu>
+                </template>
+              </v-data-table>
+            </v-card>
+          </v-col>
+        </template>
+      </v-row>
+        <!--抽屉操作按钮-->
+        <v-row class="justify-end mx-0 my-8 px-4">
+          <v-btn color="success" @click="doUiAction('updateItem')" small>保存</v-btn>
+          <v-btn class="ml-2" @click="isUpdateDrawerShown = false" small>取消</v-btn>
+        </v-row>
+    </v-form>
+    <!--抽屉关闭按钮-->
+    <v-btn
+        elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateDrawerShown = false">
+        <v-icon>mdi-close</v-icon>
+    </v-btn>
+    </v-navigation-drawer>
+    </div>
+  
+  </template>
+  
+  <script>
+    Vue.component('group-user', {
+      template: '#group-user',
+      props: {
+        tableData: {
+          type: Array,
+          default: () => []
+        },
+        loading: {
+          type: Boolean,
+          default: false
+        },
+        value: {
+          type: Array,
+          default: () => []
+        },
+        groupId: {
+          type: String,
+          default: ''
+        },
+        isPrincipal: {
+          type: Boolean,
+          default: false
+        },
+      },
+      vuetify: new Vuetify(),
+      data: () => ({
+        isTableZebraLineShown: true,
+        isMobile: window.innerWidth < 500,
+        validationRules: {
+          requireRules: [
+            v => !!v || 'This is required',
+          ],
+        },
+        // 下拉选项
+        constantObj: {
+          roleDeadlineItem:[
+            { text:"7天", days:7 },
+            { text:"14天", days:14 },
+            { text:"30天", days:30 },
+          ],
+          groupList:[],
+          roleList: [
+            {
+              roleId: "无角色",
+              roleName: "无角色",
+              roleType:"正式角色",
+            }
+          ]
+        },
+        serverSearchInput: {
+        },
+        searchInput: null,
+        headers: [
+            {text: "账号", value: "userId", width:100},
+            {text: "用户", value: "username", width:100},
+            {text: "所在组织", value: "groupAllName", width:280},
+            {text: "角色", value: "role-name", width:380},
+            {text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 80 : 200, class: 'fixed', cellClass: 'fixed'},
+        ],
+        roleCreateHeaders:[
+            {text: "角色", value: "roleName", width:180},
+            {text: "类型", value: "roleType", width:180},
+            {text: "期限", value: "role-deadline-1", width:180},
+        ],
+        roleUpdateHeaders:[
+            {text: "角色", value: "roleName", width:180},
+            {text: "类型", value: "roleType", width:180},
+            {text: "到期日期", value: "role-deadline-2", width:180}
+        ],
+        // 新增数据
+        isCreateDrawerShown: false,
+        createItem: {},
+        createActionData: {},
+        // 编辑数据
+        isUpdateDrawerShown: false,
+        updateItem: {},
+        updateActionData: {},
+        // 删除数据
+        deleteItem: {},
+        deleteItemId: null,
+        isContainSub: false
+      }),
+      computed: {
+        createRoleConfig(){
+          let roleConfig = []
+          this.createItem.roleId?.forEach(roleId => {
+            if(roleId == "无角色"){
+              roleConfig.push({
+                roleId: null,
+                roleName:"无角色",
+                roleType:"正式角色",
+                roleDeadline: -1
+              })
+              return
+            }
+            let role = this.constantObj.roleList.find(item =>  item.roleId == roleId)
+            roleConfig.push({
+              roleId:role.roleId,
+              roleName:role.roleName,
+              roleType:role.roleType,
+              roleDeadline: role.roleType == '临时角色' ? 7 : -1
+            })
+          });
+          return roleConfig
+        },
+        updateRoleConfig(){
+          let newRoleConfig = []
+          this.updateItem.roleId?.forEach(roleId => {
+            let oldRole = this.updateItem.roleConfig.find(item=>item.roleId == roleId)
+            let newRole = this.constantObj.roleList.find(item =>  item.roleId == roleId)
+            if(oldRole){
+              newRoleConfig.push({
+                roleId: newRole ? newRole.roleId : oldRole.roleId,
+                roleName: newRole ? newRole.roleName : oldRole.roleName,
+                roleType: newRole ? newRole.roleType : oldRole.roleType,
+                roleDeadline: oldRole.roleDeadline
+              })
+            }else{
+              newRoleConfig.push({
+                roleId: newRole.roleId,
+                roleName: newRole.roleName,
+                roleType: newRole.roleType,
+                roleDeadline: newRole.roleType == '临时角色' ? dayjs().add(7, 'day').format('YYYY-MM-DD') : -1
+              })
+            }
+          });
+          return newRoleConfig
+        },
+        filterRoleList(){
+          if(this.updateItem.groupId){
+            return [
+            {
+              roleId: "无角色",
+              roleName: "无角色",
+              roleType:"正式角色",
+            },
+            ...this.constantObj.roleList.filter(item => item.roleId.includes(this.updateItem.groupId+'|'))
+            ]
+          }else{
+            return []
+          }
+        },
+        filterGroupList(){
+          return this.constantObj.groupList
+        }
+      },
+      watch: {
+        value(val) {
+          this.$emit('input', val);
+        },
+        isContainSub(val){
+          this.$emit('refresh-user-list', this.isContainSub);
+        }
+      },
+      async created() {
+      },
+      async mounted() {
+        this.doUiAction("getUserData")
+        this.doUiAction("getRoleData")
+        this.doUiAction("getGroupData")
+      },
+      methods: {
+        async doUiAction(uiActionId, uiActionData) {
+          switch (uiActionId) {
+            case 'getTableData':
+              await this.getTableData();
+              break;
+            case 'getUserData':
+              await this.getUserData();
+              break;
+            case 'getRoleData':
+              await this.getRoleData();
+              break;
+            case 'getGroupData':
+              await this.getGroupData();
+              break;
+            case 'startCreateItem':
+              await this.prepareCreateFormData();
+              await this.openCreateDrawer();
+              break;
+            case 'createItem':
+              await this.prepareCreateValidate();
+              await this.confirmCreateItemDialog();
+              await this.prepareDoCreateItem();
+              await this.doCreateItem();
+              await this.closeCreateDrawer();
+              await this.getTableData();
+              break;
+            case 'startUpdateItem':
+              await this.prepareUpdateFormData(uiActionData);
+              await this.openUpdateDrawer();
+              break;
+            case 'updateItem':
+              await this.prepareUpdateValidate();
+              await this.confirmUpdateItemDialog();
+              await this.prepareDoUpdateItem();
+              await this.doUpdateItem();
+              await this.closeUpdateDrawer();
+              await this.getTableData();
+              break;
+            case 'deleteItem':
+              await this.prepareDeleteFormData(uiActionData);
+              await this.confirmDeleteItemDialog();
+              await this.doDeleteItem();
+              await this.clearDeleteItem();
+              await this.getTableData();
+              break;
+            default:
+              console.error("[doUiAction] uiActionId not find", {uiActionId});
+              break;
+          }
+        },
+  
+        /**
+         * 获取表格数据
+         */
+         async getTableData() {
+          this.$emit('refresh-user-list', this.isContainSub);
+        },
+        // 获取全部人员
+        async getUserData() {
+            this.isAppLoading = true;
+            const rows = (await window.jianghuAxios({
+                data: {
+                appData: {
+                    pageId: 'groupUserManagement',
+                    actionId: 'getUserData',
+                    actionData: {},
+                    where: {
+                      userStatus: "active"
+                    },
+                    orderBy: [{column: 'userId', order: 'asc'}]
+                }
+                }
+            })).data.appData.resultData.rows
+            this.constantObj.userList = rows.map(e => ({text: e.username, value: e.userId}));
+            this.isAppLoading = false;
+        },
+        async getRoleData() {
+          const rows = (await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'groupUserManagement',
+                actionId: 'selectRoleList',
+                actionData: {},
+                orderBy: [{column: 'operationAt', order: 'desc'}]
+              }
+            }
+          })).data.appData.resultData.rows;
+
+          this.constantObj.roleList = [{
+                  roleId: "无角色",
+                  roleName: "无角色",
+                  roleType:"正式角色",
+                }, ...rows];
+        },
+        async getGroupData() {
+          const rows = (await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'groupUserManagement',
+                actionId: 'getGroupList',
+                actionData: {},
+                orderBy: [{column: 'groupId', order: 'asc'}]
+              }
+            }
+          })).data.appData.resultData.rows;
+          this.constantObj.groupList = rows
+        },
+        // ---------- 新增数据 uiAction >>>>>>>>>> --------
+        async prepareCreateFormData() {
+            this.createItem = {
+                groupId: this.groupId,
+                roleId: []
+            };
+        },
+
+        async openCreateDrawer() {
+            this.isCreateDrawerShown = true;
+        },
+        async prepareCreateValidate() {
+            if (await this.$refs.createForm.validate() && this.createItem.roleId.length > 0) {
+                return true;
+            }
+            await window.vtoast.fail("请完善表单信息");
+            throw new Error("请完善表单信息")
+        },
+
+        async confirmCreateItemDialog() {
+            if (await window.confirmDialog({title: "新增", content: "确定新增吗？"}) === false) {
+                throw new Error("[confirmCreateFormDialog] 否");
+            }
+        },
+
+        prepareDoCreateItem() {
+            const {id, ...data} = this.createItem;
+            this.createActionData = _.pick(data, ['groupId', 'userId', 'roleId']);
+            this.createActionData.roleConfig = this.createRoleConfig
+        },
+
+        async doCreateItem() {
+            await window.jhMask.show();
+            await window.vtoast.loading("新增用户角色");
+            const groupUserIdList = this.tableData.map(v => v.userId);
+            const username = this.constantObj.userList.find(v => v.value == this.createActionData.userId)?.text;
+            await window.jianghuAxios({
+                data: {
+                appData: {
+                    pageId: 'groupUserManagement',
+                    actionId: 'insertGroupUser',
+                    actionData: this.createActionData,
+                    taskNoticeList: [
+                    {
+                        taskTitle: '加入组织通知',
+                        taskMemberIdList: [this.createActionData.userId],
+                        taskDesc: `你已加入${this.activeGroupName}, 请点击<a href="/directory/page/directory" target="_blank">《回到目录》</a>查看最新权限。`,
+                    },
+                    {
+                        taskTitle: '组织新增成员通知',
+                        taskMemberIdList: groupUserIdList,
+                        taskDesc: `${username} 加入了 ${this.activeGroupName}`,
+                    }
+                    ]
+                },
+                }
+            })
+            await window.jhMask.hide();
+            await window.vtoast.success("新增用户角色成功");
+        },
+        async closeCreateDrawer() {
+            this.isCreateDrawerShown = false;
+            this.createItem = {};
+            this.createActionData = null;
+        },
+        // ---------- <<<<<<<<<<< 新增数据 uiAction  --------
+        // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+        async prepareUpdateFormData(funObj) {
+            this.updateItem = _.pick(funObj, ['id', 'groupId', 'userId', 'roleId','roleConfig']);
+            if(this.updateItem.roleId){
+              this.updateItem.roleId = this.updateItem.roleId.map(item => item || "无角色")
+            }
+        },
+
+        async openUpdateDrawer() {
+            this.isUpdateDrawerShown = true;
+        },
+
+        async prepareUpdateValidate() {
+            if (await this.$refs.updateForm.validate() && this.updateItem.roleId.length > 0) {
+                return true;
+            }
+            await window.vtoast.fail("请完善表单信息");
+            throw new Error("请完善表单信息")
+        },
+
+        async confirmUpdateItemDialog() {
+            if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+                throw new Error("[confirmUpdateItemDialog] 否");
+            }
+        },
+
+        async prepareDoUpdateItem() {
+            const data = this.updateItem;
+            this.updateActionData = {...data,roleConfig: this.updateRoleConfig.map(item => {
+              return {
+                ...item,
+                roleId: item.roleId == "无角色" ? null : item.roleId
+              }
+            })};
+        },
+
+        async doUpdateItem() {
+            await window.jhMask.show();
+            await window.vtoast.loading("修改用户角色");
+            await window.jianghuAxios({
+                data: {
+                appData: {
+                    pageId: 'groupUserManagement',
+                    actionId: 'updateGroupUser',
+                    actionData: this.updateActionData,
+                    taskNoticeList: [{
+                        taskTitle: '权限更新',
+                        taskMemberIdList: [this.updateItem.userId],
+                        taskDesc: `你的权限已更新, 请点击<a href="/directory/page/directory" target="_blank">《回到目录》</a>查看最新权限。`,
+                    }]
+                }
+                }
+            })
+
+            await window.jhMask.hide();
+            await window.vtoast.success("修改用户角色成功");
+        },
+
+        async closeUpdateDrawer() {
+            this.isUpdateDrawerShown = false;
+            this.updateItem = {};
+            this.updateActionData = null;
+        },
+        // ---------- <<<<<<<<<<< 修改数据 uiAction  --------
+        // ---------- 删除数据 uiAction >>>>>>>>>>>> --------
+        async prepareDeleteFormData(funObj) {
+            this.deleteItem = funObj
+        },
+        async confirmDeleteItemDialog() {
+            if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
+                throw new Error("[confirmDeleteItemDialog] 否");
+            }
+        },
+        async doDeleteItem() {
+            await window.vtoast.loading("删除用户");
+            await window.jianghuAxios({
+              data: {
+                appData: {
+                  pageId: 'groupUserManagement',
+                  actionId: 'deleteGroupUser',
+                  actionData: {
+                    groupId: this.deleteItem.groupId,
+                    userId: this.deleteItem.userId
+                  },
+                }
+              }
+            });
+            await window.vtoast.success("删除用户成功");
+            this.deleteItem = {};
+        },
+
+        async clearDeleteItem(){
+          this.deleteItem = {}
+        },
+        // ---------- <<<<<<<<<<< 删除数据 uiAction  --------
+        // 重写过滤方法
+        customFilter(value, search, item){
+          let newItem = _.pick(item,['userId','username','groupAllName','roleName','groupId'])
+          // newItem.purchaseProductList = newItem.purchaseProductList.map(item=>item.productName+'-'+item.productSpec)
+          const result = _.some(newItem, itemValue =>  itemValue && itemValue.toString().includes(search));
+          if(result){
+            return true
+          }else{
+            // 特殊操作
+            let {test} = item;
+            // debugger
+            return _.some(test, itemValue =>{ 
+              // console.log("test",itemValue)
+              return _.isString(itemValue.name) && itemValue['name'].includes(search)
+            });
+          }
+        },
+      }
+    })
+  </script>
+  <style scoped>
+    .group-role-page-container-box {
+      height: calc(100vh - 177px);
+      overflow-y: auto;
+      padding: 10px;
+      padding-top: 0;
+    }
+    v-slide-group__content {
+      align-items: center;
+    }
+  </style>
