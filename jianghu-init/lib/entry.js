@@ -54,7 +54,7 @@ module.exports = class Entry {
       return;
     }
 
-    if (![ 'project', 'page', 'component', 'json' ].includes(initType)) {
+    if (![ 'project', 'page', 'component', 'json', 'script'].includes(initType)) {
       const answer = await inquirer.prompt({
         name: 'initType',
         type: 'list',

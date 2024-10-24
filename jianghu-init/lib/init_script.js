@@ -6,27 +6,27 @@ const inquirer = require('inquirer');
 
 const pageTypes = [
   {
-    type: 'tool',
+    pageType: 'script',
     value: 'initSqlToResourceList',
     name: 'initSqlToResourceList - 将init.sql转换成init-json的resouceList',
   },
   {
-    type: 'tool',
+    pageType: 'script',
     value: 'updateResourceId',
     name: 'updateResourceId - 按pageId更新_resouce表id，方便排序查看',
   },
   {
-    type: 'tool',
+    pageType: 'script',
     value: 'htmlToInitJson',
     name: 'htmlToInitJson - 将html文件转换成init-json配置文件',
   },
   {
-    type: 'tool',
+    pageType: 'script',
     value: 'dumpSqlFile',
     name: 'dumpSqlFile - 导出数据库数据表为sql文件',
   },
   {
-    type: 'tool',
+    pageType: 'script',
     value: 'exportProjectDocs',
     name: 'exportProjectDocs - 导出当前项目目录结构, 系统数据表为md文档',
   },
