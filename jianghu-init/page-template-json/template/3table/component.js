@@ -180,7 +180,7 @@ const content = {
         const result = await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'classManagement',
+              pageId: '<=$ pageId $=>',
               actionId: "<=$ actionIdPrefix $=>-selectAllotList",
               actionData: {},
             }
