@@ -56,7 +56,7 @@ module.exports = class InitPagePublic extends CommandBase {
       pageId = (await inquirer.prompt({
         name: 'pageId',
         type: 'input',
-        message: 'Please input pageId',
+        message: 'Please input component name',
         default: defaultPageId,
       })).pageId;
     }
@@ -75,7 +75,7 @@ module.exports = class InitPagePublic extends CommandBase {
       this.success(`生成 ${pageId} 的 sql 文件完成`);
     }
     // 生成 service
-    if (await this.renderService(path, { pageId }, y)) {
+    if (await this.copyTemplateFiles(path)) {
       this.success(`生成 ${pageId} 的 service 文件完成`);
     }
 
@@ -168,29 +168,67 @@ module.exports = class InitPagePublic extends CommandBase {
     return false;
   }
 
-  /**
-   * 生成 service
-   */
-  async renderService(dirPath, { pageId }, y) {
-    const templatePath = `${path.join(__dirname, '../../')}page-template-component`;
-    if (fs.existsSync(`${templatePath}/${dirPath}/service.js`)) {
-      let service = fs.readFileSync(`${templatePath}/${dirPath}/service.js`).toString();
-      if (service) {
-        service = service.replace(/\{\{pageId}}/g, pageId.slice(0, 1).toUpperCase() + pageId.slice(1));
-        const servicePath = `./app/service/${pageId}.js`;
-        if (fs.existsSync(servicePath)) {
-          const overwrite = y ? 'y' : await this.readlineMethod(`文件 ${servicePath} 已经存在，是否覆盖?(y/N)`, 'n');
-          if (overwrite !== 'y' && overwrite !== 'Y') {
-            this.warning(`跳过 ${servicePath} 的生成`);
-            return false;
-          }
-        }
+  async copyTemplateFiles(dirPath) {
+    const templateDir = path.join(__dirname, '../../page-template-component', dirPath);
+    const targetDir = './app';
 
-        fs.writeFileSync(servicePath, service);
-        return true;
-      }
+    await this.copyFile(templateDir, targetDir, `${this.pageId}.js`, 'view/init-json/page');
+    if (fs.existsSync(`${templateDir}/service`)) {
+      await this.copyDirectory(templateDir, targetDir, 'service');
+      this.info('✅ 生成 service 依赖文件');
     }
-    return false;
+
+    if (fs.existsSync(`${templateDir}/component`)) {
+      await this.copyDirectory(templateDir, targetDir, 'component', 'view/component');
+      this.info('✅ 生成 component 依赖文件');
+    }
+  }
+
+  async copyFile(sourceDir, targetDir, fileName, subDir = '') {
+    const sourcePath = path.join(sourceDir, fileName);
+    const targetSubDir = path.join(targetDir, subDir);
+    const targetPath = path.join(targetSubDir, fileName);
+
+    if (!fs.existsSync(sourcePath)) {
+      this.warning(`源文件 ${sourcePath} 不存在，当前 pageId: ${this.pageId}`);
+      return;
+    }
+
+    fs.mkdirSync(targetSubDir, { recursive: true });
+
+
+    if (sourcePath.endsWith('.js')) {
+      const content = fs.readFileSync(sourcePath, 'utf-8');
+      fs.writeFileSync(targetPath, content.replace(/^\/\* eslint-disable \*\/\n/, ''));
+    } else {
+      fs.copyFileSync(sourcePath, targetPath);
+    }
+    this.info(`✅ 生成 ${fileName} 文件`);
+  }
+
+  async copyDirectory(sourceDir, targetDir, dirName, targetSubDir = '') {
+    const sourcePath = path.join(sourceDir, dirName);
+    const targetPath = path.join(targetDir, targetSubDir || dirName);
+
+    if (!fs.existsSync(sourcePath)) {
+      this.warning(`源目录 ${sourcePath} 不存在，当前 pageId: ${this.pageId}`);
+      return;
+    }
+
+    fs.mkdirSync(targetPath, { recursive: true });
+    this.copyRecursively(sourcePath, targetPath);
+    this.success(`已复制 ${dirName} 目录下的所有文件和文件夹`);
+  }
+
+  copyRecursively(src, dest) {
+    if (fs.statSync(src).isDirectory()) {
+      fs.mkdirSync(dest, { recursive: true });
+      fs.readdirSync(src).forEach(childItemName => {
+        this.copyRecursively(path.join(src, childItemName), path.join(dest, childItemName));
+      });
+    } else {
+      fs.copyFileSync(src, dest);
+    }
   }
 
   /**

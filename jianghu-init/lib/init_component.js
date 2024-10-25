@@ -18,6 +18,25 @@ const pageTypes = [
   },
   {
     type: 'component',
+    value: 'markdown-editor',
+    name: 'markdown-editor - generate component from markdown-editor',
+    pageId: 'markdownEditor',
+    path: 'markdown-editor/',
+    queryPageId: false,
+    demo: `model 变量支持 String Object Array 
+        /**
+         * jianghu markdown 编辑器 + 素材管理
+         * value {String} markdown 内容
+         * height {String} markdown 编辑器高度
+         * item-id {String} 子文件夹
+         * material-dir {String} 素材归类文件夹 'materialRepo' - 默认素材中心 | 'xxxMaterial' - 自定义素材模块
+         * @content-for-seo {Function} seo 内容回调
+         */
+        <markdown-editor v-model="updateItem.content" @content-for-seo="updateItem.contentForSeo = $event" material-dir="articleMaterial" :item-id="updateItem.classId" height="calc(100vh - 240px)"/>
+    `,
+  },
+  {
+    type: 'component',
     value: 'table-attachment',
     name: 'table-attachment - generate component from table-attachment',
     pageId: '',

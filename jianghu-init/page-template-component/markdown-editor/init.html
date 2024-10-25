@@ -1,0 +1,470 @@
+<script type="text/x-template" id="markdown-editor">
+  <div>
+    <div class="mt-13">
+      <!-- 页面内容 >>>>>>>>>>>>> -->
+      <div style="overflow-y: auto; max-height: calc(100vh - 108px); height: calc(100vh - 123px)">
+        <div id="editorMdContainer">
+          <textarea style="display:none;">{{ value }}</textarea>
+        </div>
+      </div>
+      <!-- <<<<<<<<<<<<< 页面内容 -->
+      
+      <!-- 文章素材 -->
+      <v-dialog v-model="isArticleMaterialDialogShown" hide-overlay fullscreen transition="dialog-bottom-transition">
+        <v-card flat class="rounded-0">
+          <v-toolbar width="100%" class="rounded-0">
+            <div class="black--text ml-2 font-weight-medium text-subtitle-2">素材</div>
+            <v-spacer></v-spacer>
+            <v-btn fab text small class="mr-2" @click="isArticleMaterialDialogShown = false">
+              <v-icon class="black--text">mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-divider style="border-color: #eff2f5;opacity:0.8;"></v-divider>
+          <div class="pt-4 px-4">
+            <file-browser
+              ref="articleFileBrowser"
+              v-if="isArticleMaterialDialogShown"
+              :materialDir="materialDir"
+              page-id="allPage"
+              :path="articleAccessPath"
+              use-material
+              import-material
+              @use-material="doUiAction('useMaterial', $event)">
+            </file-browser>
+          </div>
+        </v-card>
+      </v-dialog>
+    </div>
+  </div>
+  </script>
+  
+  {% include "component/fileBrowser/fileBrowser.html" %}
+  {% include "component/importMaterial/fileBrowser.html" %}
+  {% include "component/articleEditorCss.html" %}
+  <link rel="stylesheet" href="/<$ ctx.app.config.appId $>/public/plugins/editor.md/css/editormd.min.css">
+  <link rel="stylesheet" href="/<$ ctx.app.config.appId $>/public/articleViewer/font-awesome.min.css?v=6.0.0">
+  <script src="/<$ ctx.app.config.appId $>/public/lib/jquery/jquery.min.js"></script>
+  <script src="/<$ ctx.app.config.appId $>/public/plugins/editor.md/editormd.js"></script>
+  
+  <script type="module">
+  Vue.component("markdown-editor", {
+    template: "#markdown-editor",
+    props: {
+      value: {
+        type: String,
+        default: ""
+      },
+      placeholder: {
+        type: String,
+        default: ""
+      },
+      height: {
+        type: Number,
+        default: 500
+      },
+      width: {
+        type: Number,
+        default: 100
+      },
+      uploadDir: {
+        type: String,
+        default: ""
+      },
+      itemId: {
+        type: String,
+        default: ""
+      },
+      materialDir: {
+        type: String,
+        default: ""
+      }
+    },
+    data: () => ({
+  
+      // ================================ common ================================
+      validationRules: {
+        requireRules: [
+          v => !!v || '此项为必填'
+        ]
+      },
+      serverSearchWhereLike: {
+        className: ""
+      },
+      serverSearchWhere: {},
+      serverSearchWhereIn: {},
+      filterMap: {},
+      operationConfig: {
+        createDir: false,
+        markdown: false,
+        upload: false,
+        copy: false,
+        copyPath: false,
+        cut: false,
+        clearRecycle: false,
+        delete: false,
+        edit: false,
+        rename: false,
+        useBtnText: "导入"
+      },
+      accessibleFolder: [
+        {
+          groupId: "test"
+        }
+      ],
+      accessPath: '/test/',
+      rootDirectory: '',
+      rootDirectoryName: '素材中心',
+      articleOperationConfig: {
+        markdown: false,
+        edit: false
+      },
+      articleAccessPath: '',
+      articleRootDirectory: '',
+      articleRootDirectoryName: '素材中心',
+      isArticleMaterialDialogShown: false,
+      isMaterialDialogShown: false,
+      materialType: '',
+      writeBackType: '',
+      materialFilename: '',
+      materialDownloadPath: '',
+      saveActionData: {},
+      categoryData: [],
+      editor: null,
+      isMDChange: false,
+      toolbarIcons: [
+        "undo",
+        "redo",
+        "|",
+        "watch",
+        "preview",
+        "|",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "bold",
+        "del",
+        "italic",
+        "quote",
+        "mark",
+        "imageUpload",
+        "audioUpload",
+        "videoUpload",
+        "attachmentUpload",
+        "list-ul",
+        "list-ol",
+        "hr",
+        "link",
+        "|",
+        "toggle",
+        "articleQuery"
+      ],
+      isMobile: window.innerWidth < 500,
+  
+      // ================================ 其他抽屉列表 ================================
+  
+      
+  
+  
+    }),
+    watch: {
+      isHelpPageDrawerShown(val) {
+        if (val && !this.isHelpPageDrawerLoaded) {
+          this.isHelpPageDrawerLoaded = true;
+        }
+      },
+      itemId: {
+        handler(val) {
+          this.articleAccessPath = `/${val}/`;
+        },
+        immediate: true
+      }
+    },
+    computed: {
+      tableDataComputed() {
+        if(this.filterMap) {
+          return this.tableData.filter(row => {
+            for (const key in this.filterMap) {
+              if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
+                return false;
+              }
+            }
+            return true;
+          });
+        } else {
+          return this.tableData;
+        }
+      },
+    },
+    async created() {
+    },
+    async mounted() {
+      await this.doUiAction('initEditorMd');
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        try {
+          switch (uiActionId) {
+            case 'initEditorMd':
+              await this.initEditorMd(uiActionData);
+              break;
+            case 'selectImage':
+              await this.prepareSelectImageData(uiActionData);
+              await this.openArticleMaterialDialog(uiActionData);
+              break;
+            case 'selectAudio':
+              await this.prepareSelectAudioData(uiActionData);
+              await this.openArticleMaterialDialog(uiActionData);
+              break;
+            case 'selectVideo':
+              await this.prepareSelectVideoData(uiActionData);
+              await this.openArticleMaterialDialog(uiActionData);
+              break;
+            case 'MDSelectImage':
+              await this.prepareMDSelectImageData(uiActionData);
+              await this.openArticleMaterialDialog(uiActionData);
+              break;
+            case 'MDSelectAudio':
+              await this.prepareMDSelectAudioData(uiActionData);
+              await this.openArticleMaterialDialog(uiActionData);
+              break;
+            case 'MDSelectVideo':
+              await this.prepareMDSelectVideoData(uiActionData);
+              await this.openArticleMaterialDialog(uiActionData);
+              break;
+            case 'MDSelectAttachment':
+              await this.prepareMDSelectAttachmentData(uiActionData);
+              await this.openArticleMaterialDialog(uiActionData);
+              break;
+            case 'MDChange':
+              await this.setMDChanged(uiActionData);
+              await this.setArticleContent(uiActionData);
+              break;
+            case 'useMaterial':
+              await this.doUseMaterial(uiActionData);
+              await this.renderMaterial(uiActionData);
+              await this.clearUseMaterial(uiActionData);
+              break;
+            case 'articleMaterial':
+              await this.openArticleMaterialDialog(uiActionData);
+              break;
+            default:
+              console.error("[doUiAction] uiActionId not find", {uiActionId});
+              break;
+          }
+        } catch (error) {
+          window.jhMask && window.jhMask.hide();
+          throw error;
+        } finally {
+          window.jhMask && window.jhMask.hide();
+        }
+      },
+  
+      // ---------- 抽屉列表 uiAction >>>>>>>>>>>> --------
+      // ---------- Custom uiAction >>>>>>>>>>>> --------
+      async initEditorMd() {
+        const that = this;
+        this.$nextTick(() => {
+          if (document.getElementById('editorMdContainer')) {
+            document.getElementById('editorMdContainer').innerHTML = `<textarea style=\"display:none;\">${this.value || ""}</textarea>`;
+            that.editor = editormd('editorMdContainer', {
+              watch: false,
+              saveHTMLToTextarea: true,    // 保存 HTML 到 Textarea
+              path: '/<$ ctx.app.config.appId $>/public/plugins/editor.md/lib/',
+              toolbarIcons: that.toolbarIcons,
+              toolbarIconsClass: {
+                imageUpload: 'fa-image',
+                audioUpload: 'fa-file-audio-o',
+                videoUpload: 'fa-youtube-play',
+                attachmentUpload: 'fa-upload',
+              },
+              toolbarIconTexts: {
+                toggle: "<i class='fa fa-expand' name='toggle' unselectable='on' style='display: inline-block;'></i><span class='ml-1'>收缩</span>",  // 如果没有图标，则可以这样直接插入内容，可以是字符串或HTML标签
+                articleQuery: "<i class='fa fa-table' name='toggle' unselectable='on' style='display: inline-block;'></i><span class='ml-1'>列表</span>",  // 如果没有图标，则可以这样直接插入内容，可以是字符串或HTML标签
+              },
+              toolbarHandlers: {
+                imageUpload: function (cm, icon, cursor, selection) {
+                  that.doUiAction('MDSelectImage')
+                },
+                audioUpload: function (cm, icon, cursor, selection) {
+                  that.doUiAction('MDSelectAudio')
+                },
+                videoUpload: function (cm, icon, cursor, selection) {
+                  that.doUiAction('MDSelectVideo')
+                },
+                attachmentUpload: function (cm, icon, cursor, selection) {
+                  that.doUiAction('MDSelectAttachment')
+                },
+                toggle: function (cm, icon, cursor, selection) {
+                  cm.replaceSelection(`\n[jh-toggle title=\"title\" default-open=\"true\"]\n请输入内容\n[/jh-toggle]\n`);
+                },
+                articleQuery: function (cm, icon, cursor, selection) {
+                  cm.replaceSelection("\n[jh-article-query]\n" +
+                    "{\n" +
+                    " \"tableName\": \"数据表名称\",\n" +
+                    " \"where\": \"where 字段名 = 字段值\",\n" +
+                    " \"queryType\": \"order\",\n" +
+                    " \"orderBy\": \"order by 字段名 asc\",\n" +
+                    " \"limit\": 20\n" +
+                    "}" +
+                    "\n[/jh-article-query]\n");
+                }
+              },
+              lang: {
+                toolbar: {
+                  toggle: "展开收起",
+                  column: "横向排列",  // 自定义按钮的提示文本，即title属性
+                  articleQuery: "数据列表",
+                }
+              },
+              onchange: function () {
+                that.doUiAction('MDChange')
+              },
+            });
+          } else {
+            requestAnimationFrame(() => {
+              that.doUiAction('initEditorMd')
+            })
+          }
+        })
+      },
+      async setMDChanged() {
+        this.isMDChange = true;
+      },
+      async setArticleContent() {
+        this.content = this.editor.getMarkdown();
+        this.$emit('content-for-seo', this.editor.getPreviewedHTML2());
+      },
+      async openArticleMaterialDialog() {
+        this.isArticleMaterialDialogShown = true;
+      },
+      async prepareSelectImageData() {
+        this.materialType = 'image';
+        this.writeBackType = 'attachment';
+      },
+      async prepareSelectAudioData() {
+        this.materialType = 'audio';
+        this.writeBackType = 'attachment';
+      },
+      async prepareSelectVideoData() {
+        this.materialType = 'video';
+        this.writeBackType = 'attachment';
+      },
+      async prepareMDSelectImageData() {
+        this.materialType = 'image';
+        this.writeBackType = 'editor';
+      },
+      async prepareMDSelectAudioData() {
+        this.materialType = 'audio';
+        this.writeBackType = 'editor';
+      },
+      async prepareMDSelectVideoData() {
+        this.materialType = 'video';
+        this.writeBackType = 'editor';
+      },
+      async prepareMDSelectAttachmentData() {
+        this.materialType = 'attachment';
+        this.writeBackType = 'editor';
+      },
+      async doUseMaterial({path}) {
+        this.materialFilename = path.substring(path.lastIndexOf('/') + 1);
+        this.materialDownloadPath = `${this.articleRootDirectory}${path}`;
+      },
+      async renderMaterial() {
+        switch (this.materialType) {
+          case 'image':            
+              this.editor.insertValue(`\n![${this.materialFilename}](/upload${this.materialDownloadPath})`);
+            break;
+          case 'audio':            
+              this.editor.insertValue(`\n![=audio](/upload${this.materialDownloadPath})`);
+            break;
+          case 'video':            
+              this.editor.insertValue(`\n![=video](/upload${this.materialDownloadPath})`);
+            break;
+          case 'attachment':            
+              this.editor.insertValue(`\n[${this.materialFilename}](/upload${this.materialDownloadPath})`);
+            break;
+        }
+      },
+      async clearUseMaterial() {
+        this.materialFilename = null;
+        this.materialDownloadPath = null;
+        this.isArticleMaterialDialogShown = false;
+      },
+      async openMaterialDialog() {
+        this.isMaterialDialogShown = true;
+      },
+      async clearImportMaterial() {
+        this.isMaterialDialogShown = false;
+      },
+      // ---------- <<<<<<<<<<< Custom uiAction ---------
+  
+    }
+  })
+  </script>
+  
+  <style scoped>
+    
+    
+    /* ---------- 容器 >>>>>>>>>> -------- */
+    .article-wrapper-card{
+      min-height: calc(100vh - 150px);
+    }
+    /* ---------- <<<<<<<<<<< 容器 -------- */
+  
+    /* ---------- btn >>>>>>>>>> -------- */
+    .mdi-upload-outline,
+    .mdi-trash-can-outline{
+      width: 20px !important;
+      height: 20px !important;
+    }
+    /* ---------- <<<<<<<<<<< btn -------- */
+  
+    /* ---------- 弹窗 >>>>>>>>>> -------- */
+    .v-dialog--fullscreen .v-sheet {
+      height: auto;
+      position: relative;
+      background: #fff;
+      display: block;
+    }
+    /* ---------- <<<<<<<<<<< 弹窗 -------- */
+  
+    /* ---------- 编辑器 >>>>>>>>>> -------- */
+    .editormd, .CodeMirror-gutters, .editormd-toolbar, .editormd .CodeMirror, .editormd-menu > li.divider, .editormd-menu > li > a:hover, .editormd-menu > li > a.active{
+      border-color: #eff2f5 !important;
+    }
+    .CodeMirror-gutter{
+      background-color: #fff;
+    }
+    .CodeMirror-scroll{
+      overflow-x: hidden !important;
+    }
+    .editormd-dialog-close{
+      color: #3F4254 !important;
+    }
+    .editormd-preview-container ol.linenums li, .editormd-html-preview ol.linenums li {
+        list-style-type: none;
+    }
+    .editormd-preview-container ol.linenums, .editormd-html-preview ol.linenums {
+        color: #999;
+        padding-left: 0;
+    }
+    /* ---------- <<<<<<<<<<< 编辑器 -------- */
+    .v-form>.row:last-child {
+      padding-bottom: 0;
+    }
+    .editormd-preview-close-btn {
+      display: none; /* 默认隐藏 */
+    }
+    /* 仅在预览模式下显示关闭按钮 */
+    .preview-mode .editormd-preview-close-btn {
+        display: block;
+    }
+  
+    .editormd {
+      margin-bottom: 0;
+    }
+    
+  </style>
+  
