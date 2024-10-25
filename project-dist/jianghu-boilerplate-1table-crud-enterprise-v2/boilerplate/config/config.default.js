@@ -11,16 +11,18 @@ const eggJianghuPath = path.join(eggJianghuPathTemp, '../');
 module.exports = appInfo => {
   assert(appInfo);
 
+  const projectId = 'jianghujs_enterprise';
   const appId = 'enterprise-1table-crud';
   const uploadDir = path.join(appInfo.baseDir, 'upload');
   const downloadBasePath = `/${appId}/upload`;
 
   return {
     appId,
+    projectId,
     appTitle: '模版项目',
     appLogo: `${appId}/public/img/logo.png`,
     appType: 'multiApp',
-    appDirectoryLink: 'http://127.0.0.1:7007/directory',
+    appDirectoryLink: '/directory',
     indexPage: `/${appId}/page/studentManagement`,
     loginPage: `/${appId}/page/login`,
     helpPage: `/${appId}/page/help`,
