@@ -442,15 +442,22 @@ const mixin = {
   },
 
   async checkPage(jsonConfig) {
-    const { pageType, pageId, pageName } = jsonConfig;
+    const { pageType, pageId, pageName, jhId } = jsonConfig;
     const operationByUserId = `jianghu-init/${pageId}`;
     const knex = await this.getKnex();
-    const existPage = await knex('_page').where({ pageId }).first();
+    const where = { pageId };
+    if (jhId) {
+      where.jhId = jhId;
+    }
+    const existPage = await knex('_page').where(where).first();
     const pageData = {
       pageId,
-      pageName: pageType === 'jh-mobile-page' ? pageName + '（移动端）' : pageName,
+      pageName,
       operationByUserId,
     };
+    if (jhId) {
+      pageData.jhId = jhId;
+    }
     if (existPage && (existPage.pageName !== pageData.pageName || existPage.operationByUserId !== operationByUserId)) {
       this.notice(`更新页面名称 ${existPage.pageName} => ${pageName}`);
       await knex('_page').where({ id: existPage.id }).update(pageData);
@@ -461,10 +468,14 @@ const mixin = {
   },
 
   async handleOtherResource(jsonConfig) {
-    const { resourceList, pageId } = jsonConfig;
+    const { resourceList, pageId, jhId } = jsonConfig;
     if (!resourceList || !pageId) return;
     const knex = this.knex;
-    const existResourceList = await knex('_resource').where({ pageId });
+    const where = { pageId };
+    if (jhId) {
+      where.jhId = jhId;
+    }
+    const existResourceList = await knex('_resource').where(where);
     for (const { actionId, resourceType, desc = null, resourceData, resourceHook = null, operationByUserId = `jianghu-init/${pageId}` } of resourceList) {
       const resourceDataStr = _.isObject(resourceData) ? JSON.stringify(resourceData) : resourceData;
       const resourceHookStr = _.isObject(resourceHook) ? JSON.stringify(resourceHook) : resourceHook;
@@ -486,7 +497,11 @@ const mixin = {
       }
 
       if (!resourceItem) {
-        await knex('_resource').insert({ pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr, operationByUserId });
+        const data = { pageId, actionId, desc, resourceType, resourceData: resourceDataStr, resourceHook: resourceHookStr, operationByUserId };
+        if (jhId) {
+          data.jhId = jhId;
+        }
+        await knex('_resource').insert(data);
       }
     }
     // filter 数据库内有但是却没设置的 resource
