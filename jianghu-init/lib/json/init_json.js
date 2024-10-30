@@ -91,14 +91,14 @@ module.exports = class InitJson extends CommandBase {
     }
     if (!pageId) {
       // 不要乱起名字，固定的名字最合适，否则 studio 会找不到对应的 json
-      // const res = await inquirer.prompt({
-      //   name: 'pageId',
-      //   type: 'input',
-      //   default: table ? table + 'Management' : 'examplePage',
-      //   message: `请输入pageId，如"${table ? table + 'Management' : 'examplePage'}"`,
-      // });
+      const res = await inquirer.prompt({
+        name: 'pageId',
+        type: 'input',
+        default: table ? table + 'Management' : 'examplePage',
+        message: `请输入pageId，如"${table ? table + 'Management' : 'examplePage'}"`,
+      });
       // table 转 驼峰
-      pageId = _.camelCase(table);
+      pageId = res.pageId;
     }
     let filename = pageId;
     if (pageType === 'jh-component') {
