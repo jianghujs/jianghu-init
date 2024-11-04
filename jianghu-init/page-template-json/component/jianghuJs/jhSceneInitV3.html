@@ -3,7 +3,7 @@
   <div :class="mobile ? 'flex justify-space-between w-full bg-white gap-1 px-1 !rounded-md !py-1' : 'inline-flex items-center gap-2'" :key="sceneList.length">
     <!-- 场景列表 -->
     <div v-if="mobile" class="grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-1 min-w-0 flex-grow truncate ">
-      <v-btn small class="grid-cols-2" v-for="scene, index in sceneList.slice(0, maxSceneDisplay)" :key="index" @click="currentSceneIndex = index; doUiAction('useScene', scene)" :class="{'!bg-gray-100': currentSceneIndex != index, 'success': currentSceneIndex == index }">
+      <v-btn small color="white" class="grid-cols-2" v-for="scene, index in sceneList.slice(0, maxSceneDisplay)" :key="index" @click="currentSceneIndex = index; doUiAction('useScene', scene)" :class="{'!bg-gray-100': currentSceneIndex != index, 'success': currentSceneIndex == index }">
         {{scene.name}}
       </v-btn>
     </div>
@@ -14,9 +14,10 @@
     <!-- 更多场景按钮 -->
     <v-menu offset-y>
       <template v-slot:activator="{on, attrs}">
-        <v-btn-toggle v-if="sceneList.length > maxSceneDisplay" dense color="white"> 
-          <v-btn small v-bind="attrs" v-on="on" :color="currentSceneIndex >= maxSceneDisplay ? 'success' : ''" class="px-0 !min-w-9"><v-icon right small :color="currentSceneIndex >= maxSceneDisplay ? 'white' : ''" class="mx-0">mdi-chevron-down</v-icon></v-btn> 
-        </v-btn-toggle>
+        <div v-if="sceneList.length > maxSceneDisplay" v-bind="attrs" v-on="on" :class="`px-3 !pt-0.5 text-center d-flex rounded-md align-center text-xs ${currentSceneIndex >= maxSceneDisplay ? 'primary text-white' : ''}`">
+          更多
+          <v-icon right small :color="currentSceneIndex >= maxSceneDisplay ? 'white' : ''" class="mx-0">mdi-chevron-down</v-icon>
+        </div>
       </template>
       <v-list dense class="pb-0">
         <v-list-item v-for="scene, index in sceneList.slice(maxSceneDisplay)" :key="index"  @click="currentSceneIndex = index + maxSceneDisplay; doUiAction('useScene', scene)">
@@ -31,9 +32,9 @@
     <!-- 场景操作菜单 -->
     <v-menu offset-y v-model="isSceneOperationShown">
       <template v-slot:activator="{on, attrs}">
-        <v-btn-toggle v-if="showActionBtn" dense color="white"> 
-          <v-btn small v-bind="attrs" v-on="on" class="px-0 !min-w-9"><v-icon right small class="mx-0">mdi-cog</v-icon></v-btn> 
-        </v-btn-toggle>
+        <div v-if="showActionBtn" v-bind="attrs" v-on="on" class="px-3 border-l text-center d-flex align-center">
+          <v-icon size="16">mdi-cog</v-icon>
+        </div>
       </template>
       <v-list dense class="pb-0">
         <v-list-item @click="doUiAction('openCreateSceneDialog')">
@@ -285,6 +286,8 @@
         localSceneList = JSON.parse(localSceneList);
         this.sceneList = localSceneList;
         this.sceneCustomList = localSceneList.filter(item => !this.defaultSceneList.some(e => e.name == item.name));
+        console.log(this.sceneCustomList, this.maxSceneDisplay);
+        
       },
   
       // 使用默认场景
