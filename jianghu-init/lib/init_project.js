@@ -149,7 +149,7 @@ module.exports = class InitProjectCommand extends CommandBase {
       }
 
       // 数据库初始化
-      dbSetting.database = dbSetting.dbPrefix + _.snakeCase((dbSetting.defaultDatabase || app));
+      dbSetting.database = dbSetting.dbPrefix + (dbSetting.defaultDatabase || _.snakeCase(app));
       // console.log(dbSetting);
       await new InitTableData({ boilerplate, app, dbSetting }).run(process.cwd());
 

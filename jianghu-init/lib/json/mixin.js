@@ -463,7 +463,7 @@ const mixin = {
       await knex('_page').where({ id: existPage.id }).update(pageData);
     } else if (!existPage) {
       this.notice(`新增页面 ${pageName}`);
-      await knex('_page').insert(pageData);
+      await knex('_page').insert({ ...pageData, pageType: 'showInMenu' });
     }
   },
 
@@ -744,6 +744,10 @@ const mixin = {
     if (hasJhScene) {
       jsonConfig.hasJhScene = true;
     }
+
+    // 版本特性处理
+    this.processingVersionData(jsonConfig);
+
     Object.assign(jsonConfig, this.getBasicConfig(jsonConfig));
 
     // 拼接 doUiAction, 支持环节添加 doUiAction 配置
@@ -756,6 +760,97 @@ const mixin = {
         }
       }
     }
+  },
+
+  processingVersionData(jsonConfig) {
+    const { version, pageType } = jsonConfig;
+    if (version === 'v3') {
+      for (const content of jsonConfig.headContent) {
+        if (content.tag === 'jh-scene') {
+          // 格式校验
+          if (!content.data) {
+            this.errorLog([ 
+              '** v3 版本中 jh-scene 组件必须配置 data 属性 **',
+              '@sceneCreateForm {object} 场景搜索 input 变量',
+              '@serverSceneSearchWhere {object} 场景搜索变量',
+              '@serverSceneSearchWhereIn {object} 场景搜索变量',
+              '@serverSceneSearchWhereLike {object} 场景搜索变量',
+              '@serverSceneSearchWhereOptions {array} 场景搜索变量',
+              '@serverSceneSearchWhereOrOptions {array} 场景搜索变量',
+              '@currentSceneId {string} 当前场景 name',
+              '@defaultSceneList {array} 默认场景列表',
+              '@customSceneList {array} 自定义场景列表',
+            ]);
+          }
+          const defaultData = {
+            sceneCreateForm: {},
+            serverSceneSearchWhere: {},
+            serverSceneSearchWhereIn: {},
+            serverSceneSearchWhereLike: {},
+            serverSceneSearchWhereOptions: [],
+            serverSceneSearchWhereOrOptions: [],
+            currentSceneId: '',
+            defaultSceneList: [],
+            customSceneList: [],
+            maxSceneDisplay: 5
+          };
+          content.data = Object.assign(defaultData, content.data || {});
+        }
+        if (pageType === 'jh-mobile-page' && content.tag === 'jh-order') {
+          // 格式校验
+          if (!content.data) {
+            this.errorLog([ 
+              '** v3 版本中 jh-order 组件必须配置 data 属性 **',
+              '@tableDataOrder {array} 当前排序',
+              '@tableDataOrderList {array} 排序列表',
+            ]);
+          }
+          const defaultData = {
+            tableDataOrder: [{ column: 'operationAt', order: 'desc' }],
+            tableDataOrderList: [
+              { text: '最新更新↓', value: [{ column: 'operationAt', order: 'desc' }] },
+            ],
+          };
+          content.data = Object.assign(defaultData, content.data || {});
+        }
+
+        if (pageType === 'jh-mobile-page' && content.tag === 'jh-mode') {
+          // 格式校验
+          if (!content.data) {
+            this.notice("自定义使用：{ tag: 'jh-mode', data: { viewMode: 'simple' } }");
+          }
+          const defaultData = {
+            viewMode: 'simple',
+          };
+          content.data = Object.assign(defaultData, content.data || {});
+        }
+
+        if (content.tag === 'jh-search') {
+          // 格式校验
+          if (!content.data) {
+            this.notice("自定义使用：{ tag: 'jh-search', data: { serverSearchWhere: {}, serverSearchWhereIn: {}, serverSearchWhereLike: {} } }");
+          }
+          const defaultData = {
+            serverSearchWhere: {},
+            serverSearchWhereIn: {},
+            serverSearchWhereLike: {},
+          };
+          content.data = Object.assign(defaultData, content.data || {});
+        }
+      }
+    }
+  },
+
+  errorLog(error) {
+    this.error('┏----------------------------------------------------------┓');
+    if (Array.isArray(error)) {
+      for (const item of error) {
+        this.error('  ' + item);
+      }
+    } else {
+      this.error('  ' + error);
+    }
+    this.error('┗----------------------------------------------------------┛');
   },
 
   processUiActionItem(item) {
@@ -1041,7 +1136,7 @@ const mixin = {
       deleteItem: [ 'prepareDeleteFormData', 'confirmDeleteItemDialog', 'prepareDoDeleteItem', 'doDeleteItem', 'getTableData' ],
     };
 
-    if (version === 'v2') {
+    if ([ 'v2', 'v3' ].includes(version)) {
       const uiAction = {
         getTableData: [ 'prepareTableParamsDefault', 'prepareTableParams', 'getTableData', 'formatTableData' ],
         createItem: [ 'prepareCreateValidate', 'confirmCreateItemDialog', 'prepareDoCreateItem', 'doCreateItem', 'closeCreateDrawer', 'doUiAction.getTableData' ],
