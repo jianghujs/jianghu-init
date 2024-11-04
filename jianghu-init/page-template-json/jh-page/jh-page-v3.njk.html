@@ -417,6 +417,9 @@
 {% include 'component/jianghuJs/jhSaveConfirmDialog.html' %}
 <=%- endif %=>
 
+<=%- if jhScene %=>
+{% include 'component/jianghuJs/jhSceneInitV3.html' %}
+<=%- endif %=>
 <=%- for component in componentList %=>
 {% include 'component/<=$ component.componentPath $=>.html' %}
 <=%- endfor %=>
