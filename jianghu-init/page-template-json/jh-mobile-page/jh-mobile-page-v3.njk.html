@@ -1364,7 +1364,8 @@ new Vue({
 
     //===// <=%- if jhScene %=>
     useScene(funObj) {
-      this.currentSceneId = funObj.id;
+      if (!funObj) return;
+      this.currentSceneId = funObj?.name;
       ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
         if (funObj[key]) {
           this['serverSceneSearch' + _.upperFirst(key)] = funObj[key];

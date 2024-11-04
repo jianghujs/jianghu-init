@@ -284,7 +284,7 @@
         let localSceneList = localStorage.getItem(this.sceneListKey);
         if(localSceneList == null) localSceneList = '[]';
         localSceneList = JSON.parse(localSceneList);
-        this.sceneList = localSceneList;
+        this.sceneList = localSceneList.length < this.defaultSceneList.length ? this.defaultSceneList : localSceneList;
         this.sceneCustomList = localSceneList.filter(item => !this.defaultSceneList.some(e => e.name == item.name));
         console.log(this.sceneCustomList, this.maxSceneDisplay);
         
