@@ -939,9 +939,9 @@ new Vue({
       //===// const serverSearchWhereOptions = [ ...this.serverSceneSearchWhereOptions ];
       //===// const serverSearchWhereOrOptions = [ ...this.serverSceneSearchWhereOrOptions ];
       //===// <=%- else %=>
-      //===// const serverSearchWhere = _.cloneDeep(this.serverSearchWhere);
-      //===// const serverSearchWhereIn = _.cloneDeep(this.serverSearchWhereIn);
-      //===// const serverSearchWhereLike = _.cloneDeep(this.serverSearchWhereLike);
+      //===// const serverSearchWhere = _.cloneDeep(this.serverSearchWhere || {});
+      //===// const serverSearchWhereIn = _.cloneDeep(this.serverSearchWhereIn || {});
+      //===// const serverSearchWhereLike = _.cloneDeep(this.serverSearchWhereLike || {});
       //===// <=%- endif %=>
 
       //===// for (const fieldKey in serverSearchWhere) {

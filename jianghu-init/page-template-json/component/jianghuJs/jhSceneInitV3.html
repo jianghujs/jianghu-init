@@ -1,6 +1,6 @@
 <!-- jhScene.html >>>>>>>>>>>>> -->
 <script type="text/html" id="jh-scene">
-  <div :class="mobile ? 'flex justify-space-between w-full bg-white gap-1 px-1 rounded-md !py-1' : 'inline-flex items-center gap-2'" :key="sceneList.length">
+  <div :class="mobile ? 'flex justify-space-between w-full bg-white gap-1 px-1 !rounded-md !py-1' : 'inline-flex items-center gap-2'" :key="sceneList.length">
     <!-- 场景列表 -->
     <div v-if="mobile" class="grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-1 min-w-0 flex-grow truncate ">
       <v-btn small class="grid-cols-2" v-for="scene, index in sceneList.slice(0, maxSceneDisplay)" :key="index" @click="currentSceneIndex = index; doUiAction('useScene', scene)" :class="{'!bg-gray-100': currentSceneIndex != index, 'success': currentSceneIndex == index }">
@@ -144,17 +144,19 @@
     vueComponent: 'jh-scene',
     vuetify: new Vuetify(),
     props: {
+      // 创建默认表单
       initFormData: {
         type: Object,
         default: function () {
           return {};
         }
       },
-      // 当前页面PageId
+      // 设置缓存key，用于缓存场景列表
       sceneListKey: {
         type: String,
         default: null
       },
+      // 当前 scene.name
       currentSceneId: {
         type: String,
         default: null
@@ -163,16 +165,19 @@
         type: Boolean,
         default: true
       },
+      // 最大显示场景数量
       maxSceneDisplay: {
         type: Number,
         default: 0
       },
+      // 默认场景列表
       defaultSceneList: {
         type: Array,
         default: function () {
           return [];
         }
       },
+      // 是否为移动端
       mobile: {
         type: Boolean,
         default: false
