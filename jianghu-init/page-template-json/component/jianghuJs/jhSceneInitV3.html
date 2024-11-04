@@ -290,7 +290,10 @@
       // 使用默认场景
       async useDefaultScene() {
         let defaultScene = this.sceneList.find(item => item.default === true);
-        const currentSceneIndex = this.sceneList.findIndex(item => item.name === defaultScene?.name);
+        let currentSceneIndex = this.sceneList.findIndex(item => item.name === defaultScene?.name);
+        if (currentSceneIndex < 0) {
+          currentSceneIndex = this.sceneList.findIndex(item => item.name === this.currentSceneId);
+        }
         this.currentSceneIndex = currentSceneIndex < 0 ? 0 : currentSceneIndex;
         if (currentSceneIndex < 0) {
           this.useScene(this.sceneList[0]);
