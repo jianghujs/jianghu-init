@@ -1,6 +1,6 @@
 <!-- jhScene.html >>>>>>>>>>>>> -->
 <script type="text/html" id="jh-scene">
-  <div :class="mobile ? 'flex justify-space-between w-full bg-white gap-1 px-1 rounded !py-1' : 'inline-flex items-center gap-2'" :key="sceneList.length">
+  <div :class="mobile ? 'flex justify-space-between w-full bg-white gap-1 px-1 rounded-md !py-1' : 'inline-flex items-center gap-2'" :key="sceneList.length">
     <!-- 场景列表 -->
     <div v-if="mobile" class="grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-1 min-w-0 flex-grow truncate ">
       <v-btn small class="grid-cols-2" v-for="scene, index in sceneList.slice(0, maxSceneDisplay)" :key="index" @click="currentSceneIndex = index; doUiAction('useScene', scene)" :class="{'!bg-gray-100': currentSceneIndex != index, 'success': currentSceneIndex == index }">
