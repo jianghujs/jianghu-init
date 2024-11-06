@@ -1,9 +1,9 @@
 <!-- jhScene.html >>>>>>>>>>>>> -->
 <script type="text/html" id="jh-scene">
-  <div :class="mobile ? 'flex justify-space-between w-full bg-white gap-1 px-1 !rounded-md !py-1' : 'inline-flex items-center gap-2'" :key="sceneList.length">
+  <div :class="mobile ? 'flex justify-space-between w-full bg-white gap-1 px-1 !rounded-lg !py-1' : 'inline-flex items-center gap-2'" :key="sceneList.length">
     <!-- 场景列表 -->
     <div v-if="mobile" class="grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-1 min-w-0 flex-grow truncate ">
-      <v-btn small color="white" class="grid-cols-2" v-for="scene, index in sceneList.slice(0, maxSceneDisplay)" :key="index" @click="currentSceneIndex = index; doUiAction('useScene', scene)" :class="{'!bg-gray-100': currentSceneIndex != index, 'success': currentSceneIndex == index }">
+      <v-btn small color="white" class="grid-cols-2 rounded-md" v-for="scene, index in sceneList.slice(0, maxSceneDisplay)" :key="index" @click="currentSceneIndex = index; doUiAction('useScene', scene)" :class="{'!bg-gray-100': currentSceneIndex != index, 'success': currentSceneIndex == index }">
         {{scene.name}}
       </v-btn>
     </div>
@@ -14,8 +14,9 @@
     <!-- 更多场景按钮 -->
     <v-menu offset-y>
       <template v-slot:activator="{on, attrs}">
-        <div v-if="sceneList.length > maxSceneDisplay" v-bind="attrs" v-on="on" :class="`px-3 !pt-0.5 text-center d-flex rounded-md align-center text-xs ${currentSceneIndex >= maxSceneDisplay ? 'primary text-white' : ''}`">
-          更多
+        <div v-if="sceneList.length > maxSceneDisplay" v-bind="attrs" v-on="on" :class="`font-medium pl-3 pr-2 text-center d-flex rounded-lg align-center text-xs ${currentSceneIndex >= maxSceneDisplay ? 'primary text-white' : ''}`">
+          <!-- 更多 -->
+          {{currentSceneIndex >= maxSceneDisplay ? sceneList[currentSceneIndex].name : '更多'}}
           <v-icon right small :color="currentSceneIndex >= maxSceneDisplay ? 'white' : ''" class="mx-0">mdi-chevron-down</v-icon>
         </div>
       </template>
@@ -32,7 +33,8 @@
     <!-- 场景操作菜单 -->
     <v-menu offset-y v-model="isSceneOperationShown">
       <template v-slot:activator="{on, attrs}">
-        <div v-if="showActionBtn" v-bind="attrs" v-on="on" class="px-3 border-l text-center d-flex align-center">
+        <div v-if="showActionBtn" v-bind="attrs" v-on="on" class="relative px-3 text-center d-flex align-center">
+          <div class="absolute left-0 top-1 bottom-1 w-0 border-l border-gray-300"></div>
           <v-icon size="16">mdi-cog</v-icon>
         </div>
       </template>
@@ -284,8 +286,8 @@
         let localSceneList = localStorage.getItem(this.sceneListKey);
         if(localSceneList == null) localSceneList = '[]';
         localSceneList = JSON.parse(localSceneList);
-        this.sceneList = localSceneList.length < this.defaultSceneList.length ? this.defaultSceneList : localSceneList;
-        this.sceneCustomList = localSceneList.filter(item => !this.defaultSceneList.some(e => e.name == item.name));
+        this.sceneList = [...this.defaultSceneList, ...localSceneList];
+        this.sceneCustomList = localSceneList;
         console.log(this.sceneCustomList, this.maxSceneDisplay);
         
       },
