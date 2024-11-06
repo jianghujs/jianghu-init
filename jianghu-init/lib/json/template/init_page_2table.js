@@ -63,7 +63,7 @@ module.exports = class InitPage2Table extends CommandBase {
     let pageId = `${tableCamelCase}Management`;
     pageId = await this.readlineMethod(`【${tableA}】数据表pageId`, pageId);
     let componentName = _.camelCase(tableB) + 'List';
-    for (const table of [ tableA, tableB ]) {
+    for (const table of [ tableB, tableA ]) {
       if (table === tableB) {
         componentName = await this.readlineMethod(`【${tableB}】数据表组件名`, componentName);
       }

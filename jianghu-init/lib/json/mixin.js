@@ -814,17 +814,6 @@ const mixin = {
           content.data = Object.assign(defaultData, content.data || {});
         }
 
-        if (pageType === 'jh-mobile-page' && content.tag === 'jh-mode') {
-          // 格式校验
-          if (!content.data) {
-            this.notice("自定义使用：{ tag: 'jh-mode', data: { viewMode: 'simple' } }");
-          }
-          const defaultData = {
-            viewMode: 'simple',
-          };
-          content.data = Object.assign(defaultData, content.data || {});
-        }
-
         if (content.tag === 'jh-search') {
           // 格式校验
           if (!content.data) {

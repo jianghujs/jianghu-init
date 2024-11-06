@@ -1,6 +1,6 @@
 /* eslint-disable */
 const content = {
-  pageType: "<=$ pageType $=>", pageId: "<=$ pageId $=>", table: "<=$ table $=>", pageName: "<=$ pageName $=>", template: "<=% if pageType == 'jh-mobile-page' %=>jhMobileTemplateV4<=% else %=>jhTemplateV4<=% endif %=>", version: 'v2',
+  pageType: "<=$ pageType $=>", pageId: "<=$ pageId $=>", table: "<=$ table $=>", pageName: "<=$ pageName $=>", template: "<=% if pageType == 'jh-mobile-page' %=>jhMobileTemplateV4<=% else %=>jhTemplateV4<=% endif %=>", version: 'v3',
   resourceList: [
     {
       actionId: "selectItemList",
@@ -31,16 +31,29 @@ const content = {
   headContent: [
     { tag: 'jh-page-title', value: "<=$ pageName $=>", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
 
-    { tag: 'jh-order'},
+    { 
+      tag: 'jh-order',
+      data: {
+        tableDataOrder: [ { column: "operationAt", order: "desc" } ],
+        tableDataOrderList: [
+          { text: "更新时间↓", value: [ { column: "operationAt", order: "desc" } ] },
+        ],
+      }
+    },
     { 
       tag: 'jh-search', 
       searchList: [
         { tag: "v-text-field", model: "keyword", colAttrs: { cols: 12, md: 3 }, attrs: {prefix: '标题', ':disabled': 'keywordFieldList.length == 0', ':placeholder': "!keywordFieldList.length ? '未设置搜索字段' : ''"} },
         // { tag: "v-text-field", model: "serverSearchWhereLike.className", colAttrs: { cols: 12, md: 3 }, attrs: {prefix: '前缀'} },
-      ], 
+      ],
+      data: {
+        keyword: '', // 特殊搜索变量，支持多字段模糊搜索
+        keywordFieldList: [], // 模糊字段列表
+        serverSearchWhereLike: { },
+      }
     },
     { tag: 'v-spacer'},
-    { tag: 'jh-mode'},
+    { tag: 'jh-mode', data: { viewMode: 'simple'} },
   ],
   pageContent: [
     {
@@ -192,13 +205,8 @@ const content = {
           v => !!v || '必填',
         ],
       },
-      serverSearchWhereLike: { className: '' }, // 服务端like查询
-      serverSearchWhere: { }, // 服务端查询
-      serverSearchWhereIn: { }, // 服务端 in 查询
       filterMap: {}, // 结果筛选条件
 
-      keyword: '', // 搜索关键字
-      keywordFieldList: [], // 搜索关键字对应字段
       //===// <=$ commonDataStr $=>
     },
     dataExpression: {

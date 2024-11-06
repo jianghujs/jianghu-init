@@ -1,6 +1,6 @@
 /* eslint-disable */
 const content = {
-  pageType: "jh-page", pageId: "recordHistoryManagement", table: '_user', pageName: "数据历史", version: 'v2',
+  pageType: "jh-page", pageId: "recordHistoryManagement", table: '_user', pageName: "数据历史", version: 'v3',
   resourceList: [
     {
       actionId: "selectOnUseItemListByTable",
@@ -50,6 +50,12 @@ const content = {
         { tag: 'v-select', model: 'serverSearchInput.dataType', attrs: { prefix: '数据类型：', class: 'jh-v-input bg-white', ':items': 'constantObj.dataType' } },
       ],
       searchBtn: true,
+      data: {
+        serverSearchInput: {
+          table: '_user',
+          dataType: 'onUse'
+        },
+      }
     }
   ],
   pageContent: [
@@ -155,10 +161,6 @@ const content = {
           {"value": "onUse", "text": "使用中的数据"},
           {"value": "deleted", "text": "已删除的数据"},
         ],
-      },
-      serverSearchInput: {
-        table: '_user',
-        dataType: 'onUse'
       },
       recordHistoryActionId: null,
       currentTable: null,

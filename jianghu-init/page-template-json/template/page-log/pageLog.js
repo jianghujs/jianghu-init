@@ -1,6 +1,6 @@
 /* eslint-disable */
 const content = {
-  pageType: "jh-page", pageId: "pageLog", pageName: "页面访问日志", version: 'v2',
+  pageType: "jh-page", pageId: "pageLog", pageName: "页面访问日志", version: 'v3',
   resourceList: [
     {
       actionId: "selectLogFileList",
@@ -24,7 +24,10 @@ const content = {
       value: [
         { tag: "v-select", model: "serverSearchWhere.logFile", colAttrs: { md: 5 }, attrs: {prefix: '文件', ':items': "constantObj.logFile" } },
       ], 
-      searchBtn: true
+      searchBtn: true,
+      data: {
+        serverSearchWhere: { },
+      }
     }
   ],
   pageContent: [
@@ -77,9 +80,6 @@ const content = {
           v => !!v || '必填',
         ],
       },
-      serverSearchWhereLike: { className: '' }, // 服务端like查询
-      serverSearchWhere: { }, // 服务端查询
-      serverSearchWhereIn: { }, // 服务端 in 查询
       filterMap: {}, // 结果筛选条件
     },
     dataExpression: {

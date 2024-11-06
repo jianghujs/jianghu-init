@@ -1,6 +1,6 @@
 /* eslint-disable */
 const content = {
-  pageType: "jh-page", pageId: "userManagement", table: "_user", pageName: "用户管理", version: 'v2',
+  pageType: "jh-page", pageId: "userManagement", table: "_user", pageName: "用户管理", version: 'v3',
   resourceList: [
     {
       actionId: "selectItemList",
