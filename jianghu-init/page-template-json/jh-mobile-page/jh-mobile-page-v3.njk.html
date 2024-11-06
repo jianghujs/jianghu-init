@@ -1145,6 +1145,33 @@ new Vue({
     //===// async prepareDoUpdateItem() {
     //===//   const {id, ...data} = this.updateItem;
     //===//   this.updateItemId = id;
+    //===//   <=%- set updateDrawerContentList = (actionContent | find({tag: 'jh-update-drawer'})).contentList %=>
+    //===//   <=%- if updateDrawerContentList.length > 1 %=>
+    //===//   this.updateActionData = {};
+    //===//   switch (this.updateDrawerTab) {
+    //===//     <=%- for content in updateDrawerContentList %=>
+    //===//     <=%- if content.type == 'form' %=>
+    //===//     case <=$ loop.index0 $=>:
+    //===//     <=%- if content.formFieldList %=>
+    //===//     <=%- for field in content.formFieldList %=>
+    //===//       this.updateActionData.<=$ field $=> = data.<=$ field $=>;
+    //===//     <=%- endfor %=>
+    //===//     <=%- else %=>
+    //===//     <=%- for formItem in content.formItemList %=>
+    //===//     <=%- if formItem.model %=>
+    //===//     <=%- if formItem.valueType === 'json' %=>
+    //===//       this.updateActionData.<=$ formItem.model $=> = JSON.stringify(data.<=$ formItem.model $=>);
+    //===//     <=%- elif formItem.model and formItem.model.search('\\.') == -1 and formItem.model.search('\\[') == -1 %=>
+    //===//       this.updateActionData.<=$ formItem.model $=> = data.<=$ formItem.model $=>;
+    //===//     <=%- endif %=>
+    //===//     <=%- endif %=>
+    //===//     <=%- endfor %=>
+    //===//     <=%- endif %=>
+    //===//     <=%- endif %=>
+    //===//     <=%- endfor %=>
+    //===//     break;
+    //===//   }
+    //===//   <=%- else %=>
     //===//   this.updateActionData = {
     //===//     <=%- for formItem in updateFormItemList %=>
     //===//     <=%- if formItem.model %=>
@@ -1156,6 +1183,7 @@ new Vue({
     //===//     <=%- endif %=>
     //===//     <=%- endfor %=>
     //===//   };
+    //===//   <=%- endif %=>
     //===// },
     //===// async doUpdateItem() {
     //===//   await window.jhMask.show();

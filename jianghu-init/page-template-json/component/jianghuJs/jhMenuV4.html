@@ -311,6 +311,14 @@
             .join('&');
           window.location.href = url + '?' + queryStrings;
         } else {
+          // 判断是否当前是隐藏页面，如果是隐藏页面，则不处理参数刷新页面
+          if (url.split('/page/')[1] === this.currentPageId) {
+            const page = this.userInfo.allowPageList.find(item => item.pageId === this.currentPageId );
+            if (page.pageType == 'dynamicInMenu') {
+              location.reload();
+              return;
+            }
+          }
           window.location.href = url;
         }
       },
