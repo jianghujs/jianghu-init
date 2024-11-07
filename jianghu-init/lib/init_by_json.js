@@ -276,6 +276,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     // page-template-json/common/jhMobileTemplateV4.html -> ./app/view/teamplate/jhMobileTemplateV4.html'
 
     fs.copyFileSync(`${path.join(__dirname, '../')}page-template-json/common/jhMobileTemplateV4.html`, './app/view/template/jhMobileTemplateV4.html');
+    fs.copyFileSync(`${path.join(__dirname, '../')}page-template-json/common/jhTemplateV4.html`, './app/view/template/jhTemplateV4.html');
   }
 
 
