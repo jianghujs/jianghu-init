@@ -1,40 +1,38 @@
 <script type="text/x-template" id="markdown-editor">
   <div>
-    <div class="mt-13">
-      <!-- 页面内容 >>>>>>>>>>>>> -->
-      <div style="overflow-y: auto; max-height: calc(100vh - 108px); height: calc(100vh - 123px)">
-        <div id="editorMdContainer">
-          <textarea style="display:none;">{{ value }}</textarea>
-        </div>
+    <!-- 页面内容 >>>>>>>>>>>>> -->
+    <div :style="`overflow-y: auto; height: ${height}`">
+      <div id="editorMdContainer">
+        <textarea style="display:none;">{{ value }}</textarea>
       </div>
-      <!-- <<<<<<<<<<<<< 页面内容 -->
-      
-      <!-- 文章素材 -->
-      <v-dialog v-model="isArticleMaterialDialogShown" hide-overlay fullscreen transition="dialog-bottom-transition">
-        <v-card flat class="rounded-0">
-          <v-toolbar width="100%" class="rounded-0">
-            <div class="black--text ml-2 font-weight-medium text-subtitle-2">素材</div>
-            <v-spacer></v-spacer>
-            <v-btn fab text small class="mr-2" @click="isArticleMaterialDialogShown = false">
-              <v-icon class="black--text">mdi-close</v-icon>
-            </v-btn>
-          </v-toolbar>
-          <v-divider style="border-color: #eff2f5;opacity:0.8;"></v-divider>
-          <div class="pt-4 px-4">
-            <file-browser
-              ref="articleFileBrowser"
-              v-if="isArticleMaterialDialogShown"
-              :materialDir="materialDir"
-              page-id="allPage"
-              :path="articleAccessPath"
-              use-material
-              import-material
-              @use-material="doUiAction('useMaterial', $event)">
-            </file-browser>
-          </div>
-        </v-card>
-      </v-dialog>
     </div>
+    <!-- <<<<<<<<<<<<< 页面内容 -->
+    
+    <!-- 文章素材 -->
+    <v-dialog v-model="isArticleMaterialDialogShown" hide-overlay fullscreen transition="dialog-bottom-transition">
+      <v-card flat class="rounded-0">
+        <v-toolbar width="100%" class="rounded-0">
+          <div class="black--text ml-2 font-weight-medium text-subtitle-2">素材</div>
+          <v-spacer></v-spacer>
+          <v-btn fab text small class="mr-2" @click="isArticleMaterialDialogShown = false">
+            <v-icon class="black--text">mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-divider style="border-color: #eff2f5;opacity:0.8;"></v-divider>
+        <div class="pt-4 px-4">
+          <file-browser
+            ref="articleFileBrowser"
+            v-if="isArticleMaterialDialogShown"
+            :materialDir="materialDir"
+            page-id="allPage"
+            :path="articleAccessPath"
+            use-material
+            import-material
+            @use-material="doUiAction('useMaterial', $event)">
+          </file-browser>
+        </div>
+      </v-card>
+    </v-dialog>
   </div>
   </script>
   
@@ -59,16 +57,12 @@
         default: ""
       },
       height: {
-        type: Number,
-        default: 500
+        type: String,
+        default: 'calc(100vh - 400px)'
       },
       width: {
         type: Number,
         default: 100
-      },
-      uploadDir: {
-        type: String,
-        default: ""
       },
       itemId: {
         type: String,
@@ -93,42 +87,14 @@
       serverSearchWhere: {},
       serverSearchWhereIn: {},
       filterMap: {},
-      operationConfig: {
-        createDir: false,
-        markdown: false,
-        upload: false,
-        copy: false,
-        copyPath: false,
-        cut: false,
-        clearRecycle: false,
-        delete: false,
-        edit: false,
-        rename: false,
-        useBtnText: "导入"
-      },
-      accessibleFolder: [
-        {
-          groupId: "test"
-        }
-      ],
-      accessPath: '/test/',
-      rootDirectory: '',
-      rootDirectoryName: '素材中心',
-      articleOperationConfig: {
-        markdown: false,
-        edit: false
-      },
+
       articleAccessPath: '',
-      articleRootDirectory: '',
-      articleRootDirectoryName: '素材中心',
       isArticleMaterialDialogShown: false,
       isMaterialDialogShown: false,
       materialType: '',
       writeBackType: '',
       materialFilename: '',
       materialDownloadPath: '',
-      saveActionData: {},
-      categoryData: [],
       editor: null,
       isMDChange: false,
       toolbarIcons: [
@@ -163,10 +129,6 @@
       isMobile: window.innerWidth < 500,
   
       // ================================ 其他抽屉列表 ================================
-  
-      
-  
-  
     }),
     watch: {
       isHelpPageDrawerShown(val) {
@@ -176,7 +138,11 @@
       },
       itemId: {
         handler(val) {
-          this.articleAccessPath = `/${val}/`;
+          if (val) {
+            this.articleAccessPath = `/${val}/`;
+          } else {
+            this.articleAccessPath = '';
+          }
         },
         immediate: true
       }
@@ -333,8 +299,10 @@
         this.isMDChange = true;
       },
       async setArticleContent() {
-        this.content = this.editor.getMarkdown();
-        this.$emit('content-for-seo', this.editor.getPreviewedHTML2());
+        this.value = this.editor.getMarkdown();
+        this.$emit('input', this.value);
+        const contentForSeo = this.editor.getPreviewedHTML2();
+        this.$emit('content-for-seo', contentForSeo);
       },
       async openArticleMaterialDialog() {
         this.isArticleMaterialDialogShown = true;
@@ -369,21 +337,22 @@
       },
       async doUseMaterial({path}) {
         this.materialFilename = path.substring(path.lastIndexOf('/') + 1);
-        this.materialDownloadPath = `${this.articleRootDirectory}${path}`;
+        this.materialDownloadPath = `${this.materialDir ? '/' + this.materialDir : ''}${path}`;
       },
       async renderMaterial() {
+        const appId = '<$ ctx.app.config.appId $>';
         switch (this.materialType) {
           case 'image':            
-              this.editor.insertValue(`\n![${this.materialFilename}](/upload${this.materialDownloadPath})`);
+            this.editor.insertValue(`\n![${this.materialFilename}](/${appId}/upload${this.materialDownloadPath})`);
             break;
           case 'audio':            
-              this.editor.insertValue(`\n![=audio](/upload${this.materialDownloadPath})`);
+            this.editor.insertValue(`\n![=audio](/${appId}/upload${this.materialDownloadPath})`);
             break;
           case 'video':            
-              this.editor.insertValue(`\n![=video](/upload${this.materialDownloadPath})`);
+            this.editor.insertValue(`\n![=video](/${appId}/upload${this.materialDownloadPath})`);
             break;
           case 'attachment':            
-              this.editor.insertValue(`\n[${this.materialFilename}](/upload${this.materialDownloadPath})`);
+            this.editor.insertValue(`\n[${this.materialFilename}](/${appId}/upload${this.materialDownloadPath})`);
             break;
         }
       },
