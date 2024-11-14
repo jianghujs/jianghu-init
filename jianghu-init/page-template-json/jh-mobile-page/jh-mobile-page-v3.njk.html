@@ -188,12 +188,14 @@
           </div>
         </div>
 
-        <=%- if content.props.limit %=>
         <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
           <div class=" flex justify-space-between items-center">
+            <=%- if content.props.limit %=>
             每页 {{ tableOptions.limit }} 项，
+            <=%- endif %=>
             共 {{ tableOptions.totalCount == tableDataComputed.length ? tableOptions.totalCount : tableDataComputed.length + '/' + tableOptions.totalCount }} 项
 
+            <=%- if content.props.limit %=>
             <div>
               <!-- 上一页 icon -->
               <v-icon v-if="tableOptions.page > 1" @click="tableOptions.page--; doUiAction('getTableData')">mdi-chevron-left</v-icon>
@@ -206,10 +208,10 @@
               <v-icon v-if="tableOptions.totalCount > tableOptions.page * tableOptions.limit" @click="tableOptions.page++; doUiAction('getTableData')">mdi-chevron-right</v-icon>
               <v-icon v-else color="#eaeaea">mdi-chevron-right</v-icon>
             </div>
+            <=%- endif %=>
           </div>
           <div class="jh-safe-bottom"></div>
         </div>
-        <=%- endif %=>
 
         <!-- 暂无更多 -->
         <div class="text-center text-gray-500 py-2" v-if="tableDataComputed.length === 0">暂无更多</div>
