@@ -55,8 +55,8 @@
       <div class="v-btn-toggle">
         <v-btn small v-for="scene, index in sceneList.slice(0, maxSceneDisplay)" 
           :key="index" 
-          @click="currentSceneIndex = index; doUiAction('useScene', scene)" 
-          :class="{'success': currentSceneIndex == index }">
+          :class="currentSceneIndex == index? 'success v-btn--active white--text' : ''"
+          @click="currentSceneIndex = index; doUiAction('useScene', scene)" >
           {{scene.name}}
         </v-btn>
       </div>
