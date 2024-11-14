@@ -85,7 +85,17 @@
          
           <=%- elif content.tag=='jh-scene' %=>
           <!-- 场景搜索 -->
-          <jh-scene class="ml-2" :initFormData="sceneCreateForm" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId" :maxSceneDisplay="maxSceneDisplay" :defaultSceneList="defaultSceneList" @useScene="doUiAction('useScene', $event)" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+          <jh-scene class="ml-2" :initFormData="sceneCreateForm" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId" :maxSceneDisplay="maxSceneDisplay" :defaultSceneList="defaultSceneList" 
+            @useScene="(sceneObj) => {
+              this.currentSceneId = sceneObj.name;
+              ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
+                if (sceneObj[key]) {
+                  this['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
+                }
+              });
+              this.doUiAction('getTableData');
+            }" 
+            <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
             <template v-slot:form="{form}">
               <v-row class="mt-0 px-4">
                 <=%- for formItem in content.data.customSceneList %=>
@@ -1104,7 +1114,7 @@ new Vue({
 
     //===// <=%- if jhScene %=>
     useScene(funObj) {
-      this.currentSceneId = funObj.id;
+      this.currentSceneId = funObj.name;
       ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
         if (funObj[key]) {
           this['serverSceneSearch' + _.upperFirst(key)] = funObj[key];
