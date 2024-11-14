@@ -411,11 +411,14 @@
     <!-- <<<<<<<<<<<<< <=$ actionItem.title $=> -->
     <=%- elif actionItem.tag == 'jh-bottom-sheet' %=>
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
-    <v-bottom-sheet v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" style="z-index: 111;" fixed temporary>
+    <v-bottom-sheet v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" style="z-index: 111;" fixed temporary <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
         <v-card-title class="px-4">
           <span class="text-base"><=$ actionItem.title $=></span>
+          <=%- if actionItem.headSlot %=>
+          <=$ actionItem.headSlot | tagFormat(12) $=>
+          <=%- endif %=>
         </v-card-title>
         <v-card-text class="px-4">
           <!-- 单独 text field 搜索 -->
