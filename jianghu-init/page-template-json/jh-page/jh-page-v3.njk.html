@@ -261,6 +261,10 @@
               <template v-slot:footer.page-text="pagination">
                 <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
                 <span class="ml-1">共{{pagination.itemsLength}}条</span>
+                <span class="ml-1" v-if="pagination.itemsLength != tableDataComputed.length">筛选出{{tableDataComputed.length}}条</span>
+                <span class="ml-1" v-if="tableDataComputed.length > 0 && !isTableLoading && tableDataComputed.length < (pagination.pageStop - pagination.pageStart + 1)">
+                  筛选出{{tableDataComputed.length}}条
+                </span>
               </template>
             </v-data-table>
           </v-card>
