@@ -29,7 +29,7 @@ const content = {
     }
   ], // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
   headContent: [
-    { tag: 'jh-page-title', value: "<=$ pageName $=>", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
+    { tag: 'jh-page-title', value: "<$ ctx.packagePage.pageName $>", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
 
     { tag: 'v-spacer'},
     { 
