@@ -352,12 +352,13 @@
           currentSceneIndex = this.sceneList.findIndex(item => item.name === this.currentSceneId);
         }
         this.currentSceneIndex = currentSceneIndex < 0 ? 0 : currentSceneIndex;
-        if (currentSceneIndex < 0) {
+        this.$emit('useDefaultScene', this.sceneList[this.currentSceneIndex]);
+        /*if (currentSceneIndex < 0) {
           this.useScene(this.sceneList[0]);
         }
         if (defaultScene) {
           this.useScene(defaultScene);
-        }
+        }*/
       },
   
       // 使用场景

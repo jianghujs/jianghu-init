@@ -95,6 +95,14 @@
               });
               this.doUiAction('getTableData');
             }" 
+            @useDefaultScene="(sceneObj) => {
+              this.currentSceneId = sceneObj.name;
+              ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
+                if (sceneObj[key]) {
+                  this['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
+                }
+              });
+            }" 
             <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
             <template v-slot:form="{form}">
               <v-row class="mt-0 px-4">
