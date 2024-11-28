@@ -245,8 +245,15 @@ Vue.component('jh-scene', {
       let localSceneList = localStorage.getItem(this.sceneListKey);
       if(localSceneList == null) localSceneList = '[]';
       localSceneList = JSON.parse(localSceneList);
-      console.log(localSceneList)
+      localSceneList = _.filter(localSceneList, function (sceneItem) {
+        return !sceneItem.system;
+      });
+      localSceneList = _.uniqBy([
+        ...this.defaultSceneList,
+        ...localSceneList
+      ], 'name');
       this.sceneList = localSceneList;
+      localStorage.setItem(this.sceneListKey, JSON.stringify(localSceneList))
       this.sceneCustomList = localSceneList.filter(item => !item.system);
     },
 
