@@ -3,7 +3,7 @@
 <=$ htmlHead $=>
 <=%- endif %=>
 {% endblock %}
-<=%- set jhScene = (headContent | find({tag: 'jh-scene'})) %=>
+<=%- set jhSceneList = (headContent | filter({tag: 'jh-scene'})) | fillConfigKey | fillConfigKeySuffix %=>
 <=%- set jhSearch = (headContent | find({tag: 'jh-search'})) %=>
 
 {% extends 'template/<=$ template $=>.html'%}
@@ -11,6 +11,10 @@
 <script type="text/html" id="app-template">
 <div>
 <v-app mobile-breakpoint="sm">
+  <div style="position: fixed; top: 0; left: 0; background: white; padding: 10px; z-index: 9999;">
+    jhSceneList: <pre><code>{{ JSON.stringify(jhSceneList, null, 2) }}</code></pre>
+  </div>
+
   <jh-menu />
   <v-main class="mt-13">
     <=%- if headContentStudio %=>
@@ -83,26 +87,31 @@
           </v-row>
           <=%- endif %=>
          
-          <=%- elif content.tag=='jh-scene' %=>
+          <=%- elif false and content.tag=='jh-scene' %=>
           <!-- 场景搜索 -->
-          <jh-scene class="ml-2" :initFormData="sceneCreateForm" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId" :maxSceneDisplay="maxSceneDisplay" :defaultSceneList="defaultSceneList" 
+          <jh-scene class="ml-2" 
+            :initFormData="<=% content.key $=>.sceneCreateForm" 
+            :sceneListKey="<=% content.key $=>.localSceneListKey" 
+            :currentSceneId="<=% content.key $=>.currentSceneId" 
+            :maxSceneDisplay="<=% content.key $=>.maxSceneDisplay" 
+            :defaultSceneList="<=% content.key $=>.defaultSceneList"
             @useScene="(sceneObj) => {
-              this.currentSceneId = sceneObj.name;
+              this.<=% content.key $=>.currentSceneId = sceneObj.name;
               ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
                 if (sceneObj[key]) {
-                  this['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
+                  this.<=% content.key $=>['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
                 }
               });
               this.doUiAction('getTableData');
-            }" 
+            }"
             @useDefaultScene="(sceneObj) => {
-              this.currentSceneId = sceneObj.name;
+              this.<=% content.key $=>.currentSceneId = sceneObj.name;
               ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
                 if (sceneObj[key]) {
-                  this['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
+                  this.<=% content.key $=>['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
                 }
               });
-            }" 
+            }"
             <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
             <template v-slot:form="{form}">
               <v-row class="mt-0 px-4">
@@ -112,12 +121,11 @@
                   <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*</span><=%- endif %=><=$ formItem.label $=></span>
                   <=%- endif %=>
                   <=%- if formItem.tag=="v-date-picker" %=>
-                  <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto" <=%- if
+                  <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if
                     formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
                     <template v-slot:activator="{on, attrs}">
                       <v-text-field prepend-inner-icon="mdi-calendar-range"  v-bind="attrs" v-on="on"
-                        v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"
-                        :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
+                        v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
                         single-line filled readonly clearable></v-text-field>
                     </template>
                     <v-date-picker color="success" elevation="20"
@@ -347,12 +355,12 @@
               <=%- if not formItem.hidden %=>
               <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=%- if formItem.label %=>
-                <span class="jh-input-label"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*</span><=%- endif %=><=$ formItem.label $=></span>
                 <=%- endif %=>
                 <=%- if formItem.tag == "v-date-picker" %=>
                 <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
                     <template v-slot:activator="{on, attrs}">
-                    <v-text-field  prepend-inner-icon="mdi-calendar-range" v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled clearable></v-text-field>
+                    <v-text-field  prepend-inner-icon="mdi-calendar-range" v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly clearable></v-text-field>
                     </template>
                     <v-date-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-date-picker>
                 </v-menu>
@@ -513,11 +521,15 @@ new Vue({
     //===// <=%- endfor %=>
     //===// <=% endif %=>
     
-    //===// <=%- if jhScene %=>
+    //===// <=%- if false and jhScene %=>
     // ============================== 场景相关 ===============================
-    //===// localSceneListKey: "<$ ctx.app.config.appId $>_<$ ctx.packagePage.pageId $>_<$ ctx.userInfo.userId $>",
-    //===// <=%- for key, value in jhScene.data %=>
-    //===// <=$ value | variableToVar(key, 4) $=>,
+    //===// <=%- for jhSceneItem in jhSceneList %=>
+    //===// scene<=% jhSceneItem.key $=>Data: {
+    //===//   localSceneListKey: "<$ ctx.app.config.appId $>_<$ ctx.packagePage.pageId $>_<$ ctx.userInfo.userId $>_<=$ jhSceneItem.key $=>",
+    //===//   <=%- for key, value in jhSceneItem.data %=>
+    //===//   <=$ value | variableToVar(key, 4) $=>,
+    //===//   <=%- endfor %=>
+    //===// },
     //===// <=%- endfor %=>
     //===// <=%- endif %=>
 
@@ -657,7 +669,7 @@ new Vue({
     this.doUiAction('getTableData');
     //===// <=%- endif %=>
 
-     //===// <=%- if hasJhScene %=>
+     //===// <=%- if jhScene %=>
      this.setDefaultSceneData()
     //===// <=%- endif %=>
 
@@ -712,7 +724,7 @@ new Vue({
           //===// <=%- endif %=>
           //===// <=%- endfor %=>
 
-          //===// <=%- if hasJhScene %=>
+          //===// <=%- if jhScene %=>
           //===// case 'useScene':
           //===//   await this.useScene(uiActionData);
           //===//   await this.doUiAction('getTableData');
@@ -943,7 +955,6 @@ new Vue({
     // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
     //===// async prepareUpdateFormData(funObj) {
     //===//   this.updateItem = _.cloneDeep(funObj);
-    //===//   this.updateItemOrigin = _.cloneDeep(funObj);
     //===// },
     //===// async openUpdateDrawer() {
     //===//   this.isUpdateDrawerShown = true;

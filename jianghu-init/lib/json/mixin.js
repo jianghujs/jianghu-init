@@ -12,6 +12,14 @@ const checkClick = (obj, action) => {
   return obj && obj.attrs && obj.attrs['@click'] && reg.test(obj.attrs['@click']);
 };
 
+// 生成随机key
+const randomKey = (length = 4) => {
+  const charList = 'abcdefhijkmnprstwxyz123456789';
+  const charListLength = charList.length;
+  let string = '';
+  for (let i = 0; i < length; i++) string += charList.charAt(Math.floor(Math.random() * charListLength));
+  return string;
+};
 
 // 1table-page / 1table-component 共用方法
 const mixin = {
@@ -438,6 +446,43 @@ const mixin = {
     nunjucksEnv.addFilter('includes', function(arr, val) {
       return arr.includes(val);
     });
+    // 填充随机key
+    nunjucksEnv.addFilter('fillConfigKey', function(config) { 
+      if (!config) return;
+      const fillObjRandomKey = (obj) => {
+        if (!_.isObject(obj) || obj.key) return obj;
+        obj.key =  randomKey();
+        return obj;
+      };
+      if (_.isObject(config)) {
+        return fillObjRandomKey(config);
+      };
+      if (Array.isArray(config)) {
+        return config.map(item => {
+          return fillObjRandomKey(item);
+        });
+      }
+      return config;
+    });
+    // 添加后缀并转为驼峰
+    nunjucksEnv.addFilter('fillConfigKeySuffix', function(config, suffix) {
+      if (!config) return;
+      const fillObjRandomKeySuffix = (obj) => {
+        if (!_.isObject(obj) || obj.key) return obj;
+        obj.key = _.camelCase(obj.key + suffix);
+        return obj;
+      };
+      if (_.isObject(config)) {
+        return fillObjRandomKeySuffix(config);
+      };
+      if (Array.isArray(config)) {
+        return config.map(item => {
+          return fillObjRandomKeySuffix(item);
+        });
+      }
+      return config;
+    });
+
     return nunjucksEnv;
   },
 
