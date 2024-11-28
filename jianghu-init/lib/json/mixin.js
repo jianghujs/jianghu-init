@@ -449,16 +449,18 @@ const mixin = {
     // 填充随机key
     nunjucksEnv.addFilter('fillConfigKey', function(config) { 
       if (!config) return;
+
       const fillObjRandomKey = (obj) => {
-        if (!_.isObject(obj) || obj.key) return obj;
+        if (!_.isPlainObject(obj) || obj.key) return obj;
         obj.key =  randomKey();
         return obj;
       };
-      if (_.isObject(config)) {
-        return fillObjRandomKey(config);
+      if (_.isPlainObject(config)) {
+        fillObjRandomKey(config);
       };
-      if (Array.isArray(config)) {
-        return config.map(item => {
+      // 判断是否为json对象
+      if (_.isArray(config)) {
+        config.map(item => {
           return fillObjRandomKey(item);
         });
       }
@@ -468,15 +470,15 @@ const mixin = {
     nunjucksEnv.addFilter('fillConfigKeySuffix', function(config, suffix) {
       if (!config) return;
       const fillObjRandomKeySuffix = (obj) => {
-        if (!_.isObject(obj) || obj.key) return obj;
+        if (!_.isPlainObject(obj) || !obj.key) return obj;
         obj.key = _.camelCase(obj.key + suffix);
         return obj;
       };
-      if (_.isObject(config)) {
-        return fillObjRandomKeySuffix(config);
+      if (_.isPlainObject(config)) {
+        fillObjRandomKeySuffix(config);
       };
-      if (Array.isArray(config)) {
-        return config.map(item => {
+      if (_.isArray(config)) {
+        config.map(item => {
           return fillObjRandomKeySuffix(item);
         });
       }

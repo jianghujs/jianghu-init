@@ -3,7 +3,7 @@
 <=$ htmlHead $=>
 <=%- endif %=>
 {% endblock %}
-<=%- set jhSceneList = (headContent | filter({tag: 'jh-scene'})) | fillConfigKey | fillConfigKeySuffix %=>
+<=%- set jhSceneList = (headContent | filter({tag: 'jh-scene'})) | fillConfigKey | fillConfigKeySuffix('Scene') %=>
 <=%- set jhSearch = (headContent | find({tag: 'jh-search'})) %=>
 
 {% extends 'template/<=$ template $=>.html'%}
@@ -11,10 +11,6 @@
 <script type="text/html" id="app-template">
 <div>
 <v-app mobile-breakpoint="sm">
-  <div style="position: fixed; top: 0; left: 0; background: white; padding: 10px; z-index: 9999;">
-    jhSceneList: <pre><code>{{ JSON.stringify(jhSceneList, null, 2) }}</code></pre>
-  </div>
-
   <jh-menu />
   <v-main class="mt-13">
     <=%- if headContentStudio %=>
@@ -88,27 +84,29 @@
           <=%- endif %=>
          
           <=%- elif false and content.tag=='jh-scene' %=>
+          <=%- set sceneDataKey = content.key + 'Data' %=>
+
           <!-- 场景搜索 -->
           <jh-scene class="ml-2" 
-            :initFormData="<=% content.key $=>.sceneCreateForm" 
-            :sceneListKey="<=% content.key $=>.localSceneListKey" 
-            :currentSceneId="<=% content.key $=>.currentSceneId" 
-            :maxSceneDisplay="<=% content.key $=>.maxSceneDisplay" 
-            :defaultSceneList="<=% content.key $=>.defaultSceneList"
+            :initFormData="<=% sceneDataKey $=>.sceneCreateForm" 
+            :sceneListKey="<=% sceneDataKey $=>.localSceneListKey" 
+            :currentSceneId="<=% sceneDataKey $=>.currentSceneId" 
+            :maxSceneDisplay="<=% sceneDataKey $=>.maxSceneDisplay" 
+            :defaultSceneList="<=% sceneDataKey $=>.defaultSceneList"
             @useScene="(sceneObj) => {
-              this.<=% content.key $=>.currentSceneId = sceneObj.name;
+              this.<=% sceneDataKey $=>.currentSceneId = sceneObj.name;
               ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
                 if (sceneObj[key]) {
-                  this.<=% content.key $=>['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
+                  this.<=% sceneDataKey $=>['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
                 }
               });
               this.doUiAction('getTableData');
             }"
             @useDefaultScene="(sceneObj) => {
-              this.<=% content.key $=>.currentSceneId = sceneObj.name;
+              this.<=% sceneDataKey $=>.currentSceneId = sceneObj.name;
               ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
                 if (sceneObj[key]) {
-                  this.<=% content.key $=>['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
+                  this.<=% sceneDataKey $=>['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
                 }
               });
             }"
