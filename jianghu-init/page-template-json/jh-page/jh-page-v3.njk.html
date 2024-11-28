@@ -83,33 +83,28 @@
           </v-row>
           <=%- endif %=>
          
-          <=%- elif false and content.tag=='jh-scene' %=>
+          <=%- elif content.tag=='jh-scene' %=>
           <=%- set sceneDataKey = content.key + 'Data' %=>
 
           <!-- 场景搜索 -->
-          <jh-scene class="ml-2" 
-            :initFormData="<=% sceneDataKey $=>.sceneCreateForm" 
-            :sceneListKey="<=% sceneDataKey $=>.localSceneListKey" 
-            :currentSceneId="<=% sceneDataKey $=>.currentSceneId" 
-            :maxSceneDisplay="<=% sceneDataKey $=>.maxSceneDisplay" 
-            :defaultSceneList="<=% sceneDataKey $=>.defaultSceneList"
+          <jh-scene class="ml-2" :initFormData="sceneCreateForm" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId" :maxSceneDisplay="maxSceneDisplay" :defaultSceneList="defaultSceneList" 
             @useScene="(sceneObj) => {
-              this.<=% sceneDataKey $=>.currentSceneId = sceneObj.name;
+              this.currentSceneId = sceneObj.name;
               ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
                 if (sceneObj[key]) {
-                  this.<=% sceneDataKey $=>['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
+                  this['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
                 }
               });
               this.doUiAction('getTableData');
-            }"
+            }" 
             @useDefaultScene="(sceneObj) => {
-              this.<=% sceneDataKey $=>.currentSceneId = sceneObj.name;
+              this.currentSceneId = sceneObj.name;
               ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
                 if (sceneObj[key]) {
-                  this.<=% sceneDataKey $=>['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
+                  this['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
                 }
               });
-            }"
+            }" 
             <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
             <template v-slot:form="{form}">
               <v-row class="mt-0 px-4">
@@ -119,11 +114,12 @@
                   <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*</span><=%- endif %=><=$ formItem.label $=></span>
                   <=%- endif %=>
                   <=%- if formItem.tag=="v-date-picker" %=>
-                  <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if
+                  <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto" <=%- if
                     formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
                     <template v-slot:activator="{on, attrs}">
                       <v-text-field prepend-inner-icon="mdi-calendar-range"  v-bind="attrs" v-on="on"
-                        v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
+                        v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"
+                        :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
                         single-line filled readonly clearable></v-text-field>
                     </template>
                     <v-date-picker color="success" elevation="20"
@@ -519,10 +515,10 @@ new Vue({
     //===// <=%- endfor %=>
     //===// <=% endif %=>
     
-    //===// <=%- if false and jhScene %=>
+    //===// <=%- if jhSceneList %=>
     // ============================== 场景相关 ===============================
     //===// <=%- for jhSceneItem in jhSceneList %=>
-    //===// scene<=% jhSceneItem.key $=>Data: {
+    //===// <=$ jhSceneItem.key $=>Data: {
     //===//   localSceneListKey: "<$ ctx.app.config.appId $>_<$ ctx.packagePage.pageId $>_<$ ctx.userInfo.userId $>_<=$ jhSceneItem.key $=>",
     //===//   <=%- for key, value in jhSceneItem.data %=>
     //===//   <=$ value | variableToVar(key, 4) $=>,
