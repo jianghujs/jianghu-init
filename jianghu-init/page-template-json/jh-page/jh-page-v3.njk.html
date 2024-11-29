@@ -444,7 +444,7 @@
 {% include 'component/jianghuJs/jhSaveConfirmDialog.html' %}
 <=%- endif %=>
 
-<=%- if jhSceneList %=>
+<=%- if hasJhScene %=>
 {% include 'component/jianghuJs/jhSceneInitV3.html' %}
 <=%- endif %=>
 <=%- for component in componentList %=>
@@ -519,7 +519,7 @@ new Vue({
     //===// <=%- endfor %=>
     //===// <=% endif %=>
     
-    //===// <=%- if jhSceneList %=>
+    //===// <=%- if hasJhScene %=>
     // ============================== 场景相关 ===============================
     //===// sceneCreateForm: {}, // 默认创建表单
     //===// serverSceneSearchWhere: {}, // 可预设变量或忽略
@@ -724,7 +724,7 @@ new Vue({
           //===// <=%- endif %=>
           //===// <=%- endfor %=>
 
-          //===// <=%- if jhSceneList %=>
+          //===// <=%- if hasJhScene %=>
           //===// case 'useScene':
           //===//   await this.useScene(uiActionData);
           //===//   await this.doUiAction('getTableData');
@@ -747,7 +747,7 @@ new Vue({
       const where = {};
       const whereLike = {};
       const whereIn = {};
-      //===// <=%- if jhSceneList %=>
+      //===// <=%- if hasJhScene %=>
       //===// const serverSearchWhere = { ...this.serverSearchWhere, ...this.serverSceneSearchWhere };
       //===// const serverSearchWhereIn = { ...this.serverSearchWhereIn, ...this.serverSceneSearchWhereIn };
       //===// const serverSearchWhereLike = { ...this.serverSearchWhereLike, ...this.serverSceneSearchWhereLike };
@@ -817,7 +817,7 @@ new Vue({
       offset = (this.tableOptions.page - 1) * limit;
       //===// <=%- endif %=>
 
-      //===// <=%- if jhSceneList %=>
+      //===// <=%- if hasJhScene %=>
       this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy, whereOptions: serverSearchWhereOptions, whereOrOptions: [...whereOrOptions, ...serverSearchWhereOrOptions] };
       //===// <=%- else %=>
       this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy, whereOrOptions };
@@ -1134,7 +1134,7 @@ new Vue({
     // ---------- <<<<<<<<<<< Custom uiAction ---------
     //===// <=%- endif %=>
 
-    //===// <=%- if jhSceneList %=>
+    //===// <=%- if hasJhScene %=>
     useScene(funObj) {
       this.currentSceneId = funObj.name;
       ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
