@@ -4,9 +4,9 @@
     <template v-if="mobile">
       <!-- 场景列表 -->
       <div class="grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-1 min-w-0 flex-grow truncate ">
-        <v-btn small color="white" class="grid-cols-2 rounded-md" v-for="scene, index in sceneList.slice(0, maxSceneDisplay)" :key="index" @click="currentSceneIndex = index; doUiAction('useScene', scene)" :class="{'!bg-gray-100': currentSceneIndex != index, 'success': currentSceneIndex == index }">
+        <div class="grid-cols-2 rounded-md  !h-6 text-center font-medium text-xs leading-6 active:bg-gray-200" v-for="scene, index in sceneList.slice(0, maxSceneDisplay)" :key="index" @click="currentSceneIndex = index; doUiAction('useScene', scene)" :class="{'bg-gray-100 text-gray-800': currentSceneIndex != index, 'bg-green-600 text-white': currentSceneIndex == index }">
           {{scene.name}}
-        </v-btn>
+        </div>
       </div>
       <!-- 更多场景按钮 -->
       <v-menu offset-y>
