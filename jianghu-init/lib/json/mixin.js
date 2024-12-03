@@ -229,6 +229,31 @@ const mixin = {
         let tagStr = `<${res.tag} `;
         if (res.model) {
           res.attrs['v-model'] = res.model.includes('.') ? res.model : (drawerKey ? drawerKey + '.' + res.model : res.model);
+
+          if (res.model === 'keyword' && !drawerKey) {
+            if (!res.value) {
+              res.attrs[':placeholder'] = "_.compact(keywordFieldList.map(e => headers.find(h => h.value == e)?.text)).join('/')";
+              res.attrs.prefix = res.attrs.prefix ? res.attrs.prefix.replace('：', '') : '搜索';
+              res.value = `
+        <template v-slot:prepend-inner>
+          <!-- 下拉选择模糊搜索字段 v-menu, 外只显示缩略 -->
+          <v-menu :close-on-content-click="false" transition="scale-transition" offset-y min-width="290">
+            <template v-slot:activator="{ on, attrs }">
+              <div v-bind="attrs" v-on="on" class="text-nowrap pt-1">
+                ${ res.attrs.prefix }<span class="bg-green-500 text-white ml-0.5 px-1 rounded">{{keywordFieldList.length}}</span>
+              </div>
+            </template>
+            <div class="pa-2 w-[300px]">
+              <v-chip v-for="header in headers.filter(e => e.value != 'action')" :key="header.value" class="ma-1" :color=" keywordFieldList.includes(header.value) ? 'primary' : 'default'" label outlined small @click="keywordFieldList = keywordFieldList.includes(header.value) ? keywordFieldList.filter(field => field !== header.value) : [...keywordFieldList, header.value]">
+                {{ header.text }}
+              </v-chip>
+            </div>
+          </v-menu>
+        </template>
+        `;
+              delete res.attrs.prefix;
+            }
+          }
         }
         if (res.rules) {
           res.attrs.rules = res.rules;
