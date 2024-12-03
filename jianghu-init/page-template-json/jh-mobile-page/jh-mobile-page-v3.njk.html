@@ -122,7 +122,7 @@
       <=%- for content in pageContent %=>
       <=%- if content.tag == 'jh-list' %=>
       <v-col :cols="12" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-        <div class="flex p-3 border-b relative items-center" v-for="(item, index) in tableDataComputed" @click="viewMode == 'simple' && doUiAction('startDetailItem', item)">
+        <div class="flex p-3 border-b relative" v-for="(item, index) in tableDataComputed" @click="viewMode == 'simple' && doUiAction('startDetailItem', item)">
           
           <=%- if content.props.showSelect %=>
           <v-checkbox
@@ -1404,7 +1404,12 @@ new Vue({
       ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
         if (funObj[key]) {
           this['serverSceneSearch' + _.upperFirst(key)] = funObj[key];
-          console.log(`this['serverSceneSearch' + ${_.upperFirst(key)}] = funObj[key]`)
+        } else {
+          if (['whereOptions', 'whereOrOptions'].includes(key)) {
+            this['serverSceneSearch' + _.upperFirst(key)] = [];
+          } else {
+            this['serverSceneSearch' + _.upperFirst(key)] = {};
+          }
         }
       });
     },

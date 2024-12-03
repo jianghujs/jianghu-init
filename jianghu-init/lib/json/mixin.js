@@ -477,7 +477,12 @@ const mixin = {
 
       const fillObjRandomKey = (obj) => {
         if (!_.isPlainObject(obj) || obj.key) return obj;
-        obj.key =  randomKey();
+        
+        let key;
+        do {
+          key = randomKey();
+        } while (/^\d/.test(key)); // 检查是否以数字开头
+        obj.key = key;
         return obj;
       };
       if (_.isPlainObject(config)) {

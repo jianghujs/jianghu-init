@@ -1140,6 +1140,12 @@ new Vue({
       ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
         if (funObj[key]) {
           this['serverSceneSearch' + _.upperFirst(key)] = funObj[key];
+        } else {
+          if (['whereOptions', 'whereOrOptions'].includes(key)) {
+            this['serverSceneSearch' + _.upperFirst(key)] = [];
+          } else {
+            this['serverSceneSearch' + _.upperFirst(key)] = {};
+          }
         }
       });
     }
