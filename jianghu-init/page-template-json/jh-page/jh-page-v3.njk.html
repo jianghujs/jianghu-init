@@ -98,6 +98,12 @@
               ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
                 if (sceneObj[key]) {
                   this['serverSceneSearch' + _.upperFirst(key)] = sceneObj[key];
+                } else {
+                  if (['whereOptions', 'whereOrOptions'].includes(key)) {
+                    this['serverSceneSearch' + _.upperFirst(key)] = [];
+                  } else {
+                    this['serverSceneSearch' + _.upperFirst(key)] = {};
+                  }
                 }
               });
               this.doUiAction('getTableData');
@@ -723,13 +729,6 @@ new Vue({
           //===//   break;
           //===// <=%- endif %=>
           //===// <=%- endfor %=>
-
-          //===// <=%- if hasJhScene %=>
-          //===// case 'useScene':
-          //===//   await this.useScene(uiActionData);
-          //===//   await this.doUiAction('getTableData');
-          //===//   break;
-          //===// <=%- endif %=>
           default:
             console.error("[doUiAction] uiActionId not find", {uiActionId});
             break;
@@ -1132,23 +1131,6 @@ new Vue({
     //===// <=$ value | variableToVar(key) | safe $=>,
     //===// <=%- endfor %=>
     // ---------- <<<<<<<<<<< Custom uiAction ---------
-    //===// <=%- endif %=>
-
-    //===// <=%- if hasJhScene %=>
-    useScene(funObj) {
-      this.currentSceneId = funObj.name;
-      ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
-        if (funObj[key]) {
-          this['serverSceneSearch' + _.upperFirst(key)] = funObj[key];
-        } else {
-          if (['whereOptions', 'whereOrOptions'].includes(key)) {
-            this['serverSceneSearch' + _.upperFirst(key)] = [];
-          } else {
-            this['serverSceneSearch' + _.upperFirst(key)] = {};
-          }
-        }
-      });
-    }
     //===// <=%- endif %=>
 
   }
