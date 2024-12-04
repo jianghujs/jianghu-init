@@ -673,7 +673,7 @@ const mixin = {
             content.colAttrs = Object.assign({}, defaultColAttrs, content.colAttrs);
           }
           const defaultCardAttrs = {
-            class: 'rounded-lg elevation-0',
+            class: '',
           };
           if (!content.cardAttrs) {
             content.cardAttrs = Object.assign({}, defaultCardAttrs, content.cardAttrs);
