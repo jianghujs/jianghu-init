@@ -124,6 +124,45 @@ const pageTypes = [
   },
   {
     type: 'component',
+    value: 'preview-file-viewer',
+    name: 'preview-file && viewer - generate the file preview component',
+    pageId: 'previewFile',
+    filename: 'previewFile',
+    path: 'preview-file-viewer/',
+    queryPageId: false,
+    demo: `/**
+         * 文件预览组件
+         * 支持图片、音频、视频、PDF、Excel、Word、ppt等文件类型的预览
+         */
+        <preview-file />
+        // 预览文件
+        window.previewFile(filePath); // downloadPath
+        // 下载文件
+        window.downloadFile(filePath); // downloadPath
+    `,
+  },
+  {
+    type: 'component',
+    value: 'file-input',
+    name: 'file-input - generate the file input component',
+    pageId: 'fileInput',
+    filename: 'jhFileInput',
+    path: 'file-input/',
+    queryPageId: false,
+    demo: `/**
+         * 文件上传组件
+         * value {Array} 文件列表
+         * maxFiles {Number} 最大上传文件数
+         * multiple {Boolean} 是否多选
+         * accept {String} 文件类型
+         * rules {Array} 验证规则
+         * readonly {Boolean} 是否只读
+         */
+        <jh-file-input v-model="value" :accept="'.jpg,.png,.jpeg'" :rules="rules" readonly />
+    `,
+  },
+  {
+    type: 'component',
     value: 'vue-draggable',
     name: 'vue-draggable - generate drag and drop components',
     pageId: '',

@@ -84,6 +84,8 @@ module.exports = class InitPagePublic extends CommandBase {
       this.info(`
         引入方式：
         {% include 'component/${filename || pageId}.html' %}
+        or
+        { type: 'html', path: 'component/${filename || pageId}.html' },
         
         ${demo}
       `);
@@ -181,6 +183,11 @@ module.exports = class InitPagePublic extends CommandBase {
     if (fs.existsSync(`${templateDir}/component`)) {
       await this.copyDirectory(templateDir, targetDir, 'component', 'view/component');
       this.info('✅ 生成 component 依赖文件');
+    }
+
+    if (fs.existsSync(`${templateDir}/public`)) {
+      await this.copyDirectory(templateDir, targetDir, 'public', 'public');
+      this.info('✅ 生成 public 依赖文件');
     }
   }
 

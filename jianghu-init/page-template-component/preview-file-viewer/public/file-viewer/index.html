@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文档预览</title>
+  <!-- 引入Vue核心库 -->
+  <script src="./lib/vue@2.7.14"></script>
+  <!-- 引入http-vue-loader用于加载.vue单文件组件 -->
+  <script src="./lib/httpVueLoader.js"></script>
+  <style>
+    /* 重置页面默认样式 */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    /* 应用容器样式 */
+    #app {
+      width: 100%;
+      height: 100vh;
+    }
+    /* 加载中提示样式 */
+    .loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.9);
+      padding: 20px;
+      border-radius: 4px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    /* 错误提示样式 */
+    .error-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 4px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <!-- Vue应用根容器 -->
+  <div id="app">
+    <!-- 加载中提示 -->
+    <div class="loading" v-if="loading">加载中...</div>
+    <!-- 错误提示 -->
+    <div class="error-message" v-if="error">{{ error }}</div>
+
+    <!-- 动态组件 - 根据文件类型加载对应的查看器组件 -->
+    <component 
+      v-if="!loading && !error && currentViewer"
+      :is="currentViewer"
+      :file-url="fileUrl"
+      @loaded="onLoaded"
+      @error="onError">
+    </component>
+  </div>
+
+  <script>
+    // 工具函数对象 - 提供通用的资源加载方法
+    const utils = {
+      // 加载JavaScript脚本
+      loadScript(url) {
+        console.log('Loading script:', url);
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = url;
+          script.onload = () => {
+            console.log('Script loaded:', url);
+            resolve();
+          };
+          script.onerror = (error) => {
+            console.error('Script load error:', url, error);
+            reject(error);
+          };
+          document.head.appendChild(script);
+        });
+      },
+      // 加载CSS样式表
+      loadCss(url) {
+        console.log('Loading CSS:', url);
+        return new Promise((resolve, reject) => {
+          const link = document.createElement('link');
+          link.href = url;
+          link.rel = 'stylesheet';
+          link.onload = () => {
+            console.log('CSS loaded:', url);
+            resolve();
+          };
+          link.onerror = (error) => {
+            console.error('CSS load error:', url, error);
+            reject(error);
+          };
+          document.head.appendChild(link);
+        });
+      }
+    };
+
+    // 使用http-vue-loader插件
+    Vue.use(httpVueLoader);
+
+    // 创建Vue实例
+    new Vue({
+      el: '#app',
+      // 数据属性
+      data: {
+        fileUrl: '', // 文件URL
+        loading: true, // 加载状态
+        error: null, // 错误信息
+        fileType: null, // 文件类型
+        componentLoaded: false // 组件加载状态
+      },
+      // 计算属性
+      computed: {
+        // 根据文件类型返回对应的查看器组件名
+        currentViewer() {
+          return this.fileType ? `${this.fileType}-viewer` : null;
+        }
+      },
+      // 注册组件
+      components: {
+        'word-viewer': 'url:./component/word-viewer.vue',
+        'excel-viewer': 'url:./component/excel-viewer.vue',
+        'pdf-viewer': 'url:./component/pdf-viewer.vue',
+        'ppt-viewer': 'url:./component/ppt-viewer.vue',
+        'image-viewer': 'url:./component/image-viewer.vue',
+        'audio-viewer': 'url:./component/audio-viewer.vue',
+        'video-viewer': 'url:./component/video-viewer.vue'  // 添加这行
+      },
+      methods: {
+        // 根据文件名获取文件类型
+        getFileType(filename) {
+          console.log('Getting file type for:', filename);
+          const ext = filename.split('.').pop().toLowerCase();
+          if (['doc', 'docx'].includes(ext)) return 'word';
+          if (['xls', 'xlsx'].includes(ext)) return 'excel';
+          if (['pdf'].includes(ext)) return 'pdf';
+          if (['ppt', 'pptx'].includes(ext)) return 'ppt';
+          if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) return 'image';
+          if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audio';
+          if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) return 'video';  // 添加这行
+          return null;
+        },
+        // 组件加载完成的回调
+        onLoaded() {
+          console.log('Component loaded event received');
+          this.loading = false;
+        },
+        // 组件加载错误的回调
+        onError(error) {
+          console.error('Component error:', error);
+          this.error = '文件加载失败：' + error;
+          this.loading = false;
+        },
+        // 初始化方法
+        async init() {
+          try {
+            console.log('Initializing...');
+            // 从URL参数中获取文件地址
+            const urlParams = new URLSearchParams(window.location.search);
+            this.fileUrl = urlParams.get('url');
+            console.log('File URL:', this.fileUrl);
+            
+            // 验证文件URL是否存在
+            if (!this.fileUrl) {
+              throw new Error('未找到文件');
+            }
+
+            // 获取并验证文件类型
+            this.fileType = this.getFileType(this.fileUrl);
+            console.log('File type:', this.fileType);
+            
+            if (!this.fileType) {
+              throw new Error('不支持的文件类型');
+            }
+
+            // 等待组件加载完成
+            await this.$nextTick();
+            this.loading = false;
+            console.log('Initialization complete');
+          } catch (error) {
+            console.error('Init error:', error);
+            this.error = error.message;
+            this.loading = false;
+          }
+        }
+      },
+      // 生命周期钩子 - 组件挂载完成
+      async mounted() {
+        console.log('Root component mounted');
+        // 将工具函数挂载到根实例
+        this.utils = utils;
+        await this.init();
+      }
+    });
+  </script>
+</body>
+</html>

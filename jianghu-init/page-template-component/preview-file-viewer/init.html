@@ -1,0 +1,70 @@
+<template id="preview-file">
+  <v-overlay v-model="isPreviewOverlay" z-index="40000" opacity="0.85">
+    <v-icon style="position: fixed; right: 10px; top: 5px; z-index: 50000" large color="white"
+      @click="isPreviewOverlay = false">
+      mdi-close-circle
+    </v-icon>
+    <v-icon style="position: fixed; right: 50px; top: 5px; z-index: 50000" large color="white"
+      @click="downloadFile">
+      mdi-download
+    </v-icon>
+    <div class="h-[calc(100vh-50px)] fixed w-full left-[10px] top-[50px]">
+      <iframe :src="previewUrl" style="height: calc(100% - 20px); width: calc(100% - 20px)"></iframe>
+    </div>
+  </v-overlay>
+</template>
+
+<script>
+Vue.component("preview-file", {
+  template: '#preview-file',
+  props: {},
+  data() {
+    return {
+      isPreviewOverlay: false,
+      filePath: '',
+      urlPrefix: '',
+    };
+  },
+  computed: {
+    previewUrl() {
+      let url = '';
+      if ((this.filePath || '').startsWith('http')) {
+        url = this.filePath;
+      } else {
+        url = `${window.location.protocol}//${window.location.host}/<$ ctx.app.config.appId $>/upload/${this.filePath}`;
+      }
+      return this.urlPrefix + url;
+    }
+  },
+  created() {
+    window.previewFile = this.open;
+    window.downloadFile = this.download;
+  },
+  methods: {
+    open(filePath, urlPrefix = '/<$ ctx.app.config.appId $>/public/file-viewer/index.html?url=') {
+      this.filePath = filePath;
+      this.urlPrefix = urlPrefix;
+      this.isPreviewOverlay = true;
+    },
+    download(filePath) {
+      this.filePath = filePath;
+      this.downloadFile();
+    },
+
+    downloadFile() {
+      const a = document.createElement('a');
+      a.href = `${location.origin}${window.appInfo.upload}/${this.filePath}`;
+      // 从文件路径中提取文件名
+      const fileName = this.filePath.split('/').pop();
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  }
+});
+</script>
+
+<style scoped>
+/* 可以根据需要添加自定义样式 */
+</style>
