@@ -1,5 +1,5 @@
 <template>
-  <div class="markdown-viewer" style="height: 100vh; overflow: hidden; overflow-y: auto; padding: 20px;">
+  <div class="markdown-viewer">
     <div v-html="renderedContent" class="markdown-content"></div>
   </div>
 </template>
@@ -23,25 +23,47 @@ module.exports = {
         await Promise.all([
           this.$root.utils.loadScript('./lib/markdown/marked.min.js'),
           this.$root.utils.loadScript('./lib/markdown/highlight.min.js'),
-          this.$root.utils.loadCss('./lib/markdown/github.min.css')
+          // this.$root.utils.loadCss('./lib/markdown/highlight.min.css'),
+          this.$root.utils.loadCss('./lib/markdown/github.min.css'),
         ]);
 
         // 配置 marked
         marked.setOptions({
           highlight: function(code, lang) {
+            let highlightedCode;
             if (lang && hljs.getLanguage(lang)) {
-              return hljs.highlight(code, { language: lang }).value;
+              highlightedCode = hljs.highlight(code, { language: lang }).value;
+            } else {
+              highlightedCode = hljs.highlightAuto(code).value;
             }
-            return hljs.highlightAuto(code).value;
+            
+            // 添加行号
+            const lines = highlightedCode.split('\n');
+            const numberedLines = lines.map((line, index) => {
+              const lineNumber = `<span class="line-number" style="display:inline-block;width:40px;text-align:right;padding-right:10px;color:#999;user-select:none;">${index + 1}</span>`;
+              return `<div class="line">${lineNumber}<span class="line-content">${line}</span></div>`;
+            });
+            
+            return `<div class="code-block" style="position:relative;">${numberedLines.join('')}</div>`;
           },
+          renderer: new marked.Renderer(),
+          gfm: true,
+          tables: true,
           breaks: true,
-          gfm: true
+          pedantic: false,
+          sanitize: false,
+          smartLists: true,
+          smartypants: false,
         });
 
         // 获取文件内容
         const response = await fetch(this.fileUrl);
         this.content = await response.text();
-        
+        const ext = this.fileUrl.split('.').pop().toLowerCase();
+        if (ext !== 'md') {
+          this.content = "```".concat(this.getFileLanguage(ext), "\n").concat(this.content, "\n```");
+        }
+
         // 渲染 markdown
         this.renderedContent = marked.parse(this.content);
         
@@ -50,105 +72,65 @@ module.exports = {
         console.error('Markdown viewer error:', error);
         this.$emit('error', error);
       }
+    },
+    getFileLanguage(ext) {
+      const languageMap = {
+        'js': 'javascript',
+        'jsx': 'javascript',
+        'ts': 'typescript',
+        'tsx': 'typescript',
+        'vue': 'vue',
+        'html': 'html',
+        'css': 'css',
+        'less': 'less',
+        'scss': 'scss',
+        'sass': 'sass',
+        'json': 'json',
+        'md': 'markdown',
+        'sql': 'sql',
+        'py': 'python',
+        'java': 'java',
+        'php': 'php',
+        'go': 'go',
+        'rs': 'rust',
+        'rb': 'ruby',
+        'sh': 'shell',
+        'yml': 'yaml',
+        'yaml': 'yaml',
+        'xml': 'xml',
+        'txt': 'plaintext'
+      };
+      return languageMap[ext] || 'plaintext';
     }
   }
 }
 </script>
 
 <style>
-.markdown-content {
-  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  word-wrap: break-word;
+.markdown-viewer {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background: #f5f5f5;
+  overflow: hidden;
+  overflow-y: auto; 
+  user-select: none;
+  -webkit-user-select: none;
+  box-sizing: border-box;
+  padding: 20px;
 }
-
-.markdown-content h1 {
-  padding-bottom: .3em;
-  font-size: 2em;
-  border-bottom: 1px solid #eaecef;
-}
-
-.markdown-content h2 {
-  padding-bottom: .3em;
-  font-size: 1.5em;
-  border-bottom: 1px solid #eaecef;
-}
-
-.markdown-content h3 {
-  font-size: 1.25em;
-}
-
-.markdown-content h4 {
-  font-size: 1em;
-}
-
-.markdown-content h5 {
-  font-size: .875em;
-}
-
-.markdown-content h6 {
-  font-size: .85em;
-  color: #6a737d;
+@media (max-width: 768px) {
+  .markdown-viewer {
+    padding: 10px;
+  }
 }
 
 .markdown-content pre {
-  padding: 16px;
-  overflow: auto;
-  font-size: 85%;
-  line-height: 1.45;
-  background-color: #f6f8fa;
-  border-radius: 6px;
+  padding-top: 10px;
 }
 
-.markdown-content code {
-  padding: .2em .4em;
-  margin: 0;
-  font-size: 85%;
-  background-color: rgba(27,31,35,.05);
-  border-radius: 6px;
-}
-
-.markdown-content pre code {
-  padding: 0;
-  background-color: transparent;
-}
-
-.markdown-content blockquote {
-  padding: 0 1em;
-  color: #6a737d;
-  border-left: .25em solid #dfe2e5;
-  margin: 0;
-}
-
-.markdown-content table {
-  border-spacing: 0;
-  border-collapse: collapse;
-  margin-bottom: 16px;
-}
-
-.markdown-content table th,
-.markdown-content table td {
-  padding: 6px 13px;
-  border: 1px solid #dfe2e5;
-}
-
-.markdown-content table tr:nth-child(2n) {
-  background-color: #f6f8fa;
-}
-
-.markdown-content img {
-  max-width: 100%;
-  box-sizing: content-box;
-}
-
-.markdown-content p {
-  margin-bottom: 16px;
-}
-
-.markdown-content ul,
-.markdown-content ol {
-  padding-left: 2em;
-  margin-bottom: 16px;
+.markdown-content .line-content {
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 </style> 

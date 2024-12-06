@@ -195,7 +195,8 @@
         'ppt-viewer': 'url:./component/ppt-viewer.vue',
         'image-viewer': 'url:./component/image-viewer.vue',
         'audio-viewer': 'url:./component/audio-viewer.vue',
-        'video-viewer': 'url:./component/video-viewer.vue'
+        'video-viewer': 'url:./component/video-viewer.vue',
+        'markdown-viewer': 'url:./component/markdown-viewer.vue'
       },
       methods: {
         // 切换文件
@@ -221,6 +222,7 @@
           if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) return 'image';
           if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audio';
           if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) return 'video';
+          if (['md', 'txt', 'json', 'js', 'html', 'css', 'java', 'ts', 'cpp', 'xml', 'bash', 'less', 'nginx', 'php', 'powershell', 'py', 'scss', 'sh', 'sql', 'yaml', 'yml', 'ini'].includes(ext)) return 'markdown';
           return null;
         },
         // 组件加载完成的回调
