@@ -21,6 +21,7 @@
     #app {
       width: 100%;
       height: 100vh;
+      position: relative;
     }
     /* 加载中提示样式 */
     .loading {
@@ -47,6 +48,43 @@
       text-align: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+    /* 切换按钮样式 */
+    .switch-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      padding: 15px;
+      cursor: pointer;
+      z-index: 100;
+      border-radius: 4px;
+    }
+    .switch-btn:hover {
+      background: rgba(0,0,0,0.7);
+    }
+    .prev-btn {
+      left: 20px;
+    }
+    .next-btn {
+      right: 20px;
+    }
+    /* 文件计数器样式 */
+    .file-counter {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.3);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      z-index: 100;
+      font-size: 14px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
   </style>
 </head>
 <body>
@@ -57,11 +95,19 @@
     <!-- 错误提示 -->
     <div class="error-message" v-if="error">{{ error }}</div>
 
+    <!-- 切换按钮 -->
+    <button class="switch-btn prev-btn" v-if="hasPrev" @click="switchFile('prev')">&lt;</button>
+    <button class="switch-btn next-btn" v-if="hasNext" @click="switchFile('next')">&gt;</button>
+
+    <!-- 文件计数器 -->
+    <div class="file-counter" v-if="fileUrls.length > 1">
+      {{ currentIndex + 1 }} / {{ fileUrls.length }}
+    </div>
     <!-- 动态组件 - 根据文件类型加载对应的查看器组件 -->
     <component 
       v-if="!loading && !error && currentViewer"
       :is="currentViewer"
-      :file-url="fileUrl"
+      :file-url="currentFileUrl"
       @loaded="onLoaded"
       @error="onError">
     </component>
@@ -115,7 +161,8 @@
       el: '#app',
       // 数据属性
       data: {
-        fileUrl: '', // 文件URL
+        fileUrls: [], // 文件URL数组
+        currentIndex: 0, // 当前显示的文件索引
         loading: true, // 加载状态
         error: null, // 错误信息
         fileType: null, // 文件类型
@@ -123,9 +170,21 @@
       },
       // 计算属性
       computed: {
+        // 当前文件URL
+        currentFileUrl() {
+          return this.fileUrls[this.currentIndex];
+        },
         // 根据文件类型返回对应的查看器组件名
         currentViewer() {
           return this.fileType ? `${this.fileType}-viewer` : null;
+        },
+        // 是否有上一个文件
+        hasPrev() {
+          return this.currentIndex > 0;
+        },
+        // 是否有下一个文件
+        hasNext() {
+          return this.currentIndex < this.fileUrls.length - 1;
         }
       },
       // 注册组件
@@ -136,9 +195,21 @@
         'ppt-viewer': 'url:./component/ppt-viewer.vue',
         'image-viewer': 'url:./component/image-viewer.vue',
         'audio-viewer': 'url:./component/audio-viewer.vue',
-        'video-viewer': 'url:./component/video-viewer.vue'  // 添加这行
+        'video-viewer': 'url:./component/video-viewer.vue'
       },
       methods: {
+        // 切换文件
+        async switchFile(direction) {
+          this.loading = true;
+          if (direction === 'prev' && this.hasPrev) {
+            this.currentIndex--;
+          } else if (direction === 'next' && this.hasNext) {
+            this.currentIndex++;
+          }
+          this.fileType = this.getFileType(this.currentFileUrl);
+          await this.$nextTick();
+          this.loading = false;
+        },
         // 根据文件名获取文件类型
         getFileType(filename) {
           console.log('Getting file type for:', filename);
@@ -149,7 +220,7 @@
           if (['ppt', 'pptx'].includes(ext)) return 'ppt';
           if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) return 'image';
           if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audio';
-          if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) return 'video';  // 添加这行
+          if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) return 'video';
           return null;
         },
         // 组件加载完成的回调
@@ -169,16 +240,19 @@
             console.log('Initializing...');
             // 从URL参数中获取文件地址
             const urlParams = new URLSearchParams(window.location.search);
-            this.fileUrl = urlParams.get('url');
-            console.log('File URL:', this.fileUrl);
+            const urlString = urlParams.get('url');
+            console.log('URL string:', urlString);
             
             // 验证文件URL是否存在
-            if (!this.fileUrl) {
+            if (!urlString) {
               throw new Error('未找到文件');
             }
 
-            // 获取并验证文件类型
-            this.fileType = this.getFileType(this.fileUrl);
+            // 分割多个文件URL
+            this.fileUrls = urlString.split(',').map(url => url.trim());
+            
+            // 获取并验证第一个文件类型
+            this.fileType = this.getFileType(this.currentFileUrl);
             console.log('File type:', this.fileType);
             
             if (!this.fileType) {
@@ -186,7 +260,9 @@
             }
 
             // 等待组件加载完成
+            console.log('loading', this.loading);
             await this.$nextTick();
+            console.log('loading2', this.loading);
             this.loading = false;
             console.log('Initialization complete');
           } catch (error) {

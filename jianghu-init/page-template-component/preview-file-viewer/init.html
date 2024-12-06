@@ -27,13 +27,20 @@ Vue.component("preview-file", {
   },
   computed: {
     previewUrl() {
-      let url = '';
-      if ((this.filePath || '').startsWith('http')) {
-        url = this.filePath;
-      } else {
-        url = `${window.location.protocol}//${window.location.host}/<$ ctx.app.config.appId $>/upload/${this.filePath}`;
+      if (!this.filePath) {
+        return '';
       }
-      return this.urlPrefix + url;
+      const filePathList = _.isArray(this.filePath) ? this.filePath : (this.filePath || '').split(',');
+      filePathList.forEach((filePath, index) => {
+        let url = '';
+        if ((filePath || '').startsWith('http')) {
+          url = filePath;
+        } else {
+          url = `${window.location.protocol}//${window.location.host}/<$ ctx.app.config.appId $>/upload/${filePath}`;
+        }
+        filePathList[index] = url;
+      });
+      return this.urlPrefix + filePathList.join(',');
     }
   },
   created() {
