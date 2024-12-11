@@ -198,13 +198,13 @@ module.exports = {
 
     // 向左旋转
     rotateLeft() {
-      this.rotate = (this.rotate + 90) % 360;
+      this.rotate = (this.rotate - 90) % 360;
       this.renderPage(this.currentPage);
     },
 
     // 向右旋转
     rotateRight() {
-      this.rotate = (this.rotate - 90 + 360) % 360;
+      this.rotate = (this.rotate + 90) % 360;
       this.renderPage(this.currentPage);
     },
 
