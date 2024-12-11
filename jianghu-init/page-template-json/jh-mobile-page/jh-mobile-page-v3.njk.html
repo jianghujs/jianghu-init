@@ -69,7 +69,7 @@
 
         <=%- elif content.tag=='jh-scene' %=>
         <!-- 场景搜索 -->
-        <v-col cols="12" class="pt-3">
+        <v-col cols="12" <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <jh-scene class="" :initFormData="sceneCreateForm" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId" :defaultSceneList="defaultSceneList" :maxSceneDisplay="maxSceneDisplay" @useScene="doUiAction('useScene', $event)" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
             <template v-slot:form="{form}">
               <v-row class="mt-0 px-4">
@@ -181,11 +181,15 @@
               <=%- endfor %=>
               <!-- action 操作按钮显示 -->
             </div>
+            <!-- value 插槽 -->
+            <=$ content.value | tagFormat(12) $=>
           </div>
+          <=% if content.props.rightArrow %=>
           <div v-if="viewMode == 'simple'" class="h-full flex absolute top-0 right-3 items-center text-gray-500">
             <=$ content.props.rightArrowText $=>
             <v-icon size="20" class="text-gray-500">mdi-chevron-right</v-icon>
           </div>
+          <=% endif %=>
         </div>
 
         <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">

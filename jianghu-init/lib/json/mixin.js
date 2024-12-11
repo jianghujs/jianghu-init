@@ -871,6 +871,10 @@ const mixin = {
             customSceneList: [],
             maxSceneDisplay: 5
           };
+          const defaultColAttrs = {
+            class: 'pt-3',
+          };
+          content.colAttrs = Object.assign(defaultColAttrs, content.colAttrs || {});
           content.data = Object.assign(defaultData, content.data || {});
         }
         if (pageType === 'jh-mobile-page' && content.tag === 'jh-order') {
@@ -904,6 +908,17 @@ const mixin = {
           content.data = Object.assign(defaultData, content.data || {});
         }
       }
+      // pageContent 中 jh-table 的 rightArrow 属性
+      jsonConfig.pageContent.forEach(content => {
+        if (content.tag === 'jh-list') {
+          content.props = content.props || {};
+
+          const defaultProps = {
+            rightArrow: true,
+          };
+          content.props = Object.assign(defaultProps, content.props || {});
+        }
+      });
     }
   },
 

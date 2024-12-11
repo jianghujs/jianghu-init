@@ -4,7 +4,7 @@
     <div class="toolbar">
       <div class="page-nav">
         <button class="tool-btn" @click="prevPage" :disabled="currentPage === 1" title="上一页">
-          <img src="./svg/left.svg" style="width: 24px; height: 24px;">
+          <img src="./svg/left.svg" style="width: 24px; height: 24px;"/>
         </button>
         <div class="page-info">
           <input 
@@ -16,7 +16,24 @@
           > / {{ totalPages }}
         </div>
         <button class="tool-btn" @click="nextPage" :disabled="currentPage === totalPages" title="下一页">
-          <img src="./svg/right.svg" style="width: 24px; height: 24px;">
+          <img src="./svg/right.svg" style="width: 24px; height: 24px;"/>
+        </button>
+      </div>
+      <div class="zoom-controls">
+        <button @click="zoomIn" class="tool-btn" title="放大">
+          <img src="./svg/plus.svg" style="width: 24px; height: 24px;" alt="放大">
+        </button>
+        <button @click="zoomOut" class="tool-btn" title="缩小">
+          <img src="./svg/minus.svg" style="width: 24px; height: 24px;" alt="缩小">
+        </button>
+        <button @click="rotateLeft" class="tool-btn" title="向左旋转">
+          <img src="./svg/rotate-left.svg" style="width: 24px; height: 24px;" alt="向左旋转">
+        </button>
+        <button @click="rotateRight" class="tool-btn" title="向右旋转">
+          <img src="./svg/rotate-right.svg" style="width: 24px; height: 24px;" alt="向右旋转">
+        </button>
+        <button @click="resetZoom" class="tool-btn" title="重置">
+          <img src="./svg/redo.svg" style="width: 24px; height: 24px;" alt="重置">
         </button>
       </div>
     </div>
@@ -41,7 +58,9 @@ module.exports = {
       pdfDoc: null,
       pageRendering: false,
       pageNumPending: null,
-      scale: 1
+      scale: 1,
+      scaleToFit: 1,
+      rotate: 0
     }
   },
   async mounted() {
@@ -60,7 +79,7 @@ module.exports = {
 
         this.pdfDoc = await pdfjsLib.getDocument(this.fileUrl).promise;
         this.totalPages = this.pdfDoc.numPages;
-        
+        // 初始化获取pdf的初始视口
         await this.renderPage(this.currentPage);
         this.$emit('loaded');
       } catch (error) {
@@ -80,39 +99,50 @@ module.exports = {
       try {
         const page = await this.pdfDoc.getPage(num);
         const canvas = this.$refs.pdfCanvas;
+        const context = canvas.getContext('2d');
+
+        // 获取容器宽度和高度
         const container = this.$refs.container;
+        const containerWidth = container.clientWidth; // 减去边距
+        const containerHeight = container.clientHeight - 10; // 减去边距
+
+        // 获取PDF页面的原始视口,添加旋转参数
+        const originalViewport = page.getViewport({ scale: 1.0, rotation: this.rotate || 0 });
+
+        // 计算适合容器的缩放比例
+        const widthScale = containerWidth / originalViewport.width;
+        const heightScale = containerHeight / originalViewport.height;
+        const fitScale = Math.min(widthScale, heightScale);
+
+        // 应用缩放和旋转并获取新视口
+        const viewport = page.getViewport({ 
+          scale: this.scale * fitScale,  // 使用动态计算的缩放比例
+          rotation: this.rotate || 0 
+        });
+
+        // 设置canvas尺寸,增加2倍分辨率
+        const pixelRatio = window.devicePixelRatio || 1;
+        canvas.width = viewport.width * pixelRatio;
+        canvas.height = viewport.height * pixelRatio;
+        canvas.style.width = viewport.width + 'px';
+        canvas.style.height = viewport.height + 'px';
+
+        // 设置canvas上下文缩放以提高清晰度
+        context.scale(pixelRatio, pixelRatio);
+
+        // 渲染PDF页面到canvas
+        await page.render({ 
+          canvasContext: context, 
+          viewport: viewport,
+          // 增加渲染质量
+          renderInteractiveForms: true,
+          enableWebGL: true,
+          useSystemFonts: true
+        }).promise;
         
-        // 获取容器尺寸
-        const containerWidth = container.clientWidth - 20; // 减去padding
-        const containerHeight = container.clientHeight - 20;
-        
-        // 获取PDF页面原始尺寸
-        const originalViewport = page.getViewport({ scale: 1 });
-        
-        // 计算合适的缩放比例
-        const scaleW = containerWidth / originalViewport.width;
-        const scaleH = containerHeight / originalViewport.height;
-        this.scale = Math.min(scaleW * 1.5, scaleH * 1.5, 3); // 限制最大缩放比例为3
-        
-        // 使用计算出的缩放比例
-        const viewport = page.getViewport({ scale: this.scale });
-        
-        // 设置canvas尺寸
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        
-        // 设置canvas的CSS尺寸以保持显示大小不变
-        canvas.style.width = (viewport.width / 1.5) + 'px';
-        canvas.style.height = (viewport.height / 1.5) + 'px';
-        
-        const renderContext = {
-          canvasContext: canvas.getContext('2d'),
-          viewport: viewport
-        };
-        
-        await page.render(renderContext).promise;
         this.pageRendering = false;
-        
+
+        // 处理待渲染的页面
         if (this.pageNumPending !== null) {
           this.renderPage(this.pageNumPending);
           this.pageNumPending = null;
@@ -150,6 +180,38 @@ module.exports = {
         this.currentPage = this.totalPages;
       }
       this.queueRenderPage(this.currentPage);
+    },
+
+    // 放大功能
+    zoomIn() {
+      this.scale += 0.1; // 每次放大0.1
+      this.renderPage(this.currentPage); // 重新渲染当前页面
+    },
+
+    // 缩小功能
+    zoomOut() {
+      if (this.scale > 0.1) { // 防止缩小到负值
+        this.scale -= 0.1; // 每次缩小0.1
+        this.renderPage(this.currentPage); // 重新渲染当前页面
+      }
+    },
+
+    // 向左旋转
+    rotateLeft() {
+      this.rotate = (this.rotate + 90) % 360;
+      this.renderPage(this.currentPage);
+    },
+
+    // 向右旋转
+    rotateRight() {
+      this.rotate = (this.rotate - 90 + 360) % 360;
+      this.renderPage(this.currentPage);
+    },
+
+    // 重置缩放
+    resetZoom() {
+      this.scale = 1; // 重置缩放比例为1
+      this.renderPage(this.currentPage); // 重新渲染当前页面
     }
   }
 }
@@ -160,7 +222,8 @@ module.exports = {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f5f5;
+  background: #999;
+  padding: 5px;
 }
 
 .toolbar {
@@ -176,6 +239,12 @@ module.exports = {
   z-index: 1000;
 }
 
+@media (max-width: 768px) {
+  .toolbar {
+    bottom: 10px !important ;
+  }
+}
+
 .page-nav {
   display: flex;
   align-items: center;
@@ -188,6 +257,8 @@ module.exports = {
   display: flex;
   align-items: center;
   gap: 4px;
+  /* 不换行 */
+  white-space: nowrap;
 }
 
 .page-info input {
@@ -237,19 +308,26 @@ module.exports = {
 .pdf-container {
   flex: 1;
   overflow: auto;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+  display: block;
 }
 
 .canvas-wrapper {
   background: white;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   display: inline-flex;
+  position: relative;
 }
 
 canvas {
   display: block;
+  max-width: none;
+  max-height: none;
+}
+
+.zoom-controls {
+  display: flex;
+  gap: 8px;
 }
 </style> 
