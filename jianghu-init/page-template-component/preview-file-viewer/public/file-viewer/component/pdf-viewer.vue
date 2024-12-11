@@ -224,6 +224,7 @@ module.exports = {
   flex-direction: column;
   background: #999;
   padding: 5px;
+  box-sizing: border-box;
 }
 
 .toolbar {
