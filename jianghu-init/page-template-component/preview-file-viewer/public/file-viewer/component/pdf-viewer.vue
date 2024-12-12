@@ -1,8 +1,8 @@
 <template>
-  <div class="pdf-viewer">
+  <div class="pdf-viewer" ref="pdfViewer">
     <!-- 工具栏 -->
     <div class="toolbar">
-      <div class="page-nav">
+      <div class="page-nav" v-if="totalPages > 1">
         <button class="tool-btn" @click="prevPage" :disabled="currentPage === 1" title="上一页">
           <img src="./svg/left.svg" style="width: 24px; height: 24px;"/>
         </button>
@@ -102,8 +102,8 @@ module.exports = {
         const context = canvas.getContext('2d');
 
         // 获取容器宽度和高度
-        const container = this.$refs.container;
-        const containerWidth = container.clientWidth; // 减去边距
+        const container = this.$refs.pdfViewer;
+        const containerWidth = container.clientWidth - 10; // 减去边距
         const containerHeight = container.clientHeight - 10; // 减去边距
 
         // 获取PDF页面的原始视口,添加旋转参数
@@ -220,11 +220,13 @@ module.exports = {
 <style scoped>
 .pdf-viewer {
   height: 100vh;
+  width: 100vw;
   display: flex;
-  flex-direction: column;
   background: #999;
   padding: 5px;
   box-sizing: border-box;
+  overflow: auto;
+  padding-bottom: 70px;
 }
 
 .toolbar {
@@ -307,11 +309,9 @@ module.exports = {
 }
 
 .pdf-container {
-  flex: 1;
-  overflow: auto;
-  text-align: center;
   box-sizing: border-box;
   display: block;
+  margin: auto;
 }
 
 .canvas-wrapper {
