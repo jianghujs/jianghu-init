@@ -24,6 +24,11 @@ const pageTypes = [
     value: '3table-page',
     name: '3table-page - generate pages from 3 related table',
   }, {
+    value: 'captcha-login',
+    name: 'captcha-login - generate captcha login page',
+    pageId: 'captchaLogin',
+    path: 'template/captcha-login/',
+  }, {
     value: 'manual-page',
     name: 'manual-page - generate manual page from a table',
     pageId: 'manual',

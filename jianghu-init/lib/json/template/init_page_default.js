@@ -10,6 +10,7 @@ class InitPageDefault extends CommandBase {
     await this.setupDatabase();
     await this.copyTemplateFiles();
     await this.renderAndExecuteContent();
+   
   }
 
   initialize(cwd, pageTypeObj) {
@@ -40,6 +41,19 @@ class InitPageDefault extends CommandBase {
     if (fs.existsSync(`${templateDir}/component`)) {
       await this.copyDirectory(templateDir, targetDir, 'component', 'view/component');
       this.info('✅ 生成 component 依赖文件');
+    }
+
+    if (fs.existsSync(`${templateDir}/common`)) {
+      await this.copyDirectory(templateDir, targetDir, 'common', 'common');
+      this.info('✅ 生成 common 依赖文件');
+    }
+
+    if (fs.existsSync(`${templateDir}/script.js`)) {
+      const scriptPath = path.join(templateDir, 'script.js');
+      const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
+      // eslint-disable-next-line no-eval
+      eval(`(function() { ${scriptContent} }).call(this)`);
+      this.info('✅ 执行定制化脚本');
     }
   }
 
@@ -75,7 +89,6 @@ class InitPageDefault extends CommandBase {
     }
 
     fs.mkdirSync(targetSubDir, { recursive: true });
-
 
     if (sourcePath.endsWith('.js')) {
       const content = fs.readFileSync(sourcePath, 'utf-8');
@@ -131,6 +144,7 @@ class InitPageDefault extends CommandBase {
     }
     this.success(`SQL执行成功，当前 pageId: ${this.pageId}`);
   }
+
 }
 
 module.exports = InitPageDefault;
