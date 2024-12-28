@@ -34,18 +34,30 @@ class InitPageDefault extends CommandBase {
 
     await this.copyFile(templateDir, targetDir, `${this.pageId}.js`, 'view/init-json/page');
     if (fs.existsSync(`${templateDir}/service`)) {
-      await this.copyDirectory(templateDir, targetDir, 'service');
-      this.info('✅ 生成 service 依赖文件');
+      try {
+        await this.copyDirectory(templateDir, targetDir, 'service');
+        this.info('✅ 生成 service 依赖文件');
+      } catch (err) {
+        this.warning(`无法复制 service 文件: ${err.message}`);
+      }
     }
 
     if (fs.existsSync(`${templateDir}/component`)) {
-      await this.copyDirectory(templateDir, targetDir, 'component', 'view/component');
-      this.info('✅ 生成 component 依赖文件');
+      try {
+        await this.copyDirectory(templateDir, targetDir, 'component', 'view/component');
+        this.info('✅ 生成 component 依赖文件');
+      } catch (err) {
+        this.warning(`无法复制 component 文件: ${err.message}`);
+      }
     }
 
     if (fs.existsSync(`${templateDir}/common`)) {
-      await this.copyDirectory(templateDir, targetDir, 'common', 'common');
-      this.info('✅ 生成 common 依赖文件');
+      try {
+        await this.copyDirectory(templateDir, targetDir, 'common', 'common');
+        this.info('✅ 生成 common 依赖文件');
+      } catch (err) {
+        this.warning(`无法复制 common 文件: ${err.message}`);
+      }
     }
 
     if (fs.existsSync(`${templateDir}/script.js`)) {
