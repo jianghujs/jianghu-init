@@ -984,7 +984,7 @@ const mixin = {
             item.componentPath = filename;
             if (_.isArray(item.bind)) {
               item.bind = item.bind.reduce((obj, key) => {
-                obj[key] = `${itemKey}Item.${key}`;
+                obj[':' + key.replace(/^:/, '')] = `${itemKey}Item.${key}`;
                 return obj;
               }, {});
             }
@@ -999,7 +999,7 @@ const mixin = {
             if (_.isArray(item.bind)) {
               item.bind.forEach(bindItem => {
                 if (_.isString(bindItem)) {
-                  bind[bindItem] = `${itemKey}Item.${bindItem}`;
+                  bind[':' + bindItem.replace(/^:/, '')] = `${itemKey}Item.${bindItem}`;
                 }
               });
             }
