@@ -29,6 +29,11 @@ const pageTypes = [
     pageId: 'captchaLogin',
     path: 'template/captcha-login/',
   }, {
+    value: 'wx-login',
+    name: 'wx-login - generate wechat login page',
+    pageId: 'wxLogin',
+    path: 'template/wx-login/',
+  }, {
     value: 'manual-page',
     name: 'manual-page - generate manual page from a table',
     pageId: 'manual',

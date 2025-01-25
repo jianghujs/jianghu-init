@@ -121,9 +121,9 @@ module.exports = class InitMobilePage extends CommandBase {
     // const pageBakDir = './app/view/pageBak';
     // if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
 
-    const { table, pageId, pageType, version } = jsonConfig;
+    const { table, pageId, pageType, version, pageFile } = jsonConfig;
     const tableCamelCase = _.camelCase(table);
-    const filepath = `./app/view/page/${pageId}.html`;
+    const filepath = `./app/view/page/${pageFile || pageId}.html`;
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-mobile-page`;
     const templateTargetPath = `${templatePath}/${version ? pageType + '-' + version : pageType}.njk.html`;
     const listTemplate = fs.readFileSync(templateTargetPath)

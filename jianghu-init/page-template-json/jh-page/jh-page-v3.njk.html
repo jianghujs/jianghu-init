@@ -11,8 +11,10 @@
 <script type="text/html" id="app-template">
 <div>
 <v-app mobile-breakpoint="sm">
+  <=%- if jhMenu %=>
   <jh-menu />
-  <v-main class="mt-13">
+  <=%- endif %=>
+  <v-main <=%- if jhMenu %=> class="mt-13"<=%- endif %=>>
     <=%- if headContentStudio %=>
     <=$ headContentStudio | tagFormat(4) $=>
     <=%- elif headContent %=>

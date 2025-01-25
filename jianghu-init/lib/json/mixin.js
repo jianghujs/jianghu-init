@@ -618,6 +618,9 @@ const mixin = {
     if (!jsonConfig.pageContent) {
       jsonConfig.pageContent = [];
     }
+    if (!jsonConfig.hasOwnProperty('jhMenu')) {
+      jsonConfig.jhMenu = true;
+    }
 
     let { includeList, actionContent, pageContent = [], headContent = [], common = {} } = jsonConfig;
     /**
