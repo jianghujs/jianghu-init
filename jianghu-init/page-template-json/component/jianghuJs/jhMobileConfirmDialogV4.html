@@ -79,7 +79,10 @@ Vue.component("jh-confirm-dialog", {
   window.jhConfirmDailog = async ({ 
     title = '提示',                 // Dialog 标题
     htmlTemplate = '',             // Dialog 正文, <v-combobox <v-text-field ....
-    data = {},                      // Vue data
+    methods = {},                   // Vue methods
+    computed = {},                  // Vue computed
+    created = async ($instance) => {}, // Vue created
+    mounted = async ($instance) => {}, // Vue mounted
     confirmText = '确定',           // 确认按钮文字
     cancelText = '取消',            // 取消按钮文字
     showCancel = true,              // 是否显示取消按钮
@@ -112,7 +115,19 @@ Vue.component("jh-confirm-dialog", {
             ...data,
           }
         },
+        computed: computed,
+        async created() {
+          if (created) {
+            created(this);
+          }
+        },
+        async mounted() {
+          if (mounted) {
+            mounted(this);
+          }
+        },
         methods: {
+          ...methods,
           async save() {
             try {
               if (onConfirm) {

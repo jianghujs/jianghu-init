@@ -1,144 +1,161 @@
 <!-- jhConfirmDialog.html >>>>>>>>>>>>> -->
 <script type="text/html" id="jh-confirm-dialog">
-<v-dialog
-  v-model="isConfirmDialogShown"
-  max-width="290"
-  @click:outside="confirmDialogStatus = false; isConfirmDialogShown = false">
-  <v-card>
-    <v-card-title v-if="confirmDialogContent.title">{{ confirmDialogContent.title }}</v-card-title>
-    <v-card-text v-if="confirmDialogContent.content" v-html="confirmDialogContent.content" class="pa-6 text-pre-line"></v-card-text>
-    <v-card-actions>
-      <v-spacer></v-spacer>
-      <v-btn v-if="isCancelBtnShown" text @click="confirmDialogStatus = false; isConfirmDialogShown = false">
-        取消
-      </v-btn>
-      <v-btn color="primary" text @click="confirmDialogStatus = true; isConfirmDialogShown = false">
-        确定
-      </v-btn>
-    </v-card-actions>
-  </v-card>
-</v-dialog>
-</script>
-
-<script>
-Vue.component("jh-confirm-dialog", {
-  template: "#jh-confirm-dialog",
-  vueComponent: 'jh-confirm-dialog',
-  mixins: [window.jianghuUiActionMixins || {}],
-  vuetify: new Vuetify(),
-  data: () => ({
-    isConfirmDialogShown: false,
-    confirmDialogContent: {title: '', action: null},
-    confirmDialogStatus: null,
-    isCancelBtnShown: true
-  }),
-  computed: {
-    isMobile() {
-      return window.innerWidth < 600;
+  <v-dialog
+    v-model="isConfirmDialogShown"
+    max-width="290"
+    @click:outside="confirmDialogStatus = false; isConfirmDialogShown = false">
+    <v-card>
+      <v-card-title v-if="confirmDialogContent.title">{{ confirmDialogContent.title }}</v-card-title>
+      <v-card-text v-if="confirmDialogContent.content" v-html="confirmDialogContent.content" class="pa-6 text-pre-line"></v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn v-if="isCancelBtnShown" text @click="confirmDialogStatus = false; isConfirmDialogShown = false">
+          取消
+        </v-btn>
+        <v-btn color="primary" text @click="confirmDialogStatus = true; isConfirmDialogShown = false">
+          确定
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  </script>
+  
+  <script>
+  Vue.component("jh-confirm-dialog", {
+    template: "#jh-confirm-dialog",
+    vueComponent: 'jh-confirm-dialog',
+    mixins: [window.jianghuUiActionMixins || {}],
+    vuetify: new Vuetify(),
+    data: () => ({
+      isConfirmDialogShown: false,
+      confirmDialogContent: {title: '', action: null},
+      confirmDialogStatus: null,
+      isCancelBtnShown: true
+    }),
+    computed: {
+      isMobile() {
+        return window.innerWidth < 600;
+      },
     },
-  },
-  destroyed() {
-    if (this.interval) {
-      clearInterval(this.interval)
-    }
-  },
-  watch: {
-    isConfirmDialogShown(v) {
-      window.dialogIsOpen = v;
-    }
-  },
-  async created() {
-    window.confirmDialog = this.confirmDialog;
-  },
-  methods: {
-    async confirmDialog({title, content, cancelBtn = true, confirmColor = 'green darken-1'}) {
-      this.confirmDialogContent.title = title;
-      this.confirmDialogContent.content = content;
-      this.isConfirmDialogShown = true;
-      this.isCancelBtnShown = cancelBtn;
-      this.confirmDialogStatus = null;
-      return new Promise((resolve) => {
-        this.interval = setInterval(() => {
-          if (this.confirmDialogStatus != null) {
-            clearInterval(this.interval);
-            resolve(this.confirmDialogStatus)
-            this.isConfirmDialogShown = false;
-            this.confirmDialogStatus = null;
-          }
-        }, 60)
-      })
+    destroyed() {
+      if (this.interval) {
+        clearInterval(this.interval)
+      }
     },
-  },
-})
-</script>
-
-<script>
-  window.jhConfirmDailog = async ({ 
-    title = '提示',                 // Dialog 标题
-    htmlTemplate = '',             // Dialog 正文, <v-combobox <v-text-field ....
-    data = {},                      // Vue data
-    confirmText = '确定',           // 确认按钮文字
-    cancelText = '取消',            // 取消按钮文字
-    showCancel = true,              // 是否显示取消按钮
-    cancelColor = 'default',        // 取消按钮颜色
-    confirmColor = 'primary',       // 确认按钮颜色
-    width = '420',                  // 弹窗宽度
-    onCancel = async ($instance) => {}, // 关闭前的回调
-    onConfirm = async ($instance) => {},// 确认前的回调
-  }) => {
-    return new Promise((resolve, reject) => {
-      const ComponentClass = Vue.extend({
-        template: /*html*/`
-          <v-dialog class="jh-confirm-dailog" v-model="isDialogShow" width="${width}" persistent>
-            <v-card>
-              <v-card-title>${title}</v-card-title>
-              <v-card-text>
-                ${htmlTemplate}
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn v-if="${showCancel}" color="${cancelColor}" @click="cancel">${cancelText}</v-btn>
-                <v-btn color="${confirmColor}" @click="save">${confirmText}</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-        `,
-        data() {
-          return {
-            isDialogShow: true,
-            ...data,
-          }
-        },
-        methods: {
-          async save() {
-            try {
-              if (onConfirm) {
-                await onConfirm(this);
-              }
-              resolve(true);
-              this.$destroy();
-            } catch (error) {
-              reject(error);
+    watch: {
+      isConfirmDialogShown(v) {
+        window.dialogIsOpen = v;
+      }
+    },
+    async created() {
+      window.confirmDialog = this.confirmDialog;
+    },
+    methods: {
+      async confirmDialog({title, content, cancelBtn = true, confirmColor = 'green darken-1'}) {
+        this.confirmDialogContent.title = title;
+        this.confirmDialogContent.content = content;
+        this.isConfirmDialogShown = true;
+        this.isCancelBtnShown = cancelBtn;
+        this.confirmDialogStatus = null;
+        return new Promise((resolve) => {
+          this.interval = setInterval(() => {
+            if (this.confirmDialogStatus != null) {
+              clearInterval(this.interval);
+              resolve(this.confirmDialogStatus)
+              this.isConfirmDialogShown = false;
+              this.confirmDialogStatus = null;
+            }
+          }, 60)
+        })
+      },
+    },
+  })
+  </script>
+  
+  <script>
+    window.jhConfirmDailog = async ({ 
+      title = '提示',                 // Dialog 标题
+      htmlTemplate = '',             // Dialog 正文, <v-combobox <v-text-field ....
+      data = {},                      // Vue data
+      methods = {},                   // Vue methods
+      computed = {},                  // Vue computed
+      created = async ($instance) => {}, // Vue created
+      mounted = async ($instance) => {}, // Vue mounted
+      confirmText = '确定',           // 确认按钮文字
+      cancelText = '取消',            // 取消按钮文字
+      showCancel = true,              // 是否显示取消按钮
+      cancelColor = 'default',        // 取消按钮颜色
+      confirmColor = 'primary',       // 确认按钮颜色
+      width = '420',                  // 弹窗宽度
+      onCancel = async ($instance) => {}, // 关闭前的回调
+      onConfirm = async ($instance) => {},// 确认前的回调
+    }) => {
+      return new Promise((resolve, reject) => {
+        const ComponentClass = Vue.extend({
+          template: /*html*/`
+            <v-dialog class="jh-confirm-dailog" v-model="isDialogShow" width="${width}" persistent>
+              <v-card>
+                <v-card-title>${title}</v-card-title>
+                <v-card-text>
+                  ${htmlTemplate}
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn v-if="${showCancel}" color="${cancelColor}" @click="cancel">${cancelText}</v-btn>
+                  <v-btn color="${confirmColor}" @click="save">${confirmText}</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          `,
+          data() {
+            return {
+              isDialogShow: true,
+              ...data,
             }
           },
-          async cancel() {
-            try {
-              if (onCancel) {
-                await onCancel(this);
-              }
-              resolve(false);
-              this.$destroy();
-            } catch (error) {
-              reject(error);
-            } 
+          computed: computed,
+          async created() {
+            if (created) {
+              created(this);
+            }
           },
-        },
+          async mounted() {
+            if (mounted) {
+              mounted(this);
+            }
+          },
+          methods: {
+            ...methods,
+            async save() {
+              try {
+                if (onConfirm) {
+                  await onConfirm(this);
+                }
+                resolve(true);
+                this.$destroy();
+              } catch (error) {
+                reject(error);
+              }
+            },
+            async cancel() {
+              try {
+                if (onCancel) {
+                  await onCancel(this);
+                }
+                resolve(false);
+                this.$destroy();
+              } catch (error) {
+                reject(error);
+              } 
+            },
+          },
+        });
+        const div = document.createElement('div');
+        document.body.appendChild(div);
+        const vueInstance = new ComponentClass({ vuetify: new Vuetify() })
+        vueInstance.$mount(div)
       });
-      const div = document.createElement('div');
-      document.body.appendChild(div);
-      const vueInstance = new ComponentClass({ vuetify: new Vuetify() })
-      vueInstance.$mount(div)
-    });
-  }
-</script>
-<!-- <<<<<<<<<<<<< jhConfirmDialog.html -->
+    }
+  </script>
+  <!-- <<<<<<<<<<<<< jhConfirmDialog.html -->
+  
