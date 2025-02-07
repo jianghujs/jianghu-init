@@ -46,7 +46,7 @@
         <!-- 服务端搜索 -->
         <v-col cols="12" xs="12" sm="12" md="8" xl="9" class="pl-md-2 mb-2 mb-md-0 flex justify-space-between" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <v-row class="jh-backend-form-container justify-end py-md-3" no-gutters>
-            <=%- for search in content.value %=>
+            <=%- for search in content.value.slice(0, content.data.maxSearchDisplay) %=>
             <=%- if search.tag == "v-date-picker" %=>
             <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
               <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
@@ -66,6 +66,35 @@
             </v-col>
             <=%- endif %=>
             <=%- endfor %=>
+
+            <=%- if content.value.length > content.data.maxSearchDisplay %=>
+            <!-- 更多场景按钮 -->
+            <v-menu offset-y :close-on-content-click="false">
+              <template v-slot:activator="{on, attrs}">
+                <v-btn small v-bind="attrs" v-on="on" class="ml-2 px-2 !min-w-9">
+                  <span>更多搜索</span>
+                  <v-icon right small class="mx-0">mdi-chevron-down</v-icon>
+                </v-btn> 
+              </template>
+              <div class="pa-2 grid grid-cols-1 gap-2">
+                <=%- for search in content.value.slice(content.data.maxSearchDisplay) %=>
+                <=%- if search.tag == "v-date-picker" %=>
+                <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
+                  <template v-slot:activator="{on, attrs}">
+                    <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prepend-inner-icon="mdi-calendar-range" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
+                  </template>
+                  <v-date-picker color="success" elevation="20" v-model="<=$ search.model $=>" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>></v-date-picker>
+                </v-menu>
+                <=%- elif search.model is defined %=>
+                  <=$ search | formItemFormat $=>
+                <=%- else %=>
+                  <=$ search | tagFormat(14) $=>
+                <=%- endif %=>
+                <=%- endfor %=>
+              </div>
+            </v-menu>
+            <=%- endif %=>
+
             <=%- if content.searchBtn is undefined or content.searchBtn != false %=>
             <div class="jh-backend-search-btn ml-2">
               <=%- if content.searchBtn == true %=>

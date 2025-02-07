@@ -907,6 +907,7 @@ const mixin = {
             serverSearchWhere: {},
             serverSearchWhereIn: {},
             serverSearchWhereLike: {},
+            maxSearchDisplay: 5,
           };
           content.data = Object.assign(defaultData, content.data || {});
         }

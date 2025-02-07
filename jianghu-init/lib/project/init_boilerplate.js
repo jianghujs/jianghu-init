@@ -443,7 +443,6 @@ module.exports = class InitBoilerplate extends CommandBase {
               const content = fs.readFileSync(npmrc, 'utf8');
               const registry = content.match(/registry\s*=\s*(.+)/);
               if (registry) {
-                this.log('use registry from .npmrc: %s', registry[1]);
                 return registry[1].replace(/\/$/, '');
               }
             }
