@@ -26,7 +26,6 @@ async function main() {
         .filter(table => !table.TABLE_NAME.includes('_copy'))
         .filter(table => !table.TABLE_NAME.includes('bak'))
         .filter(table => !table.TABLE_NAME.startsWith('__'))
-        .filter(table => table.TABLE_NAME == '_resource')
         ;
 
     console.group("数据库信息");
