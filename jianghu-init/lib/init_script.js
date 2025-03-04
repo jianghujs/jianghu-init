@@ -17,6 +17,11 @@ const pageTypes = [
   },
   {
     pageType: 'script',
+    value: 'updateJhId',
+    name: 'updateJhId - 系统表jhId更新',
+  },
+  {
+    pageType: 'script',
     value: 'htmlToInitJson',
     name: 'htmlToInitJson - 将html文件转换成init-json配置文件',
   },
@@ -30,6 +35,7 @@ const pageTypes = [
     value: 'exportProjectDocs',
     name: 'exportProjectDocs - 导出当前项目目录结构, 系统数据表为md文档',
   },
+
 ];
 
 
