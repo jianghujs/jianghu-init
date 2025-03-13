@@ -4,7 +4,10 @@
   "description": "Init jianghu app helper tools.",
   "main": "lib/entry.js",
   "scripts": {
-    "autod": "autod"
+    "autod": "autod",
+    "vscode:build": "cd vscode-extension && npm install && npm run compile",
+    "vscode:package": "cd vscode-extension && npm install -g vsce && vsce package",
+    "vscode:install": "node vscode-extension/install.js"
   },
   "preferGlobal": true,
   "bin": {
@@ -14,7 +17,11 @@
     "bin",
     "lib",
     "page-template",
-    "page-template-json"
+    "page-template-json",
+    "vscode-extension/out",
+    "vscode-extension/package.json",
+    "vscode-extension/resources",
+    "vscode-extension/install.js"
   ],
   "dependencies": {
     "chalk": "^4.1.2",
@@ -60,7 +67,8 @@
     "jianghujs",
     "jianghu-init",
     "egg",
-    "egg-init"
+    "egg-init",
+    "vscode-extension"
   ],
   "engines": {
     "node": ">=10.0.0"

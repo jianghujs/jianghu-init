@@ -1,0 +1,94 @@
+{
+  "name": "jianghu-init-vscode",
+  "displayName": "江湖初始化助手",
+  "description": "VSCode扩展，用于辅助使用jianghu-init并显示帮助文字",
+  "version": "0.0.1",
+  "publisher": "jianghujs",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "jianghu-init-vscode.showHelp",
+        "title": "显示江湖初始化助手帮助"
+      },
+      {
+        "command": "jianghu-init-vscode.createProject",
+        "title": "创建江湖项目"
+      },
+      {
+        "command": "jianghu-init-vscode.generateCrud",
+        "title": "生成CRUD页面"
+      },
+      {
+        "command": "jianghu-init-vscode.checkUpdate",
+        "title": "检查江湖初始化助手更新"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "jianghu-explorer",
+          "title": "江湖助手",
+          "icon": "resources/jianghu-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "jianghu-explorer": [
+        {
+          "id": "jianghuHelp",
+          "name": "江湖帮助"
+        },
+        {
+          "id": "jianghuCommands",
+          "name": "江湖命令"
+        }
+      ]
+    },
+    "snippets": [
+      {
+        "language": "javascript",
+        "path": "./snippets/javascript.json"
+      },
+      {
+        "language": "typescript",
+        "path": "./snippets/typescript.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "dependencies": {
+    "semver": "^7.5.4",
+    "vscode-languageclient": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/semver": "^7.5.3",
+    "@types/vscode": "^1.60.0",
+    "@types/glob": "^7.1.3",
+    "@types/node": "^14.14.37",
+    "eslint": "^7.19.0",
+    "glob": "^7.1.6",
+    "typescript": "^4.2.3",
+    "vscode-test": "^1.5.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jianghujs/jianghu-init.git"
+  }
+} 

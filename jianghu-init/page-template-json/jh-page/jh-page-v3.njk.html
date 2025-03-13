@@ -397,7 +397,14 @@
                     <template v-slot:activator="{on, attrs}">
                     <v-text-field  prepend-inner-icon="mdi-calendar-range" v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly clearable></v-text-field>
                     </template>
-                    <v-date-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-date-picker>
+                    <v-date-picker color="success" elevation="20" no-title scrollable locale="zh-cn" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-date-picker>
+                </v-menu>
+                <=%- elif formItem.tag == "v-time-picker" %=>
+                <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
+                    <template v-slot:activator="{on, attrs}">
+                    <v-text-field  prepend-inner-icon="mdi-calendar-range" v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled readonly clearable></v-text-field>
+                    </template>
+                    <v-time-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-time-picker>
                 </v-menu>
                 <=%- elif formItem.tag == "jh-json-editor" %=>
                 <vue-json-editor v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></vue-json-editor>

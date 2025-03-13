@@ -58,9 +58,14 @@ const content = {
   ],
   actionContent: [
     {
+      /** 扩展属性：
+       * isCheckFormBeforeClose: true, // 是否在关闭前检查表单
+       * onCheckFormConfirm: "doUiAction('methodName')", // 在关闭前检查表单确认时执行的方法
+       */
       tag: 'jh-create-drawer',
       key: "create",
-      attrs: {},
+      attrs: {
+      },
       title: '新增',
       headSlot: [
         { tag: 'v-spacer'}
@@ -95,6 +100,10 @@ const content = {
       ]
     },
     {
+      /** 扩展属性：
+       * isCheckFormBeforeClose: true, // 是否在关闭前检查表单
+       * onCheckFormConfirm: "doUiAction('methodName')", // 在关闭前检查表单确认时执行的方法
+       */
       tag: 'jh-update-drawer',
       key: "update",
       attrs: {},
