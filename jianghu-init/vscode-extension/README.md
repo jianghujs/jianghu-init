@@ -13,6 +13,7 @@
 - 提供代码补全建议
 - 提供代码片段
 - 提供悬停提示
+- **新功能：JSON模板文件代码补全和悬停提示**
 
 ## 安装
 
@@ -86,6 +87,25 @@ npm run vscode:install -g @jianghujs/jianghu-init
    - `createProject`
    - `generateCrud`
 
+### 使用JSON模板代码补全和悬停提示
+
+在 `page-template-json` 或 `init-json` 目录下的 JavaScript 文件中，可以使用以下功能：
+
+1. **代码补全**：
+   - 在定义 `content` 对象时，会自动提示可用的预设key
+   - 在 `resourceList` 数组中，会提示资源项的属性
+   - 在 `resourceData` 对象中，会提示资源数据的属性
+   - 在 `pageData` 对象中，会提示页面数据的属性
+   - 在列配置对象中，会提示列的属性
+   - 在文件开头，可以插入完整的CRUD模板
+
+2. **悬停提示**：
+   - 将鼠标悬停在预设key上，会显示相关说明
+   - 支持的key包括：`pageType`、`pageId`、`pageName`、`resourceList`、`pageData`、`actionId`、`resourceType`、`resourceHook`、`desc`、`resourceData`、`table`、`operation`、`listColumnList`、`formColumnList`、`searchFormColumnList`、`title`、`dataIndex`、`componentType`、`formatType`等
+
+3. **示例**：
+   - 查看 `examples/template-example.js` 文件，了解如何使用这些功能
+
 ## 开发
 
 ### 构建扩展
@@ -100,10 +120,10 @@ npm run compile
 
 ```bash
 cd vscode-extension
-npm install -g vsce
+npm install -g @vscode/vsce
 vsce package
 ```
 
 ## 许可证
 
-MIT 
+MIT

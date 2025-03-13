@@ -4,6 +4,8 @@ import * as path from 'path';
 import { exec } from 'child_process';
 import * as https from 'https';
 import * as semver from 'semver';
+import { activateJsonTemplateCompletion } from './jsonTemplateCompletionProvider';
+import { activateJsonTemplateHover } from './jsonTemplateHoverProvider';
 
 // 当前扩展版本
 const CURRENT_VERSION = '0.0.1';
@@ -475,7 +477,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   
   // 创建更新检查状态栏项
   const updateStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  updateStatusBarItem.text = "$(sync) 检查更新";
+  updateStatusBarItem.text = "$(sync) 检查江湖助手更新";
   updateStatusBarItem.tooltip = "检查江湖初始化助手更新";
   updateStatusBarItem.command = 'jianghu-init-vscode.checkUpdate';
   updateStatusBarItem.show();
@@ -505,6 +507,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
   
   context.subscriptions.push(hoverProvider);
+  
+  // 激活JSON模板代码补全
+  activateJsonTemplateCompletion(context);
+  
+  // 激活JSON模板悬停提示
+  activateJsonTemplateHover(context);
   
   // 设置定期检查更新（每天检查一次）
   const ONE_DAY = 24 * 60 * 60 * 1000; // 24小时（毫秒）

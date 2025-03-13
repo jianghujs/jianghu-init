@@ -11,7 +11,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onLanguage:javascript"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -30,7 +31,7 @@
       },
       {
         "command": "jianghu-init-vscode.checkUpdate",
-        "title": "检查江湖初始化助手更新"
+        "title": "检查江湖助手更新"
       }
     ],
     "viewsContainers": {
@@ -62,6 +63,17 @@
       {
         "language": "typescript",
         "path": "./snippets/typescript.json"
+      }
+    ],
+    "languages": [
+      {
+        "id": "javascript",
+        "extensions": [
+          ".js"
+        ],
+        "filenames": [
+          "*.js"
+        ]
       }
     ]
   },
