@@ -14,7 +14,6 @@
 <script type="text/html" id="app-template">
 <div>
 <v-app mobile-breakpoint="sm">
-  <=%- if hasHeadContent %=>
   <jh-menu>
     <template v-slot:title>
       <!-- 高级搜索 -->
@@ -23,12 +22,11 @@
       <=%- endif %=>
     </template>
   </jh-menu>
-  <=%- endif %=>
-  <v-main class="<=%- if hasHeadContent %=>mt-13<=%- endif %=>">
+  <v-main class="mt-13">
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <=%- if (headContent | filter({tag: '!jh-page-title'})).length %=>
-    <div class="jh-page-second-bar p-3 px-sm-8 border-b border-[#F4F5FA]">
-      <v-row class="align-center justify-space-between" no-gutters>
+    <div class="jh-page-second-bar p-3 px-sm-8 bg-gray-100">
+      <v-row class="align-center" no-gutters>
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-order' %=>
         <!-- 排序 -->
@@ -235,18 +233,16 @@
       <!-- 操作按钮 -->
       <div <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
         <=%- if content.actionList.length > 1 %=>
-        <div class="w-full h-full rounded-full bg-green-600 text-center border-4 border-[#92D395]" @click="isPageActionDrawerShown = true">
-          <v-icon color="white" size="22" class="mt-[2px]">mdi-menu</v-icon>
-          <div class="text-white text-xs mt-[-4px]">操作</div>
+        <div class="w-full h-full flex justify-center rounded-full items-center bg-green-600" @click="isPageActionDrawerShown = true">
+          <v-icon color="white" size="28">mdi-view-grid-outline</v-icon>
         </div>
         <=%- elif not content.actionList[0].click %=>
-        <div class="w-full h-full rounded-full bg-green-600 text-center border-4 border-[#92D395]" @click="isPageActionDrawerShown = true">
-          <v-icon color="white" size="22" class="mt-[2px]">mdi-menu</v-icon>
-          <div class="text-white text-xs mt-[-4px]">操作</div>
+        <div class="w-full h-full flex justify-center rounded-full items-center bg-green-600" @click="isPageActionDrawerShown = true">
+          <v-icon color="white" size="28">mdi-view-grid-outline</v-icon>
         </div>
         <=%- else  %=>
-        <div class="w-full h-full rounded-full bg-green-600 text-center border-4 border-[#92D395]" @click="<=$ content.actionList[0].click $=>">
-          <v-icon color="white" size="22" class="mt-[2px]"><=$ content.actionList[0].icon $=></v-icon>
+        <div class="w-full h-full flex justify-center rounded-full items-center bg-green-600" @click="<=$ content.actionList[0].click $=>">
+          <v-icon color="white" size="28"><=$ content.actionList[0].icon $=></v-icon>
         </div>
         <=%- endif %=>
       </div>
@@ -482,22 +478,17 @@
 
     <=%- set jhSearch = (headContent | find({tag: 'jh-search'})) %=>
     <=%- if jhSearch %=>
-    <v-bottom-sheet v-if="isPageSearchDrawerShown" v-model="isPageSearchDrawerShown" bottom style="z-index: 111;" fixed temporary>
-      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[33vh]">
+    <v-bottom-sheet v-if="isPageSearchDrawerShown" v-model="isPageSearchDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
         <v-card-title class="px-4">
           <span class="text-base">高级搜索</span>
-          <v-spacer></v-spacer>
-          <div class="success--text text-xs text-center" @click="isPageSearchDrawerShown = false">
-            <v-icon size="22" class="success--text">mdi-window-close</v-icon>
-            <div class="success--text mt-[-2px]">关闭</div>
-          </div>
         </v-card-title>
         <v-card-text class="px-4">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
-          <div>
+          <div style="min-height: 150px;">
             <v-row class="py-2">
               <=%- for search in jhSearch.searchList %=>
               <=%- if search.tag == "v-date-picker" %=>
@@ -538,22 +529,17 @@
     <=%- endif %=>
 
     <=%- if headContent | find({tag: 'jh-order'}) %=>
-    <v-bottom-sheet v-if="isPageOrderDrawerShown" v-model="isPageOrderDrawerShown" bottom style="z-index: 111;" fixed temporary>
-      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[33vh]">
+    <v-bottom-sheet v-if="isPageOrderDrawerShown" v-model="isPageOrderDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
         <v-card-title class="px-4">
           <span class="text-base">排序</span>
-          <v-spacer></v-spacer>
-          <div class="success--text text-xs text-center" @click="isPageOrderDrawerShown = false">
-            <v-icon size="22" class="success--text">mdi-window-close</v-icon>
-            <div class="success--text mt-[-2px]">关闭</div>
-          </div>
         </v-card-title>
         <v-card-text class="px-4">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
-          <div>
+          <div style="min-height: 150px;">
             <v-row>
               <v-col cols="12" class="pb-0" v-for="(item, index) in tableDataOrderList">
                 <v-btn block class="p-3 rounded" :color="isEqual(tableDataOrder, item.value) ? 'primary' : 'gray'" @click="tableDataOrder = item.value">
@@ -573,22 +559,17 @@
     <=%- endif %=>
 
     <=%- if pageContent | find({tag: 'jh-action'}) %=>
-    <v-bottom-sheet v-if="isPageActionDrawerShown" v-model="isPageActionDrawerShown" bottom style="z-index: 111;" fixed temporary>
-      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[33vh]">
+    <v-bottom-sheet v-if="isPageActionDrawerShown" v-model="isPageActionDrawerShown" height="80%" bottom style="z-index: 111;" fixed temporary>
+      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
         <v-card-title class="px-4">
           <span class="text-base">更多操作</span>
-          <v-spacer></v-spacer>
-          <div class="success--text text-xs text-center" @click="isPageActionDrawerShown = false">
-            <v-icon size="22" class="success--text">mdi-window-close</v-icon>
-            <div class="success--text mt-[-2px]">关闭</div>
-          </div>
         </v-card-title>
         <v-card-text class="px-4">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
-          <div>
+          <div style="min-height: 150px;">
             <v-row>
               <=%- for item in ((pageContent | find({tag: 'jh-action'})).actionList) %=>
               <v-col cols="12" class="pb-0">

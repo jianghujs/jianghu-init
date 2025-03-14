@@ -11,12 +11,12 @@
     >
       <!-- 页面标题 -->
       <v-toolbar-title ref="toolbarTitle" class="px-4 jh-toolbar-title">
-        <span class="text-sm font-medium">{{ appTitle }}</span>
+        <span class="text-h7 font-weight-bold">{{ appTitle }}</span>
       </v-toolbar-title>
       <v-divider class="jh-divider"></v-divider>
   
       <!-- 菜单 -->
-      <v-list flat class="py-0">
+      <v-list flat class="mx-2">
         <v-list-item-group :value="currentMenuTabIndex">
           <template v-for="(item, index) in inMenuList">
             <template v-if="item.children && item.children.length > 0">
@@ -42,7 +42,7 @@
               v-else
               :key="item.path"
               @click="openUrl(item.path, item.query)"
-              class="px-4"
+              class="mx-2"
               :class="{'second-active': currentMenuTabIndex === index}"
             >
               <v-list-item-content class="pl-0">
@@ -50,9 +50,6 @@
                   {{ item.title }}
                 </v-list-item-title>
               </v-list-item-content>
-              <v-list-item-icon class="my-3">
-                <v-icon size="18"> mdi-chevron-right </v-icon>
-              </v-list-item-icon>
             </v-list-item>
           </template>
         </v-list-item-group>
@@ -66,63 +63,6 @@
       </v-btn>
     </v-navigation-drawer>
     <!-- <<<<<<<<<<<<< 手机端左边抽屉菜单 -->
-    
-     <!-- 手机端右边抽屉菜单 >>>>>>>>>>>>> -->
-     <v-navigation-drawer
-      v-model="isMobileUserMenuDrawerShown"
-      app
-      clipped
-      style="z-index: 99999"
-      class="jh-page-nav-bar hidden-md-and-up"
-      right
-    > 
-      <div class="d-flex flex-column h-[calc(100vh-20px)]">
-        <div>
-          <!-- 页面标题 -->
-          <v-toolbar-title ref="toolbarTitle" class="px-4 jh-toolbar-title flex-1">
-            <div text class="d-flex justify-space-between align-center pt-3">
-              <v-icon :size="18" @click="isMobileUserMenuDrawerShown = !isMobileUserMenuDrawerShown">mdi-window-close</v-icon>
-              <v-spacer/>
-              <div class="text-right mr-2">
-                <span class="d-block leading-none jh-font-size-12">{{ userInfo.user.username }}</span>
-                <span class="d-block leading-none jh-font-size-10 grey--text mt-1">{{ userInfo.user.userId }}</span>
-              </div>  
-              <v-icon :size="30">mdi-account-circle-outline</v-icon>
-            </div>
-          </v-toolbar-title>
-          <v-divider class="jh-divider"></v-divider>
-        </div>
-        
-        <!-- 菜单 -->
-        <v-list nav dense class="flex-1">
-          <template v-if="userInfo.userGroupRoleList.length > 0">
-            <div style="max-width: 220px;">
-              <v-chip x-small class="jh-font-size-10 mr-1 mb-1" v-for="(userGroupRole, i) of userInfo.userGroupRoleList" :key="i">{{ userGroupRole.groupName||userGroupRole.groupId }} | {{ userGroupRole.roleName||userGroupRole.roleId }}</v-chip>
-            </div>
-            <v-divider class="my-1 jh-divider"></v-divider>
-          </template>
-
-          <v-list-item v-for="avatarMenu of inAvatarMenuList" :key="avatarMenu.path" @click="openUrl(avatarMenu.path)">
-            <v-list-item-icon class="mr-1 mt-1">
-              <v-icon size="16" color="grey darken-3">mdi-account-cog-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title color="grey darken-3">{{ avatarMenu.title }}</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-
-        <div class="px-4">
-          <v-btn block elevation="0" small @click="logout"> 
-            <v-icon size="16">mdi-logout</v-icon>
-            <span class="ml-2">登出</span> 
-          </v-btn>
-        </div>
-      </div>
-     
-    </v-navigation-drawer>
-    <!-- <<<<<<<<<<<<< 手机端右边抽屉菜单 -->
-
     <!-- 页面头部 >>>>>>>>>>>>> -->
     <v-app-bar
       app
@@ -134,27 +74,29 @@
     >
       <!-- 手机端左侧菜单开启按钮 -->
       <v-app-bar-nav-icon color="success" @click.stop="isMobileMenuDrawerShown = !isMobileMenuDrawerShown" class="hidden-md-and-up">
-        <span class="success--text text-caption">
-          <v-icon size="26" class="success--text">mdi-menu</v-icon>
-          <div class="mt-[-5px]">目录</div>
-        </span>
+        <!-- <div class="border border-green-500 rounded px-1">
+          菜单
+        </div> -->
       </v-app-bar-nav-icon>
       <!-- 页面标题 -->
       <v-toolbar-title ref="toolbarTitle" class="mr-5 pl-0">
         <span class="hidden-sm-and-down text-h7 font-weight-bold">
           <slot name="title">{{ appTitle }}</slot>
         </span>
-        <span class="hidden-md-and-up font-medium text-center">
+        <span class="hidden-md-and-up font-medium">
           <div class="text-sm">{{ appTitle }}</div>
-          <div class="text-xs grey--text text--darken-2">
+          <div class="text-xs">
             <slot name="title">
             </slot>
           </div>
         </span>
       </v-toolbar-title>
       <!-- pc端菜单 >>>>>>>>>>>>> -->
-       <div class="hidden-sm-and-down"></div>
-       <div class="hidden-sm-and-down" style="flex-grow: 1; flex-shrink: 1"> </div>
+       <div></div>
+       <div 
+       style="flex-grow: 1; flex-shrink: 1">
+
+       </div>
       <v-tabs
         class="hidden-sm-and-down"
         show-arrows
@@ -226,63 +168,55 @@
             <v-divider vertical class="mx-3 jh-divider" v-if="inRightMenuList.length > 0"></v-divider>
           </slot>
         </div>
-       
-        <template v-if="showAvatar">
-          <!-- 移动端右上角用户信息 -->
-          <div text @click.stop="isMobileUserMenuDrawerShown = !isMobileUserMenuDrawerShown" class="jh-avatar-menu-btn d-block text-center hidden-sm-and-up">
-            <v-icon :size="24" color="success">mdi-account-circle-outline</v-icon>
-            <div>
-              <p class="jh-font-size-12 success--text mb-0">{{ userInfo.user.username }}</p>
-            </div>
-          </div>
-
-          <!-- pc端右上角用户信息 -->
-          <v-menu offset-y v-model="isAvatarMenuShown">
-            <template v-slot:activator="{on, attrs}">
-              <div text v-bind="attrs" v-on="on" class="jh-avatar-menu-btn px-1 hidden-xs-only">
-                <v-icon :size="32" color="grey lighten-2">mdi-account-circle</v-icon>
-                <div class="ml-1">
-                  <p class="jh-font-size-12 black--text mb-0">{{ userInfo.user.username }}</p>
-                </div>
+        <v-menu v-if="showAvatar" offset-y v-model="isAvatarMenuShown">
+          <template v-slot:activator="{on, attrs}">
+            <!-- pc端右上角用户信息 -->
+            <div text v-bind="attrs" v-on="on" class="jh-avatar-menu-btn px-1 hidden-xs-only">
+              <v-icon :size="32" color="grey lighten-2">mdi-account-circle</v-icon>
+              <div class="ml-1">
+                <p class="jh-font-size-12 black--text mb-0">{{ userInfo.user.username }}</p>
               </div>
+            </div>
+            <!-- 移动端右上角用户信息 -->
+            <div text v-bind="attrs" v-on="on" class="jh-avatar-menu-btn px-1 hidden-sm-and-up">
+              <v-icon :size="32" color="grey lighten-2">mdi-account-circle</v-icon>
+            </div>
+          </template>
+          <v-list nav dense>
+            <!-- 右上角下拉菜单 -->
+            <v-list-item>
+              <v-list-item-content>
+                <p class="jh-font-size-12 black--text mb-0">{{ userInfo.user.username }}</p>
+                <p class="jh-font-size-10 grey--text mb-0">{{ userInfo.user.userId }}</p>
+              </v-list-item-content>
+            </v-list-item>
+
+            <template>
+              <div style="max-width: 220px;">
+                <v-chip x-small class="jh-font-size-10 mr-1 mb-1" v-for="(userGroupRole, i) of userInfo.userGroupRoleList" :key="i">{{ userGroupRole.groupName||userGroupRole.groupId }} | {{ userGroupRole.roleName||userGroupRole.roleId }}</v-chip>
+              </div>
+              <v-divider class="my-1 jh-divider"></v-divider>
             </template>
-            <v-list nav dense>
-              <!-- 右上角下拉菜单 -->
-              <v-list-item>
-                <v-list-item-content>
-                  <p class="jh-font-size-12 black--text mb-0">{{ userInfo.user.username }}</p>
-                  <p class="jh-font-size-10 grey--text mb-0">{{ userInfo.user.userId }}</p>
-                </v-list-item-content>
-              </v-list-item>
 
-              <template>
-                <div style="max-width: 220px;">
-                  <v-chip x-small class="jh-font-size-10 mr-1 mb-1" v-for="(userGroupRole, i) of userInfo.userGroupRoleList" :key="i">{{ userGroupRole.groupName||userGroupRole.groupId }} | {{ userGroupRole.roleName||userGroupRole.roleId }}</v-chip>
-                </div>
-                <v-divider class="my-1 jh-divider"></v-divider>
-              </template>
-
-              <v-list-item v-for="avatarMenu of inAvatarMenuList" :key="avatarMenu.path" @click="openUrl(avatarMenu.path)">
-                <v-list-item-icon class="mr-1 mt-1">
-                  <v-icon size="16" color="grey darken-3">mdi-account-cog-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title color="grey darken-3">{{ avatarMenu.title }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-    
-              <v-list-item @click="logout">
-                <v-list-item-icon class="mr-1 mt-1">
-                  <v-icon size="16" color="grey darken-3">mdi-logout</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title color="grey darken-3">登出</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </template>
-      
+            <v-list-item v-for="avatarMenu of inAvatarMenuList" :key="avatarMenu.path" @click="openUrl(avatarMenu.path)">
+              <v-list-item-icon class="mr-1 mt-1">
+                <v-icon size="16" color="grey darken-3">mdi-account-cog-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title color="grey darken-3">{{ avatarMenu.title }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+  
+            <v-list-item @click="logout">
+              <v-list-item-icon class="mr-1 mt-1">
+                <v-icon size="16" color="grey darken-3">mdi-logout</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title color="grey darken-3">登出</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </div>
     </v-app-bar>
     <!-- <<<<<<<<<<<<< 页面头部 -->
@@ -310,7 +244,6 @@
         userInfo: window.userInfo,
         // 弹出菜单数据
         isMobileMenuDrawerShown: false,
-        isMobileUserMenuDrawerShown: false,
         isAvatarMenuShown: false,
         // 用户菜单
         menuSort: null,
