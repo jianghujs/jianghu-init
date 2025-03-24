@@ -14,7 +14,7 @@
 <script type="text/html" id="app-template">
 <div>
 <v-app mobile-breakpoint="sm">
-  <=%- if hasHeadContent %=>
+  <=%- if jhMenu %=>
   <jh-menu>
     <template v-slot:title>
       <!-- 高级搜索 -->
@@ -24,7 +24,7 @@
     </template>
   </jh-menu>
   <=%- endif %=>
-  <v-main class="<=%- if hasHeadContent %=>mt-13<=%- endif %=>">
+  <v-main <=%- if jhMenu %=> class="mt-13"<=%- endif %=>>
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <=%- if (headContent | filter({tag: '!jh-page-title'})).length %=>
     <div class="jh-page-second-bar p-3 px-sm-8 border-b border-[#F4F5FA]">
@@ -144,9 +144,16 @@
             <=%- for header in content.headers %=>
             <=%- if header.isSimpleMode %=>
             <=%- if header.isTitle == true %=>
-            <div class="flex items-center items-center">
+            <div class="flex items-center items-center relative">
               <span class="font-medium text-base"><=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></span>
               <=$ header.slot | tagFormat(12) $=>
+
+              <=% if content.props.rightArrow %=>
+              <div v-if="viewMode == 'simple'" class="flex absolute top-0 right-0 items-center text-gray-500">
+                <=$ content.props.rightArrowText $=>
+                <v-icon size="20" class="text-gray-500">mdi-chevron-right</v-icon>
+              </div>
+              <=% endif %=>
             </div>
             <=%- endif %=>
             <=%- endif %=>
@@ -186,12 +193,6 @@
             <!-- value 插槽 -->
             <=$ content.value | tagFormat(12) $=>
           </div>
-          <=% if content.props.rightArrow %=>
-          <div v-if="viewMode == 'simple'" class="h-full flex absolute top-0 right-3 items-center text-gray-500">
-            <=$ content.props.rightArrowText $=>
-            <v-icon size="20" class="text-gray-500">mdi-chevron-right</v-icon>
-          </div>
-          <=% endif %=>
         </div>
 
         <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
