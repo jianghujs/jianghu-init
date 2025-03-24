@@ -142,7 +142,11 @@ module.exports = class InitByJsonCommand extends CommandBase {
     await this.enableDevMode(this.argv.dev);
   }
 
-  // 确认生成表
+  /**
+   * ================================================================================================
+   * 确认生成表
+   * ================================================================================================
+   */
   async promptConfig() {
     let type = this.argv.pageType;
     if (!type) {
@@ -191,8 +195,10 @@ module.exports = class InitByJsonCommand extends CommandBase {
   }
 
   /**
-   * get argv parser
+   * ================================================================================================
+   * 获取 yargs 实例
    * @return {Object} yargs instance
+   * ================================================================================================
    */
   getParser() {
     return yargs
@@ -205,8 +211,10 @@ module.exports = class InitByJsonCommand extends CommandBase {
   }
 
   /**
-   * get yargs options
+   * ================================================================================================
+   * 获取 yargs 选项
    * @return {Object} opts
+   * ================================================================================================
    */
   getParserOptions() {
     return {
@@ -233,6 +241,11 @@ module.exports = class InitByJsonCommand extends CommandBase {
     };
   }
 
+  /**
+   * ================================================================================================
+   * 询问生成页面类型
+   * ================================================================================================
+   */
   async askForPageType() {
     const answer = await inquirer.prompt({
       name: 'jsonType',
@@ -244,6 +257,13 @@ module.exports = class InitByJsonCommand extends CommandBase {
     return answer.jsonType;
   }
 
+  /**
+   * ================================================================================================
+   * 复制目录
+   * @param {String} src 源目录
+   * @param {String} dest 目标目录
+   * ================================================================================================
+   */
   copyDir(src, dest) {
     fs.mkdirSync(dest, { recursive: true });
   
@@ -260,8 +280,11 @@ module.exports = class InitByJsonCommand extends CommandBase {
         }
     }
   }
-
-  // 复制jianghuJs公共组件和样式
+  /**
+   * ================================================================================================
+   * 复制jianghuJs公共组件和样式
+   * ================================================================================================
+   */
   async copyJianghuJs() {
     // 如果没有jianghuJs 目录，则创建
     fs.mkdirSync('./app/view/common/jianghuJs', { recursive: true });
@@ -280,6 +303,12 @@ module.exports = class InitByJsonCommand extends CommandBase {
   }
 
 
+  /**
+   * ================================================================================================
+   * 开启 dev 模式
+   * @param {Boolean} dev 是否开启 dev 模式
+   * ================================================================================================
+   */
   async enableDevMode(dev) {
     if (!dev) return;
     const lockFilePath = path.join('./', 'jianghu-init.dev.lock');
@@ -360,6 +389,13 @@ module.exports = class InitByJsonCommand extends CommandBase {
     return new Promise(() => {});
   }
 
+  /**
+   * ================================================================================================
+   * 渲染内容
+   * @param {Object} fileObj 文件对象
+   * @param {String} filename 文件名
+   * ================================================================================================
+   */
   async renderContent(fileObj, filename) {
     const { error } = this.checkWarning(fileObj, filename);
     if (error) return;
@@ -388,6 +424,13 @@ module.exports = class InitByJsonCommand extends CommandBase {
     }
   }
 
+  /**
+   * ================================================================================================
+   * 查找 js 文件
+   * @param {String} dir 目录
+   * @return {Array} 文件列表
+   * ================================================================================================
+   */
   findJsFiles(dir) {
     let files = [];
     const items = fs.readdirSync(dir);
@@ -406,6 +449,12 @@ module.exports = class InitByJsonCommand extends CommandBase {
     return files;
   }
 
+  /**
+   * ================================================================================================
+   * 检查文件重复
+   * @param {Array} configFileList 配置文件列表
+   * ================================================================================================
+   */
   checkFileRepeat(configFileList) {
     if (!this.allConfigFileList) {
       this.allConfigFileList = configFileList || [];
@@ -430,6 +479,13 @@ module.exports = class InitByJsonCommand extends CommandBase {
     checkDuplicate(componentConfigList, 'componentPath', '组件 componentPath 重复，请检查');
   }
 
+  /**
+   * ================================================================================================
+   * 检查警告
+   * @param {Object} fileObj 文件对象
+   * @param {String} file 文件名
+   * ================================================================================================
+   */
   checkWarning(fileObj, file) {
     const warning = [];
     const error = [];
@@ -513,6 +569,13 @@ module.exports = class InitByJsonCommand extends CommandBase {
     return { error: error.length, warning: warning.length };
   }
 
+  /**
+   * ================================================================================================
+   * 检查 jh-json-editor 资源引入
+   * @param {Object} fileObj 文件对象
+   * @param {Array} warning 警告列表
+   * ================================================================================================
+   */
   checkJhJsonExists(fileObj, warning) {
     let jhJsonExists = false;
     const { drawerList, createDrawerContent, updateDrawerContent, includeList } = fileObj;

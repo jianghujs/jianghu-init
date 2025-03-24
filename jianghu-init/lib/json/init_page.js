@@ -17,6 +17,14 @@ module.exports = class InitPage1Table extends CommandBase {
     Object.assign(this, mixin);
   }
 
+  /**
+   * ================================================================================================
+   * 运行
+   * @param {String} cwd 当前目录
+   * @param {Object} jsonArgv json配置
+   * @param {Object} argv 命令行参数
+   * ================================================================================================
+   */
   async run(cwd, jsonArgv, argv) {
     this.argv = argv;
     this.cwd = cwd;
@@ -35,7 +43,12 @@ module.exports = class InitPage1Table extends CommandBase {
     await this.generateCrud(jsonArgv);
   }
 
-  // 生成 crud
+  /**
+   * ================================================================================================
+   * 生成 crud
+   * @param {Object} jsonConfig 配置对象
+   * ================================================================================================
+   */
   async generateCrud(jsonConfig) {
     const { table, pageId } = jsonConfig;
     // if (!table) {
@@ -60,6 +73,13 @@ module.exports = class InitPage1Table extends CommandBase {
     }
   }
 
+  /**
+   * ================================================================================================
+   * 渲染内容
+   * @param {Object} jsonConfig 配置对象
+   * @param {Boolean} dev 是否为开发模式
+   * ================================================================================================
+   */
   async renderContent(jsonConfig, dev = false) {
     this.dbSetting = this.readDbConfigFromFile();
     // app 默认使用 database，如果有前缀则需要去掉前缀
@@ -74,6 +94,12 @@ module.exports = class InitPage1Table extends CommandBase {
     await this.renderService(jsonConfig, dev);
   }
 
+  /**
+   * ================================================================================================
+   * 修改表
+   * @param {Object} jsonConfig 配置对象
+   * ================================================================================================
+   */
   async modifyTable(jsonConfig) {
     const { table, pageId, pageName = '', pageHook = {}, idGenerate = false } = jsonConfig;
 
@@ -88,6 +114,13 @@ module.exports = class InitPage1Table extends CommandBase {
     // }
   }
 
+  /**
+   * ================================================================================================
+   * 执行 sql
+   * @param {String} sqlFile sql文件名
+   * @param {Object} obj 替换对象
+   * ================================================================================================
+   */
   async executeSql(sqlFile, obj) {
     const knex = await this.getKnex();
     let label = '';
@@ -115,7 +148,12 @@ module.exports = class InitPage1Table extends CommandBase {
     }
   }
 
-  // 生成 vue
+  /**
+   * ================================================================================================
+   * 生成 vue
+   * @param {Object} jsonConfig 配置对象
+   * ================================================================================================
+   */
   async renderVue(jsonConfig) {
     // const pageBakDir = './app/view/pageBak';
     // if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);

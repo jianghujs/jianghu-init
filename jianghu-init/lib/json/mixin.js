@@ -12,7 +12,13 @@ const checkClick = (obj, action) => {
   return obj && obj.attrs && obj.attrs['@click'] && reg.test(obj.attrs['@click']);
 };
 
-// 生成随机key
+/**
+ * ================================================================================================
+ * 生成随机key
+ * @param {Number} length 随机key长度
+ * @returns {String} 随机key
+ * ================================================================================================
+ */
 const randomKey = (length = 4) => {
   const charList = 'abcdefhijkmnprstwxyz123456789';
   const charListLength = charList.length;
@@ -21,8 +27,19 @@ const randomKey = (length = 4) => {
   return string;
 };
 
-// 1table-page / 1table-component 共用方法
+/**
+ * ================================================================================================
+ * 1table-page / 1table-component 共用方法
+ * ================================================================================================
+ */
 const mixin = {
+  /**
+   * ================================================================================================
+   * 处理 nunjucks 环境
+   * @param {String} templateTargetPath 模板目标路径
+   * @returns {Object} nunjucks 环境
+   * ================================================================================================
+   */
   handleNunjucksEnv(templateTargetPath) {
     const nunjucksEnv = nunjucks.configure(templateTargetPath, {
       autoescape: false,
@@ -518,6 +535,12 @@ const mixin = {
     return nunjucksEnv;
   },
 
+  /**
+   * ================================================================================================
+   * 检查页面
+   * @param {Object} jsonConfig 配置对象
+   * ================================================================================================
+   */
   async checkPage(jsonConfig) {
     const { pageType, pageId, pageName, jhId } = jsonConfig;
     const operationByUserId = `jianghu-init/${pageId}`;
@@ -544,6 +567,12 @@ const mixin = {
     }
   },
 
+  /**
+   * ================================================================================================
+   * 处理其他资源
+   * @param {Object} jsonConfig 配置对象
+   * ================================================================================================
+   */
   async handleOtherResource(jsonConfig) {
     const { resourceList, pageId, jhId } = jsonConfig;
     if (!resourceList || !pageId) return;
@@ -600,7 +629,12 @@ const mixin = {
     // .join(',\n    ')}`);
   },
 
-  // 处理配置文件数据
+  /**
+   * ================================================================================================
+   * 处理配置文件数据
+   * @param {Object} jsonConfig 配置对象
+   * ================================================================================================
+   */
   handleJsonConfig(jsonConfig) {
 
     if (!jsonConfig.template) {
@@ -842,6 +876,12 @@ const mixin = {
     }
   },
 
+  /**
+   * ================================================================================================
+   * 处理版本特性
+   * @param {Object} jsonConfig 配置对象
+   * ================================================================================================
+   */
   processingVersionData(jsonConfig) {
     const { version, pageType } = jsonConfig;
     if (version === 'v3') {
@@ -926,6 +966,12 @@ const mixin = {
     }
   },
 
+  /**
+   * ================================================================================================
+   * 错误日志
+   * @param {String | Array} error 错误信息
+   * ================================================================================================
+   */
   errorLog(error) {
     this.error('┏----------------------------------------------------------┓');
     if (Array.isArray(error)) {
@@ -938,6 +984,13 @@ const mixin = {
     this.error('┗----------------------------------------------------------┛');
   },
 
+  /**
+   * ================================================================================================
+   * 处理 doUiAction 的特殊情况
+   * @param {String} item doUiAction 的特殊情况
+   * @returns {String} 处理后的 doUiAction
+   * ================================================================================================
+   */
   processUiActionItem(item) {
     // 统一替换前缀
     item = item.replace(/this\./, '').replace(/^async\./, 'this.').replace(/^await\./, 'await this.');
@@ -962,6 +1015,13 @@ const mixin = {
     return item;
   },
 
+  /**
+   * ================================================================================================
+   * 获取组件列表
+   * @param {Object} jsonConfig 配置对象
+   * @returns {Array} 组件列表
+   * ================================================================================================
+   */
   getConfigComponentList(jsonConfig) {
     const { table, pageId, actionContent = [], pageContent = [] } = jsonConfig;
     const componentList = [];
@@ -1035,9 +1095,11 @@ const mixin = {
 
   // eslint-disable-next-line valid-jsdoc
   /**
+   * ================================================================================================
    * 获取数据库表所有原生字段
-   * @param {String} table
-   * @returns
+   * @param {Object} jsonConfig 配置对象
+   * @returns {Promise<Array>} 表所有原生字段
+   * ================================================================================================
    */
   async getTableFields(jsonConfig) {
     const { table } = jsonConfig;
@@ -1058,7 +1120,13 @@ const mixin = {
     return columns;
   },
 
-  // 初始化table依赖字段，检测依赖字段是否存在，不存在则创建
+  /**
+   * ================================================================================================
+   * 初始化table依赖字段，检测依赖字段是否存在，不存在则创建
+   * @param {String} table 表名
+   * @param {Boolean} idGenerate 是否生成 id
+   * ================================================================================================
+   */
   async checkTableFields(table, idGenerate) {
     const knex = await this.getKnex();
     // 判断 table 是 table 还是 view
@@ -1087,7 +1155,12 @@ const mixin = {
     }
     noticeFieldList.length && this.success(`创建依赖字段：${noticeFieldList.join('、')}`);
   },
-  // 批量添加组件 resource --- 废弃
+  /**
+   * ================================================================================================
+   * 批量添加组件 resource --- 废弃
+   * @param {Object} jsonConfig 配置对象
+   * ================================================================================================
+   */
   async modifyComponentResource(jsonConfig) {
     if (this.argv.devModel) return;
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/component`;
@@ -1099,6 +1172,13 @@ const mixin = {
     }
   },
 
+  /**
+   * ================================================================================================
+   * 修改组件资源
+   * @param {String} templatePath 模板路径
+   * @param {Object} component 组件
+   * ================================================================================================
+   */
   async modifyComponentResourceItem(templatePath, component) {
     const knex = await this.getKnex();
     if (component.type === 'component' && ![ 'tableRecordHistory', 'jhFile' ].includes(component.componentPath)) return;
@@ -1119,6 +1199,13 @@ const mixin = {
     }
   },
 
+  /**
+   * ================================================================================================
+   * 渲染组件
+   * @param {Object} jsonConfig 配置对象
+   * @param {Boolean} devModel 是否为开发模式
+   * ================================================================================================
+   */
   async renderComponent(jsonConfig, devModel = false) {
     const componentList = this.getConfigComponentList(jsonConfig);
     if (!componentList.length) return;
@@ -1156,7 +1243,13 @@ const mixin = {
       }
     }
   },
-  // 生成 service
+  /**
+   * ================================================================================================
+   * 生成 service
+   * @param {Object} jsonConfig 配置对象
+   * @param {Boolean} dev 是否为开发模式
+   * ================================================================================================
+   */
   async renderService(jsonConfig, dev = false) {
     const { idGenerate = false } = jsonConfig;
     if (idGenerate) {
@@ -1189,6 +1282,12 @@ const mixin = {
     }
   },
 
+  /**
+   * ================================================================================================
+   * 执行命令
+   * @param {String} command 命令
+   * ================================================================================================
+   */
   async executeCommand(command) {
     return new Promise(resolve => {
       exec(command, (error, stdout) => {
@@ -1202,6 +1301,12 @@ const mixin = {
     });
   },
 
+  /**
+   * ================================================================================================
+   * 基础配置
+   * @param {Object} config 配置对象
+   * ================================================================================================
+   */
   getBasicConfig(config) {
     const basicUiActionConfig = this.basicUiAction(config);
     return {
@@ -1210,6 +1315,12 @@ const mixin = {
     };
   },
 
+  /**
+   * ================================================================================================
+   * 基础 uiAction
+   * @param {Object} config 配置对象
+   * ================================================================================================
+   */
   basicUiAction({ version, common, hasJhTable, hasJhList, hasCreateDrawer, hasCreateSubmit, hasUpdateDrawer, hasDelete, hasUpdateSubmit, hasDetailDrawer }) {
     let defaultUiAction = {
       getTableData: [ 'getTableData' ],
@@ -1221,7 +1332,7 @@ const mixin = {
       deleteItem: [ 'prepareDeleteFormData', 'confirmDeleteItemDialog', 'prepareDoDeleteItem', 'doDeleteItem', 'getTableData' ],
     };
 
-    if ([ 'v2', 'v3' ].includes(version)) {
+    if (version) {
       const uiAction = {
         getTableData: [ 'prepareTableParamsDefault', 'prepareTableParams', 'getTableData', 'formatTableData' ],
         createItem: [ 'prepareCreateValidate', 'confirmCreateItemDialog', 'prepareDoCreateItem', 'doCreateItem', 'closeCreateDrawer', 'doUiAction.getTableData' ],
