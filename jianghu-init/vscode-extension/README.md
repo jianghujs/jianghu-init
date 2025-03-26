@@ -14,6 +14,8 @@
 - 提供代码片段
 - 提供悬停提示
 - **新功能：JSON模板文件代码补全和悬停提示**
+- **新功能：项目中JSON文件属性文档查看**
+- **新功能：从江湖官方网站加载最新文档**
 
 ## 安装
 
@@ -105,6 +107,28 @@ npm run vscode:install -g @jianghujs/jianghu-init
 
 3. **示例**：
    - 查看 `examples/template-example.js` 文件，了解如何使用这些功能
+
+### 使用JSON文件属性文档查看
+
+在使用该扩展的江湖项目中，您可以获取关于JSON属性的详细文档：
+
+1. **行尾问号图标**：
+   - 在 `/app/view/init-json/` 目录下的JS文件中
+   - 属性名称旁边会显示一个问号"?"图标
+   - 点击问号图标可以打开该属性的详细文档
+
+2. **文档内容来源**：
+   - **在线文档**：对于关键属性（如`pageType`、`resourceList`等），会从江湖官方网站加载最新的文档
+   - **本地文档**：对于其他属性，会显示本地Markdown文档内容
+
+3. **文档界面**：
+   - 文档在单独的面板中显示，不影响代码编辑
+   - 对于在线文档，提供"在浏览器中打开完整文档"链接
+   - 支持所有标准Markdown格式和HTML内容
+
+4. **示例**：
+   - 查看 `examples/app/view/init-json/example.js` 文件，体验本地文档查看功能
+   - 查看 `examples/app/view/init-json/jianghu-doc-example.js` 文件，体验在线文档查看功能
 
 ## 开发
 

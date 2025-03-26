@@ -6,6 +6,7 @@ import * as https from 'https';
 import * as semver from 'semver';
 import { activateJsonTemplateCompletion } from './jsonTemplateCompletionProvider';
 import { activateJsonTemplateHover } from './jsonTemplateHoverProvider';
+import { activateJsonDocCodeLens } from './jsonDocCodeLensProvider';
 
 // 当前扩展版本
 const CURRENT_VERSION = '0.0.1';
@@ -209,32 +210,7 @@ function showHelpPanel(): void {
       </style>
     </head>
     <body>
-      <h1>江湖初始化助手</h1>
-      <p>江湖初始化助手是一个VSCode扩展，用于辅助使用jianghu-init并显示帮助文字。</p>
-      
-      <h2>主要功能</h2>
-      <div class="command">
-        <div class="command-title">创建项目</div>
-        <p>使用 <code>jianghu-init project</code> 命令创建新项目，支持独立应用和多应用项目。</p>
-        <pre>jianghu-init project --type=stand-alone my-jh-project</pre>
-      </div>
-      
-      <div class="command">
-        <div class="command-title">生成CRUD页面</div>
-        <p>在应用目录下执行 <code>jianghu-init crud</code> 命令，根据数据库已有表生成CRUD页面。</p>
-        <pre>jianghu-init crud</pre>
-      </div>
-      
-      <h2>使用方法</h2>
-      <p>您可以通过以下方式使用江湖初始化助手：</p>
-      <ol>
-        <li>在活动栏中点击江湖助手图标</li>
-        <li>在命令面板中搜索"江湖"相关命令</li>
-        <li>在状态栏中点击江湖助手按钮</li>
-      </ol>
-      
-      <h2>更多资源</h2>
-      <p>访问 <a href="https://openjianghu.org/" target="_blank">江湖JS官方文档</a> 获取更多信息。</p>
+      <iframe src="https://www.openjianghu.org/doc/page/article/11105"></iframe>
     </body>
     </html>
   `;
@@ -513,6 +489,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   
   // 激活JSON模板悬停提示
   activateJsonTemplateHover(context);
+  
+  // 激活JSON文档代码镶边
+  activateJsonDocCodeLens(context);
   
   // 设置定期检查更新（每天检查一次）
   const ONE_DAY = 24 * 60 * 60 * 1000; // 24小时（毫秒）

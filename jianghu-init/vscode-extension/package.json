@@ -32,6 +32,10 @@
       {
         "command": "jianghu-init-vscode.checkUpdate",
         "title": "检查江湖助手更新"
+      },
+      {
+        "command": "jianghu-init-vscode.showPropertyDoc",
+        "title": "查看属性文档"
       }
     ],
     "viewsContainers": {

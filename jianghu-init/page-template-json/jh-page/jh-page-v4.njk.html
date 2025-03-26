@@ -413,6 +413,10 @@
                 <=%- else %=>
                 <=$ formItem | tagFormat(value) $=>
                 <=%- endif %=>
+                <=%- if formItem.childSlot %=>
+                <!-- 子内容 -->
+                <=$ formItem.childSlot | tagFormat(12) $=>
+                <=%- endif %=>
               </v-col>
               <=%- endif %=>
               <=%- endfor %=>
@@ -675,7 +679,7 @@ new Vue({
     //===// <=%- endfor %=>
   },
   computed: {
-    //===// <=%- if hasJhTable %=>
+    //===// <=%- if hasJhTable and not common.computed.tableDataComputed %=>
     tableDataComputed() {
       let tableData;
       if(this.filterMap) {
