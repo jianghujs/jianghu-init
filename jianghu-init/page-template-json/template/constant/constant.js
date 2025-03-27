@@ -151,8 +151,8 @@ const content = {
     
   ],
   includeList: [
-    '<link href="/<$ ctx.app.config.appId $>/public/lib/jsoneditor/jsoneditor.css" rel="stylesheet">',
-    '<script src="/<$ ctx.app.config.appId $>/public/lib/jsoneditor/jsoneditor.js"></script>',
+    '<link href="/<$ ctx.app.config.appId $>/public/plugin/jsoneditor/jsoneditor.css" rel="stylesheet">',
+    '<script src="/<$ ctx.app.config.appId $>/public/plugin/jsoneditor/jsoneditor.js"></script>',
   ], // { type: < js | css | html | vueComponent >, path: ''}
   common: { 
     
