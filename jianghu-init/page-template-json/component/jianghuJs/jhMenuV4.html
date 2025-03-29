@@ -457,7 +457,7 @@
             return {
               path: menu.pageType === 'link' ? menu.pageFile : `/${window.appInfo.appId}/page/${menu.pageId}`,
               pageId: menu.pageId,
-              title: menu.pageName,
+              title: menu.pageName.replace(/\[.*\]/, ''),
               children: null
             };
           }
