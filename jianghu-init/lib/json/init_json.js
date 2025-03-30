@@ -194,6 +194,11 @@ module.exports = class InitJson extends CommandBase {
     }
   }
 
+  /**
+   * 读取生成 json 的模板
+   * @param {*} param0 
+   * @returns 
+   */
   async getCrudContent({ table, pageId, pageType, fields, filename = '' }) {
     // 读取文件
     const templatePath = `${path.join(__dirname, '../../')}page-template-json/template`;

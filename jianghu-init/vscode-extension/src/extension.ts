@@ -35,6 +35,16 @@ async function checkForUpdates(): Promise<{hasUpdate: boolean, latestVersion: st
         res.on('end', () => {
           try {
             const releaseInfo = JSON.parse(data);
+            console.log('Release Info:', releaseInfo); // 调试输出
+            if (!releaseInfo || !releaseInfo.tag_name) {
+              console.error('Invalid release info:', releaseInfo);
+              resolve({
+                hasUpdate: false,
+                latestVersion: CURRENT_VERSION,
+                downloadUrl: ''
+              });
+              return;
+            }
             const latestVersion = releaseInfo.tag_name.replace(/^v/, '');
             const downloadUrl = releaseInfo.assets.find((asset: any) => 
               asset.name.endsWith('.vsix')
@@ -168,49 +178,9 @@ function showHelpPanel(): void {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>江湖初始化助手</title>
-      <style>
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-          padding: 20px;
-          line-height: 1.6;
-        }
-        h1 {
-          border-bottom: 1px solid #eaecef;
-          padding-bottom: 10px;
-        }
-        h2 {
-          margin-top: 24px;
-          margin-bottom: 16px;
-          font-weight: 600;
-          line-height: 1.25;
-        }
-        code {
-          background-color: rgba(27, 31, 35, 0.05);
-          border-radius: 3px;
-          font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
-          font-size: 85%;
-          margin: 0;
-          padding: 0.2em 0.4em;
-        }
-        pre {
-          background-color: #f6f8fa;
-          border-radius: 3px;
-          font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
-          font-size: 85%;
-          line-height: 1.45;
-          overflow: auto;
-          padding: 16px;
-        }
-        .command {
-          margin-bottom: 16px;
-        }
-        .command-title {
-          font-weight: bold;
-        }
-      </style>
     </head>
     <body>
-      <iframe src="https://www.openjianghu.org/doc/page/article/11105"></iframe>
+      文档
     </body>
     </html>
   `;
