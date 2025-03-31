@@ -9,6 +9,7 @@ const CommandInitScript = require('./init_script');
 const CommandInitVSCode = require('./init_vscode');
 const path = require('path');
 const fs = require('fs');
+const { execSync } = require('child_process');
 
 const initTypes = [
   {
@@ -36,6 +37,50 @@ const initTypes = [
     name: 'vscode - Install VSCode extension for jianghu-init.',
   }
 ];
+
+// 检查是否安装了VSCode扩展
+function checkVscodeExtension() {
+  try {
+    // 检查是否安装了扩展
+    const result = execSync('code --list-extensions').toString();
+    return result.includes('jianghu-init-vscode');
+  } catch (error) {
+    // 如果执行命令失败，说明可能没有安装VSCode或VSCode没有添加到PATH
+    return false;
+  }
+}
+
+// 显示VSCode扩展安装提示
+function showVscodeExtensionTip() {
+  const chalk = require('chalk');
+  const boxen = require('boxen');
+  
+  const message = `
+${chalk.blue('提示：')} 检测到您正在使用 jianghu-init，但尚未安装 VSCode 扩展。
+
+${chalk.yellow('推荐安装 VSCode 扩展以获得更好的开发体验：')}
+1. 支持 JSON 模板文件的代码补全和悬停提示
+2. 支持查看属性文档
+3. 支持快速创建和生成页面
+
+${chalk.green('安装方式：')}
+1. 通过 npm 安装（推荐）：
+   ${chalk.cyan('npm run vscode:install-local')}
+
+2. 通过 VSCode 扩展市场安装：
+   ${chalk.cyan('npm run vscode:install-market')}
+
+3. 手动安装：
+   ${chalk.cyan('code --install-extension vscode-extension/prebuilt/jianghu-init-vscode-0.0.1.vsix')}
+`;
+
+  console.log(boxen(message, {
+    padding: 1,
+    margin: 1,
+    borderStyle: 'round',
+    borderColor: 'blue'
+  }));
+}
 
 /**
  * 命令入口
@@ -70,6 +115,11 @@ module.exports = class Entry {
       initType = answer.initType;
     } else {
       passArgv = passArgv.slice(1);
+    }
+
+    // 检查VSCode扩展
+    if (!checkVscodeExtension()) {
+      showVscodeExtensionTip();
     }
 
     switch (initType) {
