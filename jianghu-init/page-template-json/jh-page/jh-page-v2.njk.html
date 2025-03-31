@@ -140,7 +140,7 @@
         <=%- if content.tag == 'jh-table' %=>
         <v-col class="pa-0" <=% for attr, value in content.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
           <!-- 表格顶部栏 -->
-          <v-card <=% for attr, value in content.cardAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
+          <div <=% for attr, value in content.cardAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
             <=%- if content.headActionList.length %=>
             <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0" align="center">
               <=%- for action in content.headActionList %=>
@@ -245,7 +245,7 @@
                 <span class="ml-1">共{{pagination.itemsLength}}条</span>
               </template>
             </v-data-table>
-          </v-card>
+          </div>
         </v-col>
         <=%- else %=>
         <=$ content | tagFormat(6) $=>
