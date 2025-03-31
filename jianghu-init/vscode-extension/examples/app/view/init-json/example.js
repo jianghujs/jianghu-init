@@ -216,13 +216,36 @@ const content = {
         },
 
       ]
-    }
+    },
+    /*html*/`
+    <div>
+      <v-btn @click="doUiAction('startCreateItem')">新增</v-btn>
+    </div>
+    `
   ],
   includeList: [
     "{% include 'component/userSelector.html' %}",
     "{% include 'common/constantUtil.html' %}",
+    "{% include 'common/timeUtil.html' %}",
+    "{% include 'common/dateUtil.html' %}",
     "{% include 'common/mixin/userNameMixin.html' %}",
-    "{% include 'component/periodSelect.html' %}"
+    "{% include 'component/atMentionTextarea.html' %}",
+    { type: 'html', path: 'component/reportRecordCreator.html', includeType: 'auto', attrs: {
+      ref: 'reportRecordCreator',
+      'v-model': 'isCreatorShown',
+      ':user-list': 'userList',
+      '@created': 'getTableData()'
+    }},
+    {
+      type: 'html', path: 'component/reportPeriodItemEditor.html', includeType: 'auto', attrs: {
+        ref: 'reportPeriodItemEditor',
+        'v-model': 'isEditorShown',
+        ':review-type': 'reviewType',
+        ':report-record': 'currentRecord',
+        ':user-list': 'userList'
+      }
+    },
+
   ], // { type: < js | css | html | vueComponent >, path: ''}
   common: {
     mixins: '[userNameMixin]',
@@ -253,7 +276,9 @@ const content = {
       this.fetchUsers();
     },
     doUiAction: {
-      startDeleteItem: ['startDeleteItem']
+      startDeleteItem: ['startDeleteItem'],
+      startCreateItem: ['prepareDoCreateItem', 'doUiAction("startCreateItem")'],
+      updateItem: ['prepareDoUpdateItem', 'doUiAction("updateItem")'],
     }, // 额外uiAction { [key]: [action1, action2]}
     methods: {
       async startDeleteItem(item) {

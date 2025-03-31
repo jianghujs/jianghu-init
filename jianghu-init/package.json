@@ -7,7 +7,10 @@
     "autod": "autod",
     "vscode:build": "cd vscode-extension && npm install && npm run compile",
     "vscode:package": "cd vscode-extension && npm install -g vsce && vsce package",
-    "vscode:install": "node vscode-extension/install.js"
+    "vscode:install": "node vscode-extension/install.js",
+    "vscode:install-local": "code --install-extension vscode-extension/prebuilt/jianghu-init-vscode-0.0.1.vsix --force",
+    "vscode:install-market": "code --install-extension jianghu-init-vscode",
+    "install-vscode-extension": "code --install-extension vscode-extension/prebuilt/jianghu-init-vscode-0.0.1.vsix --force"
   },
   "preferGlobal": true,
   "bin": {
