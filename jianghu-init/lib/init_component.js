@@ -12,7 +12,11 @@ const pageTypes = [
     pageId: 'vueJsonEditor',
     path: 'json-editor/',
     queryPageId: false,
-    demo: `model 变量支持 String Object Array 
+    demo: `框架资源引入
+        <link href="/<$ ctx.app.config.appId $>/public/plugin/jsoneditor/jsoneditor.css" rel="stylesheet">
+        <script src="/<$ ctx.app.config.appId $>/public/plugin/jsoneditor/jsoneditor.js"></script>
+        
+        model 变量支持 String Object Array 
         <vue-json-editor v-model="updateItem.config" mode="code" height="calc(100vh - 240px)"></vue-json-editor>
     `,
   },

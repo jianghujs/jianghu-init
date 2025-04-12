@@ -74,12 +74,12 @@ ${chalk.green('安装方式：')}
    ${chalk.cyan('code --install-extension vscode-extension/prebuilt/jianghu-init-vscode-0.0.1.vsix')}
 `;
 
-  console.log(boxen(message, {
-    padding: 1,
-    margin: 1,
-    borderStyle: 'round',
-    borderColor: 'blue'
-  }));
+  // console.log(boxen(message, {
+  //   padding: 1,
+  //   margin: 1,
+  //   borderStyle: 'round',
+  //   borderColor: 'blue'
+  // }));
 }
 
 /**

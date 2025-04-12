@@ -52,17 +52,19 @@
       };
     },
     computed: {
+      valueType() {
+        return typeof this.value;
+      },
       formatValue: {
         get() {
-          const type = typeof this.value;
-          if (type === "string" || this.value) {
+          // 如果值是字符串，并且值不为空，则返回JSON.parse(this.value)
+          if (this.valueType === "string" && this.value) {
             return JSON.parse(this.value);
           }
           return this.value;
         },
         set(val) {
-          const type = typeof this.value;
-          if (type === "string" || !this.value) {
+          if (this.valueType === "string" || !this.value) {
             this.value = JSON.stringify(val);
           } else {
             this.value = val;
@@ -138,5 +140,12 @@
   }
   .jsoneditor {
     border: thin solid #4caf50 !important;
+  }
+  .jsoneditor-modal .pico-modal-header {
+    background: #4caf50 !important;
+  }
+  .jsoneditor-modal .jsoneditor-button-group.jsoneditor-button-group-value-asc input.jsoneditor-button-asc, .jsoneditor-modal .jsoneditor-button-group.jsoneditor-button-group-value-desc input.jsoneditor-button-desc {
+      background: #4caf50 !important;
+      border-color: #4caf50 !important;
   }
 </style>
