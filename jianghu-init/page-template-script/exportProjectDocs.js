@@ -4,10 +4,11 @@ const dirTree = require("directory-tree");
 const sqlFormatter = require('sql-formatter');
 
 // ---------------------改这里---------------------
-const projectName = '当前项目名称';
-const projectPath = path.resolve(__dirname, '../', projectName);
+const projectPath = path.resolve(__dirname, '../');
+const projectName = projectPath.split('/').pop();
 const configLocal = require('../config/config.local.js');
-const exportPath = path.resolve(__dirname, './docs');
+const exportPath = path.resolve(__dirname, '../docs');
+fs.mkdirSync(exportPath, { recursive: true });
 // 定义项目异常的文件路径，支持多个
 const errorFilePath = [
     path.resolve(projectPath, `app/constant/error.js`)
@@ -24,9 +25,9 @@ const knex = require('knex')({
     client: 'mysql',
     connection
 });
+const database = connection.database;
 
 async function exportTree() {
-  const projectPath = path.resolve(__dirname, '../', projectName);
   const outputFile = path.resolve(exportPath, `${projectName}-tree.md`);
   // 生成树状结构
   const tree = dirTree(projectPath);

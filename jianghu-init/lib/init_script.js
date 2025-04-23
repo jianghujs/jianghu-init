@@ -9,6 +9,7 @@ const pageTypes = [
     pageType: 'script',
     value: 'initSqlToResourceList',
     name: 'initSqlToResourceList - 将init.sql转换成init-json的resouceList',
+    isExec: false,
   },
   {
     pageType: 'script',
@@ -24,6 +25,7 @@ const pageTypes = [
     pageType: 'script',
     value: 'htmlToInitJson',
     name: 'htmlToInitJson - 将html文件转换成init-json配置文件',
+    isExec: false,
   },
   {
     pageType: 'script',
@@ -73,7 +75,9 @@ module.exports = class InitToolCommand extends CommandBase {
         page.pageId = this.argv.pageId;
       }
       page.y = this.argv.y;
-
+      if (args?.includes('--exec')) {
+        page.exec = true;
+      }
       await new InitToolScript().run(process.cwd(), page);
       this.success('jianghu init tool is success');
     }

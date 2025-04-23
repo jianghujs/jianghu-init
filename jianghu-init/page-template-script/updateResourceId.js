@@ -18,7 +18,7 @@ const rl = readline.createInterface({
 const connection = mysql.createConnection(client);
 
 // id从几开始
-const START_ID = 0;
+const START_ID = 1;
 // 每个pageId之间间隔几个id
 const PAGE_ID_GAP = 20;
 
@@ -44,25 +44,32 @@ database: ${client.database},
         var newId = START_ID;
         // 将更新操作包装成 Promise
 
-        var updatePromises = results.map(result => {
-            return new Promise((resolve, reject) => {
-                if (result.pageId !== currentPageId) {
-                    if (currentPageId != null) {
-                        newId += PAGE_ID_GAP;
-                    }
-
-                    currentPageId = result.pageId;
-                    newId = Math.floor(newId / 10) * 10;
+        const updatePromises = [];
+        results.forEach(result => {
+            if (result.pageId !== currentPageId) {
+                if (currentPageId != null) {
+                    newId += PAGE_ID_GAP;
                 }
 
-                connection.query('UPDATE _resource SET id = ? WHERE id = ?', [newId, result.id], function (error, results, fields) {
-                    if (error) reject(error);
-                    console.log('已更新资源id，从 ' + result.id + ' 到 ' + newId);
-                    resolve();
-                });
+                currentPageId = result.pageId;
+                newId = Math.floor(newId / 10) * 10;
+                if (newId === 0) {
+                    newId = START_ID;
+                }
+            }
 
-                newId++;
-            });
+            const queryExec = async (newId, tempId) => {
+              return new Promise((resolve, reject) => {
+                  connection.query('UPDATE _resource SET id = ? WHERE id = ?', [newId, tempId], (error, results, fields) => {
+                      if (error) reject(error);
+                      console.log(`更新资源id，从 ${tempId} 到 ${newId}`);
+                      resolve();
+                  });
+              });
+            }
+            updatePromises.push(queryExec(newId, result.id));
+
+            newId++;
         });
 
         // 等待所有更新操作完成

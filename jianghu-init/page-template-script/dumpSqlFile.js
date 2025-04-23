@@ -4,7 +4,8 @@ const mysqldump = require('mysqldump');
 const fs = require('fs');
 const configLocal = require('../config/config.local.js');
 const config = configLocal({baseDir: path.join(__dirname, '..')});
-const client = config.knex.client.connection
+const client = config.knex.client.connection;
+console.log('client', client);
 
 
 
@@ -73,7 +74,9 @@ async function dumpSql({ database, targetFile, options = { data: true, schema: t
 }
 
 function copyAndCreateSqlFiles(projectPath, subdir = '') {
-    fs.copyFileSync(path.join(__dirname, './sql/common-user.sql'), path.join(projectPath, `${subdir}/sql/2.user.sql`));
+    if (fs.existsSync(path.join(__dirname, './sql/common-user.sql'))) {
+        fs.copyFileSync(path.join(__dirname, './sql/common-user.sql'), path.join(projectPath, `${subdir}/sql/2.user.sql`));
+    }
     const mockSqlPath = path.join(projectPath, `${subdir}/sql/3.mock.sql`);
     if (!fs.existsSync(mockSqlPath)) {
         fs.writeFileSync(mockSqlPath, '');
@@ -83,12 +86,13 @@ function copyAndCreateSqlFiles(projectPath, subdir = '') {
 // 主函数
 async function main() {
     const args = process.argv.slice(2);
-    if (args.length < 2) {
-        console.error('使用方法: node dumpSqlFile.js <数据库名称> <目标目录>');
-        process.exit(1);
-    }
+    // if (args.length < 2) {
+    //     console.error('使用方法: node dumpSqlFile.js <数据库名称> <目标目录>');
+    //     process.exit(1);
+    // }
 
-    const [database, targetDir] = args;
+    const database = client.database;
+    const targetDir = path.join(__dirname, '../');
     await dumpSingleProject(database, targetDir);
 }
 
