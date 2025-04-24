@@ -132,12 +132,12 @@ module.exports = class CommandInitVSCode {
         // Windows或Linux系统
         await this.executeCommand(`code --install-extension "${this.prebuiltVsixPath}"`);
       }
-      console.log(chalk.green(`江湖初始化助手${editor}扩展安装成功！`));
-      console.log(chalk.green(`请重启${editor}以激活扩展。`));
+      console.log(chalk.green('江湖初始化助手VSCode扩展安装成功！'));
+      console.log(chalk.green('请重启VSCode以激活扩展。'));
     } catch (error) {
       console.error(chalk.red('安装VSCode扩展失败:'), error);
       console.log(chalk.yellow('您可以手动安装扩展:'));
-      console.log(chalk.yellow(`1. 打开${editor}`));
+      console.log(chalk.yellow(`1. 打开VSCode`));
       console.log(chalk.yellow(`2. 按下Ctrl+Shift+X打开扩展面板`));
       console.log(chalk.yellow(`3. 点击"..."按钮，选择"从VSIX安装..."`));
       console.log(chalk.yellow(`4. 选择文件: ${this.prebuiltVsixPath}`));
@@ -395,7 +395,6 @@ module.exports = class CommandInitVSCode {
         console.log(chalk.gray('已卸载旧版本的扩展'));
       } catch (error) {
         // 忽略卸载错误，可能是未安装
-        console.log(chalk.gray('卸载旧版本失败，可能是未安装'));
       }
       
       // 安装新版本
@@ -410,8 +409,8 @@ module.exports = class CommandInitVSCode {
         // Windows或Linux系统
         await this.executeCommand(`code --install-extension "${path.join(this.vscodeExtensionPath, vsixFile)}"`);
       }
-      console.log(chalk.green(`江湖初始化助手${editor}扩展安装成功！`));
-      console.log(chalk.green(`请重启${editor}以激活扩展。`));
+      console.log(chalk.green('江湖初始化助手VSCode扩展安装成功！'));
+      console.log(chalk.green('请重启VSCode以激活扩展。'));
       
       // 复制到预编译目录
       const prebuiltDir = path.dirname(this.prebuiltVsixPath);
@@ -423,7 +422,7 @@ module.exports = class CommandInitVSCode {
     } catch (error) {
       console.error(chalk.red('安装VSCode扩展失败:'), error);
       console.log(chalk.yellow('您可以手动安装扩展:'));
-      console.log(chalk.yellow(`1. 打开${editor}`));
+      console.log(chalk.yellow(`1. 打开VSCode`));
       console.log(chalk.yellow(`2. 按下Ctrl+Shift+X打开扩展面板`));
       console.log(chalk.yellow(`3. 点击"..."按钮，选择"从VSIX安装..."`));
       console.log(chalk.yellow(`4. 选择文件: ${path.join(this.vscodeExtensionPath, vsixFile)}`));

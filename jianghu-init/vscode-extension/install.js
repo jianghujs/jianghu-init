@@ -10,7 +10,15 @@ const os = require('os');
  */
 function checkVSCodeInstalled() {
   return new Promise((resolve) => {
-    const command = os.platform() === 'win32' ? 'where code' : 'which code';
+    let command;
+    if (process.platform === 'win32') {
+      command = 'where code';
+    } else if (process.platform === 'darwin') {
+      command = '[ -d "/Applications/Visual Studio Code.app" ] || [ -d "/Applications/Cursor.app" ] || which code';
+    } else {
+      // Linux 或其他系统
+      command = 'which code || which codium';
+    }
     exec(command, (error) => {
       resolve(!error);
     });
@@ -92,9 +100,28 @@ async function installExtension() {
       console.log(`正在安装VSCode扩展: ${vsixFile}...`);
       
       // 安装扩展
-      exec(`code --install-extension ${vsixFile}`, (error) => {
+      const installCommand = process.platform === 'darwin' 
+        ? `/Applications/Visual\\ Studio\\ Code.app/Contents/Resources/app/bin/code --install-extension ${vsixFile}` 
+        : `code --install-extension ${vsixFile}`;
+      
+      exec(installCommand, (error) => {
         if (error) {
           console.error('安装VSCode扩展失败:', error);
+          // 如果是Mac系统，尝试使用Cursor
+          if (process.platform === 'darwin') {
+            console.log('尝试使用Cursor安装...');
+            exec(`/Applications/Cursor.app/Contents/Resources/app/bin/code --install-extension ${vsixFile}`, (cursorError) => {
+              if (cursorError) {
+                console.error('使用Cursor安装失败:', cursorError);
+                console.log('请手动安装扩展包:', vsixFile);
+                return;
+              }
+              console.log('江湖初始化助手VSCode扩展安装成功（Cursor）！');
+              console.log('请重启Cursor以激活扩展。');
+            });
+            return;
+          }
+          console.log('请手动安装扩展包:', vsixFile);
           return;
         }
         

@@ -26,6 +26,10 @@
       {
         "command": "jianghu-init-vscode.showPropertyDoc",
         "title": "查看属性文档"
+      },
+      {
+        "command": "jianghu-init-vscode.showPropertyDoc",
+        "title": "查看属性文档"
       }
     ],
     "configuration": {
@@ -37,6 +41,32 @@
           "description": "文档目录路径"
         }
       }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "jianghuCommands",
+          "title": "江湖",
+          "icon": "media/icon.svg"
+        },
+        {
+          "id": "jianghuHelp",
+          "title": "帮助",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "jianghuCommands": [
+        {
+          "id": "jianghuCommands",
+          "name": "江湖命令"
+        },
+        {
+          "id": "jianghuHelp",
+          "name": "江湖帮助"
+        }
+      ]
     }
   },
   "scripts": {

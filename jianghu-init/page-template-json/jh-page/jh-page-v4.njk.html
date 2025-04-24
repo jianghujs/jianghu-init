@@ -36,6 +36,9 @@
               <v-icon size="13" class="success--text">mdi-arrow-left-top-bold</v-icon>返回
             </span>
             <=%- endif %=>
+            <=%- if content.slot %=>
+            <=$ content.slot | tagFormat(12) $=>
+            <=%- endif %=>
           </div>
         </v-col>
         <=%- elif content.tag == 'jh-table-search' %=>
