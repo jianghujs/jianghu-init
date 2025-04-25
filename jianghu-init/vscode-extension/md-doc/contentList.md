@@ -43,7 +43,7 @@ contentList: [
    }
    ```
 
-2. **组件类型 (component)**
+2. **组件类型 (component 自动引入)**
    ```javascript
    {
      label: "组件",
@@ -56,7 +56,7 @@ contentList: [
    }
    ```
 
-3. **自定义类型 (custom)**
+3. **自定义类型 (custom 自定义内容)**
    ```javascript
    {
      label: "自定义",

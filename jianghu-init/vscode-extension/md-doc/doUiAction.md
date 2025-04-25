@@ -6,37 +6,28 @@
 
 ```javascript
 doUiAction: {
-  // 单个操作
-  actionName: 'methodName',
-  
-  // 多个操作
+  // 普通示例
   actionName: ['method1', 'method2'],
-  
-  // 带参数的操作
-  actionName: ['prepareMethod', 'doUiAction("actionName")']
+  // doUiAction 调用简写
+  actionName: ['doUiAction.method1'],
+  // 异步示例
+  actionName: ['async.prepareMethod', 'async.doUiAction.actionName']
 }
 ```
 
 ## 配置说明
 
-1. **单个操作**
-   ```javascript
-   doUiAction: {
-     startDeleteItem: 'startDeleteItem'
-   }
-   ```
-
-2. **多个操作**
+1. **普通示例**
    ```javascript
    doUiAction: {
      startCreateItem: ['prepareDoCreateItem', 'doUiAction("startCreateItem")']
    }
    ```
 
-3. **带参数的操作**
+2. **异步示例**
    ```javascript
    doUiAction: {
-     updateItem: ['prepareDoUpdateItem', 'doUiAction("updateItem")']
+     updateItem: ['prepareDoUpdateItem', 'async.doUiAction.updateItem']
    }
    ```
 

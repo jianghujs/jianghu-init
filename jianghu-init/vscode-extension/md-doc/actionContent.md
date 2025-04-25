@@ -15,12 +15,13 @@ actionContent: [
     contentList: []          // 内容列表
   },
   
-  // 自定义组件
+  // 自定义标签
   {
-    tag: 'custom-component',  // 自定义组件标签
-    attrs: {},               // 组件属性
-    content: '内容'          // 组件内容
-  },
+    tag: 'div',               // 组件标签名
+    attrs: { class: 'p-2' },  // 组件属性：{ vIf: 'p-2' } / { 'v-if': 'p-2' }
+    quickAttrs: ['small'],    // 简写 attr 如：v-else small readonly
+    value: '内容',             // 组件内容
+  }
   
   // HTML 模板字符串
   /*html*/`
@@ -65,7 +66,8 @@ actionContent: [
        {
          label: "详情",
          type: "form",
-         formItemList: []
+         formItemList: [],
+         action: []
        }
      ]
    }
@@ -75,14 +77,12 @@ actionContent: [
 
 1. **基本结构**
    ```javascript
-   {
-     tag: 'custom-component',
-     attrs: {
-       prop1: 'value1',
-       prop2: 'value2'
-     },
-     content: '组件内容'
-   }
+    {
+      tag: 'div',               // 组件标签名
+      attrs: { class: 'p-2' },  // 组件属性：{ vIf: 'p-2' } / { 'v-if': 'p-2' }
+      quickAttrs: ['small'],    // 简写 attr 如：v-else small readonly
+      value: '内容',             // 组件内容
+    }
    ```
 
 2. **带事件处理的自定义组件**
@@ -93,27 +93,7 @@ actionContent: [
        color: 'primary',
        '@click': 'handleCustomAction'
      },
-     content: '执行操作'
-   }
-   ```
-
-3. **带插槽的自定义组件**
-   ```javascript
-   {
-     tag: 'custom-card',
-     attrs: {
-       title: '自定义卡片'
-     },
-     slots: [
-       {
-         name: 'header',
-         content: '卡片头部'
-       },
-       {
-         name: 'default',
-         content: '卡片内容'
-       }
-     ]
+     value: '执行操作'
    }
    ```
 

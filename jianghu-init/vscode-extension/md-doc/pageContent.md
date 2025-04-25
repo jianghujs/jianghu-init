@@ -7,12 +7,10 @@
 ```javascript
 pageContent: [
   {
-    tag: '组件标签',        // 组件标签名
-    attrs: {},            // 组件属性
-    colAttrs: {},         // 栅格布局属性
-    cardAttrs: {},        // 卡片属性
-    value: '内容',         // 组件内容
-    slots: []             // 插槽内容
+    tag: 'div',               // 组件标签名
+    attrs: { class: 'p-2' },  // 组件属性：{ vIf: 'p-2' } / { 'v-if': 'p-2' }
+    quickAttrs: ['small'],    // 简写 attr 如：v-else small readonly
+    value: '内容',             // 组件内容
   }
 ]
 ```
@@ -22,26 +20,11 @@ pageContent: [
 1. **基础属性**
    - `tag`: 组件标签名，如 'jh-table', 'v-card' 等
    - `attrs`: 组件的属性配置对象
-   - `colAttrs`: 栅格布局配置，如 `{ cols: 12, md: 6 }`
-   - `cardAttrs`: 卡片组件的属性配置
+   - `value`: 标签内容
 
-2. **布局属性**
-   ```javascript
-   colAttrs: {
-     cols: 12,    // 默认列宽
-     sm: 6,       // 小屏幕列宽
-     md: 4,       // 中等屏幕列宽
-     lg: 3        // 大屏幕列宽
-   }
-   ```
-
-3. **样式属性**
-   ```javascript
-   cardAttrs: {
-     class: 'rounded-lg elevation-0',
-     style: 'background-color: #f5f5f5'
-   }
-   ```
+2. ** jh-table 独有 布局属性**
+   - `colAttrs`: 父容器栅格布局配置，如 `{ cols: 12, md: 6 }`
+   - `cardAttrs`: 父容器卡片组件的属性配置
 
 ## value 内容扩展
 
@@ -51,10 +34,7 @@ pageContent: [
      tag: 'v-card',
      value: {
        tag: 'v-row',
-       value: {
-         tag: 'v-col',
-         value: '内容'
-       }
+       value: { tag: 'v-col', value: '内容' }
      }
    }
    ```
@@ -85,10 +65,7 @@ pageContent: [
        `,
        {
          tag: 'v-row',
-         value: {
-           tag: 'v-col',
-           value: '内容'
-         }
+         value: { tag: 'v-col', value: '内容' }
        }
      ]
    }
@@ -96,7 +73,7 @@ pageContent: [
 
 ## 示例
 
-1. **表格组件**
+1. **jh-table 表格组件**
    ```javascript
    {
      tag: 'jh-table',
@@ -125,23 +102,23 @@ pageContent: [
    }
    ```
 
-2. **表单组件**
+2. **通用组件**
    ```javascript
    {
-     tag: 'v-form',
-     attrs: { ref: 'form' },
+     tag: 'div',
+     attrs: { class: 'pa-4' },
      value: [
        {
-         tag: 'v-text-field',
-         attrs: {
-           label: '用户名',
-           rules: 'validationRules.requireRules'
-         }
+         tag: 'div',
+         attrs: { class: 'title mb-3' },
+         value: '标题内容'
        },
        /*html*/`
-         <v-btn color="primary" @click="submitForm">
-           提交
-         </v-btn>
+         <div class="mt-3">
+           <v-btn color="primary">
+             按钮
+           </v-btn>
+         </div>
        `
      ]
    }

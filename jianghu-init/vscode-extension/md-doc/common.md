@@ -7,11 +7,16 @@ Vue 原生变量和 uiAction 配置，包含 data、props、watch、methods、co
 ```javascript
 {
   "common": {
-    "data": {},
-    "computed": {},
-    "watch": {},
-    "methods": {},
-    "doUiAction": {}
+    filter: {},
+    props: {},
+    data: {},
+    dataExpression: {},
+    computed: {},
+    watch: {},
+    created: {},
+    mounted: {},
+    doUiAction: {},
+    methods: {},
   }
 }
 ```

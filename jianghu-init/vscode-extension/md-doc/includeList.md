@@ -6,12 +6,16 @@
 
 ```javascript
 includeList: [
-  // 字符串形式引入
+  // 原生 njk 引入
   "{% include 'path/to/file.html' %}",
+  // js 原生写法
+  "<script src='/<=$ ctx.app.config.appId $>/public/js/xxx.js'></script>",
+  // css 原生写法
+  "<style src='/<=$ ctx.app.config.appId $>/public/css/xxx.css'></style>",
   
   // 对象形式引入
   {
-    type: 'html',           // 资源类型
+    type: 'html',           // 资源类型 html/js/css/vueComponent
     path: 'path/to/file',   // 文件路径
     includeType: 'auto',    // 引入类型
     attrs: {}              // 组件属性
@@ -49,20 +53,15 @@ includeList: [
 
 ```javascript
 includeList: [
-  // 引入用户选择器组件
+  // njk 原生写法
   "{% include 'component/userSelector.html' %}",
   
-  // 引入常量工具
-  "{% include 'common/constantUtil.html' %}",
+  // js 原生写法
+  "<script src='/<=$ ctx.app.config.appId $>/public/js/xxx.js'></script>",
   
-  // 引入时间工具
-  "{% include 'common/timeUtil.html' %}",
+  // css 原生写法
+  "<style src='/<=$ ctx.app.config.appId $>/public/css/xxx.css'></style>",
   
-  // 引入日期工具
-  "{% include 'common/dateUtil.html' %}",
-  
-  // 引入用户名混入
-  "{% include 'common/mixin/userNameMixin.html' %}",
   
   // 引入报告记录创建器组件
   {

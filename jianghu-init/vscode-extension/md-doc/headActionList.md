@@ -5,6 +5,7 @@
 ## 配置格式
 
 ```javascript
+// 容器 v-row
 headActionList: [
   // 按钮配置
   { 

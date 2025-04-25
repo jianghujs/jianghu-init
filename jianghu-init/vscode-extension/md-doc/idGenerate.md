@@ -2,15 +2,6 @@
 
 用于配置自增ID的生成规则。
 
-## 属性说明
-
-| 属性名 | 类型 | 必填 | 说明 |
-|-------|------|------|------|
-| prefix | string | 是 | ID前缀，例如 'RW' |
-| type | string | 是 | ID生成类型，目前支持 'idSequence' |
-| bizId | string | 是 | 业务ID标识，用于区分不同业务 |
-| tableName | string | 是 | 关联的数据表名 |
-| startValue | number | 否 | 起始值，默认为 1000 |
 
 ## 示例
 
@@ -23,6 +14,28 @@ idGenerate: {
   startValue: 1000
 }
 ```
+
+## ⚠️ 生效必须需要设定resourceHook
+
+```javascript
+  // resourceList[index].resourceHook
+  resourceHook: {
+    before: [
+      {service: 'common', serviceFunction: "generateBizIdOfBeforeHook"},
+    ]
+  }
+```
+
+## 属性说明
+
+| 属性名 | 类型 | 必填 | 说明 |
+|-------|------|------|------|
+| prefix | string | 是 | ID前缀，例如 'RW' |
+| type | string | 是 | ID生成类型，目前支持 'idSequence' |
+| bizId | string | 是 | 业务ID标识，用于区分不同业务 |
+| tableName | string | 是 | 关联的数据表名 |
+| startValue | number | 否 | 起始值，默认为 1000 |
+
 
 ## 说明
 - ID生成器会按照配置规则生成唯一的自增ID
