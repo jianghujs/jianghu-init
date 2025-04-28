@@ -121,7 +121,7 @@
           dir: materialDir + path,
           path: ''
         }"
-        page-id="allPage"
+        :page-id="pageId"
         path="/"
         @close-material-picker="isImportMaterialShow = false; refreshPending = true"
         @import-material="doUiAction('importMaterial', $event)">

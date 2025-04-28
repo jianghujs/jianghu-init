@@ -1,22 +1,37 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
-const vscode = require("vscode");
+const vscode = __importStar(require("vscode"));
 const child_process_1 = require("child_process");
-const https = require("https");
-const semver = require("semver");
+const https = __importStar(require("https"));
+const semver = __importStar(require("semver"));
 const jsonTemplateCompletionProvider_1 = require("./jsonTemplateCompletionProvider");
 const jsonTemplateHoverProvider_1 = require("./jsonTemplateHoverProvider");
 const jsonDocCodeLensProvider_1 = require("./jsonDocCodeLensProvider");
+const jianghuSchemaValidator_1 = require("./validators/jianghuSchemaValidator");
 // 当前扩展版本
 const CURRENT_VERSION = '0.0.1';
 // 检查更新的URL（可以是GitHub仓库API或自定义服务器）
@@ -27,71 +42,68 @@ let extensionContext;
  * 检查是否有新版本
  * @returns {Promise<{hasUpdate: boolean, latestVersion: string, downloadUrl: string}>}
  */
-function checkForUpdates() {
-    return __awaiter(this, void 0, void 0, function* () {
-        return new Promise((resolve) => {
-            try {
-                const req = https.get(VERSION_CHECK_URL, {
-                    headers: {
-                        'User-Agent': 'jianghu-init-vscode'
-                    }
-                }, (res) => {
-                    let data = '';
-                    res.on('data', (chunk) => {
-                        data += chunk;
-                    });
-                    res.on('end', () => {
-                        var _a;
-                        try {
-                            const releaseInfo = JSON.parse(data);
-                            console.log('Release Info:', releaseInfo); // 调试输出
-                            if (!releaseInfo || !releaseInfo.tag_name) {
-                                console.error('Invalid release info:', releaseInfo);
-                                resolve({
-                                    hasUpdate: false,
-                                    latestVersion: CURRENT_VERSION,
-                                    downloadUrl: ''
-                                });
-                                return;
-                            }
-                            const latestVersion = releaseInfo.tag_name.replace(/^v/, '');
-                            const downloadUrl = ((_a = releaseInfo.assets.find((asset) => asset.name.endsWith('.vsix'))) === null || _a === void 0 ? void 0 : _a.browser_download_url) || '';
-                            const hasUpdate = semver.gt(latestVersion, CURRENT_VERSION);
-                            resolve({
-                                hasUpdate,
-                                latestVersion,
-                                downloadUrl
-                            });
-                        }
-                        catch (error) {
-                            console.error('解析版本信息失败:', error);
+async function checkForUpdates() {
+    return new Promise((resolve) => {
+        try {
+            const req = https.get(VERSION_CHECK_URL, {
+                headers: {
+                    'User-Agent': 'jianghu-init-vscode'
+                }
+            }, (res) => {
+                let data = '';
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    try {
+                        const releaseInfo = JSON.parse(data);
+                        console.log('Release Info:', releaseInfo); // 调试输出
+                        if (!releaseInfo || !releaseInfo.tag_name) {
+                            console.error('Invalid release info:', releaseInfo);
                             resolve({
                                 hasUpdate: false,
                                 latestVersion: CURRENT_VERSION,
                                 downloadUrl: ''
                             });
+                            return;
                         }
-                    });
+                        const latestVersion = releaseInfo.tag_name.replace(/^v/, '');
+                        const downloadUrl = releaseInfo.assets.find((asset) => asset.name.endsWith('.vsix'))?.browser_download_url || '';
+                        const hasUpdate = semver.gt(latestVersion, CURRENT_VERSION);
+                        resolve({
+                            hasUpdate,
+                            latestVersion,
+                            downloadUrl
+                        });
+                    }
+                    catch (error) {
+                        console.error('解析版本信息失败:', error);
+                        resolve({
+                            hasUpdate: false,
+                            latestVersion: CURRENT_VERSION,
+                            downloadUrl: ''
+                        });
+                    }
                 });
-                req.on('error', (error) => {
-                    console.error('检查更新失败:', error);
-                    resolve({
-                        hasUpdate: false,
-                        latestVersion: CURRENT_VERSION,
-                        downloadUrl: ''
-                    });
-                });
-                req.end();
-            }
-            catch (error) {
+            });
+            req.on('error', (error) => {
                 console.error('检查更新失败:', error);
                 resolve({
                     hasUpdate: false,
                     latestVersion: CURRENT_VERSION,
                     downloadUrl: ''
                 });
-            }
-        });
+            });
+            req.end();
+        }
+        catch (error) {
+            console.error('检查更新失败:', error);
+            resolve({
+                hasUpdate: false,
+                latestVersion: CURRENT_VERSION,
+                downloadUrl: ''
+            });
+        }
     });
 }
 /**
@@ -99,43 +111,39 @@ function checkForUpdates() {
  * @param latestVersion 最新版本
  * @param downloadUrl 下载链接
  */
-function showUpdateNotification(latestVersion, downloadUrl) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const updateMessage = `江湖初始化助手有新版本可用: v${latestVersion}`;
-        const result = yield vscode.window.showInformationMessage(updateMessage, '立即更新', '稍后提醒', '忽略此版本');
-        if (result === '立即更新') {
-            // 如果有下载链接，打开浏览器下载
-            if (downloadUrl) {
-                vscode.env.openExternal(vscode.Uri.parse(downloadUrl));
-            }
-            else {
-                // 否则运行更新命令
-                const terminal = vscode.window.createTerminal('江湖初始化助手更新');
-                terminal.show();
-                terminal.sendText('jianghu-init vscode');
-            }
+async function showUpdateNotification(latestVersion, downloadUrl) {
+    const updateMessage = `江湖初始化助手有新版本可用: v${latestVersion}`;
+    const result = await vscode.window.showInformationMessage(updateMessage, '立即更新', '稍后提醒', '忽略此版本');
+    if (result === '立即更新') {
+        // 如果有下载链接，打开浏览器下载
+        if (downloadUrl) {
+            vscode.env.openExternal(vscode.Uri.parse(downloadUrl));
         }
-        else if (result === '忽略此版本') {
-            // 保存忽略的版本
-            extensionContext.globalState.update('ignoredVersion', latestVersion);
+        else {
+            // 否则运行更新命令
+            const terminal = vscode.window.createTerminal('江湖初始化助手更新');
+            terminal.show();
+            terminal.sendText('jianghu-init vscode');
         }
-    });
+    }
+    else if (result === '忽略此版本') {
+        // 保存忽略的版本
+        extensionContext.globalState.update('ignoredVersion', latestVersion);
+    }
 }
 /**
  * 检查是否安装了jianghu-init
  * @returns {Promise<boolean>}
  */
-function checkJianghuInitInstalled() {
-    return __awaiter(this, void 0, void 0, function* () {
-        return new Promise((resolve) => {
-            (0, child_process_1.exec)('npm list -g @jianghujs/jianghu-init', (error, stdout) => {
-                if (error || !stdout.includes('@jianghujs/jianghu-init')) {
-                    resolve(false);
-                }
-                else {
-                    resolve(true);
-                }
-            });
+async function checkJianghuInitInstalled() {
+    return new Promise((resolve) => {
+        (0, child_process_1.exec)('npm list -g @jianghujs/jianghu-init', (error, stdout) => {
+            if (error || !stdout.includes('@jianghujs/jianghu-init')) {
+                resolve(false);
+            }
+            else {
+                resolve(true);
+            }
         });
     });
 }
@@ -143,25 +151,23 @@ function checkJianghuInitInstalled() {
  * 安装jianghu-init
  * @returns {Promise<boolean>}
  */
-function installJianghuInit() {
-    return __awaiter(this, void 0, void 0, function* () {
-        return new Promise((resolve) => {
-            vscode.window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                title: "正在安装 @jianghujs/jianghu-init...",
-                cancellable: false
-            }, () => __awaiter(this, void 0, void 0, function* () {
-                (0, child_process_1.exec)('npm install -g @jianghujs/jianghu-init', (error) => {
-                    if (error) {
-                        vscode.window.showErrorMessage('安装 @jianghujs/jianghu-init 失败，请手动安装。');
-                        resolve(false);
-                    }
-                    else {
-                        vscode.window.showInformationMessage('@jianghujs/jianghu-init 安装成功！');
-                        resolve(true);
-                    }
-                });
-            }));
+async function installJianghuInit() {
+    return new Promise((resolve) => {
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "正在安装 @jianghujs/jianghu-init...",
+            cancellable: false
+        }, async () => {
+            (0, child_process_1.exec)('npm install -g @jianghujs/jianghu-init', (error) => {
+                if (error) {
+                    vscode.window.showErrorMessage('安装 @jianghujs/jianghu-init 失败，请手动安装。');
+                    resolve(false);
+                }
+                else {
+                    vscode.window.showInformationMessage('@jianghujs/jianghu-init 安装成功！');
+                    resolve(true);
+                }
+            });
         });
     });
 }
@@ -189,25 +195,23 @@ function showHelpPanel() {
 /**
  * 创建项目
  */
-function createProject() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const projectType = yield vscode.window.showQuickPick([
-            { label: '独立应用', value: 'stand-alone', description: '创建一个独立的江湖应用' },
-            { label: '多应用项目', value: 'multi', description: '创建一个包含多个应用的江湖项目' },
-            { label: '单应用（在多应用项目中）', value: 'single', description: '在多应用项目中创建一个新应用' }
-        ], { placeHolder: '选择项目类型' });
-        if (!projectType)
-            return;
-        const projectName = yield vscode.window.showInputBox({
-            placeHolder: '输入项目名称',
-            prompt: '请输入项目名称'
-        });
-        if (!projectName)
-            return;
-        const terminal = vscode.window.createTerminal('江湖初始化');
-        terminal.show();
-        terminal.sendText(`jianghu-init project --type=${projectType.value} ${projectName}`);
+async function createProject() {
+    const projectType = await vscode.window.showQuickPick([
+        { label: '独立应用', value: 'stand-alone', description: '创建一个独立的江湖应用' },
+        { label: '多应用项目', value: 'multi', description: '创建一个包含多个应用的江湖项目' },
+        { label: '单应用（在多应用项目中）', value: 'single', description: '在多应用项目中创建一个新应用' }
+    ], { placeHolder: '选择项目类型' });
+    if (!projectType)
+        return;
+    const projectName = await vscode.window.showInputBox({
+        placeHolder: '输入项目名称',
+        prompt: '请输入项目名称'
     });
+    if (!projectName)
+        return;
+    const terminal = vscode.window.createTerminal('江湖初始化');
+    terminal.show();
+    terminal.sendText(`jianghu-init project --type=${projectType.value} ${projectName}`);
 }
 /**
  * 生成CRUD页面
@@ -328,82 +332,94 @@ class JianghuHoverProvider {
  * 激活扩展
  * @param context 扩展上下文
  */
-function activate(context) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log('江湖初始化助手已激活');
-        // 保存扩展上下文
-        extensionContext = context;
-        // 检查是否有新版本
+async function activate(context) {
+    console.log('江湖初始化助手已激活');
+    // 保存扩展上下文
+    extensionContext = context;
+    // 创建验证器实例
+    const validator = new jianghuSchemaValidator_1.JianghuSchemaValidator(context);
+    // 注册文档变化事件
+    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => {
+        validator.validate(event.document);
+    }));
+    // 注册文档打开事件
+    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(document => {
+        validator.validate(document);
+    }));
+    // 注册保存事件
+    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(document => {
+        validator.validate(document);
+    }));
+    // 检查是否有新版本
+    const ignoredVersion = context.globalState.get('ignoredVersion');
+    const updateInfo = await checkForUpdates();
+    if (updateInfo.hasUpdate && updateInfo.latestVersion !== ignoredVersion) {
+        showUpdateNotification(updateInfo.latestVersion, updateInfo.downloadUrl);
+    }
+    // 检查是否安装了jianghu-init
+    const isInstalled = await checkJianghuInitInstalled();
+    if (!isInstalled) {
+        const answer = await vscode.window.showInformationMessage('未检测到 @jianghujs/jianghu-init，是否立即安装？', '安装', '取消');
+        if (answer === '安装') {
+            await installJianghuInit();
+        }
+    }
+    // 注册命令
+    const showHelpCommand = vscode.commands.registerCommand('jianghu-init-vscode.showHelp', showHelpPanel);
+    const createProjectCommand = vscode.commands.registerCommand('jianghu-init-vscode.createProject', createProject);
+    const generateCrudCommand = vscode.commands.registerCommand('jianghu-init-vscode.generateCrud', generateCrud);
+    const checkUpdateCommand = vscode.commands.registerCommand('jianghu-init-vscode.checkUpdate', async () => {
+        const updateInfo = await checkForUpdates();
+        if (updateInfo.hasUpdate) {
+            showUpdateNotification(updateInfo.latestVersion, updateInfo.downloadUrl);
+        }
+        else {
+            vscode.window.showInformationMessage('您已经使用的是最新版本的江湖初始化助手');
+        }
+    });
+    context.subscriptions.push(showHelpCommand, createProjectCommand, generateCrudCommand, checkUpdateCommand);
+    // 创建状态栏项
+    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    statusBarItem.text = "$(tools) 江湖助手";
+    statusBarItem.tooltip = "点击打开江湖初始化助手";
+    statusBarItem.command = 'jianghu-init-vscode.showHelp';
+    statusBarItem.show();
+    // 创建更新检查状态栏项
+    const updateStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    updateStatusBarItem.text = "$(sync) 检查江湖助手更新";
+    updateStatusBarItem.tooltip = "检查江湖初始化助手更新";
+    updateStatusBarItem.command = 'jianghu-init-vscode.checkUpdate';
+    updateStatusBarItem.show();
+    context.subscriptions.push(statusBarItem, updateStatusBarItem);
+    // 创建树视图提供者
+    const helpTreeProvider = new JianghuHelpTreeProvider();
+    const commandsTreeProvider = new JianghuCommandsTreeProvider();
+    vscode.window.registerTreeDataProvider('jianghuHelp', helpTreeProvider);
+    vscode.window.registerTreeDataProvider('jianghuCommands', commandsTreeProvider);
+    // 注册代码补全提供者
+    const completionProvider = vscode.languages.registerCompletionItemProvider(['javascript', 'typescript', 'json'], // 支持的语言
+    new JianghuCompletionItemProvider(), '.' // 触发字符
+    );
+    context.subscriptions.push(completionProvider);
+    // 注册悬停提示提供者
+    const hoverProvider = vscode.languages.registerHoverProvider(['javascript', 'typescript', 'json'], // 支持的语言
+    new JianghuHoverProvider());
+    context.subscriptions.push(hoverProvider);
+    // 激活JSON模板代码补全
+    (0, jsonTemplateCompletionProvider_1.activateJsonTemplateCompletion)(context);
+    // 激活JSON模板悬停提示
+    (0, jsonTemplateHoverProvider_1.activateJsonTemplateHover)(context);
+    // 激活JSON文档代码镶边
+    (0, jsonDocCodeLensProvider_1.activateJsonDocCodeLens)(context);
+    // 设置定期检查更新（每天检查一次）
+    const ONE_DAY = 24 * 60 * 60 * 1000; // 24小时（毫秒）
+    setInterval(async () => {
+        const updateInfo = await checkForUpdates();
         const ignoredVersion = context.globalState.get('ignoredVersion');
-        const updateInfo = yield checkForUpdates();
         if (updateInfo.hasUpdate && updateInfo.latestVersion !== ignoredVersion) {
             showUpdateNotification(updateInfo.latestVersion, updateInfo.downloadUrl);
         }
-        // 检查是否安装了jianghu-init
-        const isInstalled = yield checkJianghuInitInstalled();
-        if (!isInstalled) {
-            const answer = yield vscode.window.showInformationMessage('未检测到 @jianghujs/jianghu-init，是否立即安装？', '安装', '取消');
-            if (answer === '安装') {
-                yield installJianghuInit();
-            }
-        }
-        // 注册命令
-        const showHelpCommand = vscode.commands.registerCommand('jianghu-init-vscode.showHelp', showHelpPanel);
-        const createProjectCommand = vscode.commands.registerCommand('jianghu-init-vscode.createProject', createProject);
-        const generateCrudCommand = vscode.commands.registerCommand('jianghu-init-vscode.generateCrud', generateCrud);
-        const checkUpdateCommand = vscode.commands.registerCommand('jianghu-init-vscode.checkUpdate', () => __awaiter(this, void 0, void 0, function* () {
-            const updateInfo = yield checkForUpdates();
-            if (updateInfo.hasUpdate) {
-                showUpdateNotification(updateInfo.latestVersion, updateInfo.downloadUrl);
-            }
-            else {
-                vscode.window.showInformationMessage('您已经使用的是最新版本的江湖初始化助手');
-            }
-        }));
-        context.subscriptions.push(showHelpCommand, createProjectCommand, generateCrudCommand, checkUpdateCommand);
-        // 创建状态栏项
-        const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-        statusBarItem.text = "$(tools) 江湖助手";
-        statusBarItem.tooltip = "点击打开江湖初始化助手";
-        statusBarItem.command = 'jianghu-init-vscode.showHelp';
-        statusBarItem.show();
-        // 创建更新检查状态栏项
-        const updateStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-        updateStatusBarItem.text = "$(sync) 检查江湖助手更新";
-        updateStatusBarItem.tooltip = "检查江湖初始化助手更新";
-        updateStatusBarItem.command = 'jianghu-init-vscode.checkUpdate';
-        updateStatusBarItem.show();
-        context.subscriptions.push(statusBarItem, updateStatusBarItem);
-        // 创建树视图提供者
-        const helpTreeProvider = new JianghuHelpTreeProvider();
-        const commandsTreeProvider = new JianghuCommandsTreeProvider();
-        vscode.window.registerTreeDataProvider('jianghuHelp', helpTreeProvider);
-        vscode.window.registerTreeDataProvider('jianghuCommands', commandsTreeProvider);
-        // 注册代码补全提供者
-        const completionProvider = vscode.languages.registerCompletionItemProvider(['javascript', 'typescript', 'json'], // 支持的语言
-        new JianghuCompletionItemProvider(), '.' // 触发字符
-        );
-        context.subscriptions.push(completionProvider);
-        // 注册悬停提示提供者
-        const hoverProvider = vscode.languages.registerHoverProvider(['javascript', 'typescript', 'json'], // 支持的语言
-        new JianghuHoverProvider());
-        context.subscriptions.push(hoverProvider);
-        // 激活JSON模板代码补全
-        (0, jsonTemplateCompletionProvider_1.activateJsonTemplateCompletion)(context);
-        // 激活JSON模板悬停提示
-        (0, jsonTemplateHoverProvider_1.activateJsonTemplateHover)(context);
-        // 激活JSON文档代码镶边
-        (0, jsonDocCodeLensProvider_1.activateJsonDocCodeLens)(context);
-        // 设置定期检查更新（每天检查一次）
-        const ONE_DAY = 24 * 60 * 60 * 1000; // 24小时（毫秒）
-        setInterval(() => __awaiter(this, void 0, void 0, function* () {
-            const updateInfo = yield checkForUpdates();
-            const ignoredVersion = context.globalState.get('ignoredVersion');
-            if (updateInfo.hasUpdate && updateInfo.latestVersion !== ignoredVersion) {
-                showUpdateNotification(updateInfo.latestVersion, updateInfo.downloadUrl);
-            }
-        }), ONE_DAY);
-    });
+    }, ONE_DAY);
 }
 exports.activate = activate;
 /**

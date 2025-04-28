@@ -39,6 +39,16 @@
           "type": "string",
           "default": "md-doc",
           "description": "文档目录路径"
+        },
+        "jianghuInit.schemaValidation": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否启用配置文件结构验证"
+        },
+        "jianghuInit.strictValidation": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否启用严格验证模式"
         }
       }
     },
@@ -87,6 +97,9 @@
     "@vscode/test-electron": "^1.6.2"
   },
   "dependencies": {
-    "marked": "^4.0.0"
+    "marked": "^4.0.0",
+    "ajv": "^8.12.0",
+    "acorn": "^8.11.0",
+    "acorn-walk": "^8.2.0"
   }
 }

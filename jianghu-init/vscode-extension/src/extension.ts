@@ -7,6 +7,7 @@ import * as semver from 'semver';
 import { activateJsonTemplateCompletion } from './jsonTemplateCompletionProvider';
 import { activateJsonTemplateHover } from './jsonTemplateHoverProvider';
 import { activateJsonDocCodeLens } from './jsonDocCodeLensProvider';
+import { JianghuSchemaValidator } from './validators/jianghuSchemaValidator';
 
 // 当前扩展版本
 const CURRENT_VERSION = '0.0.1';
@@ -376,6 +377,30 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   
   // 保存扩展上下文
   extensionContext = context;
+
+  // 创建验证器实例
+  const validator = new JianghuSchemaValidator(context);
+
+  // 注册文档变化事件
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeTextDocument(event => {
+      validator.validate(event.document);
+    })
+  );
+
+  // 注册文档打开事件
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument(document => {
+      validator.validate(document);
+    })
+  );
+
+  // 注册保存事件
+  context.subscriptions.push(
+    vscode.workspace.onDidSaveTextDocument(document => {
+      validator.validate(document);
+    })
+  );
 
   // 检查是否有新版本
   const ignoredVersion = context.globalState.get<string>('ignoredVersion');

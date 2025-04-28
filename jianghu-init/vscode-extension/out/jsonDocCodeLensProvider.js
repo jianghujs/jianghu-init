@@ -1,18 +1,32 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activateJsonDocCodeLens = exports.JsonDocHoverProvider = exports.JsonDocCodeLensProvider = void 0;
-const vscode = require("vscode");
-const path = require("path");
-const fs = require("fs");
+const vscode = __importStar(require("vscode"));
+const path = __importStar(require("path"));
+const fs = __importStar(require("fs"));
 /**
  * JSON文档代码镶边提供者
  * 在/app/view/init-json/目录中的JSON文件中显示文档链接
@@ -158,24 +172,22 @@ class JsonDocCodeLensProvider {
         console.log(`共找到 ${codeLenses.length} 个代码镶边`);
         return codeLenses;
     }
-    showPropertyDoc(propertyName, docInfo) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                // 读取文档内容
-                const docContent = fs.readFileSync(docInfo.filePath, 'utf8');
-                // 创建一个临时的 untitled 文档
-                const doc = yield vscode.workspace.openTextDocument({
-                    content: docContent,
-                    language: 'markdown'
-                });
-                // 在新的编辑器中打开文档并显示预览
-                yield vscode.commands.executeCommand('markdown.showPreview', doc.uri);
-            }
-            catch (error) {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                vscode.window.showErrorMessage(`无法加载文档: ${errorMessage}`);
-            }
-        });
+    async showPropertyDoc(propertyName, docInfo) {
+        try {
+            // 读取文档内容
+            const docContent = fs.readFileSync(docInfo.filePath, 'utf8');
+            // 创建一个临时的 untitled 文档
+            const doc = await vscode.workspace.openTextDocument({
+                content: docContent,
+                language: 'markdown'
+            });
+            // 在新的编辑器中打开文档并显示预览
+            await vscode.commands.executeCommand('markdown.showPreview', doc.uri);
+        }
+        catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            vscode.window.showErrorMessage(`无法加载文档: ${errorMessage}`);
+        }
     }
 }
 exports.JsonDocCodeLensProvider = JsonDocCodeLensProvider;
