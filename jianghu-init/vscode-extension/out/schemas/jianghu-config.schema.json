@@ -127,15 +127,39 @@
                     "type": "string",
                     "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
                 },
-                "desc": {
-                    "type": "string"
-                },
+                "desc": { "type": "string" },
                 "resourceType": {
                     "type": "string",
                     "enum": ["sql", "service"]
                 },
                 "resourceData": {
-                    "type": "object"
+                    "type": "object",
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "table": { "type": "string", "minLength": 1 },
+                                "operation": {
+                                    "enum": ["select", "jhInsert", "jhUpdate", "jhDelete", "insert", "update", "delete"]
+                                }
+                            },
+                            "required": ["table", "operation"],
+                            "additionalProperties": false,
+                            "if": { "properties": { "resourceType": { "const": "sql" } } },
+                            "then": { "properties": { "resourceType": { "const": "sql" } } }
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "service": { "type": "string", "minLength": 1 },
+                                "serviceFunction": { "type": "string", "minLength": 1 }
+                            },
+                            "required": ["service", "serviceFunction"],
+                            "additionalProperties": false,
+                            "if": { "properties": { "resourceType": { "const": "service" } } },
+                            "then": { "properties": { "resourceType": { "const": "service" } } }
+                        }
+                    ]
                 },
                 "resourceHook": {
                     "type": "object",
@@ -169,93 +193,34 @@
                 }
             },
             "required": ["actionId", "resourceType", "resourceData"],
-            "resource": {
-                "type": "object",
+            "additionalProperties": false,
+            "if": {
                 "properties": {
-                    "actionId": {
-                        "type": "string",
-                        "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
-                    },
-                    "desc": {
-                        "type": "string"
-                    },
-                    "resourceType": {
-                        "type": "string",
-                        "enum": ["sql", "service"]
-                    },
-                    "resourceData": {
-                        "type": "object",
-                        "oneOf": [
-                            {
-                                "properties": {
-                                    "resourceType": { "const": "sql" },
-                                    "resourceData": {
-                                        "type": "object",
-                                        "properties": {
-                                            "table": { "type": "string", "minLength": 1 },
-                                            "operation": {
-                                                "type": "string",
-                                                "enum": ["select", "jhInsert", "jhUpdate", "jhDelete", "insert", "update", "delete"]
-                                            }
-                                        },
-                                        "required": ["table", "operation"],
-                                        "additionalProperties": false
-                                    }
-                                },
-                                "required": ["resourceType", "resourceData"]
-                            },
-                            {
-                                "properties": {
-                                    "resourceType": { "const": "service" },
-                                    "resourceData": {
-                                        "type": "object",
-                                        "properties": {
-                                            "service": { "type": "string", "minLength": 1 },
-                                            "serviceFunction": { "type": "string", "minLength": 1 }
-                                        },
-                                        "required": ["service", "serviceFunction"],
-                                        "additionalProperties": false
-                                    }
-                                },
-                                "required": ["resourceType", "resourceData"]
-                            }
-                        ]
-                    },
-                    "resourceHook": {
-                        "type": "object",
-                        "properties": {
-                            "before": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "service": { "type": "string", "minLength": 1 },
-                                        "serviceFunction": { "type": "string", "minLength": 1 }
-                                    },
-                                    "required": ["service", "serviceFunction"],
-                                    "additionalProperties": false
-                                }
-                            },
-                            "after": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "service": { "type": "string", "minLength": 1 },
-                                        "serviceFunction": { "type": "string", "minLength": 1 }
-                                    },
-                                    "required": ["service", "serviceFunction"],
-                                    "additionalProperties": false
-                                }
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "required": ["actionId", "resourceType", "resourceData"],
-                "additionalProperties": false
+                    "resourceType": { "const": "sql" }
+                }
             },
-            "additionalProperties": false
+            "then": {
+                "properties": {
+                    "resourceData": {
+                        "properties": {
+                            "table": { "type": "string" },
+                            "operation": { "type": "string" }
+                        },
+                        "required": ["table", "operation"]
+                    }
+                }
+            },
+            "else": {
+                "properties": {
+                    "resourceData": {
+                        "properties": {
+                            "service": { "type": "string" },
+                            "serviceFunction": { "type": "string" }
+                        },
+                        "required": ["service", "serviceFunction"]
+                    }
+                }
+            }
         }
     }
 }
