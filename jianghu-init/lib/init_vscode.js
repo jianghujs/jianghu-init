@@ -137,17 +137,29 @@ module.exports = class CommandInitVSCode {
           await this.executeCommand(`/Applications/Cursor.app/Contents/Resources/app/bin/code --install-extension "${this.prebuiltVsixPath}"`);
         }
       } else {
-        // Windows或Linux系统
-        await this.executeCommand(`code --install-extension "${this.prebuiltVsixPath}"`);
+        if (editor === 'VSCode') { 
+          await this.executeCommand(`code --install-extension "${this.prebuiltVsixPath}"`);
+        } else if (editor === 'Cursor') {
+          try {
+            await this.executeCommand(`cursor --install-extension "${this.prebuiltVsixPath}"`);
+          } catch (e) {
+            // 提示
+            console.log(chalk.yellow('Cursor安装失败，请手动安装扩展:'));
+            console.log(chalk.yellow(`1. 打开Cursor`));
+            console.log(chalk.yellow(`2. 按下Ctrl+Shift+P 打开命令面板`));
+            console.log(chalk.yellow(`3. 输入 "Shell Command: Install 'cursor' command" 安装cursor命令`));
+          }
+        }
       }
       console.log(chalk.green(`江湖初始化助手${editor}扩展安装成功！`));
       console.log(chalk.green(`请重启${editor}以激活扩展。`));
     } catch (error) {
       console.error(chalk.red('安装VSCode扩展失败:'), error);
+
       console.log(chalk.yellow('您可以手动安装扩展:'));
       console.log(chalk.yellow(`1. 打开${editor}`));
-      console.log(chalk.yellow(`2. 按下Ctrl+Shift+X打开扩展面板`));
-      console.log(chalk.yellow(`3. 点击"..."按钮，选择"从VSIX安装..."`));
+      console.log(chalk.yellow(`2. 按下Ctrl+Shift+P 打开命令面板`));
+      console.log(chalk.yellow(`3. 输入 "Extensions: Install from VSIX" 并选择`));
       console.log(chalk.yellow(`4. 选择文件: ${this.prebuiltVsixPath}`));
       
       // 如果简易安装失败，尝试完整安装

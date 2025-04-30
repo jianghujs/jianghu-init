@@ -365,6 +365,7 @@
       "properties": {
         "tag": { "type": "string" },
         "attrs": { "type": "object" },
+        "quickAttrs": { "type": "array" },
         "value": { "type": ["array", "string", "object"] }
       },
       "required": ["tag"],
