@@ -55,7 +55,10 @@ module.exports = class CommandInitVSCode {
       }
     }
 
-    // 安装选项
+    // 安装选项 
+    let installType = 'simple';
+
+    /**
     const { installType } = await inquirer.prompt({
       name: 'installType',
       type: 'list',
@@ -65,7 +68,7 @@ module.exports = class CommandInitVSCode {
         { name: '完整安装 (从源码构建，可能需要更长时间)', value: 'full' }
       ],
       default: 'simple'
-    });
+    }); */
     // 选择软件，是vscode还是cursor
     let editor = 'VSCode';
     if (process.platform === 'darwin') {
@@ -108,14 +111,14 @@ module.exports = class CommandInitVSCode {
       fs.mkdirSync(prebuiltDir, { recursive: true });
       console.log(chalk.gray(`创建预编译目录: ${prebuiltDir}`));
     }
-    
+    /**
     // 如果预编译的vsix文件不存在，尝试创建一个简单的扩展
     if (!fs.existsSync(this.prebuiltVsixPath)) {
       console.log(chalk.yellow('预编译的扩展包不存在，尝试创建一个简单的扩展...'));
       
       // 创建一个简单的扩展包
       await this.createSimpleExtension();
-    }
+    } */
     
     // 安装扩展
     console.log(chalk.blue(`正在安装VSCode扩展: ${path.basename(this.prebuiltVsixPath)}...`));
@@ -143,8 +146,7 @@ module.exports = class CommandInitVSCode {
       console.log(chalk.yellow(`4. 选择文件: ${this.prebuiltVsixPath}`));
       
       // 如果简易安装失败，尝试完整安装
-      console.log(chalk.blue('简易安装失败，尝试完整安装...'));
-      await this.fullInstall();
+      // console.log(chalk.blue('简易安装失败，尝试完整安装...'));
     }
   }
   
@@ -279,7 +281,7 @@ module.exports = class CommandInitVSCode {
     const extensionTsPath = path.join(srcDir, 'extension.ts');
     if (!fs.existsSync(extensionTsPath)) {
       console.log(chalk.yellow('extension.ts文件不存在，尝试从extension.js创建...'));
-      const extensionJsPath = path.join(this.vscodeExtensionPath, 'extension.js');
+      const extensionJsPath = path.join(this.vscodeExtensionPath, 'out', 'extension.js');
       if (fs.existsSync(extensionJsPath)) {
         const extensionJs = fs.readFileSync(extensionJsPath, 'utf8');
         // 简单转换为TypeScript
