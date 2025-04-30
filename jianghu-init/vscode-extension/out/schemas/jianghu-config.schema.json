@@ -34,20 +34,29 @@
         },
         "headContent": {
             "type": "array",
+            "items": {
+                "$ref": "#/definitions/headContent"
+            },
             "description": "The header content of the page, usually containing breadcrumb navigation"
         },
         "pageContent": {
             "type": "array",
+            "items": {
+                "$ref": "#/definitions/pageContent"
+            },
             "description": "The main content of the page"
         },
         "actionContent": {
             "type": "array",
+            "items": {
+                "$ref": "#/definitions/actionContent"
+            },
             "description": "Trigger content including drawers, popups, overlays, etc."
         },
         "includeList": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/include"
+                "$ref": "#/definitions/includeList"
             },
             "description": "List of resources included in the page"
         },
@@ -75,10 +84,6 @@
                     "type": "object",
                     "description": "监听器"
                 },
-                "methods": {
-                    "type": "object",
-                    "description": "方法集合"
-                },
                 "doUiAction": {
                     "type": "object",
                     "additionalProperties": {
@@ -88,6 +93,10 @@
                         }
                     },
                     "description": "UI交互方法集合"
+                },
+                "methods": {
+                    "type": "object",
+                    "description": "方法集合"
                 }
             }
         },
@@ -98,14 +107,378 @@
         "resourceList": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/resource"
+                "$ref": "#/definitions/resourceList"
             }
         }
     },
-    "required": ["pageType", "pageId", "headContent", "pageContent", "actionContent", "includeList", "common"],
+    "required": ["pageType", "pageId", "pageContent", "includeList", "common"],
     "additionalProperties": false,
     "definitions": {
-        "include": {
+        "headContent": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "tag": {
+                            "type": "string",
+                            "description": "标签名称"
+                        }
+                    },
+                    "required": ["tag"],
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "const": "jh-page-title" }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/jhPageTitle"
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "const": "jh-search" }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/jhSearch"
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "not": { "enum": ["jh-page-title", "jh-search"] } }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/customTag"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "string",
+                    "description": "HTML字符串内容"
+                }
+            ],
+            "description": "页面头部内容，通常包含面包屑导航"
+        },
+        "pageContent": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "tag": {
+                            "type": "string",
+                            "description": "标签名称"
+                        }
+                    },
+                    "required": ["tag"],
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "const": "jh-table" }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/jhTable"
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "not": { "const": "jh-table" } }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/customTag"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "string",
+                    "description": "HTML字符串内容"
+                }
+            ],
+            "description": "页面头部内容，通常包含面包屑导航"
+        },
+        "actionContent": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "tag": {
+                            "type": "string",
+                            "description": "标签名称"
+                        }
+                    },
+                    "required": ["tag"],
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "enum": ["jh-create-drawer", "jh-update-drawer", "jh-drawer", "jh-detail-drawer"] }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/jhDrawer"
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "not": { "enum": ["jh-create-drawer", "jh-update-drawer", "jh-drawer", "jh-detail-drawer"] } }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/customTag"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "string",
+                    "description": "HTML字符串内容"
+                }
+            ],
+            "description": "页面头部内容，通常包含面包屑导航"
+        },
+        "jhPageTitle": {
+            "type": "object",
+            "properties": {
+                "tag": {
+                    "type": "string",
+                    "description": "标签名称"
+                },
+                "value": {
+                    "type": ["string", "null"],
+                    "description": "标签内容值"
+                },
+                "attrs": {
+                    "type": "object",
+                    "description": "标签属性，如 cols, sm, md 等"
+                },
+                "helpBtn": {
+                    "type": "boolean",
+                    "description": "是否显示帮助按钮"
+                },
+                "slot": {
+                    "type": ["array", "object", "string"],
+                    "description": "插槽内容，可以是数组、对象或字符串"
+                }
+            },
+            "additionalProperties": false
+        },
+        "jhDrawer": {
+            "type": "object",
+            "properties": {
+                "tag": { "type": "string" },
+                "attrs": { "type": "object" },
+                "key": { "type": "string" },
+                "title": { "type": "string" },
+                "headSlot": { "type": "array" },
+                "contentList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/contentItem"
+                    }
+                }
+            },
+            "required": ["tag", "key", "title", "contentList"],
+            "additionalProperties": false
+        },
+        "jhTable": {
+            "type": "object",
+            "properties": {
+                "tag": {
+                    "type": "string",
+                    "description": "标签名称"
+                },
+                "attrs": {
+                    "type": "object",
+                    "description": "容器属性"
+                },
+                "props": {
+                    "type": "object",
+                    "description": "标签内容值"
+                },
+                "colAttrs": {
+                    "type": "object",
+                    "description": "容器属性"
+                },
+                "cardAttrs": {
+                    "type": "object",
+                    "description": "容器属性"
+                },
+                "orderBy": {
+                    "type": "array",
+                    "description": "排序"
+                },
+                "headActionList": {
+                    "type": ["array", "object", "string"],
+                    "description": "头部操作"
+                },
+                "headers": {
+                    "type": ["array"],
+                    "description": "table headers"
+                },
+                "rowActionList": {
+                    "type": ["array", "object", "string"],
+                    "description": "行操作"
+                },
+                "value": {
+                    "type": ["array", "string", "object"],
+                    "description": "标签内容值"
+                }
+            },
+            "required": ["tag", "headers"],
+            "additionalProperties": false
+        },
+        "jhSearch": {
+            "type": "object",
+            "properties": {
+                "tag": {
+                    "type": "string",
+                    "description": "标签名称"
+                },
+                "value": {
+                    "type": ["array"]
+                },
+                "attrs": {
+                    "type": "object",
+                    "description": "标签属性，如 cols, sm, md 等"
+                },
+                "searchBtn": {
+                    "type": "boolean",
+                    "description": "是否显示搜索按钮"
+                }
+            },
+            "required": ["tag", "value"],
+            "additionalProperties": false
+        },
+        "customTag": {
+            "type": "object",
+            "properties": {
+                "tag": { "type": "string" },
+                "attrs": { "type": "object" },
+                "value": { "type": ["array", "string", "object"] }
+            },
+            "required": ["tag"],
+            "additionalProperties": false
+        },
+        "contentItem": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "tag": {
+                            "type": "string",
+                            "description": "标签名称"
+                        }
+                    },
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": { "const": "form" }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/contentForm"
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": { "not": { "const": "form" } }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/customTag"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "string",
+                    "description": "HTML字符串内容"
+                }
+            ],
+            "description": "内容项"
+        },
+        "contentForm": {
+            "type": "object",
+            "properties": {
+                "type": { "type": "string" },
+                "label": { "type": "string" },
+                "formItemList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/formItem"
+                    }
+                },
+                "action": { "type": ["object", "array", "string"] }
+            },
+            "required": ["type", "label", "formItemList"],
+            "additionalProperties": false
+        },
+        "formItem": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "tag": {
+                            "type": "string",
+                            "description": "标签名称"
+                        }
+                    },
+                    "required": ["tag"],
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "model": {
+                                        "type": "string",
+                                        "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
+                                    }
+                                },
+                                "required": ["model"]
+                            },
+                            "then": {
+                                "properties": {
+                                    "label": { "type": "string" },
+                                    "rules": { "type": "string" },
+                                    "attrs": { "type": "object" },
+                                    "colAttrs": { "type": "object" },
+                                    "tag": { "type": "string" },
+                                    "md": { "type": ["string", "number"] }
+                                }
+                            }
+                        },
+                        {
+                            "if": {
+                                "not": {
+                                    "required": ["model"]
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/customTag"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "string",
+                    "description": "HTML字符串内容"
+                }
+            ],
+            "description": "内容项"
+        },
+        "includeList": {
             "type": "object",
             "properties": {
                 "type": {
@@ -120,7 +493,7 @@
             "required": ["type", "path"],
             "additionalProperties": false
         },
-        "resource": {
+        "resourceList": {
             "type": "object",
             "properties": {
                 "actionId": {

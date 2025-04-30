@@ -6,20 +6,20 @@
 
 ```javascript
 includeList: [
+  // 对象形式引入示例：
+  // @type: {string} 'html' | 'js' | 'css' | 'vueComponent'  // 必填
+  // @path: {string} 'path/to/file'                          // 必填
+  // @includeType: {string} 'auto' | 'manual'
+  // @attrs: {object} {} 
+  // 以下是一些实际使用示例：
+  { type: 'html', path: 'component/reportRecordCreator.html' }
+
   // 原生 njk 引入
   "{% include 'path/to/file.html' %}",
   // js 原生写法
   "<script src='/<=$ ctx.app.config.appId $>/public/js/xxx.js'></script>",
   // css 原生写法
   "<style src='/<=$ ctx.app.config.appId $>/public/css/xxx.css'></style>",
-  
-  // 对象形式引入
-  {
-    type: 'html',           // 资源类型 html/js/css/vueComponent
-    path: 'path/to/file',   // 文件路径
-    includeType: 'auto',    // 引入类型
-    attrs: {}              // 组件属性
-  }
 ]
 ```
 

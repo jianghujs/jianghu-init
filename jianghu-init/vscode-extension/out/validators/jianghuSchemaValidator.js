@@ -58,7 +58,29 @@ class JianghuSchemaValidator {
             const valid = validate(configObject);
             if (!valid && validate.errors) {
                 console.log('Validation errors:', JSON.stringify(validate.errors, null, 2));
-                const diagnostics = this.createDiagnostics(document, validate.errors, location);
+                // 对错误进行分组，只保留最深层级的错误
+                const pathMap = new Map();
+                validate.errors.forEach(error => {
+                    const path = error.instancePath || '/';
+                    // 检查是否已存在更深层级的错误路径
+                    let shouldAdd = true;
+                    // 如果当前错误是父级路径，且已有子级路径的错误，则忽略当前错误
+                    pathMap.forEach((existingError, existingPath) => {
+                        if (existingPath.startsWith(path + '/')) {
+                            // 当前路径是已存在路径的父路径，不添加当前错误
+                            shouldAdd = false;
+                        }
+                        else if (path.startsWith(existingPath + '/')) {
+                            // 当前路径是已存在路径的子路径，删除父路径错误，保留更具体的子路径错误
+                            pathMap.delete(existingPath);
+                        }
+                    });
+                    if (shouldAdd) {
+                        pathMap.set(path, error);
+                    }
+                });
+                const filteredErrors = Array.from(pathMap.values());
+                const diagnostics = this.createDiagnostics(document, filteredErrors, location);
                 this.diagnosticCollection.set(document.uri, diagnostics);
             }
             else {
@@ -68,6 +90,30 @@ class JianghuSchemaValidator {
         catch (error) {
             console.error('Validation error:', error);
         }
+    }
+    filterDeepestErrors(errors) {
+        const result = [];
+        function isParentPath(parent, child) {
+            if (parent === child)
+                return false;
+            return child.startsWith(parent + '/') || (parent === '/' && child !== '/');
+        }
+        for (const error of errors) {
+            const path = error.instancePath || '/';
+            // 先过滤掉所有被这个路径包裹的（也就是比它浅的）
+            for (let i = result.length - 1; i >= 0; i--) {
+                const existingPath = result[i].instancePath || '/';
+                if (isParentPath(path, existingPath)) {
+                    result.splice(i, 1); // 删除更浅的路径
+                }
+            }
+            // 如果这个路径是其他路径的父路径，就不要加入（保留更深的）
+            const hasDeeper = result.some(e => isParentPath(e.instancePath || '/', path));
+            if (!hasDeeper) {
+                result.push(error);
+            }
+        }
+        return result;
     }
     isTargetFile(filePath) {
         return /\/(page-template-json|init-json)\/.*\.js$/.test(filePath);
