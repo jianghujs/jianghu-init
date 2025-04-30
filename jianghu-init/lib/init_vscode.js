@@ -58,17 +58,22 @@ module.exports = class CommandInitVSCode {
     // 安装选项 
     let installType = 'simple';
 
-    /**
-    const { installType } = await inquirer.prompt({
-      name: 'installType',
-      type: 'list',
-      message: '请选择安装方式:',
-      choices: [
-        { name: '简易安装 (推荐，直接使用预编译包)', value: 'simple' },
-        { name: '完整安装 (从源码构建，可能需要更长时间)', value: 'full' }
-      ],
-      default: 'simple'
-    }); */
+    const existExtension = path.join(this.vscodeExtensionPath, 'src', 'extension.ts');
+    if (fs.existsSync(existExtension)) {
+      // 本地运行调试，开启选择安装方式
+      const res = await inquirer.prompt({
+        name: 'installType',
+        type: 'list',
+        message: '请选择安装方式:',
+        choices: [
+          { name: '简易安装 (推荐，直接使用预编译包)', value: 'simple' },
+          { name: '完整安装 (从源码构建，可能需要更长时间)', value: 'full' }
+        ],
+        default: 'simple'
+      });
+      installType = res.installType;
+    }
+    
     // 选择软件，是vscode还是cursor
     let editor = 'VSCode';
     if (process.platform === 'darwin') {
@@ -103,7 +108,7 @@ module.exports = class CommandInitVSCode {
    * 简易安装 - 使用预编译的扩展包
    */
   async simpleInstall(editor) {
-    console.log(chalk.blue('使用简易安装模式...'));
+    console.log(chalk.blue('使用快速安装模式...'));
     
     // 检查预编译的vsix文件是否存在
     const prebuiltDir = path.dirname(this.prebuiltVsixPath);
