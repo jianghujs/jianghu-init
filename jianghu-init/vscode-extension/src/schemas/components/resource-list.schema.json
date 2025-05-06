@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://jianghu.example.com/schemas/components/resource-list.schema.json",
+  "title": "Resource List Schema",
+  "description": "资源列表定义",
+  "definitions": {
+    "resourceList": {
+      "type": "object",
+      "properties": {
+        "actionId": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_/-]*$"
+        },
+        "desc": { "type": "string" },
+        "resourceType": {
+          "type": "string",
+          "enum": ["sql", "service"]
+        },
+        "resourceData": {
+          "type": "object",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "table": { "type": "string", "minLength": 1 },
+                "operation": {
+                  "enum": ["select", "jhInsert", "jhUpdate", "jhDelete", "insert", "update", "delete"]
+                }
+              },
+              "required": ["table", "operation"],
+              "additionalProperties": false,
+              "if": { "properties": { "resourceType": { "const": "sql" } } },
+              "then": { "properties": { "resourceType": { "const": "sql" } } }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "service": { "type": "string", "minLength": 1 },
+                "serviceFunction": { "type": "string", "minLength": 1 }
+              },
+              "required": ["service", "serviceFunction"],
+              "additionalProperties": false,
+              "if": { "properties": { "resourceType": { "const": "service" } } },
+              "then": { "properties": { "resourceType": { "const": "service" } } }
+            }
+          ]
+        },
+        "resourceHook": {
+          "type": "object",
+          "properties": {
+            "before": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "service": { "type": "string", "minLength": 1 },
+                  "serviceFunction": { "type": "string", "minLength": 1 }
+                },
+                "required": ["service", "serviceFunction"],
+                "additionalProperties": false
+              }
+            },
+            "after": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "service": { "type": "string", "minLength": 1 },
+                  "serviceFunction": { "type": "string", "minLength": 1 }
+                },
+                "required": ["service", "serviceFunction"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["actionId", "resourceType", "resourceData"],
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "resourceType": { "const": "sql" }
+        }
+      },
+      "then": {
+        "properties": {
+          "resourceData": {
+            "properties": {
+              "table": { "type": "string" },
+              "operation": { "type": "string" }
+            },
+            "required": ["table", "operation"]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "resourceData": {
+            "properties": {
+              "service": { "type": "string" },
+              "serviceFunction": { "type": "string" }
+            },
+            "required": ["service", "serviceFunction"]
+          }
+        }
+      }
+    },
+    "resourceListArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/resourceList"
+      }
+    }
+  }
+}

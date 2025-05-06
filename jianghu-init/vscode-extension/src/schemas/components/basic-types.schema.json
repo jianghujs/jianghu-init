@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://jianghu.example.com/schemas/components/basic-types.schema.json",
+  "title": "Basic Types Schema",
+  "description": "基本类型定义",
+  "definitions": {
+    "pageType": {
+      "type": "string",
+      "enum": ["jh-page", "jh-mobile-page", "jh-component"],
+      "description": "The type of the page"
+    },
+    "pageId": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_/]*$",
+      "description": "The unique identifier for the page"
+    },
+    "pageName": {
+      "type": "string",
+      "description": "The display name of the page",
+      "minLength": 1
+    },
+    "template": {
+      "type": "string",
+      "description": "The template used for the page"
+    },
+    "table": {
+      "type": "string",
+      "description": "The table name of the page"
+    },
+    "version": {
+      "type": "string",
+      "enum": ["v2", "v3", "v4"],
+      "description": "The version of the page"
+    },
+    "style": {
+      "type": "string",
+      "description": "Page style definitions"
+    },
+    "customTag": {
+      "type": "object",
+      "properties": {
+        "tag": { "type": "string" },
+        "attrs": { "type": "object" },
+        "quickAttrs": { "type": "array" },
+        "value": { "type": ["array", "string", "object"] }
+      },
+      "required": ["tag"],
+      "additionalProperties": false
+    }
+  }
+}

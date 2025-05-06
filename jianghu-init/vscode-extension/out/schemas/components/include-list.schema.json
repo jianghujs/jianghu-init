@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://jianghu.example.com/schemas/components/include-list.schema.json",
+    "title": "Include List Schema",
+    "description": "引入资源定义",
+    "definitions": {
+        "includeList": {
+            "type": ["object", "string"],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "path": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "attrs": {
+                    "type": "object"
+                },
+                "includeType": {
+                    "type": "string"
+                }
+            },
+            "required": ["type", "path"],
+            "additionalProperties": false
+        },
+        "includeListArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/includeList"
+            },
+            "description": "List of resources included in the page"
+        }
+    }
+}

@@ -1,0 +1,177 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://jianghu.example.com/schemas/components/action-content.schema.json",
+  "title": "Action Content Schema",
+  "description": "触发内容定义",
+  "definitions": {
+    "actionContent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "description": "标签名称"
+            }
+          },
+          "required": ["tag"],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "tag": { "enum": ["jh-create-drawer", "jh-update-drawer", "jh-drawer", "jh-detail-drawer"] }
+                }
+              },
+              "then": {
+                "$ref": "#/definitions/jhDrawer"
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "tag": { "enum": ["jh-bottom-sheet"] }
+                }
+              },
+              "then": {
+                "$ref": "#/definitions/jhBottomSheet"
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "tag": { "not": { "enum": ["jh-create-drawer", "jh-update-drawer", "jh-drawer", "jh-detail-drawer", "jh-bottom-sheet"] } }
+                }
+              },
+              "then": {
+                "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "description": "HTML字符串内容"
+        }
+      ],
+      "description": "触发内容（抽屉、弹窗、遮罩层等）"
+    },
+    "jhDrawer": {
+      "type": "object",
+      "properties": {
+        "tag": { "type": "string" },
+        "attrs": { "type": "object" },
+        "key": { "type": "string" },
+        "title": { "type": "string" },
+        "headSlot": { "type": "array" },
+        "card": { "type": ["array", "object", "string"] },
+        "isCheckFormBeforeClose": { "type": "boolean" },
+        "onCheckFormConfirm": { "type": "string" },
+        "contentList": { 
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/contentItem"
+          }
+        }
+      },
+      "required": ["tag", "key", "title", "contentList"],
+      "additionalProperties": false
+    },
+    "jhBottomSheet": {
+      "type": "object",
+      "properties": {
+        "tag": { "type": "string" },
+        "attrs": { "type": "object" },
+        "key": { "type": "string" },
+        "title": { "type": "string" },
+        "headSlot": { "type": "array" },
+        "contentList": { "type": "array" },
+        "actionList": { "type": "array" }
+      },
+      "required": ["tag", "key", "title", "contentList", "actionList"],
+      "additionalProperties": false
+    },
+    "contentItem": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "description": "标签名称"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "type": { "enum": ["form", "preview"] }
+                }
+              },
+              "then": {
+                "$ref": "#/definitions/contentForm"
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": { "const": "component" }
+                }
+              },
+              "then": {
+                "$ref": "#/definitions/contentComponent"
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "type": { "not": { "enum": ["form", "preview", "component"] } }
+                }
+              },
+              "then": {
+                "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "description": "HTML字符串内容"
+        }
+      ],
+      "description": "内容项"
+    },
+    "contentComponent": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "label": { "type": "string" },
+        "componentPath": { "type": "string" },
+        "bind": { "type": "object" }
+      },
+      "required": ["type", "componentPath"]
+    },
+    "contentForm": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "label": { "type": "string" },
+        "md": { "type": ["string", "number"] },
+        "formItemList": { 
+          "type": "array",
+          "items": {
+            "$ref": "../components/form-items.schema.json#/definitions/formItem"
+          }
+        },
+        "action": { "type": ["object", "array", "string"] }
+      },
+      "required": ["type", "formItemList"]
+    },
+    "actionContentArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/actionContent"
+      },
+      "description": "Trigger content including drawers, popups, overlays, etc."
+    }
+  }
+}

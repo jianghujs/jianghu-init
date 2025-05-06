@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://jianghu.example.com/schemas/components/page-content.schema.json",
+  "title": "Page Content Schema",
+  "description": "页面主体内容定义",
+  "definitions": {
+    "pageContent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "description": "标签名称"
+            }
+          },
+          "required": ["tag"],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "tag": { "enum": ["jh-table", "jh-list"] }
+                }
+              },
+              "then": {
+                "$ref": "#/definitions/jhTable"
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "tag": { "const": "jh-action" }
+                }
+              },
+              "then": {
+                "$ref": "#/definitions/jhAction"
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "tag": { "not": { "enum": ["jh-table", "jh-list", "jh-action"] } }
+                }
+              },
+              "then": {
+                "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+              }
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "description": "HTML字符串内容"
+        }
+      ],
+      "description": "页面主体内容"
+    },
+    "jhTable": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "description": "标签名称"
+        },
+        "attrs": {
+          "type": "object",
+          "description": "容器属性"
+        },
+        "showTableColumnSettingBtn": {
+          "type": "boolean",
+          "description": "显示表列设置"
+        },
+        "columnSettingGroup": {
+          "type": "array",
+          "description": "列设置分组"
+        },
+        "props": {
+          "type": "object",
+          "description": "标签内容值"
+        },
+        "colAttrs": {
+          "type": "object",
+          "description": "容器属性"
+        },
+        "cardAttrs": {
+          "type": "object",
+          "description": "容器属性"
+        },
+        "orderBy": {
+          "type": "array",
+          "description": "排序"
+        },
+        "headActionList": {
+          "type": ["array", "object", "string"],
+          "description": "头部操作"
+        },
+        "headers": {
+          "type": ["array"],
+          "description": "table headers"
+        },
+        "rowActionList": {
+          "type": ["array", "object", "string"],
+          "description": "行操作"
+        },
+        "value": {
+          "type": ["array", "string", "object"],
+          "description": "标签内容值"
+        }
+      },
+      "required": ["tag"],
+      "additionalProperties": false
+    },
+    "jhAction": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "description": "标签名称"
+        },
+        "attrs": {
+          "type": "object",
+          "description": "容器属性"
+        },
+        "actionList": {
+          "type": "array",
+          "description": "标签内容值"
+        }
+      },
+      "required": ["tag"],
+      "additionalProperties": false
+    },
+    "pageContentArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/pageContent"
+      },
+      "description": "The main content of the page"
+    }
+  }
+}

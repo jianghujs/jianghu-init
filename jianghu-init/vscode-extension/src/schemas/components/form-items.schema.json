@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://jianghu.example.com/schemas/components/form-items.schema.json",
+  "title": "Form Items Schema",
+  "description": "表单项定义",
+  "definitions": {
+    "formItem": {
+      "type": ["object", "string"],
+      "properties": {
+        "tag": {
+          "type": "string",
+          "description": "标签名称"
+        }
+      },
+      "required": ["tag"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "model": { 
+                "type": "string",
+                "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
+              }
+            },
+            "required": ["model"]
+          },
+          "then": {
+            "properties": {
+              "label": { "type": "string" },
+              "rules": { "type": "string" },
+              "attrs": { "type": "object" },
+              "colAttrs": { "type": "object" },
+              "tag": { "type": "string" },
+              "md": { "type": ["string", "number"] }
+            }
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "required": ["model"]
+            }
+          },
+          "then": {
+            "properties": {
+              "tag": { "type": "string" },
+              "attrs": { "type": "object" },
+              "quickAttrs": { "type": "array" },
+              "value": { "type": ["array", "string", "object"] },
+              "colAttrs": { "type": "object" }
+            }
+          }
+        }
+      ],
+      "description": "内容项"
+    }
+  }
+}

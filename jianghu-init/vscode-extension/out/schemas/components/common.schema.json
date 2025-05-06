@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://jianghu.example.com/schemas/components/common.schema.json",
+    "title": "Common Schema",
+    "description": "变量和方法定义",
+    "definitions": {
+        "common": {
+            "type": "object",
+            "description": "Variables and methods used in the page",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "description": "数据对象，存储页面状态"
+                },
+                "dataExpression": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string",
+                        "description": "数据表达式的值必须是字符串类型"
+                    },
+                    "description": "数据对象的表达式"
+                },
+                "computed": {
+                    "type": "object",
+                    "description": "计算属性"
+                },
+                "watch": {
+                    "type": "object",
+                    "description": "监听器"
+                },
+                "doUiAction": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "description": "UI交互方法集合"
+                },
+                "methods": {
+                    "type": "object",
+                    "description": "方法集合"
+                }
+            }
+        }
+    }
+}

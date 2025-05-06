@@ -1,0 +1,180 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://jianghu.example.com/schemas/components/head-content.schema.json",
+    "title": "Head Content Schema",
+    "description": "页面头部内容定义",
+    "definitions": {
+        "headContent": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "tag": {
+                            "type": "string",
+                            "description": "标签名称"
+                        }
+                    },
+                    "required": ["tag"],
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "const": "jh-page-title" }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/jhPageTitle"
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "const": "jh-search" }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/jhSearch"
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "const": "jh-scene" }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/jhScene"
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "const": "jh-order" }
+                                }
+                            },
+                            "then": {
+                                "$ref": "#/definitions/jhOrder"
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "tag": { "not": { "enum": ["jh-page-title", "jh-search", "jh-scene", "jh-order"] } }
+                                }
+                            },
+                            "then": {
+                                "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "string",
+                    "description": "HTML字符串内容"
+                }
+            ],
+            "description": "页面头部内容，通常包含面包屑导航"
+        },
+        "jhPageTitle": {
+            "type": "object",
+            "properties": {
+                "tag": {
+                    "type": "string",
+                    "description": "标签名称"
+                },
+                "value": {
+                    "type": ["string", "null"],
+                    "description": "标签内容值"
+                },
+                "attrs": {
+                    "type": "object",
+                    "description": "标签属性，如 cols, sm, md 等"
+                },
+                "helpBtn": {
+                    "type": "boolean",
+                    "description": "是否显示帮助按钮"
+                },
+                "slot": {
+                    "type": ["array", "object", "string"],
+                    "description": "插槽内容，可以是数组、对象或字符串"
+                }
+            },
+            "additionalProperties": false
+        },
+        "jhSearch": {
+            "type": "object",
+            "properties": {
+                "tag": {
+                    "type": "string",
+                    "description": "标签名称"
+                },
+                "value": {
+                    "type": ["array"]
+                },
+                "searchList": {
+                    "type": ["array"]
+                },
+                "attrs": {
+                    "type": "object",
+                    "description": "标签属性，如 cols, sm, md 等"
+                },
+                "data": {
+                    "type": "object",
+                    "description": "标签属性，如 cols, sm, md 等"
+                },
+                "searchBtn": {
+                    "type": ["boolean", "object", "array", "string"],
+                    "description": "是否显示搜索按钮"
+                }
+            },
+            "required": ["tag"],
+            "additionalProperties": false
+        },
+        "jhScene": {
+            "type": "object",
+            "properties": {
+                "tag": {
+                    "type": "string",
+                    "description": "标签名称"
+                },
+                "value": {
+                    "type": ["array"]
+                },
+                "attrs": {
+                    "type": "object",
+                    "description": "标签属性，如 cols, sm, md 等"
+                },
+                "formItemList": {
+                    "type": ["array"],
+                    "items": {
+                        "$ref": "../components/form-items.schema.json#/definitions/formItem"
+                    }
+                }
+            },
+            "required": ["tag", "value"],
+            "additionalProperties": false
+        },
+        "jhOrder": {
+            "type": "object",
+            "properties": {
+                "tag": {
+                    "type": "string",
+                    "description": "标签名称"
+                },
+                "data": {
+                    "type": "object",
+                    "description": "标签属性，如 cols, sm, md 等"
+                }
+            },
+            "required": ["tag"],
+            "additionalProperties": false
+        },
+        "headContentArray": {
+            "type": ["array"],
+            "items": {
+                "$ref": "#/definitions/headContent"
+            },
+            "description": "The header content of the page, usually containing breadcrumb navigation"
+        }
+    }
+}
