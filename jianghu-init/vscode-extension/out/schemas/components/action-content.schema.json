@@ -87,7 +87,7 @@
                 "contentList": { "type": "array" },
                 "actionList": { "type": "array" }
             },
-            "required": ["tag", "key", "title", "contentList", "actionList"],
+            "required": ["tag", "key", "title", "contentList"],
             "additionalProperties": false
         },
         "contentItem": {
@@ -98,6 +98,14 @@
                         "tag": {
                             "type": "string",
                             "description": "标签名称"
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "抽屉tab名称"
+                        },
+                        "type": {
+                            "type": "string",
+                            "description": "内容类型"
                         }
                     },
                     "allOf": [
@@ -105,7 +113,8 @@
                             "if": {
                                 "properties": {
                                     "type": { "enum": ["form", "preview"] }
-                                }
+                                },
+                                "required": ["type"]
                             },
                             "then": {
                                 "$ref": "#/definitions/contentForm"
@@ -115,7 +124,8 @@
                             "if": {
                                 "properties": {
                                     "type": { "const": "component" }
-                                }
+                                },
+                                "required": ["type"]
                             },
                             "then": {
                                 "$ref": "#/definitions/contentComponent"
@@ -123,12 +133,23 @@
                         },
                         {
                             "if": {
-                                "properties": {
-                                    "type": { "not": { "enum": ["form", "preview", "component"] } }
+                                "not": {
+                                    "required": ["type"]
                                 }
                             },
                             "then": {
-                                "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+                                "$ref": "#/definitions/customContentTag"
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": { "not": { "enum": ["form", "preview", "component"] } }
+                                },
+                                "required": ["type"]
+                            },
+                            "then": {
+                                "$ref": "#/definitions/customContentTag"
                             }
                         }
                     ]
@@ -162,9 +183,75 @@
                         "$ref": "../components/form-items.schema.json#/definitions/formItem"
                     }
                 },
-                "action": { "type": ["object", "array", "string"] }
+                "action": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "操作按钮列表"
+                },
+                "headAction": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "操作按钮列表"
+                }
             },
-            "required": ["type", "formItemList"]
+            "required": ["type", "formItemList"],
+            "additionalProperties": false
+        },
+        "customContentTag": {
+            "type": "object",
+            "properties": {
+                "label": { "type": "string" },
+                "tag": { "type": "string" },
+                "attrs": { "type": "object" },
+                "quickAttrs": { "type": "array" },
+                "value": { "type": ["array", "string", "object"] },
+                "action": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "../components/basic-types.schema.json#/definitions/customTag"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "操作按钮列表"
+                }
+            },
+            "required": ["tag"],
+            "additionalProperties": false
         },
         "actionContentArray": {
             "type": "array",

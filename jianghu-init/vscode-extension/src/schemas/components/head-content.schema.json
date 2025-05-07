@@ -97,6 +97,10 @@
         "slot": {
           "type": ["array", "object", "string"],
           "description": "插槽内容，可以是数组、对象或字符串"
+        },
+        "backBtn": {
+          "type": ["object", "boolean"],
+          "description": "返回按钮"
         }
       },
       "additionalProperties": false
@@ -137,21 +141,16 @@
           "type": "string",
           "description": "标签名称"
         },
-        "value": {
-          "type": ["array"]
-        },
         "attrs": {
           "type": "object",
           "description": "标签属性，如 cols, sm, md 等"
         },
-        "formItemList": {
-          "type": ["array"],
-          "items": {
-            "$ref": "../components/form-items.schema.json#/definitions/formItem"
-          }
+        "data": {
+          "type": "object",
+          "description": "变量定义"
         }
       },
-      "required": ["tag", "value"],
+      "required": ["tag"],
       "additionalProperties": false
     },
     "jhOrder": {

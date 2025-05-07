@@ -13,7 +13,7 @@ const showVSCodeHelp = require('./init_vscode_help');
 module.exports = class CommandInitVSCode {
   constructor() {
     this.vscodeExtensionPath = path.join(__dirname, '..', 'vscode-extension');
-    this.prebuiltVsixPath = path.join(__dirname, '..', 'vscode-extension', 'prebuilt', 'jianghu-init-vscode-0.0.3.vsix');
+    this.prebuiltVsixPath = path.join(__dirname, '..', 'vscode-extension', 'prebuilt', 'jianghu-init-vscode-0.0.4.vsix');
   }
 
   /**

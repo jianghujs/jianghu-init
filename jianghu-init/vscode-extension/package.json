@@ -2,7 +2,7 @@
   "name": "jianghu-init-vscode",
   "displayName": "Jianghu Init",
   "description": "Jianghu Init VSCode Extension",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "jianghujs",
   "private": false,
   "license": "MIT",

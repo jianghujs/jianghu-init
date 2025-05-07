@@ -23,6 +23,9 @@
     "version": {
       "$ref": "components/basic-types.schema.json#/definitions/version"
     },
+    "componentPath": {
+      "$ref": "components/basic-types.schema.json#/definitions/componentPath"
+    },
     "headContent": {
       "$ref": "components/head-content.schema.json#/definitions/headContentArray"
     },
