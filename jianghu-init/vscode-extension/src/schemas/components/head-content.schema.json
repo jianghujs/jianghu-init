@@ -148,6 +148,10 @@
         "data": {
           "type": "object",
           "description": "变量定义"
+        },
+        "formItemList": {
+          "type": "array",
+          "description": "变量定义"
         }
       },
       "required": ["tag"],
