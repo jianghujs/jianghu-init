@@ -60,7 +60,7 @@ const JSON_TEMPLATE_KEY_DOCS = {
     'options': '下拉选项的配置',
     'rules': '表单验证规则',
     'disabled': '是否禁用',
-    'hidden': '是否隐藏'
+    'hidden': '是否隐藏',
 };
 /**
  * 判断文件是否在指定目录下
@@ -85,11 +85,12 @@ class JsonTemplateHoverProvider {
             return null;
         }
         // 获取当前单词
-        const range = document.getWordRangeAtPosition(position);
+        const range = document.getWordRangeAtPosition(position, /[a-zA-Z0-9_\-]+/);
         if (!range) {
             return null;
         }
         const word = document.getText(range);
+        console.log('word', word);
         // 检查是否是预设key
         if (word in JSON_TEMPLATE_KEY_DOCS) {
             const description = JSON_TEMPLATE_KEY_DOCS[word];

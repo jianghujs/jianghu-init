@@ -70,6 +70,24 @@ export class JsonDocCodeLensProvider implements vscode.CodeLensProvider {
       }
     }
 
+
+    // 检查是否是tag属性的值
+    const tagValueRegex = /tag['"]?\s*:\s*['"]([a-zA-Z0-9_\-]+)['"]/g;
+    let tagMatch;
+    
+    while ((tagMatch = tagValueRegex.exec(text)) !== null) {
+      const tagValue = tagMatch[1];
+
+      const docInfo = this.findDocumentation(tagValue);
+      if (docInfo.filePath) {
+        const startPos = editor.document.positionAt(tagMatch.index + (tagMatch[0].indexOf(tagValue)));
+        const endPos = editor.document.positionAt(tagMatch.index + tagMatch[0].indexOf(tagValue) + tagValue.length);
+        const range = new vscode.Range(startPos, endPos);
+        
+        decorations.push({ range });
+      }
+    }
+
     editor.setDecorations(this.decorationType, decorations);
   }
 
@@ -99,8 +117,6 @@ export class JsonDocCodeLensProvider implements vscode.CodeLensProvider {
   private findDocumentation(propertyName: string): {filePath?: string} {
     // 构建Markdown文档目录路径
     const mdDocPath = path.join(this.context.extensionPath, 'md-doc');
-    
-    console.log(`查找文档，属性名: ${propertyName}, 文档目录: ${mdDocPath}`);
     
     // 检查目录是否存在
     if (!fs.existsSync(mdDocPath)) {
@@ -170,6 +186,25 @@ export class JsonDocCodeLensProvider implements vscode.CodeLensProvider {
       }
     }
     
+    const tagValueRegex = /tag['"]?\s*:\s*['"]([a-zA-Z0-9_\-]+)['"]/g;
+    let tagMatch;
+    
+    while ((tagMatch = tagValueRegex.exec(text)) !== null) {
+      const tagValue = tagMatch[1];
+      const startPos = document.positionAt(tagMatch.index + tagMatch[0].length);
+      const endPos = document.positionAt(tagMatch.index + tagMatch[0].length + 2); // 为问号图标预留空间
+      const range = new vscode.Range(startPos, endPos);
+      const docInfo = this.findDocumentation(tagValue);
+      if (docInfo.filePath) {
+        const codeLens = new vscode.CodeLens(range, {
+          title: `❓${tagValue}`,
+          command: '',  // 空命令，这样点击不会有响应
+          tooltip: `查看 ${tagValue} 的文档`
+        });
+        codeLenses.push(codeLens);
+      }
+    }
+    
     console.log(`共找到 ${codeLenses.length} 个代码镶边`);
     return codeLenses;
   }
@@ -223,6 +258,26 @@ export class JsonDocHoverProvider implements vscode.HoverProvider {
       // 检查光标是否在属性名上
       if (character >= startIndex && character <= endIndex) {
         return this.createHoverForProperty(propertyName, new vscode.Range(
+          position.line,
+          startIndex,
+          position.line,
+          endIndex
+        ));
+      }
+    }
+
+    // 检查是否是tag属性的值
+    const tagValueRegex = /tag['"]?\s*:\s*['"]([a-zA-Z0-9_\-]+)['"]/g;
+    let tagMatch;
+    
+    while ((tagMatch = tagValueRegex.exec(lineText)) !== null) {
+      const tagValue = tagMatch[1];
+      const startIndex = tagMatch.index + (tagMatch[0].indexOf(tagValue));
+      const endIndex = startIndex + tagValue.length;
+
+      // 检查光标是否在tag属性的值上
+      if (character >= startIndex && character <= endIndex) {
+        return this.createHoverForProperty(tagValue, new vscode.Range(
           position.line,
           startIndex,
           position.line,

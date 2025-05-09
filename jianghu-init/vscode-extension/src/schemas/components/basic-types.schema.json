@@ -42,7 +42,7 @@
       "description": "Page style definitions"
     },
     "customTag": {
-      "type": "object",
+      "type": ["object", "string"],
       "properties": {
         "tag": { "type": "string" },
         "attrs": { "type": "object" },
