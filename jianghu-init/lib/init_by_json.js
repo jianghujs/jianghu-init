@@ -3,6 +3,7 @@ const yargs = require('yargs');
 const InitPage = require('./json/init_page');
 const InitMobilePage = require('./json/init_mobile_page');
 const InitComponent = require('./json/init_component');
+const InitMobileComponent = require('./json/init_mobile_component');
 const InitJson = require('./json/init_json');
 const InitClear = require('./json/init_clear');
 const CommandBase = require('./command_base');
@@ -61,7 +62,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.jhComponent = new InitComponent();
     this.jhPage = new InitPage();
     this.jhMobilePage = new InitMobilePage();
-
+    this.jhMobileComponent = new InitMobileComponent();
     await this.enableDevMode(args.includes('dev'));
     const jsonText = this.argv.jsonText;
     const jsonFile = this.argv.jsonFile;
@@ -91,6 +92,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
       } else {
         pageType = jsonArgv.pageType;
         switch (pageType) {
+          case 'jh-mobile-component':
+            await this.jhMobileComponent.run(process.cwd(), jsonArgv, this.argv);
+            break;
           case 'jh-component':
           case '1table-component':
             await this.jhComponent.run(process.cwd(), jsonArgv, this.argv);
@@ -115,6 +119,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
         this.argv.y = true;
         pageType = jsonArgvItem.pageType;
         switch (pageType) {
+          case 'jh-mobile-component':
+            await this.jhMobileComponent.run(process.cwd(), jsonArgvItem, this.argv);
+            break;
           case 'jh-component':
           case '1table-component':
             await this.jhComponent.run(process.cwd(), jsonArgvItem, this.argv);
@@ -401,6 +408,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
     if (error) return;
     try {
       switch (fileObj.pageType) {
+        case 'jh-mobile-component':
+          await this.jhMobileComponent.renderContent(fileObj, true);
+          break;
         case 'jh-component':
         case '1table-component':
           await this.jhComponent.renderContent(fileObj, true);
@@ -460,7 +470,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
       this.allConfigFileList = configFileList || [];
     }
     const pageConfigList = this.allConfigFileList.filter(item => [ 'jh-page', '1table-page', 'jh-mobile-page' ].includes(item.pageType));
-    const componentConfigList = this.allConfigFileList.filter(item => [ 'jh-component', '1table-component' ].includes(item.pageType));
+    const componentConfigList = this.allConfigFileList.filter(item => [ 'jh-component', '1table-component', 'jh-mobile-component' ].includes(item.pageType));
 
     const checkDuplicate = (configList, property, warningMessage) => {
       const group = _.groupBy(configList, property);

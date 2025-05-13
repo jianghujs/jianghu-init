@@ -1,0 +1,27 @@
+<!-- JH CSS >>>>>>>>>>>>> -->
+<style>
+  @media (max-width: 600px) {
+    /* 表单 >>>>>> */
+    body span.jh-input-label {
+      line-height: 18px !important;
+      display: flex;
+      align-items: center;
+      min-height: 28px;
+    }
+
+    /* 只读输入框样式 */
+    .v-text-field input[readonly],
+    .v-input--is-readonly .v-select__selection,
+    .v-select input[readonly],
+    .v-textarea textarea[readonly],
+    .v-date-picker input[readonly],
+    .v-autocomplete input[readonly] {
+      color: #666 !important;
+    }
+
+    .v-input--is-readonly .v-input__slot {
+      background: unset !important;
+    }
+  }
+</style>
+<!-- <<<<<<<<<<<<< JH CSS -->

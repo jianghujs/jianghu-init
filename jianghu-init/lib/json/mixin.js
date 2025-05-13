@@ -325,6 +325,17 @@ const mixin = {
       }
       return tag.join('\n                    ');
     });
+    const isFormItemDisabled = (res) => {
+      const readonly = res.readonly || false;
+      const attrs = res.attrs || {};
+      const quickAttrs = res.quickAttrs || [];
+      const checkTrue = (value) => (value === true || value === 'true');
+      return checkTrue(attrs.disabled) || checkTrue(attrs.readonly) || checkTrue(attrs[':disabled']) || checkTrue(attrs[':readonly']) || checkTrue(quickAttrs.includes('disabled')) || checkTrue(quickAttrs.includes('readonly')) || checkTrue(readonly);
+    }
+
+    nunjucksEnv.addFilter('isFormItemDisabled', function(res) {
+      return isFormItemDisabled(res);
+    });
     nunjucksEnv.addFilter('mobileFormItemFormat', function(result, drawerKey = 'updateItem') {
       const tag = [];
       const tagItemFormat = res => {
@@ -332,12 +343,51 @@ const mixin = {
           return '';
         }
         if (!res.attrs) {
-          res.attrs = { ':reverse': true };
+          // res.attrs = { ':reverse': true };
+          res.attrs = {};
         } else {
-          res.attrs[':reverse'] = true;
+          // res.attrs[':reverse'] = true;
         }
+        if (!res.quickAttrs) {
+          res.quickAttrs = [ ];
+        }
+        if (!res.quickAttrs.includes('dense')) {
+          res.quickAttrs.push('dense');
+        }
+        if (!res.quickAttrs.includes('single-line')) {
+          res.quickAttrs.push('single-line');
+        }
+
+        const classList = res.attrs.class ? res.attrs.class.split(' ') : [ 'jh-v-input', 'mt-0', 'pt-0' ];
+        if (res.model && res.label && ['v-text-field', 'v-select', 'v-textarea', 'v-autocomplete', 'v-combobox', 'v-file-input', 'v-radio', 'v-checkbox', 'v-switch', 'v-slider', 'v-range-slider', 'v-rating', 'v-date-picker', 'v-time-picker'].includes(res.tag)) {
+          if (!isFormItemDisabled(res)) {
+            // 判断 attrs 内是否有 placeholder 属性
+            let prefix = '请输入';
+            if (['v-select', 'v-autocomplete', 'v-combobox'].includes(res.tag)) {
+              prefix = '请选择';
+            }
+            if (!res.attrs.placeholder) {
+              // 替换掉 （.*）|（.*）|{{.*}}
+              const placeholder = res.label.replace(/（.*）|（.*）|{{.*}}/g, '');
+              res.attrs.placeholder = prefix + placeholder;
+            }
+          } else {
+            classList.push('!text-gray-500');
+          }
+        }
+
         // class="jh-v-input" dense single-line filled
-        if (!res.attrs.class) res.attrs.class = 'jh-v-input mt-0 pt-0';
+        if (['v-date-picker', 'jh-json-editor', 'v-textarea'].includes(res.tag)) {
+          if (!classList.includes('w-full')) {
+            classList.push('w-full');
+          }
+        } else {
+          if (!classList.includes('w-2/3')) {
+            classList.push('w-2/3 inline-block');
+          }
+        }
+        res.attrs.class = classList.join(' ');
+
 
         let tagStr = `<${res.tag} `;
         if (res.model) {
@@ -366,7 +416,6 @@ const mixin = {
 
         let quickAttrs = (res.quickAttrs || []).join(' ');
         quickAttrs = quickAttrs ? ' ' + quickAttrs : '';
-
         tagStr += _.map(res.attrs, (value, key) => {
           let val = value;
           if (key === 'v-model' && !value.includes('.')) {
@@ -673,7 +722,7 @@ const mixin = {
     }
     // 默认 headSlot 加入分隔符
     for (const content of jsonConfig.actionContent) {
-      if (!_.isString(content) && (!content.headSlot || !content.headSlot.length)) {
+      if (!_.isString(content) && (!content.headSlot || !content.headSlot.length) && (!jsonConfig.version || ['v2', 'v3'].includes(jsonConfig.version))) {
         content.headSlot = [ '<v-spacer></v-spacer>' ];
       }
     }
@@ -884,7 +933,8 @@ const mixin = {
    */
   processingVersionData(jsonConfig) {
     const { version, pageType } = jsonConfig;
-    if (version === 'v3') {
+    if ([ 'v4', 'v3' ].includes(version)) {
+
       for (const content of jsonConfig.headContent) {
         if (content.tag === 'jh-scene') {
           // 格式校验
@@ -963,6 +1013,25 @@ const mixin = {
           content.props = Object.assign(defaultProps, content.props || {});
         }
       });
+
+      if (version === 'v4' && [ 'jh-mobile-page', 'jh-mobile-component' ].includes(pageType)) {
+        jsonConfig.actionContent.forEach(content => {
+          if ([ 'jh-create-drawer', 'jh-update-drawer', 'jh-detail-drawer', 'jh-drawer' ].includes(content.tag)) {
+            content.contentList.forEach(item => {
+              if (item.type === 'form') {
+                item.formItemList.forEach(formItem => {
+                  if (_.isObject(formItem)) {
+                    if (!formItem.colAttrs) formItem.colAttrs = {};
+                    if (!formItem.colAttrs?.class) {
+                      formItem.colAttrs.class = 'flex flex-wrap items-start border-b py-2';
+                    }
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
     }
   },
 

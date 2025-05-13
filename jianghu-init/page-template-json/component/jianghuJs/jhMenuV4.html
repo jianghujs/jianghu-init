@@ -136,14 +136,14 @@
       flat
     >
       <!-- 手机端左侧菜单开启按钮 -->
-      <v-app-bar-nav-icon color="success" @click.stop="isMobileMenuDrawerShown = !isMobileMenuDrawerShown" class="hidden-md-and-up">
+      <div color="success" @click.stop="isMobileMenuDrawerShown = !isMobileMenuDrawerShown" class="hidden-md-and-up flex-col justify-center items-start w-[60px]">
         <span class="success--text text-caption">
           <v-icon size="26" class="success--text">mdi-menu</v-icon>
           <div class="mt-[-5px]">目录</div>
         </span>
-      </v-app-bar-nav-icon>
+      </div>
       <!-- 页面标题 -->
-      <v-toolbar-title ref="toolbarTitle" class="mr-5 pl-0">
+      <v-toolbar-title ref="toolbarTitle" class="pl-0">
         <span class="hidden-sm-and-down text-h7 font-weight-bold">
           <slot name="title">{{ appTitle }}</slot>
         </span>
@@ -232,10 +232,12 @@
        
         <template v-if="showAvatar">
           <!-- 移动端右上角用户信息 -->
-          <div text @click.stop="isMobileUserMenuDrawerShown = !isMobileUserMenuDrawerShown" class="jh-avatar-menu-btn !block text-center sm:!hidden">
-            <v-icon :size="24" color="success">mdi-account-circle</v-icon>
-            <div>
-              <p class="jh-font-size-12 success--text mb-0">{{ userInfo.user.username }}</p>
+          <div text @click.stop="isMobileUserMenuDrawerShown = !isMobileUserMenuDrawerShown" class="jh-avatar-menu-btn flex-col justify-center items-end sm:!hidden">
+            <div class="text-center">
+              <v-icon :size="24" color="success">mdi-account-circle</v-icon>
+              <div>
+                <p class="jh-font-size-12 success--text mb-0 max-w-[60px] truncate">{{ userInfo.user.username }}</p>
+              </div>
             </div>
           </div>
 
@@ -590,10 +592,12 @@
 
   .jh-avatar-menu-btn {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     cursor: pointer;
     transition: all .3s;
     border-radius: 5px;
+    width: 60px;
+    max-width: 60px;
   }
 
   .jh-avatar-menu-btn:hover {

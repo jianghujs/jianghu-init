@@ -219,22 +219,37 @@
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
-        <v-row class="jh-drawer-header px-4 pl-[30px] md:pl-0" no-gutters align="center">
-          <span class="text-h7 font-weight-bold py-4"><=$ actionItem.title $=></span>
+        <v-row class="jh-drawer-header px-4 relative pl-[30px] md:pl-0" no-gutters align="center">
+          <!-- 取消icon -->
+          <v-icon @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck" class="mr-2">mdi-chevron-left</v-icon>
+          <div class="flex justify-center py-3 flex-1 w-full align-center">
+            <span class="text-h7 font-weight-bold"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
-          <div class="jh-drawer-action-btn-group md:block md:text-right">
-            <v-btn class="elevation-0 grey lighten-4" v-if="!isMobile" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck" small>取消</v-btn>
+          </div>
+          <!-- <v-icon >mdi-dots-vertical</v-icon> -->
+          <!-- 抽屉操作按钮 -->
+          <=%- for content in actionItem.contentList %=>
+          <=%- if content.headAction %=>
+          <template v-if="
+          <=%- if actionItem.contentList.length === 1 %=>true
+          <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
+          <=%- endif %=>">
+            <=$ content.headAction | tagFormat(12) $=>
+          </template>
+          <=%- endif %=>
+          <=%- endfor %=>
+          <div class="jh-drawer-action-btn-group pa-3">
             <!-- 抽屉操作按钮 -->
             <=%- for content in actionItem.contentList %=>
             <=%- if content.action %=>
-            <template v-if="
+            <div class="w-full gap-x-3 grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2" v-if="
             <=%- if actionItem.contentList.length === 1 %=>true
             <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
             <=%- endif %=>">
               <=$ content.action | tagFormat(14) $=>
-            </template>
+            </div>
             <=%- endif %=>
             <=%- endfor %=>
           </div>
@@ -250,19 +265,8 @@
           </v-col>
         </v-row>
         <=%- endif %=>
-        <=%- if actionItem.contentList.length > 1 %=>
-        <div class="px-4">
-          <v-tabs
-            v-model="<=$ actionItem.key $=>DrawerTab"
-            color="success"
-          >
-            <=%- for content in actionItem.contentList %=>
-            <v-tab key="<=$ loop.index - 1 $=>" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
-              <=$ content.label $=>
-            </v-tab>
-            <=%- endfor %=>
-          </v-tabs>
-        </div>
+        <=%- if actionItem.card %=>
+        <=$ actionItem.card | tagFormat(4) $=>
         <=%- endif %=>
         <=%- if actionItem.contentList.length > 1 %=>
         <v-tabs-items v-model="<=$ actionItem.key $=>DrawerTab">
