@@ -240,7 +240,7 @@
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
         <v-row class="jh-drawer-header p-3 relative" no-gutters align="center">
-          <span class="text-base font-medium"><=$ actionItem.title $=></span>
+          <span class="text-base font-medium line-clamp-1 max-w-[calc(100%-40px)]"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
@@ -400,7 +400,7 @@
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
         <v-card-title class="px-3 flex items-center relative">
-          <span class="text-base"><=$ actionItem.title $=></span>
+          <span class="text-base line-clamp-1 max-w-[calc(100%-40px)]"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
@@ -468,10 +468,10 @@
     <v-bottom-sheet v-if="isPageSearchDrawerShown" v-model="isPageSearchDrawerShown" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[33vh] pb-4">
         <!-- 标题 -->
-        <v-card-title class="px-3">
+        <v-card-title class="px-3 relative">
           <span class="text-base">高级搜索</span>
           <v-spacer></v-spacer>
-          <div class="success--text text-xs text-center" @click="isPageSearchDrawerShown = false">
+          <div class="absolute right-3 success--text text-xs text-center" @click="isPageSearchDrawerShown = false">
             <v-icon size="22" class="success--text">mdi-window-close</v-icon>
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
@@ -524,10 +524,10 @@
     <v-bottom-sheet v-if="isPageOrderDrawerShown" v-model="isPageOrderDrawerShown" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[33vh] pb-4">
         <!-- 标题 -->
-        <v-card-title class="px-3">
+        <v-card-title class="px-3 relative">
           <span class="text-base">排序</span>
           <v-spacer></v-spacer>
-          <div class="success--text text-xs text-center" @click="isPageOrderDrawerShown = false">
+          <div class="absolute right-3 success--text text-xs text-center" @click="isPageOrderDrawerShown = false">
             <v-icon size="22" class="success--text">mdi-window-close</v-icon>
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
@@ -559,10 +559,10 @@
     <v-bottom-sheet v-if="isPageActionDrawerShown" v-model="isPageActionDrawerShown" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[33vh] pb-4">
         <!-- 标题 -->
-        <v-card-title class="px-3">
+        <v-card-title class="px-3 relative">
           <span class="text-base">更多操作</span>
           <v-spacer></v-spacer>
-          <div class="success--text text-xs text-center" @click="isPageActionDrawerShown = false">
+          <div class="absolute right-3 success--text text-xs text-center" @click="isPageActionDrawerShown = false">
             <v-icon size="22" class="success--text">mdi-window-close</v-icon>
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
