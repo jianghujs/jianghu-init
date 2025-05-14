@@ -27,7 +27,7 @@
   <v-main <=%- if jhMenu %=> class="mt-13"<=%- endif %=>>
     <!-- 头部内容 >>>>>>>>>>>>> -->
     <=%- if (headContent | filter({tag: '!jh-page-title'})).length %=>
-    <div class="jh-page-second-bar px-3 py-2 px-sm-8 border-b">
+    <div class="jh-page-second-bar px-3 py-2 border-b">
       <v-row class="align-center justify-space-between" no-gutters>
         <=%- for content in headContent %=>
         <=%- if content.tag == 'jh-order' %=>
@@ -119,7 +119,7 @@
 
     <=%- if hasPageContent %=>
     <!-- 页面内容 >>>>>>>>>>>>> -->
-    <div class="jh-page-body-container px-sm-8">
+    <div class="jh-page-body-container">
       <v-row class="pa-0 ma-0">
       <=%- for content in pageContent %=>
       <=%- if content.tag == 'jh-list' %=>
