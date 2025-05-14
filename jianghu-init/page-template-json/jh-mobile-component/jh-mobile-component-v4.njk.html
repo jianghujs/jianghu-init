@@ -399,7 +399,7 @@
     <v-bottom-sheet v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" style="z-index: 111;" fixed temporary <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
-        <v-card-title class="px-4 flex items-center relative">
+        <v-card-title class="px-3 flex items-center relative">
           <span class="text-base"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
@@ -409,7 +409,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-4">
+        <v-card-text class="px-3">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
@@ -443,11 +443,11 @@
           </div>
         </v-card-text>
         <=%- if (actionItem.actionList | isArray) and (actionItem.actionList.length > 0) %=>
-        <v-card-actions class="flex px-4 pb-6 justify-end grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2">
+        <v-card-actions class="flex px-3 pb-6 justify-end grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2">
           <=$ actionItem.actionList | tagFormat(10) $=>
         </v-card-actions>
         <=%- elif actionItem.actionList | isString %=>
-        <v-card-actions class="flex px-4 pb-6 justify-end">
+        <v-card-actions class="flex px-3 pb-6 justify-end">
           <=$ actionItem.actionList | tagFormat(10) $=>
         </v-card-actions>
         <=%- endif %=>
@@ -468,7 +468,7 @@
     <v-bottom-sheet v-if="isPageSearchDrawerShown" v-model="isPageSearchDrawerShown" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[33vh] pb-4">
         <!-- 标题 -->
-        <v-card-title class="px-4">
+        <v-card-title class="px-3">
           <span class="text-base">高级搜索</span>
           <v-spacer></v-spacer>
           <div class="success--text text-xs text-center" @click="isPageSearchDrawerShown = false">
@@ -476,7 +476,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-4">
+        <v-card-text class="px-3">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
@@ -506,7 +506,7 @@
           </div>
         </v-card-text>
         <=%- if not jhSearch.props.hiddenBtn %=>
-        <v-card-actions class="flex justify-space-around px-4 pb-6">
+        <v-card-actions class="flex justify-space-around px-3 pb-6">
           <v-btn @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
           <=%- if (pageContent | find({tag: 'jh-search'})) %=>
           <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
@@ -524,7 +524,7 @@
     <v-bottom-sheet v-if="isPageOrderDrawerShown" v-model="isPageOrderDrawerShown" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[33vh] pb-4">
         <!-- 标题 -->
-        <v-card-title class="px-4">
+        <v-card-title class="px-3">
           <span class="text-base">排序</span>
           <v-spacer></v-spacer>
           <div class="success--text text-xs text-center" @click="isPageOrderDrawerShown = false">
@@ -532,7 +532,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-4">
+        <v-card-text class="px-3">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
@@ -546,7 +546,7 @@
             </v-row>
           </div>
         </v-card-text>
-        <v-card-actions class="flex justify-space-around px-4 pb-6">
+        <v-card-actions class="flex justify-space-around px-3 pb-6">
           <v-btn @click="usePageOrder = false;tableDataOrder = tableDataOrderList[0].value">重置</v-btn>
           <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
@@ -559,7 +559,7 @@
     <v-bottom-sheet v-if="isPageActionDrawerShown" v-model="isPageActionDrawerShown" bottom style="z-index: 111;" fixed temporary>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[33vh] pb-4">
         <!-- 标题 -->
-        <v-card-title class="px-4">
+        <v-card-title class="px-3">
           <span class="text-base">更多操作</span>
           <v-spacer></v-spacer>
           <div class="success--text text-xs text-center" @click="isPageActionDrawerShown = false">
@@ -567,7 +567,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-4">
+        <v-card-text class="px-3">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
