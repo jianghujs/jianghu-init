@@ -264,22 +264,16 @@
 
     <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' or actionItem.tag == 'jh-detail-drawer' %=>
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
-    <v-navigation-drawer v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" :permanent="is<=$ actionItem.key | ucfirst $=>DrawerShown" fixed temporary right width="90%" class="elevation-24" <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+    <v-bottom-sheet v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" style="z-index: 111;" fixed temporary <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
+        <div class="!h-[calc(100vh-52px)] relative rounded-t-lg bg-white overflow-hidden overflow-y-auto">
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
-        <v-row class="jh-drawer-header px-4 relative pl-[30px] md:pl-0" no-gutters align="center">
-          <!-- 取消icon -->
-          <v-icon @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck" class="mr-2 mt-0">mdi-chevron-left</v-icon>
-          <div class="flex justify-center h-[52px] flex-1 w-full align-center items-center">
-            <div class="inline-flex flex-col font-bold items-center overflow-hidden">
-              <span class="text-sm"><$ ctx.app.config.appTitle $></span>
-              <span class="text-xs text-gray-500 whitespace-nowrap text-ellipsis"><=$ actionItem.title $=></span>
-            </div>
+        <v-row class="jh-drawer-header p-3 relative" no-gutters align="center">
+          <span class="text-base font-medium"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
-          </div>
           <!-- <v-icon >mdi-dots-vertical</v-icon> -->
           <!-- 抽屉操作按钮 -->
           <=%- for content in actionItem.contentList %=>
@@ -296,18 +290,10 @@
             <=%- endif %=>"></div>
           <=%- endif %=>
           <=%- endfor %=>
-          <div class="jh-drawer-action-btn-group pa-3">
-            <!-- 抽屉操作按钮 -->
-            <=%- for content in actionItem.contentList %=>
-            <=%- if content.action %=>
-            <div class="w-full gap-x-3 grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2" v-if="
-            <=%- if actionItem.contentList.length === 1 %=>true
-            <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
-            <=%- endif %=>">
-              <=$ content.action | tagFormat(14) $=>
-            </div>
-            <=%- endif %=>
-            <=%- endfor %=>
+
+          <div class="success--text text-xs text-center absolute right-3" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false">
+            <v-icon size="22" class="success--text">mdi-window-close</v-icon>
+            <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-row>
         <v-divider class="jh-divider"></v-divider>
@@ -321,118 +307,129 @@
           </v-col>
         </v-row>
         <=%- endif %=>
-        <=%- if actionItem.card %=>
-        <=$ actionItem.card | tagFormat(4) $=>
-        <=%- endif %=>
-        <=%- if actionItem.contentList.length > 1 %=>
-        <div class="px-3">
-          <v-tabs
-            v-model="<=$ actionItem.key $=>DrawerTab"
-            color="success"
-            <=%- if pageType == 'jh-mobile-page' %=>
-            height="40"
-            <=%- endif %=>
-          >
-            <=%- for content in actionItem.contentList %=>
-            <v-tab key="<=$ loop.index - 1 $=>">
-              <=$ content.label $=>
-            </v-tab>
-            <=%- endfor %=>
-          </v-tabs>
-        </div>
-        <=%- endif %=>
-        <=%- if actionItem.contentList.length > 1 %=>
-        <v-tabs-items v-model="<=$ actionItem.key $=>DrawerTab">
-        <=%- endif %=>
-          <=%- for content in actionItem.contentList %=>
-          <=%- if actionItem.contentList.length > 1 %=>
-          <v-tab-item
-            key="<=$ loop.index - 1 $=>"
-          >
+        <div class="h-[calc(100vh-101px)] overflow-y-auto">
+          <=%- if actionItem.card %=>
+          <=$ actionItem.card | tagFormat(4) $=>
           <=%- endif %=>
-
-            <!-- 抽屉内容form -->
-            <=%- if content.type == "form" %=>
-            <v-row class="m-0 p-0 pb-4">
-              <=%- for formItem in content.formItemList %=>
-              <=%- if not formItem.hidden %=>
-              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
-                <=%- if formItem.label %=>
-                <span class="jh-input-label w-1/3 pr-2"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 mr-1">* </span><=%- endif %=><=$ formItem.label $=></span>
-                <=%- endif %=>
-                <=%- if formItem.tag == "v-date-picker" %=>
-                <v-menu class="" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
-                    <template v-slot:activator="{on, attrs}">
-                    <v-text-field  prepend-inner-icon="mdi-calendar-range" v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="" dense single-line clearable></v-text-field>
-                    </template>
-                    <v-date-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-date-picker>
-                </v-menu>
-                <=%- elif formItem.tag == "jh-json-editor" %=>
-                <vue-json-editor v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></vue-json-editor>
-                <=%- elif formItem.model is defined %=>
-                <=$ formItem | mobileFormItemFormat(actionItem.key + 'Item') $=>
-                <=%- else %=>
-                <=$ formItem | tagFormat(value) $=>
-                <=%- endif %=>
-              </v-col>
+          <=%- if actionItem.contentList.length > 1 %=>
+          <div class="px-3 border-b">
+            <v-tabs
+              v-model="<=$ actionItem.key $=>DrawerTab"
+              color="success"
+              <=%- if pageType == 'jh-mobile-page' %=>
+              height="40"
               <=%- endif %=>
+            >
+              <=%- for content in actionItem.contentList %=>
+              <v-tab key="<=$ loop.index - 1 $=>">
+                <=$ content.label $=>
+              </v-tab>
               <=%- endfor %=>
-            </v-row>
-            <=%- elif content.type == "preview" %=>
-            <v-row class="mt-0 px-3 pb-15">
-              <=%- for formItem in content.formItemList %=>
-              <=%- if not formItem.hidden %=>
-              <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>"<=% for attr, value in formItem.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
-                <=%- if formItem.label %=>
-                <span class="text-sm w-28 font-medium text-gray-600"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
-                <=%- endif %=>
-                <=%- if formItem.tag == "v-date-picker" %=>
-                <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
-                    <template v-slot:activator="{on, attrs}">
-                    <v-text-field  prepend-inner-icon="mdi-calendar-range" v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled clearable></v-text-field>
-                    </template>
-                    <v-date-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-date-picker>
-                </v-menu>
-                <=%- elif formItem.tag == "jh-json-editor" %=>
-                <vue-json-editor v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=> disabled></vue-json-editor>
-                <=%- elif formItem.model is defined %=>
-                <=$ formItem | formItemFormat(actionItem.key + 'Item') $=>
-                <=%- else %=>
-                <=$ formItem | tagFormat(value) $=>
-                <=%- endif %=>
-              </v-col>
-              <=%- endif %=>
-              <=%- endfor %=>
-            </v-row>
-             <!-- 抽屉内容组件 -->
-            <=%- elif content.type == "component" %=>
-            <<=$ content.componentPath.split('/').pop() | camelToKebab $=> <=%- for attr, value in content.bind %=> <=$ attr | tagAttr(value) $=><=%- endfor %=>/>
-            <=%- else %=>
-             <!-- 抽屉内容自定义 -->
-            <=$ content | tagFormat(12) $=>
+            </v-tabs>
+          </div>
+          <=%- endif %=>
+          <=%- if actionItem.contentList.length > 1 %=>
+          <v-tabs-items v-model="<=$ actionItem.key $=>DrawerTab">
+          <=%- endif %=>
+            <=%- for content in actionItem.contentList %=>
+            <=%- if actionItem.contentList.length > 1 %=>
+            <v-tab-item
+              key="<=$ loop.index - 1 $=>"
+            >
             <=%- endif %=>
 
+              <!-- 抽屉内容form -->
+              <=%- if content.type == "form" %=>
+              <v-row class="m-0 p-0 pb-4">
+                <=%- for formItem in content.formItemList %=>
+                <=%- if not formItem.hidden %=>
+                <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
+                  <=%- if formItem.label %=>
+                  <span class="jh-input-label w-1/3 pr-2"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 mr-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                  <=%- endif %=>
+                  <=%- if formItem.tag == "v-date-picker" %=>
+                  <v-menu class="" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
+                      <template v-slot:activator="{on, attrs}">
+                      <v-text-field  prepend-inner-icon="mdi-calendar-range" v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="" dense single-line clearable></v-text-field>
+                      </template>
+                      <v-date-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-date-picker>
+                  </v-menu>
+                  <=%- elif formItem.tag == "jh-json-editor" %=>
+                  <vue-json-editor v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></vue-json-editor>
+                  <=%- elif formItem.model is defined %=>
+                  <=$ formItem | mobileFormItemFormat(actionItem.key + 'Item') $=>
+                  <=%- else %=>
+                  <=$ formItem | tagFormat(value) $=>
+                  <=%- endif %=>
+                </v-col>
+                <=%- endif %=>
+                <=%- endfor %=>
+              </v-row>
+              <=%- elif content.type == "preview" %=>
+              <v-row class="mt-0 px-3 pb-15">
+                <=%- for formItem in content.formItemList %=>
+                <=%- if not formItem.hidden %=>
+                <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>"<=% for attr, value in formItem.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
+                  <=%- if formItem.label %=>
+                  <span class="text-sm w-28 font-medium text-gray-600"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                  <=%- endif %=>
+                  <=%- if formItem.tag == "v-date-picker" %=>
+                  <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
+                      <template v-slot:activator="{on, attrs}">
+                      <v-text-field  prepend-inner-icon="mdi-calendar-range" v-bind="attrs" v-on="on" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense single-line filled clearable></v-text-field>
+                      </template>
+                      <v-date-picker color="success" elevation="20" v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>></v-date-picker>
+                  </v-menu>
+                  <=%- elif formItem.tag == "jh-json-editor" %=>
+                  <vue-json-editor v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in formItem.attrs %=><=$ attr | tagAttr(value) $=><=% endfor %=> disabled></vue-json-editor>
+                  <=%- elif formItem.model is defined %=>
+                  <=$ formItem | formItemFormat(actionItem.key + 'Item') $=>
+                  <=%- else %=>
+                  <=$ formItem | tagFormat(value) $=>
+                  <=%- endif %=>
+                </v-col>
+                <=%- endif %=>
+                <=%- endfor %=>
+              </v-row>
+              <!-- 抽屉内容组件 -->
+              <=%- elif content.type == "component" %=>
+              <<=$ content.componentPath.split('/').pop() | camelToKebab $=> <=%- for attr, value in content.bind %=> <=$ attr | tagAttr(value) $=><=%- endfor %=>/>
+              <=%- else %=>
+              <!-- 抽屉内容自定义 -->
+              <=$ content | tagFormat(12) $=>
+              <=%- endif %=>
+
+            <=%- if actionItem.contentList.length > 1 %=>
+            </v-tab-item>
+            <=%- endif %=>
+            <=%- endfor %=>
           <=%- if actionItem.contentList.length > 1 %=>
-          </v-tab-item>
+          </v-tabs-items>
+          <=%- endif %=>
+        </div>
+          <=%- for content in actionItem.contentList %=>
+          <=%- if content.action %=>
+          <div v-if="
+          <=%- if actionItem.contentList.length === 1 %=>true
+          <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
+          <=%- endif %=>" class="p-3 fixed bottom-0 left-0 right-0 bg-white border-t">
+            <!-- 抽屉操作按钮 -->
+            <div class="w-full gap-x-3 grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2">
+              <=$ content.action | tagFormat(14) $=>
+            </div>
+          </div>
           <=%- endif %=>
           <=%- endfor %=>
-        <=%- if actionItem.contentList.length > 1 %=>
-        </v-tabs-items>
-        <=%- endif %=>
+        </div>
       </v-form>
-      <!-- 抽屉关闭按钮 -->
-      <v-btn elevation="0" :color="isMobile ? 'white' : 'success'" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">
-        <v-icon v-if="isMobile" size="30">mdi-chevron-left</v-icon>
-        <v-icon v-else>mdi-close</v-icon>
-      </v-btn>
-    </v-navigation-drawer>
+    </v-bottom-sheet>
     <!-- <<<<<<<<<<<<< <=$ actionItem.title $=> -->
     <=%- elif actionItem.tag == 'jh-bottom-sheet' %=>
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
     <v-bottom-sheet v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" style="z-index: 111;" fixed temporary <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
-        <v-card-title class="px-4 flex items-center relative">
+        <v-card-title class="px-3 py-3 flex items-center relative">
           <span class="text-base"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
@@ -442,7 +439,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-4">
+        <v-card-text class="px-3">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->

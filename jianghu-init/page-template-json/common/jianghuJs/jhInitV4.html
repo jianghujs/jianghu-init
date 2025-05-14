@@ -22,6 +22,51 @@
     .v-input--is-readonly .v-input__slot {
       background: unset !important;
     }
+    .jh-v-input .v-input__control {
+      position: relative;
+    }
+
+    .v-text-field .v-text-field__details {
+      bottom: unset !important;
+      left: unset !important;
+      right: 5px !important;
+      top: 11px !important;
+    }
+
+    .v-text-field.v-input--dense .v-text-field__details {
+      bottom: unset !important;
+      left: unset !important;
+      right: 5px !important;
+      top: 8px !important;
+    }
+
+    body .v-application .v-navigation-drawer__content .drawer-close-float-btn {
+        position: fixed !important;
+        top: 12px !important;
+        left: unset !important;
+        right: 12px !important;
+        border-radius: 100% !important;
+        height: 30px;
+        width: 30px;
+        z-index: 20;
+    }
+
+    .v-dialog.v-bottom-sheet:not(.v-dialog--fullscreen) {
+      max-height: calc(100vh - 52px) !important;
+    }
+
+    body .v-application .v-bottom-sheet .title {
+        position: relative;
+    }
+    body .v-application .v-bottom-sheet .title::before {
+        content: '';
+        height: 14px;
+        width: 3px;
+        background: var(--cPrimaryColor);
+        position: absolute;
+        top: calc(50% - 7px);
+        left: 0;
+    }
   }
 </style>
 <!-- <<<<<<<<<<<<< JH CSS -->
