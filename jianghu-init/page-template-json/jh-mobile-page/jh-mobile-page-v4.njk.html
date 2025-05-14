@@ -270,7 +270,7 @@
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
         <v-row class="jh-drawer-header p-3 relative" no-gutters align="center">
-          <span class="text-base font-medium"><=$ actionItem.title $=></span>
+          <span class="text-base font-medium line-clamp-1 max-w-[calc(100%-40px)]"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
@@ -430,7 +430,7 @@
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
         <v-card-title class="px-3 py-3 flex items-center relative">
-          <span class="text-base"><=$ actionItem.title $=></span>
+          <span class="text-base line-clamp-1 max-w-[calc(100%-40px)]"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
