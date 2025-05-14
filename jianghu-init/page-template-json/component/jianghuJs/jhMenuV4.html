@@ -244,7 +244,7 @@
           <!-- pc端右上角用户信息 -->
           <v-menu offset-y v-model="isAvatarMenuShown">
             <template v-slot:activator="{on, attrs}">
-              <div text v-bind="attrs" v-on="on" class="jh-avatar-menu-btn px-1 hidden-xs-only">
+              <div text v-bind="attrs" v-on="on" class="jh-avatar-menu-btn flex !items-center px-1 hidden-xs-only">
                 <v-icon :size="32" color="grey lighten-2">mdi-account-circle</v-icon>
                 <div class="ml-1">
                   <p class="jh-font-size-12 black--text mb-0">{{ userInfo.user.username }}</p>
@@ -388,7 +388,7 @@
         } else {
           // 判断是否当前是隐藏页面，如果是隐藏页面，则不处理参数刷新页面
           if (url.split('/page/')[1] === this.currentPageId) {
-            const page = this.userInfo.allowPageList.find(item => item.pageId === this.currentPageId );
+            const page = this.userInfo.allowPageList.find(item => item.pageId === this.currentPageId);
             if (page.pageType == 'dynamicInMenu') {
               location.reload();
               return;
@@ -622,18 +622,19 @@
   }
 
   /* 左上角菜单 */
-  .jh-header-tab.v-tab--active{
+  .jh-header-tab.v-tab--active {
     color: var(--gray-900) !important;
   }
-  .jh-header-tab.jh-header-tab-active{
+
+  .jh-header-tab.jh-header-tab-active {
     color: #4caf50 !important;
   }
 
   /* 右上角菜单 */
-  .jh-right-menu svg{
+  .jh-right-menu svg {
     width: 28px;
     height: 28px;
-    vertical-align: middle;    
+    vertical-align: middle;
   }
 </style>
 <!-- <<<<<<<<<<<<< jhMenu.html -->
