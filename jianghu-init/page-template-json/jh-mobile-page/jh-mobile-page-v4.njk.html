@@ -74,7 +74,7 @@
         <v-col cols="12" <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
           <jh-scene class="" :initFormData="sceneCreateForm" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId" :defaultSceneList="defaultSceneList" :maxSceneDisplay="maxSceneDisplay" @useScene="doUiAction('useScene', $event)" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
             <template v-slot:form="{form}">
-              <v-row class="mt-0 px-4">
+              <v-row class="mt-0 px-3">
                 <=%- for formItem in content.data.customSceneList %=>
                 <v-col cols="12" class="px-0">
                   <=%- if formItem.label %=>
@@ -473,11 +473,11 @@
           </div>
         </v-card-text>
         <=%- if (actionItem.actionList | isArray) and (actionItem.actionList.length > 0) %=>
-        <v-card-actions class="flex px-4 justify-end grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2 fixed bottom-0 left-0 right-0 bg-white">
+        <v-card-actions class="flex px-3 justify-end grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2 fixed bottom-0 left-0 right-0 bg-white">
           <=$ actionItem.actionList | tagFormat(10) $=>
         </v-card-actions>
         <=%- elif actionItem.actionList | isString %=>
-        <v-card-actions class="flex px-4 justify-end fixed bottom-0 left-0 right-0 bg-white">
+        <v-card-actions class="flex px-3 justify-end fixed bottom-0 left-0 right-0 bg-white">
           <=$ actionItem.actionList | tagFormat(10) $=>
         </v-card-actions>
         <=%- endif %=>
@@ -502,7 +502,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-4">
+        <v-card-text class="px-3">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
@@ -558,7 +558,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-4">
+        <v-card-text class="px-3">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
@@ -572,7 +572,7 @@
             </v-row>
           </div>
         </v-card-text>
-        <v-card-actions class="flex justify-space-around px-4 fixed bottom-0 left-0 right-0 bg-white">
+        <v-card-actions class="flex justify-space-around px-3 fixed bottom-0 left-0 right-0 bg-white">
           <v-btn @click="usePageOrder = false;tableDataOrder = tableDataOrderList[0].value">重置</v-btn>
           <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
@@ -593,7 +593,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-4">
+        <v-card-text class="px-3">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
