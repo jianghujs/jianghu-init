@@ -79,15 +79,27 @@
       <div class="d-flex flex-column h-[calc(100vh-20px)]">
         <div>
           <!-- 页面标题 -->
-          <v-toolbar-title ref="toolbarTitle" class="px-4 jh-toolbar-title flex-1">
-            <div text class="d-flex justify-space-between align-center pt-3">
-              <v-icon :size="18" @click="isMobileUserMenuDrawerShown = !isMobileUserMenuDrawerShown">mdi-window-close</v-icon>
-              <v-spacer/>
-              <div class="text-right mr-2">
-                <span class="d-block leading-none jh-font-size-12">{{ userInfo.user.username }}</span>
-                <span class="d-block leading-none jh-font-size-10 grey--text mt-1">{{ userInfo.user.userId }}</span>
-              </div>  
-              <v-icon :size="30">mdi-account-circle</v-icon>
+          <v-toolbar-title ref="toolbarTitle" class="px-4 !min-h-[110px] flex-1">
+            <div text class="flex flex-col pt-3 gap-3 items-start">
+              <div class="success--text text-xs text-center" @click="isMobileUserMenuDrawerShown = false">
+                <v-icon size="22" class="success--text">mdi-window-close</v-icon>
+                <div class="success--text mt-[-2px]">关闭</div>
+              </div>
+              <div class="flex w-full items-start mb-2 gap-1">
+                <v-icon :size="36">mdi-account-circle</v-icon>
+                <div class="flex-1">
+                  <div class="text-xs">
+                    {{ userInfo.user.username }}
+                    <span class="text-[10px] grey--text">{{ userInfo.user.userId }}</span>
+                  </div>
+                  <div class="w-full flex flex-wrap gap-1">
+                    <span class="text-[10px] px-1 border rounded text-gray-500" v-for="(userGroupRole, i) of userInfo.userGroupRoleList" :key="i">
+                      {{ userGroupRole.groupName||userGroupRole.groupId }}
+                      <span v-if="userGroupRole.roleName||userGroupRole.roleId" class="ml-1">| {{ userGroupRole.roleName||userGroupRole.roleId }}</span>
+                    </span>
+                  </div>
+                </div>  
+              </div>
             </div>
           </v-toolbar-title>
           <v-divider class="jh-divider"></v-divider>
@@ -95,15 +107,6 @@
         
         <!-- 菜单 -->
         <v-list nav dense class="flex-1">
-          <template v-if="userInfo.userGroupRoleList.length > 0">
-            <div style="max-width: 220px;">
-              <v-chip label x-small outlined class="jh-font-size-10 mr-1 mb-1 py-1 px-1.5" v-for="(userGroupRole, i) of userInfo.userGroupRoleList" :key="i">
-                {{ userGroupRole.groupName||userGroupRole.groupId }}
-                <span v-if="userGroupRole.roleName||userGroupRole.roleId" class="ml-1">| {{ userGroupRole.roleName||userGroupRole.roleId }}</span>
-              </v-chip>
-            </div>
-            <v-divider class="my-1 jh-divider"></v-divider>
-          </template>
 
           <v-list-item v-for="avatarMenu of inAvatarMenuList" :key="avatarMenu.path" @click="openUrl(avatarMenu.path)">
             <v-list-item-icon class="mr-1 mt-1">
