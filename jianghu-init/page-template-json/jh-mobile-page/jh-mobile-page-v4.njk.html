@@ -148,9 +148,9 @@
               <=$ header.slot | tagFormat(12) $=>
 
               <=% if content.props.rightArrow %=>
-              <div v-if="viewMode == 'simple'" class="flex absolute top-0 right-0 items-center font-medium text-[#4caf50] ">
-                <span class="border-b border-dashed border-[#4caf50] text-xs"><=$ content.props.rightArrowText $=></span>
-                <v-icon size="20" color="success">mdi-chevron-right</v-icon>
+              <div v-if="viewMode == 'simple'" class="flex absolute top-0 right-0 items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]">
+                <span class="text-xs"><=$ content.props.rightArrowText $=></span>
+                <v-icon size="16" color="success"><=$ content.props.rightArrowIcon | default('mdi-chevron-right') $=></v-icon>
               </div>
               <=% endif %=>
             </div>
@@ -317,7 +317,7 @@
               v-model="<=$ actionItem.key $=>DrawerTab"
               color="success"
               <=%- if pageType == 'jh-mobile-page' %=>
-              height="40"
+              height="32"
               <=%- endif %=>
             >
               <=%- for content in actionItem.contentList %=>
@@ -532,12 +532,12 @@
           </div>
         </v-card-text>
         <=%- if not jhSearch.props.hiddenBtn %=>
-        <v-card-actions class="flex justify-space-around px-4 fixed bottom-0 left-0 right-0 bg-white">
+        <v-card-actions class="flex justify-end px-3 pb-6 gap-1">
           <v-btn @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
           <=%- if (pageContent | find({tag: 'jh-search'})) %=>
-          <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
+          <v-btn color="success" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
           <=%- else %=>
-          <v-btn color="success" class="flex-1 ml-3" @click="usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
+          <v-btn color="success" @click="usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
           <=%- endif %=>
         </v-card-actions>
         <=%- endif %=>
