@@ -507,7 +507,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-3">
+        <v-card-text class="px-3 max-h-[70vh] overflow-y-auto">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
@@ -537,7 +537,7 @@
           </div>
         </v-card-text>
         <=%- if not jhSearch.props.hiddenBtn %=>
-        <v-card-actions class="flex justify-end px-3 pb-6 gap-1">
+        <v-card-actions class="flex justify-end px-3 gap-1 fixed bottom-0 left-0 right-0 bg-white">
           <v-btn @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
           <=%- if (pageContent | find({tag: 'jh-search'})) %=>
           <v-btn color="success" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
