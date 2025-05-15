@@ -357,6 +357,9 @@ const mixin = {
         if (!res.quickAttrs.includes('single-line')) {
           res.quickAttrs.push('single-line');
         }
+        if (!res.quickAttrs.includes('filled') && res.tag == 'v-textarea') {
+          res.quickAttrs.push('filled');
+        }
 
         const classList = res.attrs.class ? res.attrs.class.split(' ') : [ 'jh-v-input', 'mt-0', 'pt-0' ];
         if (res.model && res.label && ['v-text-field', 'v-select', 'v-textarea', 'v-autocomplete', 'v-combobox', 'v-file-input', 'v-radio', 'v-checkbox', 'v-switch', 'v-slider', 'v-range-slider', 'v-rating', 'v-date-picker', 'v-time-picker'].includes(res.tag)) {
