@@ -504,7 +504,7 @@
           </div>
         </v-card-text>
         <=%- if not jhSearch.props.hiddenBtn %=>
-        <v-card-actions class="flex justify-space-around px-3 pb-6">
+        <v-card-actions class="flex justify-end px-3 py-3 gap-1 fixed bottom-0 left-0 right-0 bg-white">
           <v-btn @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
           <=%- if (pageContent | find({tag: 'jh-search'})) %=>
           <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
