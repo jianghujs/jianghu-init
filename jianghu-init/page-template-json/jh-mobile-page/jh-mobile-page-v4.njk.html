@@ -307,12 +307,12 @@
           </v-col>
         </v-row>
         <=%- endif %=>
-        <div class="h-[calc(100vh-101px)] overflow-y-auto">
+        <div class="h-[calc(100vh-101px)] overflow-y-auto relative">
           <=%- if actionItem.card %=>
           <=$ actionItem.card | tagFormat(4) $=>
           <=%- endif %=>
           <=%- if actionItem.contentList.length > 1 %=>
-          <div class="px-3 border-b">
+          <div class="px-3 border-b sticky top-0 bg-white z-10">
             <v-tabs
               v-model="<=$ actionItem.key $=>DrawerTab"
               color="success"
