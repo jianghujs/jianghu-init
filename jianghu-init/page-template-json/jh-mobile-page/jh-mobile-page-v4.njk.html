@@ -417,9 +417,10 @@
           <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
           <=%- endif %=>" class="p-3 fixed bottom-0 left-0 right-0 bg-white border-t">
             <!-- 抽屉操作按钮 -->
-            <div class="w-full gap-x-3 grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2">
+            <div class="w-full gap-x-3 grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2 relative">
               <=$ content.action | tagFormat(14) $=>
             </div>
+            <div class="w-full bg-white" style="height: calc(env(safe-area-inset-bottom) - 12px)"></div>
           </div>
           <=%- endif %=>
           <=%- endfor %=>
