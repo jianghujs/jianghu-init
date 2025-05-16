@@ -338,7 +338,7 @@
 
               <!-- 抽屉内容form -->
               <=%- if content.type == "form" %=>
-              <v-row class="m-0 p-0 pb-4">
+              <v-row class="m-0 p-0 pb-15">
                 <=%- for formItem in content.formItemList %=>
                 <=%- if not formItem.hidden %=>
                 <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
