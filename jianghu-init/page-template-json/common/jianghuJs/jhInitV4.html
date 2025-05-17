@@ -26,14 +26,18 @@
       position: relative;
     }
 
-    .v-text-field .v-text-field__details {
+    .v-text-field:not(.v-text-field--filled) .v-text-field__details {
       bottom: unset !important;
       left: unset !important;
       right: 5px !important;
       top: 11px !important;
     }
 
-    .v-text-field.v-input--dense .v-text-field__details {
+    .v-text-field.v-input--dense.v-select:not(.v-text-field--filled) .v-text-field__details {
+      right: 20px !important;
+    }
+
+    .v-text-field.v-input--dense:not(.v-text-field--filled) .v-text-field__details {
       bottom: unset !important;
       left: unset !important;
       right: 5px !important;
