@@ -863,6 +863,7 @@ const mixin = {
           for (const content of drawer.contentList) {
             if (content.type === 'form') {
               content.formItemList.forEach(item => {
+                if (_.isString(item)) return;
                 if (item.colsAttrs) {
                   item.colAttrs = item.colsAttrs;
                 }

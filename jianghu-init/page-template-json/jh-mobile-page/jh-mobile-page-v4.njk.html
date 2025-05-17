@@ -143,12 +143,26 @@
             <=%- for header in content.headers %=>
             <=%- if header.isSimpleMode %=>
             <=%- if header.isTitle == true %=>
-            <div class="flex items-center items-center border-b pb-1.5 relative">
-              <span class="font-medium text-sm"><=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></span>
-              <=$ header.slot | tagFormat(12) $=>
-
+            <div class="flex items-start border-b pb-1.5 w-full">
+              <!-- 左侧内容 -->
+              <div class="flex-1 flex min-w-0">
+                <div class="text-sm font-medium break-words line-clamp-1">
+                  <=%- if header.formatter %=>
+                  <=$ header.formatter $=>
+                  <=%- else %=>
+                  {{ item.<=$ header.value $=> }}
+                  <=%- endif %=>
+                </div>
+                <=%- if header.slot %=>
+                <div class="shrink-0">
+                  <=$ header.slot | tagFormat(12) $=>
+                </div>
+                <=%- endif %=>
+              </div>
+            
+              <!-- 右侧按钮 -->
               <=% if content.props.rightArrow %=>
-              <div v-if="viewMode == 'simple'" class="flex absolute top-0 right-0 items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]">
+              <div v-if="viewMode == 'simple'" class="ml-2 pt-0.5 shrink-0 inline-flex items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]">
                 <span class="text-xs"><=$ content.props.rightArrowText $=></span>
                 <v-icon size="16" color="success"><=$ content.props.rightArrowIcon | default('mdi-chevron-right') $=></v-icon>
               </div>
@@ -158,19 +172,22 @@
             <=%- endif %=>
             <=%- endfor %=>
             <=%- endif %=>
-            <div v-show="viewMode != 'detail'" class="text-xs pt-2">
+            <div v-show="viewMode != 'detail'" class="text-xs pt-2 grid grid-cols-<=$ content.props.cols | default('1') $=> gap-x-4 gap-y-1">
               <=%- for header in content.headers %=>
               <=%- if (not header.isTitle) and header.isSimpleMode  %=>
-              <div class="text-gray-500 pr-8 flex items-center" <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=$ header.text $=>：<=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
+              <div class="flex items-center gap-2">
+                <div class="text-[#7E838F]"><=$ header.text $=>：</div>
+                <div <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
+              </div>
               <=%- endif %=>
               <=%- endfor %=>
             </div>
 
-            <div v-show="viewMode == 'detail'" class="text-xs pt-2">
+            <div v-show="viewMode == 'detail'" class="text-xs pt-2 grid grid-cols-<=$ content.props.cols | default('1') $=> gap-x-4 gap-y-1">
               <=%- for header in content.headers %=>
               <=%- if not header.isTitle %=>
               <=%- if header.value == 'action' %=>
-              <div class="flex justify-end items-center">
+              <div class="flex justify-end items-center col-span-<=$ content.props.cols | default('1') $=>">
                 <=%- for action in content.rowActionList %=>
                 <=%- if not action.tag %=>
                 <span role="button" class="<=$ action.color | default('success') $=>--text font-weight-medium font-size-2 mr-2" @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=><=% for attr in action.quickAttrs %=><=$ attr $=> <=% endfor %=>>
@@ -183,7 +200,10 @@
                 <=%- endfor %=>
               </div>
               <=%- else %=>
-              <div class="text-gray-500 pr-8 flex items-center" <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=$ header.text $=>：<=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
+              <div class="flex items-center gap-2">
+                <div class="text-[#7E838F]"><=$ header.text $=>：</div>
+                <div <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
+              </div>
               <=%- endif %=>
               <=%- endif %=>
               <=%- endfor %=>
@@ -269,7 +289,7 @@
         <div class="!h-[calc(100vh-52px)] relative rounded-t-lg bg-white overflow-hidden overflow-y-auto">
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
-        <v-row class="jh-drawer-header p-3 relative pr-10" no-gutters align="center">
+        <v-row class="jh-drawer-header pl-3 py-1 h-[48px] relative pr-10" no-gutters align="center">
           <span class="text-base font-medium line-clamp-1 max-w-[calc(100%-40px)]"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
