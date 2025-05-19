@@ -286,7 +286,7 @@
             <v-tabs
               v-model="<=$ actionItem.key $=>DrawerTab"
               color="success"
-              height="32"
+              height="36"
             >
               <=%- for content in actionItem.contentList %=>
               <v-tab key="<=$ loop.index - 1 $=>">
@@ -569,7 +569,7 @@
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
-          <div>
+          <div class="pt-3">
             <div class="grid grid-cols-<=$ (pageContent | find({tag: 'jh-action'})).props.cols | default(2) $=> gap-3">
               <=%- for item in ((pageContent | find({tag: 'jh-action'})).actionList) %=>
               <=%- if (item | isObject) and (not item.tag) %=>

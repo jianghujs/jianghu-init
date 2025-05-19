@@ -154,7 +154,7 @@
                   <=%- endif %=>
                 </div>
                 <=%- if header.slot %=>
-                <div class="shrink-0">
+                <div class="shrink-0 grow">
                   <=$ header.slot | tagFormat(12) $=>
                 </div>
                 <=%- endif %=>
@@ -336,7 +336,7 @@
             <v-tabs
               v-model="<=$ actionItem.key $=>DrawerTab"
               color="success"
-              height="32"
+              height="36"
             >
               <=%- for content in actionItem.contentList %=>
               <v-tab key="<=$ loop.index - 1 $=>">
@@ -556,11 +556,11 @@
         </v-card-text>
         <=%- if not jhSearch.props.hiddenBtn %=>
         <v-card-actions class="flex flex-wrap justify-end px-3 py-0 ap-x-1 bg-white">
-          <v-btn @click="usePageSearch = false;clearServerSearch()">重置</v-btn>
+          <v-btn @click="clearServerSearch()">重置</v-btn>
           <=%- if (pageContent | find({tag: 'jh-search'})) %=>
-          <v-btn color="success" @click="tableOptions.page = 1; usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
+          <v-btn color="success" @click="tableOptions.page = 1; isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
           <=%- else %=>
-          <v-btn color="success" @click="usePageSearch = true;isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
+          <v-btn color="success" @click="isPageSearchDrawerShown = false; <=%- if jhSearch.props and jhSearch.props.confirmAction %=><=$ jhSearch.props.confirmAction $=><=%- else %=>doUiAction('getTableData')<=%- endif %=>">确认</v-btn>
           <=%- endif %=>
         </v-card-actions>
         <=%- endif %=>
@@ -620,7 +620,7 @@
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
-          <div>
+          <div class="pt-3">
             <div class="grid grid-cols-<=$ (pageContent | find({tag: 'jh-action'})).props.cols | default(2) $=> gap-3">
               <=%- for item in ((pageContent | find({tag: 'jh-action'})).actionList) %=>
               <=%- if (item | isObject) and (not item.tag) %=>
@@ -877,6 +877,25 @@ new Vue({
     //===// <=%- if (pageContent | find({tag: 'jh-list'})).props.showSelect %=>
     tableData(val) {
       this.tableSelected = [];
+
+      //===// <=%- for item in jhSearch.searchList %=>
+      //===// if (this?.<=$ item.attrs['v-model'] or item.attrs['vModel'] or item.model $=>) {
+      //===//   this.usePageSearch = true;
+      //===// }
+      //===// <=%- endfor %=>
+      this.usePageSearch = false;
+    },
+    //===// <=%- elseif hasJhList %=>
+    tableData(val) {
+      //===// <=%- for item in jhSearch.searchList %=>
+      //===// <=%- if item.attrs['v-model'] or item.attrs['vModel'] or item.model %=>
+      //===// if (this?.<=$ item.attrs['v-model'] or item.attrs['vModel'] or item.model $=>) {
+      //===//   this.usePageSearch = true;
+      //===//   return;
+      //===// }
+      //===// <=%- endif %=>
+      //===// <=%- endfor %=>
+      this.usePageSearch = false;
     },
     //===// <=%- endif %=>
     //===// <=%- for key, item in common.watch %=>
