@@ -163,7 +163,7 @@
               <!-- 右侧按钮 -->
               <=% if content.props.rightArrow %=>
               <div v-if="viewMode == 'simple'" class="ml-2 pt-0.5 shrink-0 inline-flex items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]">
-                <span class="text-xs"><=$ content.props.rightArrowText $=></span>
+                <span class="text-xs"><=$ content.props.rightArrowText | default('详情') $=></span>
                 <v-icon size="16" color="success"><=$ content.props.rightArrowIcon | default('mdi-chevron-right') $=></v-icon>
               </div>
               <=% endif %=>
