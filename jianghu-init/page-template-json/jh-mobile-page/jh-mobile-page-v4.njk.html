@@ -571,7 +571,7 @@
 
     <=%- if headContent | find({tag: 'jh-order'}) %=>
     <v-bottom-sheet v-if="isPageOrderDrawerShown" v-model="isPageOrderDrawerShown" bottom style="z-index: 111;" fixed temporary>
-      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[33vh]">
+      <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg min-h-[100px]">
         <!-- 标题 -->
         <v-card-title class="px-3 relative">
           <span class="text-base">排序</span>
@@ -581,7 +581,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-3 jh-safe-bottom-3">
+        <v-card-text class="px-3 pb-10">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
@@ -595,9 +595,9 @@
             </v-row>
           </div>
         </v-card-text>
-        <v-card-actions class="flex justify-space-around px-3 jh-safe-bottom-3 bg-white">
+        <v-card-actions class="flex justify-end px-3 jh-safe-bottom-3 bg-white">
           <v-btn @click="usePageOrder = false;tableDataOrder = tableDataOrderList[0].value">重置</v-btn>
-          <v-btn color="success" class="flex-1 ml-3" @click="tableOptions.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
+          <v-btn color="success" class="ml-3" @click="tableOptions.page = 1; usePageOrder = true;isPageOrderDrawerShown = false; doUiAction('getTableData')">确认</v-btn>
         </v-card-actions>
       
       </v-card>
