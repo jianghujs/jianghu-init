@@ -145,8 +145,8 @@
       <!-- 手机端左侧菜单开启按钮 -->
       <div color="success" @click.stop="isMobileMenuDrawerShown = !isMobileMenuDrawerShown" class="hidden-md-and-up flex-col justify-center items-start w-[60px]">
         <span class="success--text text-caption">
-          <v-icon size="26" class="success--text">mdi-menu</v-icon>
-          <div class="mt-[-5px]">目录</div>
+          <v-icon size="24" class="success--text">mdi-menu</v-icon>
+          <div class="-mt-0.5 text-xs">目录</div>
         </span>
       </div>
       <!-- 页面标题 -->
@@ -156,7 +156,7 @@
         </span>
         <span class="hidden-md-and-up font-medium text-center">
           <div class="text-base">{{ appTitle }}</div>
-          <div class="text-xs grey--text text--darken-2">
+          <div class="text-xs grey--text text--darken-2 -mt-0.5">
             <slot name="title">
             </slot>
           </div>
@@ -242,8 +242,8 @@
           <div text @click.stop="isMobileUserMenuDrawerShown = !isMobileUserMenuDrawerShown" class="jh-avatar-menu-btn flex-col justify-center items-end sm:!hidden">
             <div class="text-center">
               <v-icon :size="24" color="success">mdi-account-circle</v-icon>
-              <div>
-                <p class="jh-font-size-12 success--text mb-0 max-w-[60px] truncate">{{ userInfo.user.username }}</p>
+              <div class="-mt-0.5">
+                <p class="text-xs success--text mb-0 max-w-[60px] truncate">{{ userInfo.user.username }}</p>
               </div>
             </div>
           </div>
