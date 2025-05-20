@@ -146,7 +146,7 @@
             <div class="flex items-start border-b pb-1.5 w-full">
               <!-- 左侧内容 -->
               <div class="flex-1 flex min-w-0">
-                <div class="text-base font-medium break-words line-clamp-1">
+                <div class="text-base font-medium break-words line-clamp-<=$ header.lineClamp | default('1') $=> break-all">
                   <=%- if header.formatter %=>
                   <=$ header.formatter $=>
                   <=%- else %=>
@@ -162,7 +162,7 @@
             
               <!-- 右侧按钮 -->
               <=% if content.props.rightArrow %=>
-              <div v-if="viewMode == 'simple'" class="ml-2 pt-0.5 shrink-0 inline-flex items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]">
+              <div v-if="viewMode == 'simple'" class="ml-2 translate-y-1 shrink-0 inline-flex items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]">
                 <span class="text-xs"><=$ content.props.rightArrowText | default('详情') $=></span>
                 <v-icon size="16" color="success"><=$ content.props.rightArrowIcon | default('mdi-chevron-right') $=></v-icon>
               </div>
@@ -175,7 +175,7 @@
             <div v-show="viewMode != 'detail'" class="text-xs pt-2 grid grid-cols-<=$ content.props.cols | default('1') $=> gap-x-4 gap-y-1">
               <=%- for header in content.headers %=>
               <=%- if (not header.isTitle) and header.isSimpleMode  %=>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1">
                 <div class="text-[#7E838F]"><=$ header.text $=>：</div>
                 <div <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
               </div>
@@ -200,7 +200,7 @@
                 <=%- endfor %=>
               </div>
               <=%- else %=>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1">
                 <div class="text-[#7E838F]"><=$ header.text $=>：</div>
                 <div <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
               </div>
@@ -327,7 +327,7 @@
           </v-col>
         </v-row>
         <=%- endif %=>
-        <div class="h-[calc(100vh-101px)] overflow-y-auto relative">
+        <div class="h-[calc(100vh-101px)] overflow-hidden overflow-y-auto relative">
           <=%- if actionItem.card %=>
           <=$ actionItem.card | tagFormat(4) $=>
           <=%- endif %=>
@@ -525,7 +525,7 @@
             <div class="success--text mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
-        <v-card-text class="px-3 max-h-[70vh] overflow-y-auto pb-10">
+        <v-card-text class="px-3 max-h-[70vh] overflow-hidden overflow-y-auto pb-10">
           <!-- 单独 text field 搜索 -->
             
           <!-- 列表list容器 循环 -->
