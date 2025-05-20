@@ -162,7 +162,7 @@
             
               <!-- 右侧按钮 -->
               <=% if content.props.rightArrow %=>
-              <div v-if="viewMode == 'simple'" class="ml-2 translate-y-1 shrink-0 inline-flex items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]">
+              <div v-if="viewMode == 'simple'" class="ml-2 translate-y-[3px] shrink-0 inline-flex items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]">
                 <span class="text-xs"><=$ content.props.rightArrowText | default('详情') $=></span>
                 <v-icon size="16" color="success"><=$ content.props.rightArrowIcon | default('mdi-chevron-right') $=></v-icon>
               </div>
@@ -363,7 +363,7 @@
                 <=%- if not formItem.hidden %=>
                 <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
                   <=%- if formItem.label %=>
-                  <span class="jh-input-label w-1/3 pr-2"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 mr-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                  <span class="jh-input-label w-1/3 pr-2 <=$ formItem.labelClass $=>"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 mr-1">* </span><=%- endif %=><=$ formItem.label $=></span>
                   <=%- endif %=>
                   <=%- if formItem.tag == "v-date-picker" %=>
                   <v-menu class="" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
