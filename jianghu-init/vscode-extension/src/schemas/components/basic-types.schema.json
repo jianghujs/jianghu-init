@@ -6,7 +6,7 @@
   "definitions": {
     "pageType": {
       "type": "string",
-      "enum": ["jh-page", "jh-mobile-page", "jh-component"],
+      "enum": ["jh-page", "jh-mobile-page", "jh-component", "jh-mobile-component"],
       "description": "The type of the page"
     },
     "pageId": {
