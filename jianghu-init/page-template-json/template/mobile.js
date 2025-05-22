@@ -63,7 +63,7 @@ const content = {
         rightArrowText: '指派跟进人',
       },
       attrs: {  },
-      attrs: { cols: 12, class: 'p-0 pb-7', style: 'height: calc(100vh - 140px); overflow-y: auto;overscroll-behavior: contain' },
+      attrs: { cols: 12, class: 'p-0 pb-7', style: 'height: calc(100dvh - 140px); overflow-y: auto;overscroll-behavior: contain' },
       headers: [
         //===//<=%- for field in fields %=>
         { text: "<=$ field.COLUMN_COMMENT $=>", value: "<=$ field.COLUMN_NAME $=>", width: 80, sortable: true },

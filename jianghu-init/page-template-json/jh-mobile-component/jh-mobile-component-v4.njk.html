@@ -236,7 +236,7 @@
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
     <v-bottom-sheet v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" style="z-index: 111;" fixed temporary <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
-        <div class="!h-[calc(100vh-52px)] relative rounded-t-lg bg-white overflow-hidden overflow-y-auto">
+        <div class="!h-[calc(100dvh-52px)] relative rounded-t-lg bg-white overflow-hidden overflow-y-auto">
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
         <v-row class="jh-drawer-header p-3 relative pr-10" no-gutters align="center">
@@ -277,7 +277,7 @@
           </v-col>
         </v-row>
         <=%- endif %=>
-        <div class="h-[calc(100vh-101px)] overflow-y-auto relative">
+        <div class="h-[calc(100dvh-101px)] overflow-y-auto relative">
           <=%- if actionItem.card %=>
           <=$ actionItem.card | tagFormat(4) $=>
           <=%- endif %=>

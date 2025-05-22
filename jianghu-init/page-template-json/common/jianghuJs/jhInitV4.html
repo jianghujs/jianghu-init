@@ -61,7 +61,7 @@
     }
 
     .v-dialog.v-bottom-sheet:not(.v-dialog--fullscreen) {
-      max-height: calc(100vh - 52px) !important;
+      max-height: calc(100dvh - 52px) !important;
     }
 
     body .v-application .v-bottom-sheet .title {
@@ -95,6 +95,9 @@
       border-radius: 5px;
       width: 60px;
       max-width: 60px;
+    }
+    .v-application--wrap {
+      min-height: 100dvh;
     }
   }
 </style>

@@ -6,7 +6,7 @@ const content = {
   ],
   pageContent: [
     /*html*/`
-      <v-row class="align-center" style="height: 100vh">
+      <v-row class="align-center" style="height: 100dvh">
         <v-col cols="12" align="center">
           <div class="mb-10 text-h7 font-weight-bold success--text"><$ ctx.app.config.appTitle $></div>
           <v-card class="login-form-card pa-8 mb-20">

@@ -131,7 +131,7 @@
         mdi-download
       </v-icon>
       <iframe v-if="previewFileType === 'pdf'" :src="'/<$ ctx.app.config.appId $>/public/pdf/web/viewer.html?file=' + previewFileUrl" frameborder="0"
-        style="width: 1000px; height: 100vh; padding: 50px 0 0 0;"></iframe>
+        style="width: 1000px; height: 100dvh; padding: 50px 0 0 0;"></iframe>
       <v-img v-if="previewFileType === 'img'" contain max-height="90vh" max-width="75%"  :src="previewFileUrl"></v-img>
     </v-overlay>
     
