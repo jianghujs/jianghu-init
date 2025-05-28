@@ -9,20 +9,54 @@
       "properties": {
         "type": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "资源类型"
         },
         "path": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "资源路径"
         },
         "attrs": {
-          "type": "object"
+          "type": "object",
+          "description": "资源属性"
         },
         "includeType": {
-          "type": "string"
+          "type": "string",
+          "description": "引入类型"
+        },
+        "component": {
+          "type": "string",
+          "description": "组件名称"
         }
       },
-      "required": ["type", "path"],
+      "required": ["type"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": ["css", "js", "html", "include"]
+              }
+            }
+          },
+          "then": {
+            "required": ["path"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": ["vueUse", "vueComponent"]
+              }
+            }
+          },
+          "then": {
+            "required": ["component"]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "includeListArray": {

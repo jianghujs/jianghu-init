@@ -23,6 +23,9 @@
     "version": {
       "$ref": "components/basic-types.schema.json#/definitions/version"
     },
+    "jhMenu": {
+      "$ref": "components/basic-types.schema.json#/definitions/jhMenu"
+    },
     "componentPath": {
       "$ref": "components/basic-types.schema.json#/definitions/componentPath"
     },
@@ -48,6 +51,20 @@
       "$ref": "components/resource-list.schema.json#/definitions/resourceListArray"
     }
   },
-  "required": ["pageType", "pageId", "pageName", "pageContent", "includeList", "common"],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "pageType": {
+            "enum": ["jh-page", "jh-mobile-page"]
+          }
+        }
+      },
+      "then": {
+        "required": ["pageType", "pageId", "pageName", "pageContent", "common"]
+      }
+    }
+  ],
+  "required": ["pageType", "pageContent", "common"],
   "additionalProperties": false
 } 

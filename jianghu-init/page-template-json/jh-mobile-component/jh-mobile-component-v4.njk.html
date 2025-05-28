@@ -1,208 +1,235 @@
 <!-- <=$ componentPath.split('/').pop() $=>.html start -->
+<=%- set jhScene = (headContent | find({tag: 'jh-scene'})) %=>
+<=%- set jhOrder = (headContent | find({tag: 'jh-order'})) %=>
+<=%- set jhMode = (headContent | find({tag: 'jh-mode'})) %=>
+<=%- set jhSearch = (headContent | find({tag: 'jh-search'})) %=>
+<=%- set jhList = (pageContent | find({tag: 'jh-list'})) %=>
 <script type="text/x-template" id="<=$ componentPath.split('/').pop() | camelToKebab $=>">
   <div>
-    <=%- if hasHeadContent %=> 
-    <!-- 头部内容 >>>>>>>>>>>>> -->
-    <div class="jh-page-second-bar px-3 py-2 px-sm-8 border-b">
-      <v-row class="align-center" dense>
+    
+    <=%- if (headContent | filter({tag: '!jh-page-title'})).length %=>
+    <div class="jh-page-second-bar px-3 py-2 border-b">
+      <v-row class="align-center justify-space-between" no-gutters>
         <=%- for content in headContent %=>
-        <=%- if content.tag == 'jh-page-title' %=>
-        <v-col cols="12" xs="12" sm="12" md="4" xl="3" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-          <div class="py-4 text-body-1 font-weight-bold align-center d-flex align-center"><=$ content.value $=>
-            <=%- if content.helpBtn %=> 
-            <!-- 帮助页按钮 -->
-            <v-icon size="15" class="black--text ml-1" @click="isHelpPageDrawerShown = true">mdi-help-circle</v-icon>
-            <=%- endif %=>
-          </div>
-        </v-col>
-        <=%- elif content.tag == 'jh-table-search' %=>
-        <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 mb-2 mb-md-0" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-          <v-text-field v-model="searchInput" prefix="筛选" append-icon="mdi-magnify" class="jh-v-input" dense single-line filled></v-text-field>
-        </v-col>
+        <=%- if content.tag == 'jh-order' %=>
+        <!-- 排序 -->
+        <div class="inline-flex bg-white h-8 leading-8 rounded-lg mr-3 text-[13px] text-gray-600" :class="{'text-green-600': !!usePageOrder}" @click="isPageOrderDrawerShown = true">
+          <v-icon :color="usePageOrder ? 'primary' : ''" size="14" class="mr-1"><=$ content.icon | default('mdi-sort-ascending') $=></v-icon>
+          <=$ content.title | default('排序') $=>
+        </div>
+      
         <=%- elif content.tag == 'jh-search' %=>
-        <!-- 服务端搜索 -->
-        <v-col cols="12" xs="12" sm="12" md="8" xl="9" class="pl-md-2 mb-2 mb-md-0" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-          <v-row class="jh-backend-form-container justify-end py-md-3" no-gutters>
-            <=%- for search in content.value %=>
-            <=%- if search.tag == "v-date-picker" %=>
-            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
-              <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
-                <template v-slot:activator="{on, attrs}">
-                  <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prepend-inner-icon="mdi-calendar-range" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
-                </template>
-                <v-date-picker color="success" elevation="20" v-model="<=$ search.model $=>" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>></v-date-picker>
-              </v-menu>
-            </v-col>
-            <=%- elif search.model is defined %=>
-            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
-              <=$ search | formItemFormat $=>
-            </v-col>
-            <=%- else %=>
-            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
-              <=$ search | tagFormat(14) $=>
-            </v-col>
-            <=%- endif %=>
-            <=%- endfor %=>
-            <=%- if content.searchBtn is undefined or content.searchBtn != false %=>
-            <div class="jh-backend-search-btn ml-2">
-              <=%- if content.searchBtn == true %=>
-              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
-                查询
-              </v-btn>
-              <=%- else %=>
-              <=$ content.searchBtn | tagFormat(10) $=>
-              <=%- endif %=>
+        <!-- 筛选 -->
+        <div class="inline-flex bg-white h-8 leading-8 rounded-lg text-[13px] text-gray-600" :class="{'text-green-600': !!usePageSearch}" @click="isPageSearchDrawerShown = true">
+          <v-icon :color="usePageSearch ? 'primary' : ''" size="14" class="mr-1"><=$ content.icon | default('mdi-filter-multiple-outline') $=></v-icon>
+          <=$ content.title | default('筛选') $=>
+        </div>
+
+        <=%- elif content.tag == 'jh-mode' %=>
+        <v-menu
+          nudge-bottom="<=$ content.bottom | default(36) $=>"
+          class="elevation-0"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <div 
+              class="inline-flex bg-white h-8 leading-8 rounded-lg font-medium text-[13px]"
+              v-bind="attrs"
+              v-on="on">
+              <v-icon size="14" class="mr-1"><=$ content.icon | default('mdi-view-carousel-outline') $=></v-icon>
+              {{ viewMode == 'simple' ? '简洁模式' : '详细模式' }}
             </div>
-          </v-row>
-          <=%- endif %=>
-         
-          <=%- elif content.tag=='jh-scene' %=>
-          <!-- 场景搜索 -->
-          <v-col cols="12" <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-            <jh-scene class="" :initFormData="sceneCreateForm" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId" :defaultSceneList="defaultSceneList" :maxSceneDisplay="maxSceneDisplay" @useScene="doUiAction('useScene', $event)" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-              <template v-slot:form="{form}">
-                <v-row class="mt-0 px-4">
-                  <=%- for formItem in content.data.customSceneList %=>
-                  <v-col cols="12" class="px-0">
-                    <=%- if formItem.label %=>
-                    <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*</span><=%- endif %=><=$ formItem.label $=></span>
-                    <=%- endif %=>
-                    <=%- if formItem.tag=="v-date-picker" %=>
-                    <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto" <=%- if
-                      formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
-                      <template v-slot:activator="{on, attrs}">
-                        <v-text-field prepend-inner-icon="mdi-calendar-range"  v-bind="attrs" v-on="on"
-                          v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"
-                          :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
-                          single-line filled readonly clearable></v-text-field>
-                      </template>
-                      <v-date-picker color="success" elevation="20"
-                        v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in
-                        formItem.attrs %=>
-                        <=$ attr | tagAttr(value) $=>
-                          <=% endfor %=>>
-                      </v-date-picker>
-                    </v-menu>
-                    <=%- elif formItem.model is defined %=>
-                    <=$ formItem | formItemFormat(actionItem.key + 'Item' ) $=>
-                    <=%- else %=>
-                    <=$ formItem | tagFormat(16) $=>
-                    <=%- endif %=>
-                  </v-col>
-                  <=%- endfor %=>
-                </v-row>
-              </template>
-            </jh-scene>
-          </v-col>
-          <=%- else %=>
-          <!-- 自定义搜索内容 -->
-          <=$ content | tagFormat(12) $=>
-          <=%- endif %=>
-          <=%- endfor %=>
+          </template>
+
+          <div class="flex flex-col p-2 pb-0">
+            <v-btn small class="mb-2" @click="viewMode = 'simple'" :class="{primary: viewMode == 'simple', '!text-white': viewMode == 'simple'}">
+              <v-list-item-title>简洁模式</v-list-item-title>
+            </v-btn>
+            <v-btn small class="mb-2" @click="viewMode = 'detail'" :class="{primary: viewMode == 'detail', '!text-white': viewMode == 'detail'}">
+              <v-list-item-title>详细模式</v-list-item-title>
+            </v-btn>
+          </v-list>
+        </v-menu>
+
+        <=%- elif content.tag=='jh-scene' %=>
+        <!-- 场景搜索 -->
+        <v-col cols="12" <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+          <jh-scene class="" :initFormData="sceneCreateForm" :sceneListKey="localSceneListKey" :currentSceneId="currentSceneId" :defaultSceneList="defaultSceneList" :maxSceneDisplay="maxSceneDisplay" @useScene="doUiAction('useScene', $event)" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+            <template v-slot:form="{form}">
+              <v-row class="mt-0 px-3">
+                <=%- for formItem in content.data.customSceneList %=>
+                <v-col cols="12" class="px-0">
+                  <=%- if formItem.label %=>
+                  <span class="jh-input-label"><=%- if formItem.required %=><span class="red--text text--accent-2 ml-1">*</span><=%- endif %=><=$ formItem.label $=></span>
+                  <=%- endif %=>
+                  <=%- if formItem.tag=="v-date-picker" %=>
+                  <v-menu class="jh-v-input" transition="scale-transition" offset-y min-width="auto" <=%- if
+                    formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
+                    <template v-slot:activator="{on, attrs}">
+                      <v-text-field prepend-inner-icon="mdi-calendar-range"  v-bind="attrs" v-on="on"
+                        v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>"
+                        :rules="<=$ formItem.rules if formItem.rules else '[]' $=>" class="jh-v-input" dense
+                        single-line filled readonly clearable></v-text-field>
+                    </template>
+                    <v-date-picker color="success" elevation="20"
+                      v-model="<=$ actionItem.key $=>Item.<=$ formItem.model $=>" <=% for attr, value in
+                      formItem.attrs %=>
+                      <=$ attr | tagAttr(value) $=>
+                        <=% endfor %=>>
+                    </v-date-picker>
+                  </v-menu>
+                  <=%- elif formItem.model is defined %=>
+                  <=$ formItem | formItemFormat(actionItem.key + 'Item' ) $=>
+                  <=%- else %=>
+                  <=$ formItem | tagFormat(16) $=>
+                  <=%- endif %=>
+                </v-col>
+                <=%- endfor %=>
+              </v-row>
+            </template>
+          </jh-scene>
+        </v-col>
+          
+        <=%- elif content.tag != 'jh-page-title' %=>
+        <!-- 自定义搜索内容 -->
+        <=$ content | tagFormat(12) $=>
+        <=%- endif %=>
+        <=%- endfor %=>
       </v-row>
     </div>
-    <!-- <<<<<<<<<<<<< 头部内容 -->
     <=%- endif %=>
  
     <=%- if hasPageContent %=>
     <!-- 页面内容 >>>>>>>>>>>>> -->
     <=%- for content in pageContent %=>
-    <=%- if content.tag == 'jh-table' %=>
-    <div class="jh-page-body-container">
-      <v-card <=% for attr, value in content.cardAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
-        <=%- if content.headActionList.length %=>
-        <v-row class="ma-0 pb-3 pa-0 px-3 px-md-0" align="center">
-          <=%- for action in content.headActionList %=>
-          <=$ action | tagFormat(10) $=>
-          <=%- endfor %=>
-        </v-row>
+    <=%- if content.tag == 'jh-list' %=>
+    <v-col :cols="12" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+      <div class="flex p-3 relative bg-white mb-2" v-for="(item, index) in tableDataComputed" @click="viewMode == 'simple' && doUiAction('startDetailItem', item)">
+        <=%- if content.props.showSelect %=>
+        <v-checkbox
+          v-if="<=$ content.props.showSelect $=>"
+          v-model="tableSelected"
+          :value="item"
+          class="mt-0 pt-0"
+          hide-details
+          <=%- if content.props.disableSelect %=>
+          :disabled="<=$ content.props.disableSelect $=>"
+          <=%- endif %=>
+          @change="event.stopPropagation();"
+        ></v-checkbox>
         <=%- endif %=>
-        <!-- 表格 -->
-        <v-data-table
-          :headers="headers"
-          :items="tableDataComputed"
-          :search="searchInput"
-          :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
-          :items-per-page="-1"
-          mobile-breakpoint="0"
-          :loading="isTableLoading"
-          checkbox-color="success"
-          :class="{'zebraLine': true }"
-          fixed-header
-          <=%- for attr, value in content.attrs %=>
-          <=$ attr | tagAttr(value) $=>
-          <=%- endfor %=>
-          class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4"
-        >
-
-          <!-- 表格插槽 -->
-          <=$ content.value | tagFormat(12) $=>
-
-          <!-- 自定义渲染列 -->
+        <div class="flex-1">
+          <=%- if content.headers %=>
           <=%- for header in content.headers %=>
-          <=%- if header.formatter %=>
-          <template v-slot:item.<=$ header.value $=>="{item, index}">
-            <=$ header.formatter | tagFormat(12) $=>
-          </template>
+          <=%- if header.isSimpleMode %=>
+          <=%- if header.isTitle == true %=>
+          <div class="flex items-start border-b pb-1.5 w-full">
+            <!-- 左侧内容 -->
+            <div class="flex-1 flex min-w-0">
+              <div class="text-base font-medium break-words line-clamp-<=$ header.lineClamp | default('1') $=> break-all">
+                <=%- if header.formatter %=>
+                <=$ header.formatter $=>
+                <=%- else %=>
+                {{ item.<=$ header.value $=> }}
+                <=%- endif %=>
+              </div>
+              <=%- if header.slot %=>
+              <div class="shrink-0 grow">
+                <=$ header.slot | tagFormat(12) $=>
+              </div>
+              <=%- endif %=>
+            </div>
+          
+            <!-- 右侧按钮 -->
+            <=% if content.props.rightArrow %=>
+            <div v-if="viewMode == 'simple'" class="ml-2 translate-y-[3px] shrink-0 inline-flex items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]">
+              <span class="text-xs"><=$ content.props.rightArrowText | default('详情') $=></span>
+              <v-icon size="16" color="success"><=$ content.props.rightArrowIcon | default('mdi-chevron-right') $=></v-icon>
+            </div>
+            <=% endif %=>
+          </div>
+          <=%- endif %=>
           <=%- endif %=>
           <=%- endfor %=>
-          <=%- if content.rowActionList and  content.rowActionList.length %=>
-          <!-- 表格操作按钮 -->
-          <template v-slot:item.action="{ item }">
-            <=%- for action in content.rowActionList %=>
-            <=%- if action.tag %=>
-            <=$ action | tagFormat(12) $=>
+          <=%- endif %=>
+          <div v-show="viewMode != 'detail'" class="text-xs pt-2 grid grid-cols-<=$ content.props.cols | default('1') $=> gap-x-4 gap-y-1">
+            <=%- for header in content.headers %=>
+            <=%- if (not header.isTitle) and header.isSimpleMode  %=>
+            <div class="flex items-center gap-1">
+              <div class="text-[#7E838F]"><=$ header.text $=>：</div>
+              <div <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
+            </div>
             <=%- endif %=>
             <=%- endfor %=>
-            <!-- pc端 -->
-            <template v-if="!isMobile">
+          </div>
+
+          <div v-show="viewMode == 'detail'" class="text-xs pt-2 grid grid-cols-<=$ content.props.cols | default('1') $=> gap-x-4 gap-y-1">
+            <=%- for header in content.headers %=>
+            <=%- if not header.isTitle %=>
+            <=%- if header.value == 'action' %=>
+            <div class="flex justify-end items-center col-span-<=$ content.props.cols | default('1') $=>">
               <=%- for action in content.rowActionList %=>
               <=%- if not action.tag %=>
               <span role="button" class="<=$ action.color | default('success') $=>--text font-weight-medium font-size-2 mr-2" @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=><=% for attr in action.quickAttrs %=><=$ attr $=> <=% endfor %=>>
                 <=%- if action.icon %=>
                 <v-icon size="16" class="<=$ action.color | default('success') $=>--text">mdi-<=$ action.icon.replace('mdi-', '') $=></v-icon><=%- endif %=><=$ action.text $=>
               </span>
+              <=%- else %=>
+              <=$ action | tagFormat(12) $=>
               <=%- endif %=>
               <=%- endfor %=>
-            </template>
-            <!-- 手机端 -->
-            <v-menu offset-y v-if="isMobile">
-              <template v-slot:activator="{ on, attrs }">
-                <span role="button" class="success--text font-weight-medium font-size-2"
-                  v-bind="attrs" v-on="on">
-                  <v-icon size="20" class="success--text">mdi-chevron-down</v-icon>
-                </span>
-              </template>
-              <v-list dense>
-                <=%- for action in content.rowActionList %=>
-                <=%- if not action.tag %=>
-                <v-list-item @click="<=$ (action.click | default('')).replace('"', '\'').replace('"', '\'') $=>" <=% for attr, value in action.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-                  <v-list-item-title><=$ action.text $=></v-list-item-title>
-                </v-list-item>
-                <=%- endif %=>
-                <=%- endfor %=>
-              </v-list>
-            </v-menu>
-          </template>
+            </div>
+            <=%- else %=>
+            <div class="flex items-center gap-1">
+              <div class="text-[#7E838F]"><=$ header.text $=>：</div>
+              <div <=% for attr, value in header.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>><=%- if header.formatter %=><=$ header.formatter $=><=%- else %=>{{ item.<=$ header.value $=> }}<=%- endif %=></div>
+            </div>
+            <=%- endif %=>
+            <=%- endif %=>
+            <=%- endfor %=>
+            <!-- action 操作按钮显示 -->
+          </div>
+          <!-- value 插槽 -->
+          <=$ content.value | tagFormat(12) $=>
+        </div>
+      </div>
+
+      <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
+        <div class=" flex justify-space-between items-center">
+          <=%- if content.props.limit %=>
+          每页 {{ tableOptions.limit }} 项，
           <=%- endif %=>
-          <!-- 没有数据 -->
-          <template v-slot:loading>
-            <div class="jh-no-data">数据加载中</div>
-          </template>
-          <template v-slot:no-data>
-            <div class="jh-no-data">暂无数据</div>
-          </template>
-          <template v-slot:no-results>
-            <div class="jh-no-data">暂无数据</div>
-          </template>
-          <!-- 表格分页 -->
-          <template v-slot:footer.page-text="pagination">
-            <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-            <span class="ml-1">共{{pagination.itemsLength}}条</span>
-          </template>
-        </v-data-table>
-      </v-card>
-    </div>
+          共 {{ tableOptions.totalCount == tableDataComputed.length ? tableOptions.totalCount : tableDataComputed.length + '/' + tableOptions.totalCount }} 项
+
+          <=%- if content.props.limit %=>
+          <div>
+            <!-- 上一页 icon -->
+            <v-icon v-if="tableOptions.page > 1" @click="tableOptions.page--; doUiAction('getTableData')">mdi-chevron-left</v-icon>
+            <v-icon v-else color="#eaeaea">mdi-chevron-left</v-icon>
+  
+            <!-- 页码 -->
+            <span><span class="primary--text font-weight-medium text-sm">{{ tableOptions.page }}</span> / {{ Math.ceil(tableOptions.totalCount / tableOptions.limit) }}</span>
+  
+            <!-- 下一页 icon -->
+            <v-icon v-if="tableOptions.totalCount > tableOptions.page * tableOptions.limit" @click="tableOptions.page++; doUiAction('getTableData')">mdi-chevron-right</v-icon>
+            <v-icon v-else color="#eaeaea">mdi-chevron-right</v-icon>
+          </div>
+          <=%- endif %=>
+        </div>
+        <div class="jh-safe-bottom"></div>
+      </div>
+
+      <!-- 暂无更多 -->
+      <div class="text-center text-gray-500 py-2" v-if="tableDataComputed.length === 0">暂无更多</div>
+    </v-col>
+    
+    <!-- v-overlay -->
+    <v-overlay v-if="isTableLoading" :value="isTableLoading" opacity="0.1">
+      <v-progress-circular
+        light
+        indeterminate
+        color="primary"
+      ></v-progress-circular>
+    </v-overlay>
     <=%- elif content.tag == 'jh-action' %=>
     <!-- 操作按钮 -->
     <div <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
@@ -642,32 +669,81 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// isHelpPageDrawerLoaded: false,
     //===// <=%- endif %=>
 
-    //===// <=%- if hasJhTable %=>
-    // ================================ 表格相关 ================================
-    //===// <=%- if (pageContent | find({tag: 'jh-table'})).headers %=>
-    //===// <=$ (pageContent | find({tag: 'jh-table'})).headers | removeKey(['formatter']) | listToVar('headers') $=>,
-    //===// <=%- endif %=>
-    //===// tableData: [],
-    //===// tableParams: {},
-    //===// tableDataFromBackend: [],
-    //===// isTableLoading: false,
-    //===// searchInput: null,
-    //===// serverSearchWhere: {},
-    //===// serverSearchWhereLike: {},
-    //===// <=%- if jhTable.props.serverPagination %=>
+    //===// <=%- if jhList %=>
+    // ================================ 列表相关 ================================
+    //===// <=$ (pageContent | find({tag: 'jh-list'})).headers | removeKey(['formatter']) | listToVar('headers') $=>,
+    tableData: [],
+    tableParams: {},
+    tableDataFromBackend: [],
+    isTableLoading: false,
+    tableDataOrderList: [],
+    tableDataOrder: [{column: 'operationAt', order: 'desc'}],
     tableOptions: {
       page: 1,
-      itemsPerPage: 50,
+      //===// limit: <=$ jhList.props.limit | default(1000) $=>,
       totalCount: 0,
-      sortBy: [],
-      sortDesc: [],
     },
+
+    //===// <=%- if jhList.props.showSelect %=>
+    tableSelected: [],
     //===// <=%- endif %=>
+    //===// <=% endif %=>
+
+    //===// <=%- if jhOrder %=>
+    // ============================== 排序相关 ===============================
+    isPageOrderDrawerShown: false,
+    usePageOrder: false,
+    //===// <=%- for key, value in jhOrder.data %=>
+    //===// <=$ value | variableToVar(key, 4) $=>,
+    //===// <=%- endfor %=>
+    //===// <=% endif %=>
+
+    //===// <=%- if jhMode %=>
+    // ============================== 模式相关 ===============================
+    //===// <=%- for key, value in jhMode.data %=>
+    //===// <=$ value | variableToVar(key, 4) $=>,
+    //===// <=%- endfor %=>
+    //===// <=% endif %=>
+    viewMode: 'simple',
+
+    //===// <=%- if jhSearch %=>
+    // ============================== 服务端搜索 ===============================
+    isPageSearchDrawerShown: false,
+    usePageSearch: false,
+    //===// <=%- for key, value in jhSearch.data %=>
+    //===// <=$ value | variableToVar(key, 4) $=>,
+    //===// <=%- endfor %=>
+    //===// <=% endif %=>
+
+    //===// <=%- if pageContent | find({tag: 'jh-action'}) %=>
+    // ============================== 页面action ===============================
+    isPageActionDrawerShown: false,
+    //===// <=% endif %=>
+    
+    //===// <=%- if jhScene %=>
+    // ============================== 场景相关 ===============================
+    //===// localSceneListKey: "<$ ctx.app.config.appId $>_<$ ctx.packagePage.pageId $>_<$ ctx.userInfo.userId $>",
+    //===// <=%- for key, value in jhScene.data %=>
+    //===// <=$ value | variableToVar(key, 4) $=>,
+    //===// <=%- endfor %=>
     //===// <=%- endif %=>
 
     //===// <=%- if pageContent | find({tag: 'jh-action'}) %=>
     // ============================== 页面action ===============================
     isPageActionDrawerShown: false,
+    //===// <=% endif %=>
+
+    //===// <=%- if hasDetailDrawer %=>
+    // ================================ 详情抽屉 ================================
+    //===// isDetailDrawerShown: false,
+    //===// detailItem: {},
+    //===// detailItemOrigin: {},
+    //===// <=%- if hasDetailSubmit %=>
+    //===// detailActionData: {},
+    //===// <=%- endif %=>
+    //===// <=%- if hasDetailDrawer > 1 %=>
+    //===// detailDrawerTab: 0,
+    //===// <=%- endif %=>
     //===// <=% endif %=>
 
     //===// <=%- if hasCreateDrawer %=>
@@ -681,7 +757,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- if hasCreateDrawer > 1 %=>
     //===// createDrawerTab: 0,
     //===// <=%- endif %=>
-    //===// <=%- endif %=>
+    //===// <=% endif %=>
 
     //===// <=%- if hasUpdateDrawer %=>
     // ================================ 编辑抽屉 ================================
@@ -695,27 +771,26 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- if hasUpdateDrawer > 1 %=>
     //===// updateDrawerTab: 0,
     //===// <=%- endif %=>
-    //===// <=%- endif %=>
+    //===// <=% endif %=>
 
     //===// <=%- if hasDelete %=>
     // ================================ 删除 ================================
     //===// deleteItem: {},
     //===// deleteItemId: null,
-    //===// <=%- endif %=>
+    //===// <=% endif %=>
 
-    // ================================ common ================================
-    //===// <=%- if common and common.data %=>  
-    //===// <=%- for key, value in common.data %=> 
+    //===// <=%- if common and common.data %=>
+    // ================================ custom data ================================
+    //===// <=%- for key, value in common.data %=>
     //===// <=$ value | variableToVar(key, 4) $=>,
     //===// <=%- endfor %=>
     //===// <=%- endif %=>
-    //===// <=%- if common and common.dataExpression %=>  
-    //===// <=%- for key, value in common.dataExpression %=> 
+    //===// <=%- if common and common.dataExpression %=>
+    //===// <=%- for key, value in common.dataExpression %=>
     //===// <=$ value | expressionToVar(key, 4) $=>,
     //===// <=%- endfor %=>
     //===// <=%- endif %=>
 
-    // ================================ 其他抽屉列表 ================================
     //===// <=%- for drawer in actionContent %=>
     //===// <=%- if drawer.tag == 'jh-drawer' %=>
     // ================================ <=$ drawer.title $=> 抽屉 ================================
@@ -732,21 +807,37 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- endfor %=>
   }),
   watch: {
-    //===// <=%- if hasJhTable %=>
-    //===// <=%- if jhTable.props.serverPagination %=>
-    'tableOptions.itemsPerPage'(val) {
-      this.tableOptions.page = 1;
-      this.doUiAction('getTableData');
-    },
-    'tableOptions.page'(val) {
-      this.doUiAction('getTableData');
-    },
-    'tableOptions.sortDesc'(val, oldVal) {
-      // TODO:: 初始化会异常调用加载2次，暂时跳过，后续优化
-      if (oldVal.length === 0 && val.length === 0) return;
-      this.doUiAction('getTableData');
+    //===// <=%- if hasHelpDrawer %=>
+    isHelpPageDrawerShown(val) {
+      if (val && !this.isHelpPageDrawerLoaded) {
+        this.isHelpPageDrawerLoaded = true;
+      }
     },
     //===// <=%- endif %=>
+    //===// <=%- if (pageContent | find({tag: 'jh-list'})).props.showSelect %=>
+    tableData(val) {
+      this.tableSelected = [];
+
+      //===// <=%- for item in jhSearch.searchList %=>
+      //===// if (this?.<=$ item.attrs['v-model'] or item.attrs['vModel'] or item.model $=>) {
+      //===//   this.usePageSearch = true;
+      //===//   return;
+      //===// }
+      //===// <=%- endfor %=>
+      this.usePageSearch = false;
+    },
+    //===// <=%- elseif hasJhList %=>
+    tableData(val) {
+      //===// <=%- for item in jhSearch.searchList %=>
+      //===// <=%- if item.attrs['v-model'] or item.attrs['vModel'] or item.model %=>
+      //===// if (this?.<=$ item.attrs['v-model'] or item.attrs['vModel'] or item.model $=>) {
+      //===//   this.usePageSearch = true;
+      //===//   return;
+      //===// }
+      //===// <=%- endif %=>
+      //===// <=%- endfor %=>
+      this.usePageSearch = false;
+    },
     //===// <=%- endif %=>
     //===// <=%- for key, item in common.watch %=>
     //===// <=%- if (item | typeof) == 'function' %=>
@@ -758,7 +849,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
   },
   computed: {
      
-    //===// <=%- if hasJhTable %=>
+    //===// <=%- if hasJhList %=>
     tableDataComputed() {
       if(this.filterMap) {
         return this.tableData.filter(row => {
@@ -774,37 +865,57 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       }
     },
     //===// <=%- endif %=>
-    
+
     //===// <=%- for key, item in common.computed %=>
     //===// <=$ item | variableToVar(key) $=>,
     //===// <=%- endfor %=>
   },
   //===// <=%- if not common.created %=>
   async created() {
-    //===// <=%- if (pageContent.tag == 'jhTable' or pageContent.tag == 'jh-table') and pageContent.value %=>
-    this.doUiAction('getTableData');
+    //===// <=%- if common.createdString %=>
+    //===// <=$ common.createdString $=>
+    //===// <=%- else %=>
+
     //===// <=%- endif %=>
   },
   //===// <=%- endif %=>
+  //===// <=%- for key, item in common %=>
+  //===// <=%- if key == 'mounted' or key == 'created' %=>
+  //===// <=$ item | variableToVar(key) $=>,
+  //===// <=%- endif %=>
+  //===// <=%- endfor %=>
 
   //===// <=%- for key, item in common %=>
-  //===// <=%- if key == 'mounted' or key == 'created' %=><=$ item | variableToVar(key) $=>,<=% endif %=><=%- endfor %=>
+  //===// <=%- if ['beforeDestroy'] | includes(key) %=>
+  //===// <=$ item | variableToVar(key) $=>,
+  //===// <=%- endif %=>
+  //===// <=%- endfor %=>
+
+  //===// <=%- if common.mountedString %=>
+  async mounted() {
+  //===// <=$ common.createString | stringToVar $=>
+  },
+  //===// <=%- endif %=>
   methods: {
     async doUiAction(uiActionId, uiActionData) {
       try {
         switch (uiActionId) {
-          //===// <=%- for key, value in basicUiActionConfig %=> 
+          //===// <=%- for key, value in basicUiActionConfig %=>
           //===// case '<=$ key $=>':
-          //===//   <=%- for method in value %=> 
+          //===//   <=%- for method in value %=>
+          //===//   <=%- if ['v2', 'v3', 'v4'].includes(version) %=>
           //===//   <=$ method $=>;
+          //===//   <=%- else %=>
+          //===//   await this.<=$ method $=>(uiActionData);
+          //===//   <=%- endif %=>
           //===//   <=%- endfor %=>
           //===//   break;
-          //===// <=%- endfor %=> 
+          //===// <=%- endfor %=>
+          
 
-
-          //===// <=%- for key, value in common.doUiAction %=> 
+          //===// <=%- for key, value in common.doUiAction %=>
           //===// case '<=$ key $=>':
-          //===//   <=%- for method in value %=> 
+          //===//   <=%- for method in value %=>
           //===//   <=$ method $=>;
           //===//   <=%- endfor %=>
           //===//   break;
@@ -820,7 +931,18 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
           //===// <=%- endif %=>
           //===// <=%- endfor %=>
 
+          //===// <=%- if hasJhList %=>
+          case 'getTableData':
+            await this.getTableData();
+            break;
+          //===// <=%- endif %=>
 
+          //===// <=%- if jhScene %=>
+          //===// case 'useScene':
+          //===//   await this.useScene(uiActionData);
+          //===//   await this.doUiAction('getTableData');
+          //===//   break;
+          //===// <=%- endif %=>
           default:
             console.error("[doUiAction] uiActionId not find", {uiActionId});
             break;
@@ -832,14 +954,26 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
         window.jhMask && window.jhMask.hide();
       }
     },
-
-    //===// <=%- if hasJhTable and version == 'v2' %=>
+    
+    //===// <=%- if ['v2', 'v3', 'v4'].includes(version) %=>
     async prepareTableParamsDefault() {
       const where = {};
       const whereLike = {};
       const whereIn = {};
-      //===// for (const fieldKey in this.serverSearchWhere) {
-      //===//   const fieldValue = this.serverSearchWhere[fieldKey];
+      //===// <=%- if jhScene %=>
+      //===// const serverSearchWhere = { ...this.serverSearchWhere, ...this.serverSceneSearchWhere };
+      //===// const serverSearchWhereIn = { ...this.serverSearchWhereIn, ...this.serverSceneSearchWhereIn };
+      //===// const serverSearchWhereLike = { ...this.serverSearchWhereLike, ...this.serverSceneSearchWhereLike };
+      //===// const serverSearchWhereOptions = [ ...this.serverSceneSearchWhereOptions ];
+      //===// const serverSearchWhereOrOptions = [ ...this.serverSceneSearchWhereOrOptions ];
+      //===// <=%- else %=>
+      //===// const serverSearchWhere = _.cloneDeep(this.serverSearchWhere || {});
+      //===// const serverSearchWhereIn = _.cloneDeep(this.serverSearchWhereIn || {});
+      //===// const serverSearchWhereLike = _.cloneDeep(this.serverSearchWhereLike || {});
+      //===// <=%- endif %=>
+
+      //===// for (const fieldKey in serverSearchWhere) {
+      //===//   const fieldValue = serverSearchWhere[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
       //===//     if (_.isString(fieldValue)) {
       //===//       where[fieldKey] = fieldValue.trim();
@@ -848,8 +982,8 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===//     }
       //===//   }
       //===// }
-      //===// for (const fieldKey in this.serverSearchWhereLike) {
-      //===//   const fieldValue = this.serverSearchWhereLike[fieldKey];
+      //===// for (const fieldKey in serverSearchWhereLike) {
+      //===//   const fieldValue = serverSearchWhereLike[fieldKey];
       //===//   if(!!fieldValue && fieldValue != '全部') {
       //===//     if (_.isString(fieldValue)) {
       //===//       whereLike[fieldKey] = '%' + fieldValue.trim() + '%';
@@ -858,8 +992,8 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       //===//     }
       //===//   }
       //===// }
-      //===// for (const fieldKey in this.serverSearchWhereIn) {
-      //===//   const fieldValue = this.serverSearchWhereIn[fieldKey];
+      //===// for (const fieldKey in serverSearchWhereIn) {
+      //===//   const fieldValue = serverSearchWhereIn[fieldKey];
       //===//   if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
       //===//     whereIn[fieldKey] = fieldValue;
       //===//   }
@@ -875,32 +1009,22 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
         });
       }
 
-      //===// <=%- if jhTable.orderBy %=>
-      //===// let orderBy = <=$ jhTable.orderBy | variableToVar('', 6) $=>;
-      //===// <=%- else %=>
-      let orderBy = [{column: 'operationAt', order: 'desc'}];
-      //===// <=%- endif %=>
-
-      let limit = null;
-      let offset = null;
-      //===// <=%- if jhTable.props.serverPagination %=>
-      if (this.tableOptions.sortBy.length) {
-        orderBy = this.tableOptions.sortBy.map((item, index) => {
-          return {
-            column: item,
-            order: this.tableOptions.sortDesc[index] ? 'desc' : 'asc'
-          }
-        });
+      let orderBy = this.tableDataOrder || [{column: 'operationAt', order: 'desc'}];
+      if ((!this.tableDataOrder || !this.tableDataOrder.length) && this.tableDataOrderList && this.tableDataOrderList.length) {
+        orderBy = this.tableDataOrderList[0].value;
       }
-      limit = this.tableOptions.itemsPerPage === -1 ? 10000 : this.tableOptions.itemsPerPage;
-      offset = (this.tableOptions.page - 1) * limit;
-      //===// <=%- endif %=>
+      const limit = this.tableOptions.limit === -1 ? 10000 : this.tableOptions.limit;
+      const offset = (this.tableOptions.page - 1) * limit;
 
+      //===// <=%- if jhScene %=>
+      this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy, whereOptions: serverSearchWhereOptions, whereOrOptions: [...whereOrOptions, ...serverSearchWhereOrOptions] };
+      //===// <=%- else %=>
       this.tableParams = { where, whereLike, whereIn, limit, offset, orderBy, whereOrOptions };
+      //===// <=%- endif %=>
     },
     // 准备请求参数-自定义
     prepareTableParams() {
-      // TODO 增加自定义复杂判断条件
+      // tableParams 可增加自定义复杂判断条件
     },
     // 获取表格数据
     async getTableData() {
@@ -917,12 +1041,12 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
         }
       });
       const { rows, count } = result.data.appData.resultData;
-      //===// <=% if jhTable.props.serverPagination %=>
+
       this.tableOptions.totalCount = count || rows.length;
-      //===// <=%- endif %=>
       this.tableDataFromBackend = rows;
       this.isTableLoading = false;
     },
+    //===// <=%- if not common.methods.formatTableData %=>
     formatTableData() {
       let tableData = this.tableDataFromBackend.map(row => {
         row.operationAt = row.operationAt ? dayjs(row.operationAt).format('YYYY-MM-DD HH:mm:ss') : '';
@@ -930,6 +1054,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       });
       this.tableData = tableData;
     },
+    //===// <=%- endif %=>
     // ---------- <<<<<<<<<<< 获取表格数据 uiAction ---------
     //===// <=%- endif %=>
 
@@ -1189,12 +1314,114 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
     //===// <=%- endif %=>
     //===// <=%- endfor %=>
 
+    //===// <=%- if hasDetailDrawer %=>
+    // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+    //===// async prepareDetailFormData(funObj) {
+    //===//   this.detailItem = _.cloneDeep(funObj);
+    //===//   this.detailItemOrigin = _.cloneDeep(funObj);
+    //===// },
+    //===// async openDetailDrawer() {
+    //===//   this.isDetailDrawerShown = true;
+    //===// },
+    //===// async closeDetailDrawerCheck() {
+    //===//   <=%- set drawer = (actionContent | find({key: 'detail'})) %=>
+    //===//   <=%- if drawer.isCheckFormBeforeClose %=>
+    //===//   if (JSON.stringify(this.<=$ drawer.key $=>Item) !== JSON.stringify(this.<=$ drawer.key $=>ItemOrigin)) {
+    //===//     const confirmDialogStatus = await window.saveConfirmDialog({title: "保存提示", content: "你还没有保存更改内容，是否先保存？"})
+    //===//     if (confirmDialogStatus === 'save') {
+    //===//       await this.<=$ drawer.onCheckFormConfirm $=>
+    //===//     }
+    //===//     if (confirmDialogStatus === 'notSave') {
+    //===//       await this.close<=$ drawer.key | ucfirst $=>Drawer();
+    //===//     }
+    //===//     return;
+    //===//  }
+    //===//   <=%- endif %=>
+    //===//   await this.close<=$ drawer.key | ucfirst $=>Drawer();
+    //===// },
+    //===// async closeDetailDrawer() {
+    //===//   this.isDetailDrawerShown = false;
+    //===//   this.detailItem = {};
+    //===//   this.detailActionData = null;
+    //===//   this.detailItemId = null;
+    //===//   <=%- if hasDetailDrawer > 1 %=>
+    //===//   this.detailDrawerTab = 0;
+    //===//   <=%- endif %=>
+    //===// },
+    //===// <=%- endif %=>
+
+    getSearchItemText(searchItem, items, label) {
+      const item = items.find(item => {
+        if (_.isObject(searchItem) && _.isObject(item.value)) {
+          return _.isEqual(searchItem, item.value);
+        } else {
+          return item.value === searchItem || item === searchItem;
+        }
+      });
+      if (!item) {
+        return label;
+      }
+      return _.isString(item) ? item : item.text;
+    },
+    //===// <=%- if headContent | find({'tag': 'jh-search'}) %=>
+    clearServerSearch() {
+      for (const key in this.serverSearchWhere) {
+        this.serverSearchWhere[key] = '';
+      }
+      for (const key in this.serverSearchWhereLike) {
+        this.serverSearchWhereLike[key] = '';
+      }
+      for (const key in this.serverSearchWhereIn) {
+        this.serverSearchWhereIn[key] = [];
+      }
+    },
+    //===// <=%- endif %=>
+
+    // 判断是否相等的方法，兼容对象
+    isEqual(a, b) {
+      if (_.isObject(a) && _.isObject(b)) { 
+        return _.isEqual(a, b);
+      }
+      return a === b;
+    },
+
     //===// <=%- if common and common.methods %=>
     // ---------- Custom uiAction >>>>>>>>>>>> --------
     //===// <=%- for key, value in common.methods %=>
     //===// <=$ value | variableToVar(key) | safe $=>,
     //===// <=%- endfor %=>
     // ---------- <<<<<<<<<<< Custom uiAction ---------
+    //===// <=%- endif %=>
+
+    //===// <=%- if jhScene %=>
+    useScene(funObj) {
+      if (!funObj) return;
+      this.currentSceneId = funObj?.name;
+      ['where', 'whereLike', 'whereIn', 'whereOptions', 'whereOrOptions'].forEach(key => {
+        if (funObj[key]) {
+          this['serverSceneSearch' + _.upperFirst(key)] = funObj[key];
+        } else {
+          if (['whereOptions', 'whereOrOptions'].includes(key)) {
+            this['serverSceneSearch' + _.upperFirst(key)] = [];
+          } else {
+            this['serverSceneSearch' + _.upperFirst(key)] = {};
+          }
+        }
+      });
+    },
+    //===// setDefaultSceneData() {
+    //===//   let localSceneList = localStorage.getItem(this.localSceneListKey);
+    //===//   if (localSceneList == null) localSceneList = '[]';
+    //===//   localSceneList = JSON.parse(localSceneList);
+    //===//   localSceneList = _.filter(localSceneList, function (sceneItem) {
+    //===//     return !sceneItem.system;
+    //===//   });
+    //===//   localSceneList = _.uniqBy([
+    //===//     ...this.defaultSceneList,
+    //===//     ...localSceneList
+    //===//   ], 'name');
+    //===//   localStorage.setItem(this.localSceneListKey, JSON.stringify(localSceneList))
+    //===// },
     //===// <=%- endif %=>
   }
 })

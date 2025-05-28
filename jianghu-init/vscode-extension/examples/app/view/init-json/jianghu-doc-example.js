@@ -11,21 +11,9 @@ const content = {
   // 这些属性将从江湖在线文档中获取说明
   pageType: "jh-page",
   pageId: "examplePage",
-  resourceList: [
-    {
-      actionId: "selectItemList",
-      resourceType: "sql",
-      resourceHook: {},
-      desc: "查询列表",
-      resourceData: {
-        table: "table_name",
-        operation: "select"
-      }
-    }
-  ]
+  pageName: "示例页面",
+  pageContent: [],
+  common: {}
 };
 
-// 导出内容对象
-module.exports = {
-  content
-}; 
+module.exports = content;

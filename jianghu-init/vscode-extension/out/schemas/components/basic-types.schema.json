@@ -6,7 +6,7 @@
     "definitions": {
         "pageType": {
             "type": "string",
-            "enum": ["jh-page", "jh-mobile-page", "jh-component"],
+            "enum": ["jh-page", "jh-mobile-page", "jh-component", "jh-mobile-component"],
             "description": "The type of the page"
         },
         "pageId": {
@@ -16,8 +16,7 @@
         },
         "pageName": {
             "type": "string",
-            "description": "The display name of the page",
-            "minLength": 1
+            "description": "The display name of the page"
         },
         "template": {
             "type": "string",
@@ -36,6 +35,10 @@
             "type": "string",
             "enum": ["v2", "v3", "v4"],
             "description": "The version of the page"
+        },
+        "jhMenu": {
+            "type": "boolean",
+            "description": "是否显示菜单"
         },
         "style": {
             "type": "string",
