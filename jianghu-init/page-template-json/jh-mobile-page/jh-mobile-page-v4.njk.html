@@ -435,7 +435,7 @@
           <div v-if="
           <=%- if actionItem.contentList.length === 1 %=>true
           <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
-          <=%- endif %=>" class="p-3 fixed bottom-0 left-0 right-0 bg-white border-t jh-safe-bottom-3">
+          <=%- endif %=>" class="p-3 fixed bottom-0 left-0 right-0 bg-white border-t jh-safe-bottom-3 z-10">
             <!-- 抽屉操作按钮 -->
             <div class="w-full gap-x-3 grid grid-cols-[repeat(auto-fit,minmax(50px,1fr))] gap-2 relative">
               <=$ content.action | tagFormat(14) $=>
