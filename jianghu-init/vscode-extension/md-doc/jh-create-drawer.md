@@ -13,7 +13,10 @@
     {tag: 'v-spacer'},
   ],
   contentList: [
-    { type: 'form', formItemList: [], action: [] }, // 表单示例
+    { type: 'form', formItemList: [
+      { label: 'ID', model: 'primaryId', tag: 'v-text-field', idGenerate: { prefix: "S", startValue: 10001, bizId: "schoolId" } },
+      { label: '名称', model: 'title', tag: 'v-text-field', rules: 'validationRules.requireRules' }
+    ], action: [] }, // 表单示例
     { type: 'component', componentPath: 'tableHistory', attrs: {} }, // 组件引用示例
     /*html*/`<div>内容</div>`, // 自定义html内容示例
   ]

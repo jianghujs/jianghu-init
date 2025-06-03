@@ -8,18 +8,19 @@
 includeList: [
   // 对象形式引入示例：
   // @type: {string} 'html' | 'js' | 'css' | 'vueComponent'  // 必填
-  // @path: {string} 'path/to/file'                          // 必填
+  // @path: {string} 'path/to/file'  
+  // @component {string}
   // @includeType: {string} 'auto' | 'manual'
   // @attrs: {object} {} 
-  // 以下是一些实际使用示例：
-  { type: 'html', path: 'component/reportRecordCreator.html' }
+  
+  { type: 'html', path: 'component/reportRecordCreator.html', includeType: 'auto', attrs: {} }, // type: html/include
+  { type: 'js', path: '/<=$ ctx.app.config.appId $>/public/js/xxx.js' }, // type: js/javascript
+  { type: 'vueUse', component: 'Vuetify' }, // cdn 引入后：Vue.use(Vuetify)
+  { type: 'vueComponent', name: 's-table', component: '/' }, // cdn 引入后：Vue.component({name}, {component})
 
-  // 原生 njk 引入
-  "{% include 'path/to/file.html' %}",
-  // js 原生写法
-  "<script src='/<=$ ctx.app.config.appId $>/public/js/xxx.js'></script>",
-  // css 原生写法
-  "<style src='/<=$ ctx.app.config.appId $>/public/css/xxx.css'></style>",
+  "{% include 'path/to/file.html' %}",  // 原生字符串 njk 引入
+  "<script src='/<=$ ctx.app.config.appId $>/public/js/xxx.js'></script>", // 原生 js 标签原生写法
+  "<style src='/<=$ ctx.app.config.appId $>/public/css/xxx.css'></style>", // css 原生写法
 ]
 ```
 
@@ -108,54 +109,3 @@ includeList: [
    - CSS 文件
    - SCSS 文件
    - 样式模块
-
-## 最佳实践
-
-1. **组织管理**
-   - 按功能模块组织引入文件
-   - 保持引入顺序的一致性
-   - 避免重复引入
-
-2. **性能优化**
-   - 按需引入组件
-   - 合理使用异步加载
-   - 避免引入不必要的资源
-
-3. **维护建议**
-   - 使用清晰的命名规范
-   - 保持文件结构清晰
-   - 及时清理未使用的引入
-
-## 注意事项
-
-1. **路径处理**
-   - 确保路径正确
-   - 注意路径大小写
-   - 处理相对路径和绝对路径
-
-2. **依赖关系**
-   - 注意引入顺序
-   - 处理循环依赖
-   - 确保依赖完整性
-
-3. **组件属性**
-   - 正确配置组件属性
-   - 处理数据绑定
-   - 注意事件处理
-
-## 常见问题
-
-1. **加载问题**
-   - 处理文件不存在的情况
-   - 处理加载失败的情况
-   - 处理异步加载超时
-
-2. **冲突处理**
-   - 处理命名冲突
-   - 处理样式冲突
-   - 处理全局变量冲突
-
-3. **性能问题**
-   - 处理大量引入的性能影响
-   - 优化加载顺序
-   - 处理缓存策略

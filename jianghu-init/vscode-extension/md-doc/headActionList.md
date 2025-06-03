@@ -7,22 +7,13 @@
 ```javascript
 // 容器 v-row
 headActionList: [
-  // 按钮配置
-  { 
-    tag: 'v-btn',           // 使用的组件标签
-    value: '按钮文本',      // 按钮显示的文本
-    attrs: {                // 按钮属性
-      color: 'success',     // 按钮颜色
-      class: 'mr-2',        // CSS类
-      '@click': 'doUiAction("actionName")' // 点击事件
-    },
-    quickAttrs: ['small']   // 快速属性设置
-  },
+  // custom tag
+  { tag: 'v-btn', value: '按钮文本', attrs: { color: 'success', class: 'mr-2', '@click': 'doUiAction("actionName")' }, quickAttrs: ['small'] },
   
   // 分隔符
   { tag: 'v-spacer' },
   
-  // HTML模板
+  // HTML 字符串
   /*html*/`
     <v-col cols="12" sm="6" md="3" xs="8" class="pa-0">
       <v-text-field prefix="筛选" v-model="searchInput" dense filled single-line></v-text-field>

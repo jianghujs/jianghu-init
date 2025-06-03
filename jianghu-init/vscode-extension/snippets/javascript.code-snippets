@@ -1,0 +1,303 @@
+{
+  "jh-head": {
+    "prefix": "jh-head",
+    "body": [
+      "headContent: [",
+      "  { tag: 'jh-page-title', value: '页面访问日志', attrs: { cols: 12, sm: 6, md: 4 }, helpBtn: true, slot: [] },",
+      "  { tag: 'v-spacer' },",
+      "  {",
+      "    tag: 'jh-search',",
+      "    value: [",
+      "      { tag: 'v-select', attrs: { vModel: 'logFileSelected', items: 'constantCollection.logFile', prefix: '文件：', hideDetails: true } },",
+      "    ],",
+      "    searchBtn: true",
+      "  }",
+      "],"
+    ],
+    "description": "头部内容模板"
+  },
+  "jh-content": {
+    "prefix": "jh-content",
+    "body": [
+      "pageContent: [",
+      "  {",
+      "    tag: 'v-col',",
+      "    attrs: { cols: 12 },",
+      "    value: [",
+      "      /*html*/ `",
+      "        $1",
+      "        `,",
+      "    ],",
+      "  },",
+      "];"
+    ],
+    "description": "内容模板"
+  },
+  "jh-table": {
+    "prefix": "jh-table",
+    "body": [
+      "{",
+      "  tag: 'jh-table',",
+      "  attrs: {},",
+      "  colAttrs: { clos: 12 },",
+      "  cardAttrs: { class: 'rounded-lg elevation-0 ' },",
+      "  headActionList: [",
+      "    { tag: 'v-btn', value: '新增', attrs: { small: true, color: 'success', '@click': 'doUiAction(\"startCreateItem\")' } },",
+      "    { tag: 'v-spacer' },",
+      "    {",
+      "      tag: 'v-col',",
+      "      attrs: { cols: '12', sm: '6', md: '2', class: 'pa-0' },",
+      "      value: [",
+      "        { tag: 'v-text-field', attrs: { prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true } },",
+      "      ],",
+      "    }",
+      "  ],",
+      "  headers: [",
+      "    { text: 'ID', value: 'primaryId', isSimpleMode: true, width: 80, sortable: true },",
+      "    { text: '标题', value: 'title', isSimpleMode: true, width: 80, sortable: true },",
+      "  ],",
+      "  value: [",
+      "     /*html*/`",
+      "     `",
+      "  ],",
+      "  rowActionList: [",
+      "    { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: \"doUiAction('startUpdateItem', item)\" },",
+      "    { text: '删除', icon: 'mdi-trash-can-outline', color: 'error', click: \"doUiAction('deleteItem', item)\" }",
+      "  ],",
+      "}"
+    ],
+    "description": "表格组件模板"
+  },
+  "jh-list": {
+    "prefix": "jh-list",
+    "body": [
+      "{",
+      "  tag: 'jh-list',",
+      "  attrs: { class: 'p-0 pb-7 bg-gray-100 h-[calc(100dvh-101px)] overflow-y-auto overscroll-contain' },",
+      "  headers: [",
+      "    { text: 'ID', value: 'primaryId', isSimpleMode: true, width: 80, sortable: true },",
+      "    { text: '标题', value: 'title', isSimpleMode: true, width: 80, sortable: true },",
+      "  ],",
+      "  value: [",
+      "     /*html*/`",
+      "     `",
+      "  ],",
+      "  rowActionList: [",
+      "    { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: \"doUiAction('startUpdateItem', item)\" },",
+      "    { text: '删除', icon: 'mdi-trash-can-outline', color: 'error', click: \"doUiAction('deleteItem', item)\" }",
+      "  ],",
+      "}"
+    ],
+    "description": "表格组件模板"
+  },
+  "jh-action": {
+    "prefix": "jh-action",
+    "body": [
+      "{",
+      "  tag: 'jh-action',",
+      "  attrs: { class: 'h-16 w-16 p-2 fixed right-4 bottom-32' },",
+      "  actionList: [",
+      "    { value: '新增', color: 'success', icon: 'mdi-plus', click: \"doUiAction('startCreateItem')\" },",
+      "  ]",
+      "}"
+    ],
+    "description": "悬浮操作按钮模板"
+  },
+  "jh-create-drawer": {
+    "prefix": "jh-create-drawer",
+    "body": [
+      "{",
+      "  tag: 'jh-create-drawer',",
+      "  key: 'create',",
+      "  attrs: {},",
+      "  title: '新增',",
+      "  headSlot: [",
+      "    { tag: 'v-spacer' }",
+      "  ],",
+      "  contentList: [",
+      "    {",
+      "      label: '',",
+      "      type: 'form',",
+      "      formItemList: [",
+      "        { label: '业务ID', model: 'primaryId', tag: 'v-text-field', hidden: true, idGenerate: { prefix: 'S', startValue: 10001, bizId: 'primaryId' } },",
+      "        { label: '名称', model: 'title', tag: 'v-text-field', rules: 'validationRules.requireRules' }",
+      "      ],",
+      "      action: [",
+      "        {",
+      "          tag: 'v-btn',",
+      "          value: '新增',",
+      "          attrs: { color: 'success', '@click': \"doUiAction('createItem')\" },",
+      "          quickAttrs: ['small']",
+      "        }",
+      "      ]",
+      "    }",
+      "  ]",
+      "},"
+    ],
+    "description": "抽屉组件模板"
+  },
+  "jh-update-drawer": {
+    "prefix": "jh-update-drawer",
+    "body": [
+      "{",
+      "  tag: 'jh-update-drawer',",
+      "  key: 'update',",
+      "  attrs: {},",
+      "  title: '编辑',",
+      "  headSlot: [",
+      "    { tag: 'v-spacer' }",
+      "  ],",
+      "  contentList: [",
+      "    {",
+      "      label: '',",
+      "      type: 'form',",
+      "      formItemList: [",
+      "        { label: '名称', model: 'title', tag: 'v-text-field', rules: 'validationRules.requireRules' }",
+      "      ],",
+      "      action: [",
+      "        {",
+      "          tag: 'v-btn',",
+      "          value: '保存',",
+      "          attrs: { color: 'success', '@click': \"doUiAction('updateItem')\" },",
+      "          quickAttrs: ['small']",
+      "        }",
+      "      ]",
+      "    }",
+      "  ]",
+      "},"
+    ],
+    "description": "抽屉组件模板"
+  },
+  "jh-drawer": {
+    "prefix": "jh-drawer",
+    "body": [
+      "{",
+      "  tag: 'jh-drawer',",
+      "  key: '$1',",
+      "  attrs: {},",
+      "  title: '$2',",
+      "  headSlot: [",
+      "    { tag: 'v-spacer' }",
+      "  ],",
+      "  contentList: [",
+      "    {",
+      "      label: '',",
+      "      type: 'form',",
+      "      formItemList: [",
+      "        { label: '初始密码*必填', model: '$1.clearTextPassword', tag: 'v-text-field', attrs: {}, rules: 'validationRules.requireRules' }",
+      "      ],",
+      "      action: [",
+      "        {",
+      "          tag: 'v-btn',",
+      "          value: '保存',",
+      "          attrs: { color: 'success', '@click': \"doUiAction('updateItem')\" },",
+      "          quickAttrs: ['small']",
+      "        }",
+      "      ]",
+      "    }",
+      "  ]",
+      "},"
+    ],
+    "description": "抽屉组件模板"
+  },
+  "dataExpression": {
+    "prefix": "dataExpression",
+    "body": [
+      "dataExpression: {",
+      "  appInfo: 'window.appInfo',",
+      "},"
+    ],
+    "description": "数据表达式模板"
+  },
+  "jh-input": {
+    "prefix": "jh-input",
+    "body": [
+      "{ tag: 'v-text-field', model: 'serverSearchInput.title', attrs: { prefix: '标题：'}}"
+    ],
+    "description": "输入框组件模板"
+  },
+  "jh-select": {
+    "prefix": "jh-select",
+    "body": [
+      "{ tag: 'v-select', model: 'serverSearchWhere.type', attrs: { prefix: '类型', ':items': 'constantObj.types', clearable: true}}"
+    ],
+    "description": "选择框组件模板"
+  },
+  "jh-autocomplete": {
+    "prefix": "jh-autocomplete",
+    "body": [
+      "{ tag: 'v-autocomplete', model: 'serverSearchWhere.type', attrs: { prefix: '类型', ':items': 'constantObj.types', clearable: true}}"
+    ],
+    "description": "自动完成组件模板"
+  },
+  "jh-checkbox": {
+    "prefix": "jh-checkbox",
+    "body": [
+      "{ tag: 'v-checkbox', model: 'serverSearchWhere.item', attrs: { label: '启用' } }"
+    ],
+    "description": "复选框组件模板"
+  },
+  "jh-radio": {
+    "prefix": "jh-radio",
+    "body": [
+      "{ tag: 'v-radio', model: 'serverSearchWhere.item', attrs: { label: '性别' } }"
+    ],
+    "description": "单选框组件模板"
+  },
+  "jh-switch": {
+    "prefix": "jh-switch",
+    "body": [
+      "{ tag: 'v-switch', model: 'serverSearchWhere.item', attrs: { label: '启用', 'true-value': '1', 'false-value': '0' } }"
+    ],
+    "description": "开关组件模板"
+  },
+  "jh-date-picker": {
+    "prefix": "jh-date-picker",
+    "body": [
+      "{ tag: 'v-date-picker', model: 'serverSearchWhere.date', attrs: { prefix: '日期' } }"
+    ],
+    "description": "日期选择器组件模板"
+  },
+  "jh-file-input": {
+    "prefix": "jh-file-input",
+    "body": [
+      "{ tag: 'v-file-input', model: 'serverSearchWhere.image', attrs: { accept: 'image/*', label: '图片' } }"
+    ],
+    "description": "文件输入组件模板"
+  },
+  "jh-textarea": {
+    "prefix": "jh-textarea",
+    "body": [
+      "{ tag: 'v-textarea', model: 'serverSearchWhere.description', attrs: { prefix: '描述', rows: '3' } }"
+    ],
+    "description": "文本区域组件模板"
+  },
+  "jh-btn": {
+    "prefix": "jh-btn",
+    "body": [
+      "{ tag: 'v-btn', value: '保存', attrs: { small: true, color: 'success', '@click': \"doUiAction('updateItem')\" } }"
+    ],
+    "description": "按钮组件模板"
+  },
+  "jianghuAxios": {
+    "prefix": "jianghuAxios",
+    "body": [
+      "const { rows, count } = (",
+      "  await window.jianghuAxios({",
+      "    data: {",
+      "      appData: {",
+      "        pageId: '$1',",
+      "        actionId: '$2',",
+      "        actionData: {},",
+      "        where: {},",
+      "        whereLike: {},",
+      "        whereIn: {},",
+      "        orderBy: [],",
+      "      },",
+      "    },",
+      "  })",
+      ").data.appData.resultData;"
+    ],
+    "description": "jianghuAxios模板"
+  },
+}

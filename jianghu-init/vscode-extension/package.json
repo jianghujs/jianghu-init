@@ -2,7 +2,7 @@
   "name": "jianghu-init-vscode",
   "displayName": "Jianghu Init",
   "description": "Jianghu Init VSCode Extension",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "jianghujs",
   "private": false,
   "license": "MIT",
@@ -30,6 +30,16 @@
       {
         "command": "jianghu-init-vscode.showPropertyDoc",
         "title": "查看属性文档"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "html",
+        "path": "./snippets/html.code-snippets"
+      },
+      {
+        "language": "javascript",
+        "path": "./snippets/javascript.code-snippets"
       }
     ],
     "configuration": {
