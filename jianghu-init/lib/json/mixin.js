@@ -725,7 +725,7 @@ const mixin = {
     }
     // 默认 headSlot 加入分隔符
     for (const content of jsonConfig.actionContent) {
-      if (!_.isString(content) && (!content.headSlot || !content.headSlot.length) && (!jsonConfig.version || ['v2', 'v3'].includes(jsonConfig.version))) {
+      if (!_.isString(content) && (!content.headSlot || !content.headSlot.length)) {
         content.headSlot = [ '<v-spacer></v-spacer>' ];
       }
     }
