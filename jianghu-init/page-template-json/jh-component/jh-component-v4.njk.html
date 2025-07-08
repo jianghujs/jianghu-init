@@ -593,7 +593,7 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
       }
     },
 
-    //===// <=%- if hasJhTable and version == 'v2' %=>
+    //===// <=%- if ['v2', 'v3', 'v4'].includes(version) %=>
     async prepareTableParamsDefault() {
       const where = {};
       const whereLike = {};
