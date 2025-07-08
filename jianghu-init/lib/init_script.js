@@ -37,6 +37,12 @@ const pageTypes = [
     value: 'exportProjectDocs',
     name: 'exportProjectDocs - 导出当前项目目录结构, 系统数据表为md文档',
   },
+  // 补全表字段
+  {
+    pageType: 'script',
+    value: 'fillTableFields',
+    name: 'fillTableFields - 补全表字段',
+  },
 
 ];
 
