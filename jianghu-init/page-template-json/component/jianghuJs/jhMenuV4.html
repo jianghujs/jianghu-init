@@ -3,6 +3,7 @@
   <div>
     <!-- 手机端左边抽屉菜单 >>>>>>>>>>>>> -->
     <v-navigation-drawer
+      v-if="isMobileMenuDrawerShown"
       v-model="isMobileMenuDrawerShown"
       app
       clipped
@@ -73,6 +74,7 @@
     
      <!-- 手机端右边抽屉菜单 >>>>>>>>>>>>> -->
      <v-navigation-drawer
+      v-if="isMobileUserMenuDrawerShown"
       v-model="isMobileUserMenuDrawerShown"
       app
       clipped
