@@ -48,7 +48,7 @@ async function main() {
       return answer.table;
     }
     const tableList = await askForSelectTable();
-    console.log('tableList', tableList);
+    // console.log('tableList', tableList);
 
     for (const table of tableList) {
       // const { TABLE_NAME } = table;
