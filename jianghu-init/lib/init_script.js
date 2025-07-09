@@ -37,11 +37,11 @@ const pageTypes = [
     value: 'exportProjectDocs',
     name: 'exportProjectDocs - 导出当前项目目录结构, 系统数据表为md文档',
   },
-  // 补全表字段
+  // 补全系统字段
   {
     pageType: 'script',
     value: 'fillTableFields',
-    name: 'fillTableFields - 补全表字段',
+    name: 'fillTableFields - 补全系统字段',
   },
 
 ];
@@ -83,6 +83,20 @@ module.exports = class InitToolCommand extends CommandBase {
       page.y = this.argv.y;
       if (args?.includes('--exec')) {
         page.exec = true;
+      } else {
+        // 询问是立即执行还是下载脚本
+        const answer = await inquirer.prompt({
+          name: 'exec',
+          type: 'list',
+          message: 'Please select a page type',
+          choices: [
+            { name: 'exec - 立即执行脚本', value: 'exec' },
+            { name: 'download - 下载脚本到本地', value: 'download' }
+          ],
+        });
+        if (answer.exec === 'exec') {
+          page.exec = true;
+        }
       }
       await new InitToolScript().run(process.cwd(), page);
       this.success('jianghu init tool is success');

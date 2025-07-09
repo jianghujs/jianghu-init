@@ -48,14 +48,14 @@ async function main() {
       return answer.table;
     }
     const tableList = await askForSelectTable();
-    console.log(tableList);
+    console.log('tableList', tableList);
 
     for (const table of tableList) {
-      const { TABLE_NAME } = table;
-      const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT').from('INFORMATION_SCHEMA.COLUMNS').where({
-        TABLE_SCHEMA: databaseName,
-        TABLE_NAME: table,
-      });
+      // const { TABLE_NAME } = table;
+      // const result = await knex.select('COLUMN_NAME as columnName', 'COLUMN_COMMENT as columnComment').from('INFORMATION_SCHEMA.COLUMNS').where({
+      //   TABLE_SCHEMA: databaseName,
+      //   TABLE_NAME: table,
+      // });
 
       const defaultColumn = [ 
         {name: 'operation', comment: '操作', default: 'insert'}, 
@@ -64,11 +64,11 @@ async function main() {
         {name: 'operationAt', comment: '操作时间'} 
       ];
       for (const column of defaultColumn) {
-        await knex.schema.hasColumn(table, column).then(exists => {
+        await knex.schema.hasColumn(table, column.name).then(exists => {
           if (!exists) {
             return knex.schema.table(table, t => {
-              console.log(`创建依赖字段：${table} - ${column}`);
-              t.string(column.name).defaultTo(column.default);
+              console.log(`创建依赖字段：${table} - ${column.name} ${column.comment}`);
+              t.string(column.name).comment(column.comment || '');
             });
           }
         });
