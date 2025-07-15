@@ -181,11 +181,11 @@ module.exports = class CommandBase {
   getEnterpriseDir() {
     const enterPriseV1 = fs.existsSync('user_app_management');
     const enterPriseV2 = fs.existsSync('base-system');
-    const enterPriseConfig = fs.existsSync('.jianghurc');
+    const enterPriseConfig = fs.existsSync('.jianghu/init-config.json');
 
     const enterPriseUpperV1 = fs.existsSync('../user_app_management');
     const enterPriseUpperV2 = fs.existsSync('../base-system');
-    const enterPriseUpperConfig = fs.existsSync('../.jianghurc');
+    const enterPriseUpperConfig = fs.existsSync('../.jianghu/init-config.json');
     let prefix = '';
     if (enterPriseUpperV1 || enterPriseUpperV2 || enterPriseUpperConfig) {
       prefix = '../';
@@ -207,14 +207,19 @@ module.exports = class CommandBase {
     }
     if (enterPriseConfig || enterPriseUpperConfig) {
       try {
-        const jianghurc = JSON.parse(fs.readFileSync(`${prefix}.jianghurc`, 'utf8'));
+        const initConfig = JSON.parse(fs.readFileSync(`${prefix}.jianghu/init-config.json`, 'utf8'));
+        console.log('initConfig', initConfig);
+        if (!initConfig.enterprise) {
+          throw new Error('多应用配置 init-config.json 文件中缺少 enterprise 配置');
+        }
         return {
-          systemDir: `${prefix}${jianghurc.systemDir}`,
-          dataRepositoryDir: `${prefix}${jianghurc.dataRepositoryDir}`,
-          directoryDir: `${prefix}${jianghurc.directoryDir}`,
+          systemDir: `${prefix}${initConfig.enterprise.systemDir}`,
+          dataRepositoryDir: `${prefix}${initConfig.enterprise.dataRepositoryDir}`,
+          directoryDir: `${prefix}${initConfig.enterprise.directoryDir}`,
         };
       } catch (error) {
-        throw new Error('识别 .jianghurc 配置文件失败，请检查 .jianghurc 文件是否正确');
+        const defaultError = '识别 .jianghu/init-config.json 配置文件失败，请检查 .jianghu/init-config.json 文件是否正确';
+        throw new Error(error || defaultError);
       }
     }
 
