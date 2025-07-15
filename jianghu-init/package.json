@@ -31,6 +31,7 @@
     "comment-json": "^4.2.3",
     "compressing": "^1.4.0",
     "dayjs": "^1.10.7",
+    "directory-tree": "^3.5.2",
     "globby": "^9.0.0",
     "inquirer": "^7.0.0",
     "is-type-of": "^1.2.1",

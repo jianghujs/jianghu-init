@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const dirTree = require("directory-tree");
-const sqlFormatter = require('sql-formatter');
 
 // ---------------------改这里---------------------
 const projectPath = path.resolve(__dirname, '../');

@@ -23,7 +23,7 @@ module.exports = class InitClear extends CommandBase {
     // 检查当前目录是否是在项目中
     await this.checkPath();
     // 初始化数据库连接
-    this.dbSetting = this.readDbConfigFromFile();
+    this.dbSetting = await this.readDbConfigFromFile();
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
@@ -125,7 +125,7 @@ module.exports = class InitClear extends CommandBase {
   }
 
   async renderContent(jsonConfig, dev = false) {
-    this.dbSetting = this.readDbConfigFromFile();
+    this.dbSetting = await this.readDbConfigFromFile();
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);

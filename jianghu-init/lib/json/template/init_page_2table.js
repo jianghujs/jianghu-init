@@ -21,17 +21,15 @@ module.exports = class InitPage2Table extends CommandBase {
     // 检查当前目录是否是在项目中
     await this.checkPath();
     // 初始化数据库连接
-    this.dbSetting = this.readDbConfigFromFile();
+    this.dbSetting = await this.readDbConfigFromFile();
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     // 如果是 multi，则切换到 user_app_management 获取前缀
-    const enterPriseV1 = fs.existsSync('../user_app_management');
-    const enterPriseV2 = fs.existsSync('../base-system');
-    if (enterPriseV1 || enterPriseV2) {
+    const { systemDir } = this.getEnterpriseDir();
+    if (fs.existsSync(systemDir)) {
       const oldCwd = process.cwd();
-      const systemDir = enterPriseV1 ? 'user_app_management' : 'base-system';
-      process.chdir('../' + systemDir);
-      this.dbPrefix = this.readDbPrefixFromFile();
+      process.chdir(systemDir);
+      this.dbPrefix = await this.readDbPrefixFromFile();
       process.chdir(oldCwd);
       if (this.dbPrefix && this.app.startsWith(this.dbPrefix)) {
         this.app = this.app.slice(this.dbPrefix.length);

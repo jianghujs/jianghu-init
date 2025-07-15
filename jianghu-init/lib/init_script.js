@@ -81,7 +81,7 @@ module.exports = class InitToolCommand extends CommandBase {
         page.pageId = this.argv.pageId;
       }
       page.y = this.argv.y;
-      if (args?.includes('--exec')) {
+      if (args?.includes('--exec') || this.argv.y || this.argv.exec) {
         page.exec = true;
       } else {
         // 询问是立即执行还是下载脚本

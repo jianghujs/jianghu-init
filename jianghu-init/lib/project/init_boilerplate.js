@@ -122,7 +122,10 @@ module.exports = class InitBoilerplate extends CommandBase {
       templateDir = await this.downloadBoilerplate(pkgName);
       this.info('✅ 模板下载完成');
     }
-
+    console.log('boilerplate.name', boilerplate.name);
+    if ([...this.multiDemoProject, ...this.inMultiDemoProject].includes(boilerplate.name)) {
+      CommandBase.needDbPrefix = true;
+    }
     // copy template
     const { database } = await this.processFiles(this.targetDir, templateDir);
 
@@ -137,11 +140,12 @@ module.exports = class InitBoilerplate extends CommandBase {
   checkProjectDirectory(name) {
     if (['1table-crud-enterprise'].includes(name)) {
       // 多应用下增加应用需要验证目录
-      const dirList = fs.readdirSync(process.cwd());
+      const { systemDir, dataRepositoryDir, directoryDir } = this.getEnterpriseDir();
+      const systemExist = fs.existsSync(systemDir);
+      const dataRepositoryExist = fs.existsSync(dataRepositoryDir);
+      const directoryExist = fs.existsSync(directoryDir);
       // 多应用，三者缺一不可
-      if (dirList.indexOf('data-repository') === -1
-        || dirList.indexOf('base-system') === -1
-        || dirList.indexOf('base-directory') === -1) {
+      if (!systemExist || !dataRepositoryExist || !directoryExist) {
         console.log(symbols.success, chalk.red('Please switch to the project directory under multi-application mode'));
         return false;
       }
@@ -330,7 +334,7 @@ module.exports = class InitBoilerplate extends CommandBase {
   async processFiles(targetDir, templateDir) {
     const src = path.join(templateDir, 'boilerplate');
     const locals = await this.askForVariable(targetDir, templateDir);
-    locals.dbPrefix = locals.dbPrefix || this.dbPrefix;
+    locals.dbPrefix = locals.dbPrefix || await this.tryGetDbPrefix();
     const files = glob.sync('**/*', {
       cwd: src,
       dot: true,

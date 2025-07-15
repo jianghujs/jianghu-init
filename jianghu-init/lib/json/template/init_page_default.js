@@ -22,7 +22,7 @@ class InitPageDefault extends CommandBase {
 
   async setupDatabase() {
     await this.checkPath();
-    this.dbSetting = this.readDbConfigFromFile();
+    this.dbSetting = await this.readDbConfigFromFile();
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
     this.info('✅ 数据库连接初始化');

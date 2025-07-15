@@ -21,6 +21,9 @@ module.exports = class CommandBase {
     this.demoProject = ['xiaochengxu', 'workflow', '1table-crud', '3table-crud'];
   }
 
+  static dbPrefix = '';
+  static needDbPrefix = false;
+
   /**
    * 检查路径
    */
@@ -95,7 +98,7 @@ module.exports = class CommandBase {
   /**
    * 从配置文件 config.local.js 中读取数据库连接配置
    */
-  readDbConfigFromFile() {
+  async readDbConfigFromFile() {
     const configData = fs.readFileSync('./config/config.local.js').toString();
     const setting = {};
     // 去除注释
@@ -109,7 +112,7 @@ module.exports = class CommandBase {
       setting[key] = matchResult[1].replace(/'/g, '').replace(/\s+/g, '').replace(/,/g, '')
         .replace(/"/g, '');
     });
-    setting.dbPrefix = this.tryGetDbPrefix();
+    setting.dbPrefix = await this.tryGetDbPrefix();
 
     // 如果配置文件中包含 process.env 则需要读取 .env 文件
     if (Object.values(setting).join('').includes('process.env')) {
@@ -153,50 +156,104 @@ module.exports = class CommandBase {
     return env;
   }
 
-  tryGetDbPrefix() {
+  async tryGetDbPrefix() {
     if (fs.existsSync('config/config.local.example.js')) {
-      const dbPrefix = this.readDbPrefixFromFile();
+      const dbPrefix = CommandBase.dbPrefix || await this.readDbPrefixFromFile();
       return dbPrefix || '';
     }
 
+    const { systemDir } = this.getEnterpriseDir();
+    const enterPriseSystemDir = fs.existsSync(systemDir);
+    if (!enterPriseSystemDir) {
+      throw new Error(`未获取到多应用项目【${systemDir}】，请检查项目目录结构`);
+    }
+
+    if (fs.existsSync(`${systemDir}/config/config.local.example.js`)) {
+      const oldPath = process.cwd();
+      process.chdir(systemDir);
+      const dbPrefix = CommandBase.dbPrefix || await this.readDbPrefixFromFile();
+      process.chdir(oldPath);
+      return dbPrefix || '';
+    }
+    throw new Error(`未获取到多应用项目【${systemDir}】，请检查项目目录结构`);
+  }
+
+  getEnterpriseDir() {
     const enterPriseV1 = fs.existsSync('user_app_management');
     const enterPriseV2 = fs.existsSync('base-system');
+    const enterPriseConfig = fs.existsSync('.jianghurc');
 
     const enterPriseUpperV1 = fs.existsSync('../user_app_management');
     const enterPriseUpperV2 = fs.existsSync('../base-system');
-    if (enterPriseV1 || enterPriseV2) {
-      const systemDir = enterPriseV1 ? 'user_app_management' : 'base-system';
-      if (fs.existsSync(`${systemDir}/config/config.local.example.js`)) {
-        const oldPath = process.cwd();
-        process.chdir(systemDir);
-        const dbPrefix = this.readDbPrefixFromFile();
-        process.chdir(oldPath);
-        return dbPrefix || '';
+    const enterPriseUpperConfig = fs.existsSync('../.jianghurc');
+    let prefix = '';
+    if (enterPriseUpperV1 || enterPriseUpperV2 || enterPriseUpperConfig) {
+      prefix = '../';
+    }
+
+    if (enterPriseV1 || enterPriseUpperV1) {
+      return {
+        systemDir: `${prefix}user_app_management`,
+        dataRepositoryDir: `${prefix}data_repository`,
+        directoryDir: `${prefix}directory`,
+      };
+    }
+    if (enterPriseV2 || enterPriseUpperV2) {
+      return {
+        systemDir: `${prefix}base-system`,
+        dataRepositoryDir: `${prefix}data-repository`,
+        directoryDir: `${prefix}base-directory`,
+      };
+    }
+    if (enterPriseConfig || enterPriseUpperConfig) {
+      try {
+        const jianghurc = JSON.parse(fs.readFileSync(`${prefix}.jianghurc`, 'utf8'));
+        return {
+          systemDir: `${prefix}${jianghurc.systemDir}`,
+          dataRepositoryDir: `${prefix}${jianghurc.dataRepositoryDir}`,
+          directoryDir: `${prefix}${jianghurc.directoryDir}`,
+        };
+      } catch (error) {
+        throw new Error('识别 .jianghurc 配置文件失败，请检查 .jianghurc 文件是否正确');
       }
     }
-    if (enterPriseUpperV1 || enterPriseUpperV2) {
-      const systemDir = enterPriseUpperV1 ? '../user_app_management' : '../base-system';
-      if (fs.existsSync(`${systemDir}/config/config.local.example.js`)) {
-        const oldPath = process.cwd();
-        process.chdir(`${systemDir}`);
-        const dbPrefix = this.readDbPrefixFromFile();
-        process.chdir(oldPath);
-        return dbPrefix || '';
-      }
-    }
-    return '';
+
+    throw new Error('未识别到多应用项目');
   }
 
   /**
    * 从 example 配置文件 config.local.example.js 中读取数据库连接配置
    */
-  readDbPrefixFromFile(systemDir = 'base-system') {
+  async readDbPrefixFromFile() {
+    if (!CommandBase.needDbPrefix) {
+      return CommandBase.dbPrefix;
+    }
+    const { systemDir } = this.getEnterpriseDir();
+    if (CommandBase.dbPrefix) {
+      return CommandBase.dbPrefix;
+    }
     const configData = fs.readFileSync('./config/config.local.example.js').toString();
     const regStr = 'database: [\'\"](.*)[\'\"],?';
     const reg = new RegExp(regStr);
     const matchResult = configData.match(reg);
     // console.log(regStr, configData, matchResult);
-    return matchResult[1].replace(_.snakeCase(systemDir), '');
+    const dbPrefix = matchResult[1].replace(_.snakeCase(systemDir), '');
+    if (dbPrefix) {
+      const dbPrefixConfirm = dbPrefix.endsWith('_') ? dbPrefix : dbPrefix + '_';
+      // 第一次执行才询问确认
+      const answer = await inquirer.prompt({
+        name: 'value',
+        type: 'input',
+        default: dbPrefixConfirm,
+        message: 'database prefix',
+      });
+      const result = answer.value || dbPrefixConfirm;
+      
+      // 缓存结果，避免重复询问
+      CommandBase.dbPrefix = result.endsWith('_') ? result : result + '_';
+      return CommandBase.dbPrefix;
+    }
+    return dbPrefix;
   }
 
   info(msg) {

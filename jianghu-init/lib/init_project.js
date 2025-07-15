@@ -20,10 +20,10 @@ module.exports = class InitProjectCommand extends CommandBase {
     this.cwd = cwd;
 
     // 如果是 xiaoapp-in-multi，则需要先获取 dbPrefix
-    const dbPrefix = this.tryGetDbPrefix();
+    // const dbPrefix = await this.tryGetDbPrefix();
 
     // 下载模板并生成项目
-    const { targetDir, boilerplate, database = '' } = await new InitBoilerplate({ dbPrefix }).run(cwd, args);
+    const { targetDir, boilerplate, database = '' } = await new InitBoilerplate().run(cwd, args);
 
     const projectName = path.basename(path.resolve(targetDir));
 
@@ -35,7 +35,7 @@ module.exports = class InitProjectCommand extends CommandBase {
     };
 
     // 运行数据库初始化
-    await this.initDb(boilerplate, projectName, dbPrefix, database, dbConfig);
+    await this.initDb(boilerplate, projectName, database, dbConfig);
 
     // done
     this.printGuide(targetDir, boilerplate);
@@ -90,18 +90,14 @@ module.exports = class InitProjectCommand extends CommandBase {
    */
   async getDbSetting(boilerplate, projectName, database, dbConfig) {
     let dbSetting = {};
-    if (this.inMultiDemoProject.includes(boilerplate.name) && fs.existsSync('user_app_management')) {
-      // 读取 example 中的数据库前缀
-      process.chdir('user_app_management');
-      dbSetting = this.readDbConfigFromFile();
-      process.chdir('..');
-    } else if (this.inMultiDemoProject.includes(boilerplate.name) && fs.existsSync('base-system')) {
-      // 读取 example 中的数据库前缀
-      process.chdir('base-system');
-      dbSetting = this.readDbConfigFromFile();
-      process.chdir('..');
+    if (this.inMultiDemoProject.includes(boilerplate.name)) {
+      const { systemDir } = this.getEnterpriseDir();
+      const oldPath = process.cwd();
+      process.chdir(systemDir);
+      dbSetting = await this.readDbConfigFromFile();
+      process.chdir(oldPath);
     } else {
-      dbSetting.dbPrefix = this.tryGetDbPrefix();
+      dbSetting.dbPrefix = await this.tryGetDbPrefix();
       dbSetting.host = dbConfig.dbIp || await this.readlineMethod('数据库IP：', '127.0.0.1');
       if (!this.multiDemoProject.includes(boilerplate.name)) {
         // const databaseName = projectName.replace(new RegExp('-', 'g'), '_');
@@ -118,15 +114,12 @@ module.exports = class InitProjectCommand extends CommandBase {
   /**
    * 运行数据库初始化
    */
-  async initDb(boilerplate, projectName, dbPrefix, database, dbConfig) {
+  async initDb(boilerplate, projectName, database, dbConfig) {
     // 确认要处理的 app
     const apps = [];
     if (this.multiDemoProject.includes(boilerplate.name)) {
-      if (boilerplate.name === 'enterprise-v2') {
-        apps.push('data-repository', 'base-system', 'base-directory'); // , 'simple_xiaoapp'
-      } else {
-        apps.push('data_repository', 'user_app_management', 'directory'); // , 'simple_xiaoapp'
-      }
+      const { systemDir, dataRepositoryDir, directoryDir } = this.getEnterpriseDir();
+      apps.push(dataRepositoryDir, systemDir, directoryDir);
       // 不在项目目录，则切换到项目目录
       if (projectName !== path.basename(path.resolve('.'))) {
         process.chdir(projectName);
@@ -137,7 +130,7 @@ module.exports = class InitProjectCommand extends CommandBase {
 
     // 获取数据库配置
     const dbSetting = await this.getDbSetting(boilerplate, projectName, database, dbConfig);
-    dbSetting.dbPrefix = dbSetting.dbPrefix || dbPrefix || '';
+    dbSetting.dbPrefix = dbSetting.dbPrefix || '';
     if (!this.multiDemoProject.includes(boilerplate.name) && !this.inMultiDemoProject.includes(boilerplate.name)) {
       dbSetting.dbPrefix = '';
     }
