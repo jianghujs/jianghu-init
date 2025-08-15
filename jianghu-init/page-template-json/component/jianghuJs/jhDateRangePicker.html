@@ -18,7 +18,7 @@
       <template v-slot:activator="{ on, attrs }">
         <v-text-field
           v-model="dateRangeText"
-          :label="label"
+          :prefix="prefix"
           prepend-inner-icon="mdi-calendar"
           readonly
           v-bind="attrs"
@@ -78,7 +78,7 @@
         type: Array,
         default: () => []
       },
-      label: {
+      prefix: {
         type: String,
         default: ''
       },
