@@ -1,0 +1,279 @@
+<template id="jh-date-range-picker">
+  <div class="date-range-picker-container">
+    <v-menu 
+      v-model="menu" 
+      :close-on-content-click="false" 
+      :nudge-left="12" 
+      transition="scale-transition" 
+      min-width="auto"
+      :position-x="menuPosition.x"
+      :position-y="menuPosition.y"
+      :position-strategy="menuPosition.strategy"
+      :auto-position="true"
+      max-width="600"
+      :max-height="menuMaxHeight"
+      attach
+      offset-y
+    >
+      <template v-slot:activator="{ on, attrs }">
+        <v-text-field
+          v-model="dateRangeText"
+          :label="label"
+          prepend-inner-icon="mdi-calendar"
+          readonly
+          v-bind="attrs"
+          v-on="on"
+          :filled="filled"
+          :dense="dense"
+          :outlined="outlined"
+          hide-details
+          @click:clear="clearDateRange"
+          ref="dateInput"
+        ></v-text-field>
+      </template>
+      <v-card class="max-w-[100vw]">
+        <v-card-text class="pa-0">
+          <div class="d-flex">
+            <!-- 左侧快捷选择菜单 -->
+            <v-list dense nav class="quick-select-list px-1 !border-r !border-gray-200">
+              <v-list-item @click="quickSelect(7)" :class="{'v-item--active v-list-item--active primary--text': isLast7Days}">
+                <v-list-item-title>最近7天</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="quickSelect(30)" :class="{'v-item--active v-list-item--active primary--text': isLast30Days}">
+                <v-list-item-title>最近30天</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="quickSelect(90)" :class="{'v-item--active v-list-item--active primary--text': isLast90Days}">
+                <v-list-item-title>最近90天</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="selectThisMonth" :class="{'v-item--active v-list-item--active primary--text': isThisMonth}">
+                <v-list-item-title>本月</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="selectLastMonth" :class="{'v-item--active v-list-item--active primary--text': isLastMonth}">
+                <v-list-item-title>上月</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="quickSelect(365)" :class="{'v-item--active v-list-item--active primary--text': isLast365Days}">
+                <v-list-item-title>最近一年</v-list-item-title>
+              </v-list-item>
+            </v-list>
+            
+            <!-- 日期选择器 -->
+            <v-date-picker class="border-none" v-model="tempDateRange" no-title range color="primary"></v-date-picker>
+          </div>
+        </v-card-text>
+        <v-card-actions class="border-t border-gray-200">
+          <v-spacer></v-spacer>
+          <v-btn text color="grey" @click="cancelDateRange">取消</v-btn>
+          <v-btn text color="primary" @click="confirmDateRange">确认</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-menu>
+  </div>
+</template>
+
+<script>
+  Vue.component('JhDateRangePicker', {
+    template: '#jh-date-range-picker',
+    props: {
+      value: {
+        type: Array,
+        default: () => []
+      },
+      label: {
+        type: String,
+        default: ''
+      },
+      filled: {
+        type: Boolean,
+        default: true
+      },
+      dense: {
+        type: Boolean,
+        default: true
+      },
+      outlined: {
+        type: Boolean,
+        default: false
+      },
+    },
+    vuetify: new Vuetify(),
+    data: () => ({
+      menu: false,
+      dateRange: [],
+      tempDateRange: [],
+      menuPosition: {
+        x: 0,
+        y: 0,
+        strategy: 'absolute'
+      },
+      menuMaxHeight: 500
+    }),
+    computed: {
+      dateRangeText() {
+        if (!this.dateRange || this.dateRange.length !== 2) return '';
+        return `${this.formatDate(this.dateRange[0])} ~ ${this.formatDate(this.dateRange[1])}`;
+      },
+      isLast7Days() {
+        if (!this.tempDateRange || this.tempDateRange.length !== 2) return false;
+        const today = dayjs().format('YYYY-MM-DD');
+        const last7Days = dayjs().subtract(7, 'day').format('YYYY-MM-DD');
+        return this.tempDateRange[0] === last7Days && this.tempDateRange[1] === today;
+      },
+      isLast30Days() {
+        if (!this.tempDateRange || this.tempDateRange.length !== 2) return false;
+        const today = dayjs().format('YYYY-MM-DD');
+        const last30Days = dayjs().subtract(30, 'day').format('YYYY-MM-DD');
+        return this.tempDateRange[0] === last30Days && this.tempDateRange[1] === today;
+      },
+      isLast90Days() {
+        if (!this.tempDateRange || this.tempDateRange.length !== 2) return false;
+        const today = dayjs().format('YYYY-MM-DD');
+        const last90Days = dayjs().subtract(90, 'day').format('YYYY-MM-DD');
+        return this.tempDateRange[0] === last90Days && this.tempDateRange[1] === today;
+      },
+      isThisMonth() {
+        if (!this.tempDateRange || this.tempDateRange.length !== 2) return false;
+        const today = dayjs().format('YYYY-MM-DD');
+        const firstDayOfMonth = dayjs().startOf('month').format('YYYY-MM-DD');
+        return this.tempDateRange[0] === firstDayOfMonth && this.tempDateRange[1] === today;
+      },
+      isLastMonth() {
+        if (!this.tempDateRange || this.tempDateRange.length !== 2) return false;
+        const lastMonthStart = dayjs().subtract(1, 'month').startOf('month').format('YYYY-MM-DD');
+        const lastMonthEnd = dayjs().subtract(1, 'month').endOf('month').format('YYYY-MM-DD');
+        return this.tempDateRange[0] === lastMonthStart && this.tempDateRange[1] === lastMonthEnd;
+      },
+      isLast365Days() {
+        if (!this.tempDateRange || this.tempDateRange.length !== 2) return false;
+        const today = dayjs().format('YYYY-MM-DD');
+        const last365Days = dayjs().subtract(365, 'day').format('YYYY-MM-DD');
+        return this.tempDateRange[0] === last365Days && this.tempDateRange[1] === today;
+      }
+    },
+    watch: {
+      value: {
+        handler(newVal) {
+          if (newVal && Array.isArray(newVal) && newVal.length === 2) {
+            this.dateRange = [...newVal];
+            this.tempDateRange = [...newVal];
+          }
+        },
+        immediate: true
+      },
+      menu(val) {
+        if (val) {
+          this.$nextTick(() => {
+            this.calculateMenuPosition();
+            // 打开菜单时，将当前选择复制到临时变量
+            this.tempDateRange = this.dateRange.length === 2 ? [...this.dateRange] : [];
+          });
+        }
+      }
+    },
+    mounted() {
+      if (this.value && Array.isArray(this.value) && this.value.length === 2) {
+        this.dateRange = [...this.value];
+        this.tempDateRange = [...this.value];
+      }
+      // window.addEventListener('resize', this.calculateMenuPosition);
+    },
+    beforeDestroy() {
+      // window.removeEventListener('resize', this.calculateMenuPosition);
+    },
+    methods: {
+      calculateMenuPosition() {
+        if (!this.$refs.dateInput) return;
+        
+        const inputEl = this.$refs.dateInput.$el;
+        const rect = inputEl.getBoundingClientRect();
+        
+        // 获取窗口尺寸
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        
+        // 估计菜单尺寸（日期选择器+快捷菜单）
+        const menuWidth = 600; // 估计宽度
+        const menuHeight = 350; // 估计高度
+        
+        // 默认位置（在输入框下方）
+        let x = rect.left;
+        let y = rect.bottom;
+        let strategy = 'fixed';
+        
+        // 检查右侧空间
+        if (x + menuWidth > windowWidth) {
+          x = windowWidth - menuWidth - 10;
+          if (x < 0) x = 0;
+        }
+        
+        // 检查底部空间
+        if (y + menuHeight > windowHeight) {
+          y = rect.top - menuHeight; // 在输入框上方显示
+          if (y < 0) {
+            y = 10; // 如果上方空间不足，则显示在顶部
+            this.menuMaxHeight = windowHeight - 20; // 限制最大高度
+          }
+        } else {
+          this.menuMaxHeight = windowHeight - y - 10; // 限制最大高度
+        }
+        
+        this.menuPosition = {
+          x: Math.max(0, x),
+          y: Math.max(0, y),
+          strategy: strategy
+        };
+      },
+      formatDate(date) {
+        if (!date) return '';
+        const [year, month, day] = date.split('-');
+        return `${year}-${month}-${day}`;
+      },
+      confirmDateRange() {
+        if (this.tempDateRange && this.tempDateRange.length === 2) {
+          this.dateRange = [...this.tempDateRange];
+          this.$emit('input', this.dateRange);
+          this.$emit('change', this.dateRange);
+        }
+        this.menu = false;
+      },
+      cancelDateRange() {
+        // 取消时恢复原来的选择
+        this.tempDateRange = this.dateRange.length === 2 ? [...this.dateRange] : [];
+        this.menu = false;
+      },
+      clearDateRange() {
+        this.dateRange = [];
+        this.tempDateRange = [];
+        this.$emit('input', []);
+        this.$emit('change', []);
+      },
+      quickSelect(days) {
+        const today = dayjs().format('YYYY-MM-DD');
+        const start = dayjs().subtract(days, 'day').format('YYYY-MM-DD');
+        this.tempDateRange = [start, today];
+      },
+      selectThisMonth() {
+        const today = dayjs().format('YYYY-MM-DD');
+        const start = dayjs().startOf('month').format('YYYY-MM-DD');
+        this.tempDateRange = [start, today];
+      },
+      selectLastMonth() {
+        const start = dayjs().subtract(1, 'month').startOf('month').format('YYYY-MM-DD');
+        const end = dayjs().subtract(1, 'month').endOf('month').format('YYYY-MM-DD');
+        this.tempDateRange = [start, end];
+      },
+    }
+  })
+</script>
+
+<style>
+.date-range-picker-container {
+  position: relative;
+}
+.quick-select-list {
+  min-width: 100px;
+  border-right: 1px solid #e0e0e0;
+}
+.v-item--active {
+  background-color: rgba(25, 118, 210, 0.12);
+}
+</style>
