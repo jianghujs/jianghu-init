@@ -112,7 +112,10 @@ module.exports = class CommandBase {
       setting[key] = matchResult[1].replace(/'/g, '').replace(/\s+/g, '').replace(/,/g, '')
         .replace(/"/g, '');
     });
-    setting.dbPrefix = await this.tryGetDbPrefix();
+
+    if (CommandBase.needDbPrefix) {
+      setting.dbPrefix = await this.tryGetDbPrefix();
+    }
 
     // 如果配置文件中包含 process.env 则需要读取 .env 文件
     if (Object.values(setting).join('').includes('process.env')) {

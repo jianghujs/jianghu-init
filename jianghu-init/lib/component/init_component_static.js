@@ -21,19 +21,6 @@ module.exports = class InitPagePublic extends CommandBase {
     await this.checkPath();
     // 初始化数据库连接
     this.dbSetting = await this.readDbConfigFromFile();
-    // app 默认使用 database，如果有前缀则需要去掉前缀
-    this.app = this.dbSetting.database;
-    // 如果是 multi，则切换到 user_app_management 获取前缀
-    const { systemDir } = this.getEnterpriseDir();
-    if (fs.existsSync(systemDir)) {
-      const oldCwd = process.cwd();
-      process.chdir(systemDir);
-      this.dbPrefix = await this.readDbPrefixFromFile();
-      process.chdir(oldCwd);
-      if (this.dbPrefix && this.app.startsWith(this.dbPrefix)) {
-        this.app = this.app.slice(this.dbPrefix.length);
-      }
-    }
     await this.getKnex(this.dbSetting);
     this.notice('初始化数据库连接成功');
 
