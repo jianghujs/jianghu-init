@@ -128,6 +128,7 @@ module.exports = class InitBoilerplate extends CommandBase {
     }
     // copy template
     const { database } = await this.processFiles(this.targetDir, templateDir);
+    console.log('CommandBase.needDbPrefix', CommandBase.needDbPrefix);
 
     this.info('✅ 项目初始化完成！');
 

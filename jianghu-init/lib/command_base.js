@@ -160,6 +160,9 @@ module.exports = class CommandBase {
   }
 
   async tryGetDbPrefix() {
+    if (!CommandBase.needDbPrefix) {
+      return CommandBase.dbPrefix;
+    }
     if (fs.existsSync('config/config.local.example.js')) {
       const dbPrefix = CommandBase.dbPrefix || await this.readDbPrefixFromFile();
       return dbPrefix || '';
