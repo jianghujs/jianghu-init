@@ -996,7 +996,7 @@ new Vue({
     //===//         actionId: 'insertItem',
     //===//         <=%- if idGenerate %=>
     //===//         bizIdGenerate: {
-    //===//           type: "idSequence",
+    //===//           type: "<=$ idGenerate.type | default('idSequence') $=>",
     //===//           prefix: "<=$ idGenerate.prefix $=>",
     //===//           bizId: "<=$ idGenerate.bizId $=>",
     //===//           tableName: "<=$ table $=>",

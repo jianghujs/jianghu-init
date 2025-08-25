@@ -830,9 +830,9 @@ const mixin = {
         jsonConfig.createFormItemList = action.formItemList;
         jsonConfig.hasCreateSubmit = true;
       }
-      const idGenerate = createDrawer.contentList.find(e => e.type === 'form' && e.formItemList.some(item => !!item.idGenerate));
-      if (idGenerate) {
-        jsonConfig.idGenerate = idGenerate.formItemList.find(item => !!item.idGenerate).idGenerate;
+      const idGenerateItem = createDrawer.contentList.find(e => e.type === 'form' && e.formItemList.some(item => !!item.idGenerate));
+      if (idGenerateItem) {
+        jsonConfig.idGenerate = idGenerateItem.formItemList.find(item => !!item.idGenerate).idGenerate;
       }
     }
     const updateDrawer = actionContent.find(e => e.tag === 'jh-update-drawer');
@@ -1210,7 +1210,7 @@ const mixin = {
     const columnList = await knex(table).columnInfo();
 
     const defaultColumn = [ 'operation', 'operationByUserId', 'operationByUser', 'operationAt' ];
-    if (idGenerate) defaultColumn.push('idSequence');
+    if (idGenerate && idGenerate.type === 'idSequence') defaultColumn.push('idSequence');
     const noticeFieldList = [];
     for (const column of defaultColumn) {
       if (!columnList[column]) {

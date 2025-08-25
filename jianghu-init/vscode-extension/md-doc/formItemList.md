@@ -15,7 +15,7 @@ formItemList: [
     attrs: {}, // 组件属性
     colAttrs: {}, // 布局属性
     default: "默认值",
-    idGenerate: { prefix: "S", startValue: 10001, bizId: "schoolId" }, // 业务id(仅新增表单生效)
+    idGenerate: { prefix: "S", startValue: 10001, bizId: "schoolId", type: "idSequence" }, // bizSequence | idSequence
   }
 ]
 ```
