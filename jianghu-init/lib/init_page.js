@@ -34,6 +34,11 @@ const pageTypes = [
     pageId: 'wxLogin',
     path: 'template/wx-login/',
   }, {
+    value: 'bind-mfa-app',
+    name: 'bind-mfa-app - generate bind mfa app page',
+    pageId: 'bindMfaApp',
+    path: 'template/bind-mfa-app/',
+  }, {
     value: 'manual-page',
     name: 'manual-page - generate manual page from a table',
     pageId: 'manual',

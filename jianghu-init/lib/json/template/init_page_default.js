@@ -8,6 +8,8 @@ class InitPageDefault extends CommandBase {
   async run(cwd, pageTypeObj) {
     this.initialize(cwd, pageTypeObj);
     await this.setupDatabase();
+    // 差异化检查方法
+    await this.checkPageDiffer();
     await this.copyTemplateFiles();
     await this.renderAndExecuteContent();
    
@@ -66,6 +68,31 @@ class InitPageDefault extends CommandBase {
       // eslint-disable-next-line no-eval
       eval(`(function() { ${scriptContent} }).call(this)`);
       this.info('✅ 执行定制化脚本');
+    }
+  }
+
+  async checkPageDiffer() {
+    // 如果是 bind-mfa-app 页面，则检查 _user 表是否存在 secretKey 字段, 不存在则在md5Salt 后加入
+
+    if (this.templateName === 'bind-mfa-app') {
+      
+      const knex = await this.getKnex();
+      const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT').from('INFORMATION_SCHEMA.COLUMNS').where({
+        TABLE_SCHEMA: this.dbSetting.database,
+        TABLE_NAME: '_user',
+      });
+
+      const defaultColumn = [ 'secretKey' ];
+      for (const column of defaultColumn) {
+        await knex.schema.hasColumn('_user', column).then(exists => {
+          if (!exists) {
+            return knex.schema.table('_user', t => {
+              this.info(`创建依赖字段：${column}`);
+              t.string(column);
+            });
+          }
+        });
+      }
     }
   }
 

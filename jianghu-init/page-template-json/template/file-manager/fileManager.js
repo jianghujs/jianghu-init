@@ -7,6 +7,7 @@ const content = {
     ]
   },
   resourceList: [
+    
   ],
   includeList: [
     { type: 'html', path: 'component/fileBrowser/fileBrowser.html' },
