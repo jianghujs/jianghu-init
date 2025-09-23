@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-init",
-  "version": "3.2.31",
+  "version": "3.2.32",
   "description": "Init jianghu app helper tools.",
   "main": "lib/entry.js",
   "scripts": {
@@ -21,6 +21,8 @@
     "lib",
     "page-template",
     "page-template-json",
+    "page-template-component",
+    "page-template-script",
     "vscode-extension/prebuilt"
   ],
   "dependencies": {
