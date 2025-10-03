@@ -24,8 +24,8 @@ module.exports = class InitPage1TableFile extends CommandBase {
     // app 默认使用 database，如果有前缀则需要去掉前缀
     this.app = this.dbSetting.database;
     // 如果是 multi，则切换到 user_app_management 获取前缀
-    const { systemDir } = this.getEnterpriseDir();
-    if (fs.existsSync(systemDir)) {
+    const { systemDir } = this.getEnterpriseConfig();
+    if (systemDir && fs.existsSync(systemDir)) {
       const oldCwd = process.cwd();
       process.chdir(systemDir);
       this.dbPrefix = await this.readDbPrefixFromFile();

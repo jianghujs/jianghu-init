@@ -184,6 +184,51 @@ module.exports = class CommandBase {
     throw new Error(`未获取到多应用项目【${systemDir}】，请检查项目目录结构`);
   }
 
+  // 判断是否是多应用
+  getEnterpriseConfig() {
+
+    const enterPriseV1 = fs.existsSync('user_app_management');
+    const enterPriseV2 = fs.existsSync('base-system');
+    const enterPriseConfig = fs.existsSync('.jianghu/init-config.json');
+
+    const enterPriseUpperV1 = fs.existsSync('../user_app_management');
+    const enterPriseUpperV2 = fs.existsSync('../base-system');
+    const enterPriseUpperConfig = fs.existsSync('../.jianghu/init-config.json');
+    let prefix = '';
+    if (enterPriseUpperV1 || enterPriseUpperV2 || enterPriseUpperConfig) {
+      prefix = '../';
+    }
+
+    if (enterPriseV1 || enterPriseUpperV1) {
+      return {
+        systemDir: `${prefix}user_app_management`,
+        dataRepositoryDir: `${prefix}data_repository`,
+        directoryDir: `${prefix}directory`,
+      };
+    }
+    if (enterPriseV2 || enterPriseUpperV2) {
+      return {
+        systemDir: `${prefix}base-system`,
+        dataRepositoryDir: `${prefix}data-repository`,
+        directoryDir: `${prefix}base-directory`,
+      };
+    }
+    if (enterPriseConfig || enterPriseUpperConfig) {
+      const initConfig = JSON.parse(fs.readFileSync(`${prefix}.jianghu/init-config.json`, 'utf8'));
+      console.log('initConfig', initConfig);
+      if (!initConfig.enterprise) {
+        return {
+          systemDir: `${prefix}${initConfig.enterprise.systemDir}`,
+          dataRepositoryDir: `${prefix}${initConfig.enterprise.dataRepositoryDir}`,
+          directoryDir: `${prefix}${initConfig.enterprise.directoryDir}`,
+        };
+      } else {
+        return false;
+      }
+    }
+    return false;
+  }
+
   getEnterpriseDir() {
     const enterPriseV1 = fs.existsSync('user_app_management');
     const enterPriseV2 = fs.existsSync('base-system');
