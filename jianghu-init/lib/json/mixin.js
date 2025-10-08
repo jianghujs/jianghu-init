@@ -55,7 +55,10 @@ const mixin = {
       let spaceStr = '';
       for (let i = 0; i < spaceCount; i++) { spaceStr += ' '; }
       const objStr = JSON.stringify(obj, null, 2).replace(/"([^"]+)":/g, '$1:').replace(/\n/g, `\n${spaceStr}`);
-      return `${key}: ${objStr}`;
+      if (key) {
+        return `${key}: ${objStr}`;
+      }
+      return objStr;
     });
     nunjucksEnv.addFilter('listToVar', function(arr, key, spaceCount = 4) {
       if (!arr) { return `${key}: []`; }
@@ -706,6 +709,9 @@ const mixin = {
     }
     if (!jsonConfig.hasOwnProperty('jhMenu')) {
       jsonConfig.jhMenu = true;
+    }
+    if (!jsonConfig.hasOwnProperty('vuetify')) {
+      jsonConfig.vuetify = '';
     }
 
     let { includeList, actionContent, pageContent = [], headContent = [], common = {} } = jsonConfig;
