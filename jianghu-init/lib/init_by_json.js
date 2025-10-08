@@ -299,14 +299,57 @@ module.exports = class InitByJsonCommand extends CommandBase {
     fs.mkdirSync('./app/view/template', { recursive: true });
     fs.mkdirSync('./app/public/lib', { recursive: true });
 
+    const initConfig = this.getInitConfig();
+    let isCommonOverwrite = true;
+    let isComponentOverwrite = true;
+    let isTemplateOverwrite = true;
+    let isPublicwrite = true;
+    if (initConfig && initConfig.initJsonOverwrite) {
+      const isFalse = (key) => {
+        return initConfig.initJsonOverwrite.hasOwnProperty(key) && !initConfig.initJsonOverwrite[key];
+      }
+      if (isFalse('common')) {
+        isCommonOverwrite = false;
+      }
+      if (isFalse('component')) {
+        isComponentOverwrite = false;
+      }
+      if (isFalse('template')) {
+        isTemplateOverwrite = false;
+      }
+      if (isFalse('publicStatic')) {
+        isPublicwrite = false;
+      }
+    }
+    
     // 复制通用样式和组件
-    this.copyDir(`${path.join(__dirname, '../')}page-template-json/component/jianghuJs`, './app/view/component/jianghuJs');
-    this.copyDir(`${path.join(__dirname, '../')}page-template-json/common/jianghuJs`, './app/view/common/jianghuJs');
-    this.copyDir(`${path.join(__dirname, '../')}page-template-json/public/lib`, './app/public/lib');
-    // page-template-json/common/jhMobileTemplateV4.html -> ./app/view/teamplate/jhMobileTemplateV4.html'
+    const copyConfigs = [
+      { flag: isComponentOverwrite, name: 'component', desc: 'component' },
+      { flag: isCommonOverwrite, name: 'common', desc: 'common' },
+      { flag: isPublicwrite, name: 'publicStatic', desc: 'public' },
+      { flag: isTemplateOverwrite, name: 'template', desc: 'template' }
+    ];
+    this.notice('------------依赖文件覆盖 START------------');
+    copyConfigs.forEach(({ flag, name, desc }) => {
+      const status = flag ? '✅ 文件覆盖' : '⚠️  跳过覆盖';
+      const logFn = flag ? this.success.bind(this) : this.warning.bind(this);
+      logFn(`${status}: ${desc.padEnd(12)} [initJsonOverwrite.${name} = ${flag}]`);
+    });
+    this.notice('------------依赖文件覆盖 END------------');
 
-    fs.copyFileSync(`${path.join(__dirname, '../')}page-template-json/common/jhMobileTemplateV4.html`, './app/view/template/jhMobileTemplateV4.html');
-    fs.copyFileSync(`${path.join(__dirname, '../')}page-template-json/common/jhTemplateV4.html`, './app/view/template/jhTemplateV4.html');
+    if (isComponentOverwrite) {
+      this.copyDir(`${path.join(__dirname, '../')}page-template-json/component/jianghuJs`, './app/view/component/jianghuJs');
+    }
+    if (isCommonOverwrite) {
+      this.copyDir(`${path.join(__dirname, '../')}page-template-json/common/jianghuJs`, './app/view/common/jianghuJs');
+    }
+    if (isPublicwrite) {
+      this.copyDir(`${path.join(__dirname, '../')}page-template-json/public/lib`, './app/public/lib');
+    }
+    if (isTemplateOverwrite) {
+      fs.copyFileSync(`${path.join(__dirname, '../')}page-template-json/common/jhMobileTemplateV4.html`, './app/view/template/jhMobileTemplateV4.html');
+      fs.copyFileSync(`${path.join(__dirname, '../')}page-template-json/common/jhTemplateV4.html`, './app/view/template/jhTemplateV4.html');
+    }
   }
 
 

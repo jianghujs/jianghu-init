@@ -184,6 +184,18 @@ module.exports = class CommandBase {
     throw new Error(`未获取到多应用项目【${systemDir}】，请检查项目目录结构`);
   }
 
+  // 获取.jianghu/init-config.json
+  getInitConfig() {
+    // 判断是否存在
+    if (!fs.existsSync('.jianghu/init-config.json')) {
+      if (fs.existsSync('../.jianghu/init-config.json')) {
+        return JSON.parse(fs.readFileSync('../.jianghu/init-config.json', 'utf8'));
+      }
+      return false;
+    }
+    return JSON.parse(fs.readFileSync('.jianghu/init-config.json', 'utf8'));
+  }
+
   // 判断是否是多应用
   getEnterpriseConfig() {
 
