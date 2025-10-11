@@ -337,7 +337,7 @@
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
           <div class="jh-drawer-action-btn-group">
-            <v-btn class="elevation-0 grey lighten-4" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck" small>取消</v-btn>
+            <v-btn class="elevation-0" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck" small>取消</v-btn>
             <!-- 抽屉操作按钮 -->
             <=%- for content in actionItem.contentList %=>
             <=%- if content.action %=>
@@ -442,7 +442,7 @@
         <=%- endif %=>
       </v-form>
       <!-- 抽屉关闭按钮 -->
-      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">
+      <v-btn elevation="0" color="primary" fab absolute top left small tile class="drawer-close-float-btn" @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-navigation-drawer>

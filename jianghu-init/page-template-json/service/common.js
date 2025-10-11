@@ -9,7 +9,7 @@ const actionDataScheme = Object.freeze({
     additionalProperties: true,
     required: [ 'type', 'bizId', 'tableName' ],
     properties: {
-      type: { type: 'string', enum: [ 'idSequence' ] },
+      type: { type: 'string', enum: [ 'idSequence', 'bizSequence' ] },
       bizId: { anyOf: [{ type: "string" }, { type: "number" }] },
       tableName: { anyOf: [{ type: "string" }, { type: "number" }] },
       prefix: { anyOf: [{ type: "string" }, { type: "number" }, { type: "null" }] },
@@ -48,6 +48,30 @@ class CommonService extends Service {
       }
       const newBizId = prefix+ newidSequence;
       this.ctx.request.body.appData.actionData.idSequence = newidSequence;
+      this.ctx.request.body.appData.actionData[bizId] = newBizId;
+    } else if (type === 'bizSequence') {
+      // 单字段设计：只生成业务ID，不生成idSequence字段
+      let newSequence = null;
+      const maxBizIdResult = await jianghuKnex(tableName)
+        .max(bizId, { as: "maxBizId" })
+        .first();
+  
+      if (!maxBizIdResult.maxBizId) {
+        // 表为空，使用起始值
+        newSequence = startValue;
+      } else {
+        // 从现有业务ID中提取序列号
+        const currentMaxId = maxBizIdResult.maxBizId;
+        const currentSequence = parseInt((currentMaxId + '').replace(prefix, ''));
+  
+        if (isNaN(currentSequence) || currentSequence < startValue) {
+          newSequence = startValue;
+        } else {
+          newSequence = currentSequence + 1;
+        }
+      }
+  
+      const newBizId = prefix + newSequence;
       this.ctx.request.body.appData.actionData[bizId] = newBizId;
     } else {
       throw new Error("不支持的type " + type);
