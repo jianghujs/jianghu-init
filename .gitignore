@@ -31,3 +31,4 @@ dev-scripts/dist/
 
 temp/*
 !temp/README.md
+.trae/**
