@@ -2,8 +2,12 @@
 <=%- if htmlHead %=>
 <=$ htmlHead $=>
 <=%- endif %=>
-<link href="/<$ ctx.app.config.appId $>/public/lib/jianghu-ui/jianghu-ui.css" rel="stylesheet">
-<script src="/<$ ctx.app.config.appId $>/public/lib/jianghu-ui/jianghu-ui.js"></script>
+<!-- 测试 -->
+<!-- <link href="http://localhost:6006/jianghu-ui.css" rel="stylesheet">
+<script src="http://localhost:6006/jianghu-ui.js"></script> -->
+<!-- 部署 -->
+<link href="https://cdn.jsdelivr.net/npm/jianghu-ui@latest/dist/jianghu-ui.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jianghu-ui@latest/dist/jianghu-ui.js"></script>
 {% endblock %}
 <=%- set jhSceneList = (headContent | filter({tag: 'jh-scene'})) | fillConfigKey %=>
 <=%- set jhSearch = (headContent | find({tag: 'jh-search'})) %=>
@@ -174,6 +178,7 @@
               :items="tableDataComputed"
               :search="searchInput"
               @create-click="doUiAction('startCreateItem')"
+              @refresh="doUiAction('getTableData')"
               :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
               <=%- if content.props.serverPagination %=>
               :server-pagination="true"
@@ -264,25 +269,84 @@
 
     <=%- if actionItem.tag == 'jh-drawer' or actionItem.tag == 'jh-create-drawer' or actionItem.tag == 'jh-update-drawer' %=>
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
-    <jh-drawer 
-      v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" 
-      v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" 
-      :title="'<=$ actionItem.title $=>'" 
+    <jh-drawer
+      v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown"
+      v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown"
+      ref="<=$ actionItem.key $=>Drawer"
+      title="<=$ actionItem.title $=>"
       width="90%"
+      :drawerContentClass="''"
       <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>
     >
-        <jh-form 
-          ref="<=$ actionItem.key $=>Form"
-          :fields="<=$ actionItem.key $=>FormFieldList" 
-          v-model="<=$ actionItem.key $=>Item"
-          :initialData="<=$ actionItem.key $=>Item"
+      <template v-slot:actions>
+        <v-btn class="elevation-0" small @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">取消</v-btn>
+        <=%- for content in actionItem.contentList %=>
+        <=%- if content.action %=>
+        <template v-if="
+        <=%- if actionItem.contentList.length === 1 %=>true
+        <=%- else %=><=$ actionItem.key | lcfirst $=>DrawerTab == '<=$ loop.index - 1 $=>'
+        <=%- endif %=>">
+          <=$ content.action | tagFormat(12) $=>
+        </template>
+        <=%- endif %=>
+        <=%- endfor %=>
+      </template>
+      
+      <!-- Tabs -->
+      <=%- if actionItem.contentList.length > 1 %=>
+      <v-tabs v-model="<=$ actionItem.key | lcfirst $=>DrawerTab" color="success" class="mb-4">
+        <=%- for content in actionItem.contentList %=>
+        <v-tab key="<=$ loop.index - 1 $=>"><=$ content.label $=></v-tab>
+        <=%- endfor %=>
+      </v-tabs>
+      <v-tabs-items v-model="<=$ actionItem.key | lcfirst $=>DrawerTab">
+      <=%- endif %=>
 
-        >
-          <!-- 抽屉操作按钮插槽? jh-form might have action slot, or jh-drawer has. 
-               V4 put buttons in header. jh-drawer usually has default close button.
-               We keep it simple.
-          -->
-        </jh-form>
+      <=%- for content in actionItem.contentList %=>
+        <=%- if actionItem.contentList.length > 1 %=>
+        <v-tab-item key="<=$ loop.index - 1 $=>">
+        <=%- endif %=>
+
+        <=%- if content.type == "form" %=>
+          <jh-form
+            class="px-4 pb-4"
+            ref="<=$ actionItem.key $=>Form"
+            :fields="[
+              <=%- for formItem in content.formItemList %=>
+              { 
+                label: '<=$ formItem.label $=>', 
+                key: '<=$ formItem.model $=>', 
+                type: '<=$ formItem.tag | replace('v-text-field', 'text') | replace('v-select', 'select') | replace('v-date-picker', 'date') | replace('v-textarea', 'textarea') $=>', 
+                rules: <=$ formItem.rules | default('[]') $=>, 
+                attrs: {
+                  <=%- for attr, value in formItem.attrs %=>
+                    <=%- if attr.startsWith(':') or attr.startsWith('v-bind:') %=>
+                    <=$ attr | replace(':', '') | replace('v-bind:', '') $=>: <=$ value $=>,
+                    <=%- else %=>
+                    '<=$ attr $=>': '<=$ value $=>',
+                    <=%- endif %=>
+                  <=%- endfor %=>
+                } 
+              },
+              <=%- endfor %=>
+            ]"
+            :initialData="<=$ actionItem.key $=>Item"
+            @field-change="(val) => { <=$ actionItem.key $=>Item[val.key] = val.value }"
+          />
+        <=%- elif content.type == "component" %=>
+          <<=$ content.componentPath.split('/').pop() | camelToKebab $=> <=%- for attr, value in content.bind %=> <=$ attr | tagAttr(value) $=><=%- endfor %=>/>
+        <=%- else %=>
+          <=$ content | tagFormat(12) $=>
+        <=%- endif %=>
+
+        <=%- if actionItem.contentList.length > 1 %=>
+        </v-tab-item>
+        <=%- endif %=>
+      <=%- endfor %=>
+
+      <=%- if actionItem.contentList.length > 1 %=>
+      </v-tabs-items>
+      <=%- endif %=>
     </jh-drawer>
     <!-- <<<<<<<<<<<<< <=$ actionItem.title $=> -->
     <=%- else %=>
@@ -436,6 +500,9 @@ new Vue({
     //===// <=%- if hasCreateSubmit %=>
     //===// createActionData: {},
     //===// <=%- endif %=>
+    //===// <=%- if hasCreateDrawer > 1 %=>
+    //===// createDrawerTab: 0,
+    //===// <=%- endif %=>
     //===// <=%- endif %=>
 
     //===// <=%- if hasUpdateDrawer %=>
@@ -446,6 +513,9 @@ new Vue({
     //===// updateItemId: null,
     //===// <=%- if hasUpdateSubmit %=>
     //===// updateActionData: {},
+    //===// <=%- endif %=>
+    //===// <=%- if hasUpdateDrawer > 1 %=>
+    //===// updateDrawerTab: 0,
     //===// <=%- endif %=>
     //===// <=%- endif %=>
 
@@ -568,7 +638,7 @@ new Vue({
     createFormFieldList() {
       return [
         //===//   <=%- for formItem in createFormItemList %=>
-        { label: "<=$ formItem.label $=>", model: "<=$ formItem.model $=>", type: "<=$ formItem.tag | replace('v-text-field', 'text') | replace('v-select', 'select') | replace('v-date-picker', 'date') | replace('v-textarea', 'textarea') $=>", rules: this.<=$ formItem.rules | default('[]') $=>, attrs: {
+        { label: "<=$ formItem.label $=>", key: "<=$ formItem.model $=>", type: "<=$ formItem.tag | replace('v-text-field', 'text') | replace('v-select', 'select') | replace('v-date-picker', 'date') | replace('v-textarea', 'textarea') $=>", rules: <=%- if formItem.rules %=>this.<=$ formItem.rules | default('[]') $=> <=%- else %=>[]<=%- endif %=>, attrs: {
           //===//     <=%- for attr, value in formItem.attrs %=>
           //===//       <=%- if attr.startsWith(':') or attr.startsWith('v-bind:') %=>
           <=$ attr | replace(':', '') | replace('v-bind:', '') $=>: <=$ value $=>,
@@ -586,7 +656,7 @@ new Vue({
     updateFormFieldList() {
       return [
         //===//   <=%- for formItem in updateFormItemList %=>
-        { label: "<=$ formItem.label $=>", model: "<=$ formItem.model $=>", type: "<=$ formItem.tag | replace('v-text-field', 'text') | replace('v-select', 'select') | replace('v-date-picker', 'date') | replace('v-textarea', 'textarea') $=>", rules: this.<=$ formItem.rules | default('[]') $=>, attrs: {
+        { label: "<=$ formItem.label $=>", key: "<=$ formItem.model $=>", type: "<=$ formItem.tag | replace('v-text-field', 'text') | replace('v-select', 'select') | replace('v-date-picker', 'date') | replace('v-textarea', 'textarea') $=>", rules: <=%- if formItem.rules %=>this.<=$ formItem.rules | default('[]') $=> <=%- else %=>[]<=%- endif %=>, attrs: {
           //===//     <=%- for attr, value in formItem.attrs %=>
           //===//       <=%- if attr.startsWith(':') or attr.startsWith('v-bind:') %=>
           <=$ attr | replace(':', '') | replace('v-bind:', '') $=>: <=$ value $=>,
@@ -602,21 +672,6 @@ new Vue({
 
     //===// <=%- for drawer in actionContent %=>
     //===// <=%- if drawer.tag == 'jh-drawer' %=>
-    <=$ drawer.key | lcfirst $=>FormFieldList() {
-      return [
-        //===//   <=%- for formItem in drawer.contentList[0].formItemList %=>
-        { label: "<=$ formItem.label $=>", model: "<=$ formItem.model $=>", type: "<=$ formItem.tag | replace('v-text-field', 'text') | replace('v-select', 'select') | replace('v-date-picker', 'date') | replace('v-textarea', 'textarea') $=>", this.<=$ formItem.rules | default('[]') $=>, attrs: {
-          //===//     <=%- for attr, value in formItem.attrs %=>
-          //===//       <=%- if attr.startsWith(':') or attr.startsWith('v-bind:') %=>
-          <=$ attr | replace(':', '') | replace('v-bind:', '') $=>: <=$ value $=>,
-          //===//       <=%- else %=>
-          '<=$ attr $=>': "<=$ value $=>",
-          //===//       <=%- endif %=>
-          //===//     <=%- endfor %=>
-        } },
-        //===//   <=%- endfor %=>
-      ];
-    },
     //===// <=%- endif %=>
     //===// <=%- endfor %=>
   },
@@ -835,7 +890,11 @@ new Vue({
     //===// <=%- endif %=>
     //===// <=%- if not common.methods.prepareCreateValidate %=>
     //===// async prepareCreateValidate() {
+    //===//   <=%- if (actionContent | find({key: 'create'})).contentList.length > 1 %=>
+    //===//   if (await this.$refs.createForm[this.createDrawerTab].validate()) {
+    //===//   <=%- else %=>
     //===//   if (await this.$refs.createForm.validate()) {
+    //===//   <=%- endif %=>
     //===//     return true;
     //===//   }
     //===//   throw new Error("请完善表单信息")
@@ -935,7 +994,11 @@ new Vue({
     //===// <=%- endif %=>
     //===// <=%- if not common.methods.prepareUpdateValidate %=>
     //===// async prepareUpdateValidate() {
+    //===//   <=%- if (actionContent | find({key: 'update'})).contentList.length > 1 %=>
+    //===//   if (await this.$refs.updateForm[this.updateDrawerTab].validate()) {
+    //===//   <=%- else %=>
     //===//   if (await this.$refs.updateForm.validate()) {
+    //===//   <=%- endif %=>
     //===//     return true;
     //===//   }
     //===//   throw new Error("请完善表单信息")
