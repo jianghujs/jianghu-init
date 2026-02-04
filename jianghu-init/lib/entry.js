@@ -6,6 +6,7 @@ const CommandInitPage = require('./init_page');
 const CommandInitComponent = require('./init_component');
 const CommandInitByJson = require('./init_by_json');
 const CommandInitScript = require('./init_script');
+const CommandInitLint = require('./init_lint');
 const CommandInitVSCode = require('./init_vscode');
 const path = require('path');
 const fs = require('fs');
@@ -31,6 +32,10 @@ const initTypes = [
   {
     value: 'script',
     name: 'script - Add some scripts to manage your app.',
+  },
+  {
+    value: 'lint',
+    name: 'lint - Initialize lint configuration (ESLint, Prettier, Husky).',
   },
   {
     value: 'vscode',
@@ -110,7 +115,7 @@ module.exports = class Entry {
       return;
     }
 
-    if (![ 'project', 'page', 'component', 'json', 'script', 'vscode'].includes(initType)) {
+    if (![ 'project', 'page', 'component', 'json', 'script', 'vscode', 'lint'].includes(initType)) {
       const answer = await inquirer.prompt({
         name: 'initType',
         type: 'list',
@@ -143,6 +148,9 @@ module.exports = class Entry {
         break;
       case 'script':
         await new CommandInitScript().run(process.cwd(), passArgv);
+        break;
+      case 'lint':
+        await new CommandInitLint().run(process.cwd(), passArgv);
         break;
       case 'vscode':
         await new CommandInitVSCode().run(process.cwd(), passArgv);
@@ -177,6 +185,7 @@ module.exports = class Entry {
   component [选项]             添加一些组件来管理你的应用
   json [选项]                  通过 JSON 文本初始化
   script [选项]                添加一些脚本来管理你的应用
+  lint [选项]                  初始化 lint 配置 (ESLint, Prettier, Husky)
   vscode                       安装VSCode扩展，辅助使用jianghu-init
 
   运行 jianghu-init <命令> --help 以获取指定命令的详细用法。
