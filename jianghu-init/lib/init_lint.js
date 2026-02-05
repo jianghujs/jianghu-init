@@ -3,7 +3,6 @@
 const CommandBase = require('./command_base');
 const path = require('path');
 const fs = require('fs');
-const chalk = require('chalk');
 
 /**
  * 初始化 Lint 配置
@@ -20,6 +19,9 @@ module.exports = class InitLintCommand extends CommandBase {
 
     this.notice('Initializing jianghu-lint...');
 
+    // Resource directory
+    const lintResourceDir = path.join(__dirname, 'lint');
+
     // 1. Generate local eslint plugin
     const pluginDir = path.join(cwd, 'eslint-plugin-jianghu');
     const rulesDir = path.join(pluginDir, 'lib', 'rules');
@@ -30,208 +32,62 @@ module.exports = class InitLintCommand extends CommandBase {
     }
 
     // eslint-plugin-jianghu/package.json
-    const pluginPackageJson = {
-      "name": "eslint-plugin-jianghu",
-      "version": "1.0.0",
-      "main": "index.js",
-      "dependencies": {
-        "requireindex": "~1.2.0"
-      },
-      "engines": {
-        "node": ">=12.0.0"
-      }
-    };
-    fs.writeFileSync(path.join(pluginDir, 'package.json'), JSON.stringify(pluginPackageJson, null, 2));
+    fs.copyFileSync(
+      path.join(lintResourceDir, 'plugin_package.json'),
+      path.join(pluginDir, 'package.json')
+    );
 
     // eslint-plugin-jianghu/index.js
-    const pluginIndexJs = `
-/**
- * @fileoverview JianghuJS lint rules
- */
-'use strict';
+    fs.copyFileSync(
+      path.join(lintResourceDir, 'plugin_index.js'),
+      path.join(pluginDir, 'index.js')
+    );
 
-const requireIndex = require('requireindex');
-
-module.exports = {
-  rules: requireIndex(__dirname + '/lib/rules'),
-};
-`;
-    fs.writeFileSync(path.join(pluginDir, 'index.js'), pluginIndexJs);
-
-    // Rule 1: check-vue-methods-douiaction.js
-    const ruleVueMethodsDoUiAction = `
-/**
- * @fileoverview Ensure doUiAction exists in Vue methods with correct signature
- */
-'use strict';
-
-module.exports = {
-  meta: {
-    type: 'problem',
-    docs: {
-      description: 'ensure doUiAction in Vue methods',
-      category: 'Best Practices',
-      recommended: true,
-    },
-    messages: {
-      missingDoUiAction: 'Vue methods must contain "doUiAction" method.',
-      invalidDoUiAction: '"doUiAction" must be a function with signature (uiActionId, uiActionData).',
-    },
-    schema: [],
-  },
-
-  create(context) {
-    return {
-      NewExpression(node) {
-        if (node.callee.name === 'Vue' && node.arguments.length > 0) {
-          const config = node.arguments[0];
-          if (config.type === 'ObjectExpression') {
-            const methodsProp = config.properties.find(p => p.key.name === 'methods');
-            if (methodsProp && methodsProp.value.type === 'ObjectExpression') {
-              const doUiAction = methodsProp.value.properties.find(p => p.key.name === 'doUiAction');
-              
-              if (!doUiAction) {
-                context.report({
-                  node: methodsProp,
-                  messageId: 'missingDoUiAction',
-                });
-              } else {
-                // Check if it is a function and has arguments
-                if (
-                  (doUiAction.value.type === 'FunctionExpression' || doUiAction.value.type === 'ArrowFunctionExpression')
-                ) {
-                   // Check arguments count (optional, but requested "default format and args")
-                   // Usually: async doUiAction(uiActionId, uiActionData)
-                   // We just warn if params length is not 2, or names don't match loosely? 
-                   // Let's be strict on params length >= 2 or names.
-                   // Actually, let's just check it is a function for now to avoid false positives on loose usage, 
-                   // but user said "must have default format and args".
-                   // Let's require at least 2 args.
-                   if (doUiAction.value.params.length < 2) {
-                     context.report({
-                       node: doUiAction,
-                       messageId: 'invalidDoUiAction',
-                     });
-                   }
-                } else {
-                   context.report({
-                     node: doUiAction,
-                     messageId: 'invalidDoUiAction',
-                   });
-                }
-              }
-            }
-          }
-        }
-      },
-    };
-  },
-};
-`;
-    fs.writeFileSync(path.join(rulesDir, 'check-vue-methods-douiaction.js'), ruleVueMethodsDoUiAction);
-
-    // Rule 2: check-service-action-data-scheme.js
-    const ruleServiceActionDataScheme = `
-/**
- * @fileoverview Ensure actionDataScheme constant definition in service files
- */
-'use strict';
-
-module.exports = {
-  meta: {
-    type: 'problem',
-    docs: {
-      description: 'ensure actionDataScheme constant in service',
-      category: 'Best Practices',
-      recommended: true,
-    },
-    messages: {
-      missingActionDataScheme: 'Service file must define "const actionDataScheme = Object.freeze({...})".',
-    },
-    schema: [],
-  },
-
-  create(context) {
-    let hasActionDataScheme = false;
-
-    return {
-      VariableDeclarator(node) {
-        if (node.id.name === 'actionDataScheme') {
-          hasActionDataScheme = true;
-        }
-      },
-      'Program:exit'(node) {
-        if (!hasActionDataScheme) {
-          context.report({
-            node,
-            messageId: 'missingActionDataScheme',
-          });
-        }
-      },
-    };
-  },
-};
-`;
-    fs.writeFileSync(path.join(rulesDir, 'check-service-action-data-scheme.js'), ruleServiceActionDataScheme);
+    // Rules: Copy all files from lib/lint/rules to plugin rules dir
+    const rulesSrcDir = path.join(lintResourceDir, 'rules');
+    if (fs.existsSync(rulesSrcDir)) {
+      const ruleFiles = fs.readdirSync(rulesSrcDir);
+      for (const file of ruleFiles) {
+        fs.copyFileSync(
+          path.join(rulesSrcDir, file),
+          path.join(rulesDir, file)
+        );
+      }
+    }
     this.success('Created local eslint plugin at ./eslint-plugin-jianghu');
 
 
     // 2. Create .eslintrc.js
-    const eslintConfig = `module.exports = {
-  extends: [
-    'eslint-config-egg',
-    'plugin:prettier/recommended'
-  ],
-  plugins: [
-    'html',
-    'jianghu'
-  ],
-  parserOptions: {
-    ecmaVersion: 2020,
-  },
-  rules: {
-    'no-console': 'warn',
-    'no-unused-vars': 'warn',
-    'prettier/prettier': 'warn'
-  },
-  overrides: [
-    {
-      files: ['app/view/page/*.html'],
-      rules: {
-        'jianghu/check-vue-methods-douiaction': 'error',
-      },
-    },
-    {
-      files: ['app/service/*.js'],
-      rules: {
-        'jianghu/check-service-action-data-scheme': 'error',
-      },
-    },
-  ],
-};
-`;
-    fs.writeFileSync(path.join(cwd, '.eslintrc.js'), eslintConfig);
+    fs.copyFileSync(
+      path.join(lintResourceDir, 'eslintrc.js'),
+      path.join(cwd, '.eslintrc.js')
+    );
     this.success('Created .eslintrc.js');
 
     // 3. Create .prettierrc.js
-    const prettierConfig = `module.exports = {
-  singleQuote: true,
-  semi: true,
-  printWidth: 120,
-  tabWidth: 2,
-  useTabs: false,
-  trailingComma: 'all',
-  endOfLine: 'lf',
-  arrowParens: 'avoid',
-};
-`;
-    fs.writeFileSync(path.join(cwd, '.prettierrc.js'), prettierConfig);
+    fs.copyFileSync(
+      path.join(lintResourceDir, 'prettierrc.js'),
+      path.join(cwd, '.prettierrc.js')
+    );
     this.success('Created .prettierrc.js');
+
+    // 3.1 Create .eslintignore and .prettierignore
+    fs.copyFileSync(
+      path.join(lintResourceDir, 'eslintignore'),
+      path.join(cwd, '.eslintignore')
+    );
+    this.success('Created .eslintignore');
+
+    fs.copyFileSync(
+      path.join(lintResourceDir, 'prettierignore'),
+      path.join(cwd, '.prettierignore')
+    );
+    this.success('Created .prettierignore');
 
     // 4. Update package.json
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     packageJson.scripts = packageJson.scripts || {};
-    packageJson.scripts.lint = 'eslint .';
+    packageJson.scripts.lint = 'eslint . --quiet';
     packageJson.scripts.fix = 'eslint . --fix';
     packageJson.scripts.prepare = 'husky install';
     
@@ -269,10 +125,28 @@ module.exports = {
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
     this.success('Updated package.json');
 
+    // 5. Setup Husky
+    const huskyDir = path.join(cwd, '.husky');
+    if (!fs.existsSync(huskyDir)) {
+      fs.mkdirSync(huskyDir, { recursive: true });
+    }
+    const preCommitPath = path.join(huskyDir, 'pre-commit');
+    const preCommitContent = `#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+npx lint-staged
+`;
+    fs.writeFileSync(preCommitPath, preCommitContent);
+    try {
+      fs.chmodSync(preCommitPath, '755');
+    } catch (e) {
+      // ignore chmod error on windows or other systems
+    }
+    this.success('Created .husky/pre-commit hook');
+
     this.notice('\nConfiguration files created.');
     this.warning('Please run "npm install" to install dependencies.');
-    this.warning('Then husky will be installed automatically via "prepare" script.');
-    this.warning('Finally, you may need to run: npx husky add .husky/pre-commit "npx lint-staged"');
+    this.warning('Husky hooks will be installed automatically via "prepare" script.');
   }
 
 };

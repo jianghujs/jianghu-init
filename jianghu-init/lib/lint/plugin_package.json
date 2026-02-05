@@ -1,0 +1,11 @@
+{
+  "name": "eslint-plugin-jianghu",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "requireindex": "~1.2.0"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}
