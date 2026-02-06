@@ -1,13 +1,9 @@
 {% block htmlHead %}
+<link href="http://localhost:6006/jianghu-ui.css" rel="stylesheet">
+<script src="http://localhost:6006/jianghu-ui.js"></script>
 <=%- if htmlHead %=>
 <=$ htmlHead $=>
 <=%- endif %=>
-<!-- 测试 -->
-<!-- <link href="http://localhost:6006/jianghu-ui.css" rel="stylesheet">
-<script src="http://localhost:6006/jianghu-ui.js"></script> -->
-<!-- 部署 -->
-<link href="https://cdn.jsdelivr.net/npm/jianghu-ui@latest/dist/jianghu-ui.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/jianghu-ui@latest/dist/jianghu-ui.js"></script>
 {% endblock %}
 <=%- set jhSceneList = (headContent | filter({tag: 'jh-scene'})) | fillConfigKey %=>
 <=%- set jhSearch = (headContent | find({tag: 'jh-search'})) %=>
@@ -53,31 +49,79 @@
         </v-col>
         <=%- elif content.tag == 'jh-search' %=>
         <!-- 服务端搜索 -->
-        <v-col cols="12" xs="12" sm="12" md="8" xl="9" class="pl-md-2 mb-2 mb-md-0" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
-          <jh-form 
-            class="jh-backend-search-form"
-            :fields="serverSearchFieldList" 
-            v-model="serverSearchInput" 
-            layout="grid"
-            :grid-props="{cols: 12, sm: 4, md: 3, xl: 2}"
-          >
-            <template v-slot:action>
-              <=%- if content.searchBtn is undefined or content.searchBtn != false %=>
-              <div class="jh-backend-search-btn ml-2">
-                <=%- if content.searchBtn == true %=>
-                <v-btn class="elevation-0 float-right mt-2 mt-sm-0" color="success" small @click="doUiAction('getTableData')">
-                  查询
-                </v-btn>
+        <v-col cols="12" xs="12" sm="12" md="8" xl="9" class="pl-md-2 mb-2 mb-md-0 flex justify-space-between" <=% for attr, value in content.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+          <v-row class="jh-backend-form-container justify-end py-md-3" no-gutters>
+            <=%- for search in content.value.slice(0, content.data.maxSearchDisplay) %=>
+            <=%- if search.tag == "v-date-picker" %=>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+                <template v-slot:activator="{on, attrs}">
+                  <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prepend-inner-icon="mdi-calendar-range" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
+                </template>
+                <v-date-picker color="success" elevation="20" v-model="<=$ search.model $=>" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>></v-date-picker>
+              </v-menu>
+            </v-col>
+            <=%- elif search.model is defined %=>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <=$ search | formItemFormat $=>
+            </v-col>
+            <=%- else %=>
+            <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 <=% if loop.index > 1 %=>pt-2 pt-sm-0<=% endif %=>" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <=$ search | tagFormat(14) $=>
+            </v-col>
+            <=%- endif %=>
+            <=%- endfor %=>
+
+            <=%- if content.value.length > content.data.maxSearchDisplay %=>
+            <!-- 更多场景按钮 -->
+            <v-menu offset-y :close-on-content-click="false">
+              <template v-slot:activator="{on, attrs}">
+                <v-btn small v-bind="attrs" v-on="on" class="ml-2 px-2 !min-w-9">
+                  <span>更多搜索</span>
+                  <v-icon right small class="mx-0">mdi-chevron-down</v-icon>
+                </v-btn> 
+              </template>
+              <div class="pa-2 grid grid-cols-1 gap-2">
+                <=%- for search in content.value.slice(content.data.maxSearchDisplay) %=>
+                <=%- if search.tag == "v-date-picker" %=>
+                <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
+                  <template v-slot:activator="{on, attrs}">
+                    <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prepend-inner-icon="mdi-calendar-range" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
+                  </template>
+                  <v-date-picker color="success" elevation="20" v-model="<=$ search.model $=>" <=% for attr, value in search.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>></v-date-picker>
+                </v-menu>
+                <=%- elif search.model is defined %=>
+                  <=$ search | formItemFormat $=>
                 <=%- else %=>
-                <=$ content.searchBtn | tagFormat(10) $=>
+                  <=$ search | tagFormat(14) $=>
                 <=%- endif %=>
+                <=%- endfor %=>
               </div>
+            </v-menu>
+            <=%- endif %=>
+
+            <=%- if content.searchBtn is undefined or content.searchBtn != false %=>
+            <div class="jh-backend-search-btn ml-2">
+              <=%- if content.searchBtn == true %=>
+              <=%- if jhTable.props.serverPagination %=>
+              <v-btn class="elevation-0 float-right mt-2 mt-sm-0" color="success" small @click="tableOptions.page = 1; doUiAction('getTableData')">
+                查询
+              </v-btn>
+              <=%- else %=>
+              <v-btn class="elevation-0 float-right mt-2 mt-sm-0" color="success" small @click="doUiAction('getTableData')">
+                查询
+              </v-btn>
               <=%- endif %=>
-            </template>
-          </jh-form>
-        </v-col>
-        <=%- elif content.tag=='jh-scene' %=>
+              <=%- else %=>
+              <=$ content.searchBtn | tagFormat(10) $=>
+              <=%- endif %=>
+            </div>
+          </v-row>
+          <=%- endif %=>
+         
+          <=%- elif content.tag=='jh-scene' %=>
           <=%- set sceneDataKey = content.key + 'SceneData' %=>
+
           <!-- 场景搜索 -->
           <jh-scene class="ml-2" 
             :initFormData="<=$ sceneDataKey $=>.sceneCreateForm" 
@@ -141,11 +185,12 @@
               </v-row>
             </template>
           </jh-scene>
-        <=%- else %=>
-        <!-- 自定义搜索内容 -->
-        <=$ content | tagFormat(12) $=>
-        <=%- endif %=>
-        <=%- endfor %=>
+          <=%- else %=>
+          <!-- 自定义搜索内容 -->
+          <=$ content | tagFormat(12) $=>
+          <=%- endif %=>
+          <=%- endfor %=>
+        </v-col>
       </v-row>
     </div>
     <!-- <<<<<<<<<<<<< 头部内容 -->
@@ -178,17 +223,15 @@
               :items="tableDataComputed"
               :search="searchInput"
               @create-click="doUiAction('startCreateItem')"
-              @refresh="doUiAction('getTableData')"
               :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有'}"
               <=%- if content.props.serverPagination %=>
-              :server-pagination="true"
               :options.sync="tableOptions"
               :server-items-length="tableOptions.totalCount"
               :items-per-page="50"
-              @update:options="doUiAction('getTableData')"
               <=%- else %=>
               :items-per-page="-1"
               <=%- endif %=>
+              mobile-breakpoint="0"
               :loading="isTableLoading"
               checkbox-color="success"
               :class="{'zebraLine': true }"
@@ -253,6 +296,24 @@
                 </v-menu>
               </template>
               <=%- endif %=>
+              <!-- 没有数据 -->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <!-- 表格分页 -->
+              <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
+                <span class="ml-1" v-if="tableDataComputed.length > 0 && !isTableLoading && tableDataComputed.length < (pagination.pageStop - pagination.pageStart + 1)">
+                  筛选出{{tableDataComputed.length}}条
+                </span>
+              </template>
             </jh-table>
           </div>
         </v-col>
@@ -272,12 +333,14 @@
     <jh-drawer
       v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown"
       v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown"
-      ref="<=$ actionItem.key $=>Drawer"
+      :permanent="is<=$ actionItem.key | ucfirst $=>DrawerShown"
+      fixed temporary right width="90%"
+      class="elevation-24"
       title="<=$ actionItem.title $=>"
-      width="90%"
-      :drawerContentClass="''"
+      @cancel="close<=$ actionItem.key | ucfirst $=>DrawerCheck"
       <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>
     >
+      
       <template v-slot:actions>
         <v-btn class="elevation-0" small @click="close<=$ actionItem.key | ucfirst $=>DrawerCheck">取消</v-btn>
         <=%- for content in actionItem.contentList %=>
@@ -369,12 +432,17 @@
 
     <=%- if hasHelpDrawer %=>
     <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-    <v-navigation-drawer v-if="isHelpPageDrawerLoaded" v-model="isHelpPageDrawerShown" :permanent="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+    <jh-drawer
+      v-if="isHelpPageDrawerLoaded"
+      v-model="isHelpPageDrawerShown"
+      :permanent="isHelpPageDrawerShown"
+      fixed temporary right width="80%"
+      class="elevation-24"
+      title="帮助文档"
+      @cancel="isHelpPageDrawerShown = false"
+    >
       <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#<=$ pageId $=>.md`" width="100%" height="100%"></iframe>
-      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
-          <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </v-navigation-drawer>
+    </jh-drawer>
     <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
     <=%- endif %=>
   </v-main>
@@ -453,7 +521,7 @@ new Vue({
     //===// columnSettingGroup: {},
     //===// selectedColumnGroup: null,
     //===// serverSearchWhere: {},
-    //===// keywordFieldList: [],
+    //===// serverSearchWhereLike: {},
     //===// <=%- if jhTable.props.serverPagination %=>
     tableOptions: {
       page: 1,
@@ -467,11 +535,9 @@ new Vue({
 
     //===// <=%- if jhSearch %=>
     // ============================== 服务端搜索 ===============================
-    //===// serverSearchInput: {
-    //===//   <=%- for search in jhSearch.value %=>
-    //===//   <=$ search.model $=>: null,
-    //===//   <=%- endfor %=>
-    //===// },
+    //===// <=%- for key, value in jhSearch.data %=>
+    //===// <=$ value | variableToVar(key, 4) $=>,
+    //===// <=%- endfor %=>
     //===// <=% endif %=>
     
     //===// <=%- if hasJhScene %=>
@@ -543,6 +609,9 @@ new Vue({
     //===// is<=$ drawer.key | ucfirst $=>DrawerShown: false,
     //===// <=$ drawer.key | lcfirst $=>Item: {},
     //===// <=$ drawer.key | lcfirst $=>ItemOrigin: {},
+    //===// <=%- if drawer.contentList.length > 1 %=>
+    //===// <=$ drawer.key | lcfirst $=>DrawerTab: 0,
+    //===// <=%- endif %=>
     //===// <=%- endif %=>
     //===// <=%- endfor %=>
 
@@ -614,65 +683,6 @@ new Vue({
     
     //===// <=%- for key, item in common.computed %=>
     //===// <=$ item | variableToVar(key) $=>,
-    //===// <=%- endfor %=>
-
-    //===// <=%- if jhSearch %=>
-    serverSearchFieldList() {
-      return [
-        //===//   <=%- for search in jhSearch.value %=>
-        { label: "<=$ search.label $=>", model: "<=$ search.model $=>", type: "<=$ search.tag | replace('v-text-field', 'text') | replace('v-select', 'select') | replace('v-date-picker', 'date') $=>", attrs: {
-          //===//     <=%- for attr, value in search.attrs %=>
-          //===//       <=%- if attr.startsWith(':') or attr.startsWith('v-bind:') %=>
-          <=$ attr | replace(':', '') | replace('v-bind:', '') $=>: <=$ value $=>,
-          //===//       <=%- else %=>
-          '<=$ attr $=>': "<=$ value $=>",
-          //===//       <=%- endif %=>
-          //===//     <=%- endfor %=>
-        } },
-        //===//   <=%- endfor %=>
-      ];
-    },
-    //===// <=%- endif %=>
-
-    //===// <=%- if hasCreateDrawer %=>
-    createFormFieldList() {
-      return [
-        //===//   <=%- for formItem in createFormItemList %=>
-        { label: "<=$ formItem.label $=>", key: "<=$ formItem.model $=>", type: "<=$ formItem.tag | replace('v-text-field', 'text') | replace('v-select', 'select') | replace('v-date-picker', 'date') | replace('v-textarea', 'textarea') $=>", rules: <=%- if formItem.rules %=>this.<=$ formItem.rules | default('[]') $=> <=%- else %=>[]<=%- endif %=>, attrs: {
-          //===//     <=%- for attr, value in formItem.attrs %=>
-          //===//       <=%- if attr.startsWith(':') or attr.startsWith('v-bind:') %=>
-          <=$ attr | replace(':', '') | replace('v-bind:', '') $=>: <=$ value $=>,
-          //===//       <=%- else %=>
-          '<=$ attr $=>': "<=$ value $=>",
-          //===//       <=%- endif %=>
-          //===//     <=%- endfor %=>
-        } },
-        //===//   <=%- endfor %=>
-      ];
-    },
-    //===// <=%- endif %=>
-
-    //===// <=%- if hasUpdateDrawer %=>
-    updateFormFieldList() {
-      return [
-        //===//   <=%- for formItem in updateFormItemList %=>
-        { label: "<=$ formItem.label $=>", key: "<=$ formItem.model $=>", type: "<=$ formItem.tag | replace('v-text-field', 'text') | replace('v-select', 'select') | replace('v-date-picker', 'date') | replace('v-textarea', 'textarea') $=>", rules: <=%- if formItem.rules %=>this.<=$ formItem.rules | default('[]') $=> <=%- else %=>[]<=%- endif %=>, attrs: {
-          //===//     <=%- for attr, value in formItem.attrs %=>
-          //===//       <=%- if attr.startsWith(':') or attr.startsWith('v-bind:') %=>
-          <=$ attr | replace(':', '') | replace('v-bind:', '') $=>: <=$ value $=>,
-          //===//       <=%- else %=>
-          '<=$ attr $=>': "<=$ value $=>",
-          //===//       <=%- endif %=>
-          //===//     <=%- endfor %=>
-        } },
-        //===//   <=%- endfor %=>
-      ];
-    },
-    //===// <=%- endif %=>
-
-    //===// <=%- for drawer in actionContent %=>
-    //===// <=%- if drawer.tag == 'jh-drawer' %=>
-    //===// <=%- endif %=>
     //===// <=%- endfor %=>
   },
   //===// <=%- if not common.created %=>
@@ -762,9 +772,6 @@ new Vue({
       //===// const serverSearchWhereIn = _.cloneDeep(this.serverSearchWhereIn || {});
       //===// const serverSearchWhereLike = _.cloneDeep(this.serverSearchWhereLike || {});
       //===// <=%- endif %=>
-      
-      // Adaptation for jh-form serverSearchInput
-      //===// Object.assign(serverSearchWhere, this.serverSearchInput);
 
       //===// for (const fieldKey in serverSearchWhere) {
       //===//   const fieldValue = serverSearchWhere[fieldKey];
@@ -791,7 +798,7 @@ new Vue({
       //===//   if(!!fieldValue && _.isArray(fieldValue) && fieldValue.length > 0) {
       //===//     whereIn[fieldKey] = fieldValue;
       //===//   }
-      //===//   }
+      //===// }
 
       let whereOrOptions = [];
       if (this.keyword) {
@@ -890,11 +897,7 @@ new Vue({
     //===// <=%- endif %=>
     //===// <=%- if not common.methods.prepareCreateValidate %=>
     //===// async prepareCreateValidate() {
-    //===//   <=%- if (actionContent | find({key: 'create'})).contentList.length > 1 %=>
-    //===//   if (await this.$refs.createForm[this.createDrawerTab].validate()) {
-    //===//   <=%- else %=>
     //===//   if (await this.$refs.createForm.validate()) {
-    //===//   <=%- endif %=>
     //===//     return true;
     //===//   }
     //===//   throw new Error("请完善表单信息")
@@ -994,11 +997,7 @@ new Vue({
     //===// <=%- endif %=>
     //===// <=%- if not common.methods.prepareUpdateValidate %=>
     //===// async prepareUpdateValidate() {
-    //===//   <=%- if (actionContent | find({key: 'update'})).contentList.length > 1 %=>
-    //===//   if (await this.$refs.updateForm[this.updateDrawerTab].validate()) {
-    //===//   <=%- else %=>
     //===//   if (await this.$refs.updateForm.validate()) {
-    //===//   <=%- endif %=>
     //===//     return true;
     //===//   }
     //===//   throw new Error("请完善表单信息")
