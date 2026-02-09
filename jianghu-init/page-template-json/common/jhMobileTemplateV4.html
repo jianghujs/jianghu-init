@@ -22,6 +22,20 @@
   <script src="/<$ ctx.app.config.appId $>/public/lib/vue/vue.min.js"></script>
   <script src="/<$ ctx.app.config.appId $>/public/lib/vuetify/vuetify.min.js"></script>
   <!-- <<<<<<<<<<<<< 加载第三方库JS -->
+   
+  {% if ctx.app.config.faviconPath %}
+  <!-- favicon 兼容区域 -->
+  <!-- config.default.js / const faviconPath = `/${appId}/public/webapp`; 在config.default.js配置 faviconPath -->
+  <link rel="apple-touch-icon" sizes="180x180" href="<$ ctx.app.config.faviconPath $>/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="<$ ctx.app.config.faviconPath $>/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="<$ ctx.app.config.faviconPath $>/favicon-16x16.png" />
+  <link rel="icon" type="image/ico" href="<$ ctx.app.config.faviconPath $>/favicon.ico" />
+  <link rel="manifest" href="<$ ctx.app.config.faviconPath $>/site.webmanifest" />
+  
+  <!-- iOS 图标 -->
+  <link rel="apple-touch-icon" href="<$ ctx.app.config.faviconPath $>/apple-touch-icon.png">
+  <!-- <<<<<<<<<<<<< favicon 兼容区域 -->
+  {% endif %}
 
   <!-- 加载定制样式 >>>>>>>>>>>>> -->
   {% include 'common/jianghuJs/globalCSSFontV4.html' %}
