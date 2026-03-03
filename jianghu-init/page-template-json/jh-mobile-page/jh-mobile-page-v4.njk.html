@@ -457,9 +457,9 @@
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
-          <div class="primary--text text-xs text-center absolute right-3" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false">
-            <v-icon size="22" class="primary--text">mdi-window-close</v-icon>
-            <div class="primary--text mt-[-2px]">关闭</div>
+          <div class="text--secondary text-xs text-center absolute right-3" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false">
+            <v-icon size="22" class="text--secondary">mdi-window-close</v-icon>
+            <div class="text--secondary mt-[-2px]">关闭</div>
           </div>
         </v-card-title>
         <v-card-text class="px-3 jh-safe-bottom-3">
