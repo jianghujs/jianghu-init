@@ -214,7 +214,7 @@
           </div>
         </div>
 
-        <div class="fixed left-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
+        <div class="fixed left-0 right-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="tableDataComputed.length > 0">
           <div class=" flex justify-space-between items-center">
             <=%- if content.props.limit %=>
             每页 {{ tableOptions.limit }} 项，
@@ -470,7 +470,7 @@
             <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
               <v-row class="pb-3">
                 <=%- for content in actionItem.contentList %=>
-                <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 pb-0" <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+                <v-col cols="12" class="pl-md-2 pb-0" <=% for attr, value in content.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                   <=%- if content.label %=>
                   <div class="inline-block text-sm text-weight-bold py-1"><=%- if (content.required or content.rules) %=><span class="red--text text--accent-2 ml-1">* </span><=%- endif %=><=$ content.label $=></div>
                   <=%- endif %=>
@@ -533,7 +533,7 @@
             <v-row class="py-2">
               <=%- for search in jhSearch.searchList %=>
               <=%- if search.tag == "v-date-picker" %=>
-              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 pb-0" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <v-col cols="12" class="pl-md-2 pb-0" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <v-menu class="jh-v-input bg-white" transition="scale-transition" offset-y min-width="auto">
                   <template v-slot:activator="{on, attrs}">
                     <v-text-field v-bind="attrs" v-on="on" v-model="<=$ search.model $=>" prepend-inner-icon="mdi-calendar-range" prefix="<=$ search.attrs.prefix if search.attrs else '' $=>：" class="jh-v-input bg-white" dense single-line filled clearable ></v-text-field>
@@ -542,11 +542,11 @@
                 </v-menu>
               </v-col>
               <=%- elif search.model is defined %=>
-              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 pb-0" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <v-col cols="12" class="pl-md-2 pb-0" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=$ search | formItemFormat $=>
               </v-col>
               <=%- else %=>
-              <v-col cols="12" sm="4" md="3" xl="2" class="pl-md-2 pb-0" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
+              <v-col cols="12" class="pl-md-2 pb-0" <=% for attr, value in search.colAttrs %=><=$ attr | tagAttr(value) $=><=% endfor %=>>
                 <=$ search | tagFormat(14) $=>
               </v-col>
               <=%- endif %=>
