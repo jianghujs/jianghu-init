@@ -1,19 +1,14 @@
 <template id="jh-date-range-picker">
   <div class="date-range-picker-container">
-    <v-menu 
-      v-model="menu" 
-      :close-on-content-click="false" 
-      :nudge-left="12" 
-      transition="scale-transition" 
-      min-width="auto"
-      :position-x="menuPosition.x"
-      :position-y="menuPosition.y"
-      :position-strategy="menuPosition.strategy"
-      :auto-position="true"
-      max-width="600"
-      :max-height="menuMaxHeight"
-      attach
+    <v-menu
+      v-model="menu"
+      :close-on-content-click="false"
+      transition="scale-transition"
       offset-y
+      offset-overflow
+      max-width="600"
+      max-height="500"
+      content-class="jh-date-range-menu-content"
     >
       <template v-slot:activator="{ on, attrs }">
         <v-text-field
@@ -28,12 +23,11 @@
           :outlined="outlined"
           hide-details
           @click:clear="clearDateRange"
-          ref="dateInput"
         ></v-text-field>
       </template>
-      <v-card class="max-w-[100vw]">
+      <v-card class="jh-date-range-menu-card">
         <v-card-text class="pa-0">
-          <div class="d-flex">
+          <div class="d-flex jh-date-range-menu-inner flex-nowrap">
             <!-- 左侧快捷选择菜单 -->
             <v-list dense nav class="quick-select-list px-1 !border-r !border-gray-200">
               <v-list-item @click="quickSelect(7)" :class="{'v-item--active v-list-item--active primary--text': isLast7Days}">
@@ -57,7 +51,7 @@
             </v-list>
             
             <!-- 日期选择器 -->
-            <v-date-picker class="border-none" v-model="tempDateRange" no-title range color="primary"></v-date-picker>
+            <v-date-picker class="border-none jh-date-range-menu-picker" style="min-width: 0; flex: 1 1 auto;" v-model="tempDateRange" no-title range color="primary"></v-date-picker>
           </div>
         </v-card-text>
         <v-card-actions class="border-t border-gray-200">
@@ -100,12 +94,6 @@
       menu: false,
       dateRange: [],
       tempDateRange: [],
-      menuPosition: {
-        x: 0,
-        y: 0,
-        strategy: 'absolute'
-      },
-      menuMaxHeight: 500
     }),
     computed: {
       dateRangeText() {
@@ -162,8 +150,6 @@
       menu(val) {
         if (val) {
           this.$nextTick(() => {
-            this.calculateMenuPosition();
-            // 打开菜单时，将当前选择复制到临时变量
             this.tempDateRange = this.dateRange.length === 2 ? [...this.dateRange] : [];
           });
         }
@@ -174,54 +160,8 @@
         this.dateRange = [...this.value];
         this.tempDateRange = [...this.value];
       }
-      // window.addEventListener('resize', this.calculateMenuPosition);
-    },
-    beforeDestroy() {
-      // window.removeEventListener('resize', this.calculateMenuPosition);
     },
     methods: {
-      calculateMenuPosition() {
-        if (!this.$refs.dateInput) return;
-        
-        const inputEl = this.$refs.dateInput.$el;
-        const rect = inputEl.getBoundingClientRect();
-        
-        // 获取窗口尺寸
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-        
-        // 估计菜单尺寸（日期选择器+快捷菜单）
-        const menuWidth = 600; // 估计宽度
-        const menuHeight = 350; // 估计高度
-        
-        // 默认位置（在输入框下方）
-        let x = rect.left;
-        let y = rect.bottom;
-        let strategy = 'fixed';
-        
-        // 检查右侧空间
-        if (x + menuWidth > windowWidth) {
-          x = windowWidth - menuWidth - 10;
-          if (x < 0) x = 0;
-        }
-        
-        // 检查底部空间
-        if (y + menuHeight > windowHeight) {
-          y = rect.top - menuHeight; // 在输入框上方显示
-          if (y < 0) {
-            y = 10; // 如果上方空间不足，则显示在顶部
-            this.menuMaxHeight = windowHeight - 20; // 限制最大高度
-          }
-        } else {
-          this.menuMaxHeight = windowHeight - y - 10; // 限制最大高度
-        }
-        
-        this.menuPosition = {
-          x: Math.max(0, x),
-          y: Math.max(0, y),
-          strategy: strategy
-        };
-      },
       formatDate(date) {
         if (!date) return '';
         const [year, month, day] = date.split('-');
@@ -275,5 +215,23 @@
 }
 .v-item--active {
   background-color: rgba(25, 118, 210, 0.12);
+}
+.jh-date-range-menu-content {
+  max-width: min(600px, calc(100vw - 24px)) !important;
+  max-height: min(500px, calc(100vh - 24px)) !important;
+  overflow: auto !important;
+  box-sizing: border-box !important;
+}
+.jh-date-range-menu-card {
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.jh-date-range-menu-inner {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
 }
 </style>

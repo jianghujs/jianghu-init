@@ -219,8 +219,8 @@
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
-        <v-row class="jh-drawer-header px-4" no-gutters align="center">
-          <span class="text-h7 font-weight-bold py-4"><=$ actionItem.title $=></span>
+        <v-row class="jh-drawer-header border-b px-4" no-gutters align="center">
+          <span class="text-h7 font-weight-bold py-3"><=$ actionItem.title $=></span>
           <=%- if actionItem.headSlot %=>
           <=$ actionItem.headSlot | tagFormat(12) $=>
           <=%- endif %=>
@@ -239,7 +239,6 @@
             <=%- endfor %=>
           </div>
         </v-row>
-        <v-divider class="jh-divider"></v-divider>
         <=%- endif %=>
         <!-- 抽屉内容 -->
         <=%- if actionItem.otherActionList %=>

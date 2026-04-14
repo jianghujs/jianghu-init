@@ -289,27 +289,30 @@
         <div class="!h-[calc(100dvh-52px)] relative rounded-t-lg bg-white overflow-hidden overflow-y-auto">
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
-        <v-row class="jh-drawer-header pl-3 py-1 h-[48px] relative pr-10" no-gutters align="center">
-          <span class="text-base font-medium line-clamp-1 max-w-[calc(100%-40px)]"><=$ actionItem.title $=></span>
-          <=%- if actionItem.headSlot %=>
-          <=$ actionItem.headSlot | tagFormat(12) $=>
-          <=%- endif %=>
-          <!-- <v-icon >mdi-dots-vertical</v-icon> -->
-          <!-- 抽屉操作按钮 -->
-          <=%- for content in actionItem.contentList %=>
-          <=%- if content.headAction %=>
-          <template v-if="
-          <=%- if actionItem.contentList.length === 1 %=>true
-          <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
-          <=%- endif %=>">
-            <=$ content.headAction | tagFormat(12) $=>
-          </template>
-          <=%- else %=>
-          <div class="w-10" v-if="<=%- if actionItem.contentList.length === 1 %=>true
+        <v-row class="jh-drawer-header px-3 py-1 h-[48px] relative" no-gutters align="center">
+          <div class="text-center w-full">
+            <span class="text-base font-medium line-clamp-1"><=$ actionItem.title $=></span>
+
+            <=%- if actionItem.headSlot %=>
+            <=$ actionItem.headSlot | tagFormat(12) $=>
+            <=%- endif %=>
+            <!-- <v-icon >mdi-dots-vertical</v-icon> -->
+            <!-- 抽屉操作按钮 -->
+            <=%- for content in actionItem.contentList %=>
+            <=%- if content.headAction %=>
+            <template v-if="
+            <=%- if actionItem.contentList.length === 1 %=>true
             <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
-            <=%- endif %=>"></div>
-          <=%- endif %=>
-          <=%- endfor %=>
+            <=%- endif %=>">
+              <=$ content.headAction | tagFormat(12) $=>
+            </template>
+            <=%- else %=>
+            <div class="w-10" v-if="<=%- if actionItem.contentList.length === 1 %=>true
+              <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
+              <=%- endif %=>"></div>
+            <=%- endif %=>
+            <=%- endfor %=>
+          </div>
 
           <div class="primary--text text-xs text-center absolute right-3" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false">
             <v-icon size="22" class="primary--text">mdi-window-close</v-icon>
@@ -453,10 +456,12 @@
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
         <v-card-title class="px-3 flex items-center relative">
-          <span class="text-base line-clamp-1 max-w-[calc(100%-40px)]"><=$ actionItem.title $=></span>
-          <=%- if actionItem.headSlot %=>
-          <=$ actionItem.headSlot | tagFormat(12) $=>
-          <=%- endif %=>
+          <div class="text-center w-full">
+            <span class="text-base line-clamp-1"><=$ actionItem.title $=></span>
+            <=%- if actionItem.headSlot %=>
+            <=$ actionItem.headSlot | tagFormat(12) $=>
+            <=%- endif %=>
+          </div>
           <div class="text--secondary text-xs text-center absolute right-3" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false">
             <v-icon size="22" class="text--secondary">mdi-window-close</v-icon>
             <div class="text--secondary mt-[-2px]">关闭</div>
