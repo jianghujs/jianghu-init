@@ -1,0 +1,364 @@
+<!-- jhMenuMobileV4.html >>>>>>>>>>>>> -->
+<script type="text/html" id="jh-menu-mobile">
+  <div>
+    <v-navigation-drawer
+      v-if="isMobileMenuDrawerShown"
+      v-model="isMobileMenuDrawerShown"
+      temporary
+      app
+      style="z-index: 99999"
+      class="jh-page-nav-bar !w-[90vw] md:!w-[500px]"
+    >
+      <div class="flex flex-col h-[100vh]">
+        <!-- 页面标题 -->
+        <v-toolbar-title ref="toolbarTitle" class="px-3 flex-none h-[51px] flex items-center justify-center relative gap-2">
+          <span class="text-base font-medium font-[dingding]">{{ appTitle }}</span>
+          <!-- close icon -->
+          <div class="text-gray-500 cursor-pointer absolute right-3 top-3 right-3 rounded-full hover:bg-gray-100/50 w-6 h-6 " @click="isMobileMenuDrawerShown = false">
+            <jh-icon name="x" class="text-gray-500" size="24" stroke="1.5" />
+          </div>
+        </v-toolbar-title>
+        <v-divider class="jh-divider"></v-divider>
+    
+        <!-- 菜单：Tailwind 重构 -->
+        <div class="p-3 flex flex-1 flex-col w-full select-none">
+          <template v-for="(item, index) in inMenuList">
+            <!-- 有子菜单，折叠面板模式 -->
+            <template v-if="item.children && item.children.length > 0">
+              <div class="w-full flex-none">
+                <div
+                  class="flex items-center gap-2 px-3 py-2.5 font-medium cursor-pointer transition-colors  rounded-[10px] duration-200"
+                  :class="{'second-active': item.active, 'bg-gray-50': item.active, 'hover:bg-gray-100': true}"
+                  @click="item.active = !item.active"
+                >
+                  <span class="flex-1 text-sm">{{ item.title }}</span>
+                  <jh-icon :name="item.active ? 'chevron-up' : 'chevron-down'" class="text-gray-500" size="18" stroke="2" />
+                </div>
+                <!-- 风琴式展开关闭动画：grid-rows 0fr/1fr + 线性过渡 -->
+                <div
+                  class="grid transition-[grid-template-rows] duration-300 ease-in-out"
+                  :class="item.active ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+                >
+                  <div class="min-h-0 overflow-hidden">
+                    <div class="flex flex-col">
+                      <div
+                        v-for="menu in item.children"
+                        :key="menu.pageId"
+                        @click="openUrl(menu.path, menu.query)"
+                        class="flex items-center pl-6 pr-4 py-2 mb-0 cursor-pointer rounded transition-all"
+                        :class="{
+                          'second-active !bg-amber-50 border border-amber-100 text-blcak': currentSecondMenuPageId === menu.pageId && currentMenuTabIndex === index,
+                          'hover:bg-gray-100': !(currentSecondMenuPageId === menu.pageId && currentMenuTabIndex === index)
+                        }"
+                      >
+                        <span class="text-sm">{{ menu.title }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <v-divider class="jh-divider my-1"></v-divider>
+            </template>
+            <!-- 无子菜单，主菜单单条 -->
+            <template v-else>
+              <div
+                :key="item.path"
+                @click="openUrl(item.path, item.query)"
+                class="flex flex-none items-center px-3 py-2.5 cursor-pointer rounded-[10px] transition-all"
+                :class="{
+                  'second-active !bg-amber-50 border border-amber-100 text-blcak': currentMenuTabIndex === index,
+                  'hover:bg-gray-100': currentMenuTabIndex !== index
+                }"
+              >
+                <span class="flex-1 text-sm">{{ item.title }}</span>
+                <jh-icon name="chevron-right" size="18" class="ml-2 text-gray-500" stroke="2" />
+              </div>
+              <v-divider class="jh-divider my-1"></v-divider>
+            </template>
+          </template>
+        </div>
+      </div>
+    </v-navigation-drawer>
+
+    <v-navigation-drawer
+      v-if="isMobileUserMenuDrawerShown"
+      v-model="isMobileUserMenuDrawerShown"
+      app
+      temporary
+      style="z-index: 99999"
+      class="jh-page-nav-bar !w-[90vw] md:!w-[500px]"
+      right
+    >
+      <div class="bg-white d-flex flex-column h-[100vh] !rounded-t-2xl py-0 relative">
+
+        <div class="w-full flex flex-none items-center justify-center relative p-3 border-b">
+          <div class="text-gray-500 cursor-pointer absolute right-3 top-3 rounded-full hover:bg-gray-100/50 w-6 h-6" @click="isMobileUserMenuDrawerShown = false">
+            <jh-icon name="x" class="text-gray-500" size="24" stroke="1.5" />
+          </div>
+          <!-- <jh-icon name="user-scan" class="text-gray-500" size="64" stroke="1" /> -->
+          <!-- <img class="w-[60px] w-[60px]" src="/<$ ctx.app.config.appId $>/public/images/avatar.png" alt="user-avatar"> -->
+
+          <span class="text-base font-medium font-[dingding]">个人信息</span>
+        </div>
+
+        <div class="flex-none flex gap-2 p-4">
+          <div class="w-11 h-11 flex items-center justify-center flex-none rounded-full bg-gray-100 border border-gray-200">
+            <jh-icon name="user-circle" class="text-gray-500" size="32" stroke="2" ></jh-icon>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="items-baseline flex-none flex gap-1">
+              <div class="text-base font-bold">
+                <span>{{ userInfo.user.username }}</span>
+              </div>
+              <div class="text-xs text-gray-600">ID:{{ userInfo.user.userId }}</div>
+            </div>
+            <div class="w-full flex flex-wrap gap-1" v-if="userInfo.userGroupRoleList.length > 0">
+              <span class="border text-[0.6875rem] px-2 !rounded-sm bg-white text-gray-600" v-for="(userGroupRole, i) of userInfo.userGroupRoleList" :key="i">
+                {{ userGroupRole.groupName||userGroupRole.groupId }}
+                <span v-if="userGroupRole.roleName||userGroupRole.roleId" class="">- {{ userGroupRole.roleName||userGroupRole.roleId }}</span>
+              </span>
+            </div>
+          </div>
+        </div> 
+        
+        <!-- <div class="text-blcak text-xs text-center" @click="isMobileUserMenuDrawerShown = false">
+          <v-icon size="22" class="text-blcak">mdi-window-close</v-icon>
+          <div class="text-blcak mt-[-2px]">关闭</div>
+        </div> -->
+
+        <!-- <div class="text-gray-500 cursor-pointer absolute top-3 right-3 rounded-full hover:bg-gray-100 w-6 h-6" @click="isMobileUserMenuDrawerShown = false">
+          <jh-icon name="x" class="text-gray-500" size="24" stroke="1.5" />
+        </div> -->
+
+        <!-- 菜单 -->
+        <div class="flex w-full flex-1 flex-col gap-2.5 px-3 pt-3">
+          <div class="flex flex-none bg-gray-100/60 items-center w-full gap-2 px-3 py-2.5 rounded-[10px] hover:bg-gray-200 cursor-pointer items-center" v-for="avatarMenu of inAvatarMenuList" :key="avatarMenu.path" @click="openUrl(avatarMenu.path)">
+            <jh-icon :name="avatarMenu.icon || 'link'" class="text-gray-500" />
+            <div class="text-gray-500 font-bold">
+              {{ avatarMenu.title }}
+            </div>
+            <v-spacer></v-spacer>
+            <jh-icon name="chevron-right" class="text-gray-500" />
+          </div>
+        </div>
+        <div class="px-3 pb-3">
+          <button class="flex-none w-full bg-[#FEF3F2] rounded-[10px] py-3 hover:bg-red-100 inline-flex items-center justify-center" @click="logout"> 
+            <jh-icon name="logout" class="text-red-500" stroke="2" />
+            <span class="ml-2 font-medium text-red-500">退出登录</span> 
+          </button>
+        </div>
+      </div>
+    </v-navigation-drawer>
+
+    <v-app-bar app clipped-left height="52" class="jh-page-header px-3 relative" style="z-index: 50;" flat>
+      <div color="success" @click.stop="isMobileMenuDrawerShown = !isMobileMenuDrawerShown" class="flex-col justify-center items-start w-[60px] absolute left-0">
+        <span class="success--text text-caption">
+          <v-icon size="24" class="success--text">mdi-menu</v-icon>
+          <div class="-mt-0.5 text-xs">目录</div>
+        </span>
+      </div>
+      <v-toolbar-title class="pl-0 w-full text-center">
+        <span class="font-medium text-center">
+          <div class="text-base">{{ appTitle }}</div>
+          <div class="text-xs grey--text text--darken-2 -mt-0.5"><slot name="title"></slot></div>
+        </span>
+      </v-toolbar-title>
+      <template v-if="showAvatar">
+        <div text @click.stop="isMobileUserMenuDrawerShown = !isMobileUserMenuDrawerShown" class="jh-avatar-menu-btn flex-col justify-center items-end absolute right-0">
+          <div class="text-center">
+            <v-icon :size="24" color="success">mdi-account-circle</v-icon>
+            <div class="-mt-0.5">
+              <p class="text-xs success--text mb-0 max-w-[60px] truncate">{{ userInfo.user.username }}</p>
+            </div>
+          </div>
+        </div>
+      </template>
+    </v-app-bar>
+  </div>
+</script>
+
+<script>
+  Vue.component('jh-menu', {
+    template: "#jh-menu-mobile",
+    vueComponent: 'jh-menu-mobile',
+    vuetify: new Vuetify(),
+    props: { showAvatar: { type: Boolean, default: true } },
+    data() {
+      return {
+        appDirectoryLink: '<$ ctx.app.config.appDirectoryLink $>',
+        appTitle: '<$ ctx.app.config.appTitle $>',
+        userInfo: window.userInfo,
+        isMobileMenuDrawerShown: false,
+        isMobileUserMenuDrawerShown: false,
+        menuSort: null,
+        menuGroup: null,
+        inMenuList: [],
+        inAvatarMenuList: [],
+        currentMenuTabIndex: -1,
+        currentSecondMenuPageId: null,
+        primaryColor: '<$ ctx.app.config.primaryColor $>',
+        primaryColorA80: '<$ ctx.app.config.primaryColorA80 $>',
+      };
+    },
+    computed: {
+      allowPageList() {
+        if (this.userInfo.allowPageList.some(e => e.pageId.startsWith('mobile/'))) {
+          return this.userInfo.allowPageList.filter(e => e.pageId.startsWith('mobile/'));
+        }
+        return this.userInfo.allowPageList;
+      }
+    },
+    created() {
+      this.computedPageId();
+      this.groupMenuList();
+      this.computedMenuList();
+      this.computedMultiAppMenuList();
+      this.computedAvatarMenuList();
+      this.setCurrentMenuItem();
+    },
+    methods: {
+      computedPageId() {
+        const urlPathList = window.location.pathname.split('/page/');
+        this.currentPageId = urlPathList && urlPathList[urlPathList.length - 1];
+      },
+      openUrl(url, queryParams) {
+        if (queryParams) {
+          const queryStrings = Object.keys(queryParams).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(queryParams[k])).join('&');
+          window.location.href = url + '?' + queryStrings;
+        } else {
+          window.location.href = url;
+        }
+      },
+      setCurrentMenuItem() {
+        const index = _.findIndex(this.inMenuList, { path: location.pathname });
+        if (index > -1) {
+          this.currentMenuTabIndex = index;
+          const currentPageTitle = this.inMenuList[index].title;
+          document.title = this.appTitle + (currentPageTitle ? " - " + currentPageTitle : "");
+          return;
+        }
+        this.inMenuList.some((item, index) => {
+          const findSecondMenuSuccess = item.children && item.children.some(child => {
+            if (child.pageId === this.currentPageId) {
+              this.currentMenuTabIndex = index;
+              this.currentSecondMenuPageId = child.pageId;
+              item.active = true;
+              const currentPageTitle = `[${item.title}]${child.title}`;
+              document.title = this.appTitle + (currentPageTitle ? " - " + currentPageTitle : "");
+              return true;
+            }
+            return false;
+          });
+          return findSecondMenuSuccess;
+        });
+      },
+      groupMenuList() {
+        const menuListResource = _.chain(this.allowPageList)
+          .filter(page => _.includes(['showInMenu', 'link'], page.pageType) || (_.includes(['dynamicInMenu', 'avatarInMenu'], page.pageType) && this.currentPageId === page.pageId))
+          .value();
+        this.menuGroup = _.groupBy(menuListResource, function (item) {
+          if (item.pageName.startsWith("[")) {
+            const pageName = item.pageName.substring(1);
+            const pageNameArr = pageName.split("]");
+            return `${pageNameArr[0]}`;
+          }
+          return `${item.pageName}`;
+        });
+        for (let key in this.menuGroup) {
+          this.menuGroup[key] = _.orderBy(this.menuGroup[key], ['sort'], ['asc']);
+        }
+        this.menuSort = Object.keys(this.menuGroup).sort((a, b) => this.menuGroup[a][0].sort - this.menuGroup[b][0].sort);
+      },
+      computedMenuList() {
+        this.inMenuList = this.menuSort.map(key => {
+          const page = this.menuGroup[key];
+          if (page.length === 1) {
+            const menu = page[0];
+            return {
+              path: menu.pageType === 'link' ? menu.pageFile : `/${window.appInfo.appId}/page/${menu.pageId}`,
+              pageId: menu.pageId,
+              title: menu.pageName.replace(/\[.*\]/, ''),
+              children: null
+            };
+          }
+          const children = page.map(child => {
+            let title = '';
+            if (child.pageName.startsWith("[")) {
+              const pageName = child.pageName.substring(1);
+              title = pageName.split("]")[1];
+            } else if (child.pageName.includes("|")) {
+              title = child.pageName.split('|')[1];
+            } else {
+              title = child.pageName;
+            }
+            return {
+              path: child.pageType === 'link' ? child.pageFile : `/${window.appInfo.appId}/page/${child.pageId}`,
+              pageId: child.pageId,
+              title,
+              children: null
+            };
+          });
+          return { path: null, pageId: null, title: key, children };
+        });
+      },
+      computedMultiAppMenuList() {
+        if (window.appInfo.appId !== 'directory') {
+          const appType = '<$ ctx.app.config.appType $>';
+          if (appType === 'multiApp' && this.appDirectoryLink) {
+            this.inMenuList.unshift({
+              path: this.appDirectoryLink,
+              pageId: 'directory',
+              title: '回到目录',
+              children: null
+            });
+          }
+        }
+      },
+      computedAvatarMenuList() {
+        this.inAvatarMenuList = _.chain(this.allowPageList)
+          .filter(['pageType', 'showInAvatarMenu'])
+          .map((page) => ({
+            path: `/${window.appInfo.appId}/page/${page.pageId}`,
+            title: page.pageName,
+            sort: parseInt(page.sort)
+          }))
+          .orderBy(['sort'], ['asc'])
+          .value();
+      },
+      async logout() {
+        try {
+          await window.jianghuAxios({ data: { appData: { pageId: 'allPage', actionId: 'logout' } } });
+          vtoast.success('注销成功');
+          this.routeToLoginPage();
+        } catch (error) {
+          vtoast.fail(error.errorReason);
+          this.routeToLoginPage();
+        }
+      },
+      routeToLoginPage() {
+        localStorage.removeItem(`${window.appInfo.authTokenKey}_authToken`);
+        setTimeout(() => { location.href = '<$ ctx.app.config.loginPage $>'; }, 700);
+      }
+    },
+  });
+</script>
+
+<style>
+  .jh-page-nav-bar .v-list-item,
+  .jh-page-nav-bar .v-list-group__header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  }
+  .jh-page-nav-bar .v-list-group__header .v-list-item { border-bottom: none; }
+  .second-active .v-list-item__title { color: #4caf50 !important; }
+  .second-active { caret-color: #4caf50 !important; background-color: rgba(76, 175, 80, 0.1) !important; }
+  .jh-avatar-menu-btn { display: flex; align-items: center; cursor: pointer; transition: all .3s; border-radius: 5px; }
+  .jh-avatar-menu-btn:hover { opacity: 0.8; }
+  .jh-toolbar-title { height: 51px; line-height: 51px; }
+  .jh-menu-drawer-close-float-btn { top: 120px !important; right: -40px; position: fixed; left: auto !important; }
+
+  body .v-application .v-navigation-drawer__content {
+      position: relative !important;
+      padding-bottom: 0;
+  }
+</style>
+<!-- <<<<<<<<<<<<< jhMenuMobileV4.html -->

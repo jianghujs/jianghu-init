@@ -1,0 +1,330 @@
+<!-- jhMenuDesktopV4.html >>>>>>>>>>>>> -->
+<script type="text/html" id="jh-menu-desktop">
+  <div>
+    <v-app-bar app clipped-left height="52" class="jh-page-header px-8" style="z-index: 50;" flat>
+      <v-toolbar-title ref="toolbarTitle" class="pl-0">
+        <span class="text-h7 font-weight-bold">
+          <slot name="title">{{ appTitle }}</slot>
+        </span>
+      </v-toolbar-title>
+      <div style="flex-grow: 1; flex-shrink: 1"></div>
+      <v-tabs show-arrows slider-size="0" color="success" style="white-space: nowrap; overflow: hidden;">
+        <template v-for="(item, index) in inMenuList">
+          <template v-if="item.pageId && !item.children">
+            <v-tab
+              class="px-2 mx-1 jh-header-tab"
+              :class="{'jh-header-tab-active': currentMenuTabIndex === index}"
+              :key="item.path"
+              @click="openUrl(item.path, item.query)"
+            >
+              {{ item.title }}
+            </v-tab>
+          </template>
+          <template v-else>
+            <v-menu offset-y v-model="inMenuShownStatusList[index]">
+              <template v-slot:activator="{on, attrs}">
+                <v-tab
+                  v-bind="attrs"
+                  v-on="on"
+                  class="px-2 mx-1 jh-header-tab"
+                  :class="{'parent-tab-active': currentMenuTabIndex === index, 'jh-header-tab-active': currentMenuTabIndex === index}"
+                  :key="item.path"
+                >
+                  {{ item.title }}
+                  <v-icon disabled v-if="inMenuShownStatusList[index]" size="12">mdi-chevron-up</v-icon>
+                  <v-icon disabled v-else size="12">mdi-chevron-down</v-icon>
+                </v-tab>
+              </template>
+              <v-list nav dense>
+                <v-list-item
+                  @click="openUrl(child.path, child.query)"
+                  v-for="child in item.children"
+                  :class="{'second-active': currentSecondMenuPageId === child.pageId && currentMenuTabIndex === index}"
+                >
+                  <v-list-item-content>
+                    <v-list-item-title style="color: #41434f">{{ child.title }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </template>
+          <v-divider
+            style="max-height: 35px;min-height: 35px;align-self: center;"
+            v-if="item.path && item.path.includes('operationManual')"
+            vertical
+          ></v-divider>
+        </template>
+      </v-tabs>
+
+      <div style="white-space: nowrap" class="d-flex align-center">
+        <div class="d-flex d-lg-flex align-center">
+          <slot name="action">
+            <div class="d-flex align-center mr-2">
+              <div class="d-flex align-center ml-4 jh-right-menu" role="button" v-for="rightMenu of inRightMenuList" :key="rightMenu.path" @click="openUrl(rightMenu.path)">
+                <div v-if="rightMenu.icon" v-html='rightMenu.icon'></div>
+                <div :class="{'ml-1': rightMenu.icon}">{{ rightMenu.title }}</div>
+              </div>
+            </div>
+            <v-divider vertical class="mx-3 jh-divider" v-if="inRightMenuList.length > 0"></v-divider>
+          </slot>
+        </div>
+
+        <template v-if="showAvatar">
+          <v-menu offset-y v-model="isAvatarMenuShown">
+            <template v-slot:activator="{on, attrs}">
+              <div text v-bind="attrs" v-on="on" class="jh-avatar-menu-btn flex !items-center px-1 hidden-xs-only">
+                <v-icon :size="32" color="grey lighten-2">mdi-account-circle</v-icon>
+                <div class="ml-1">
+                  <p class="jh-font-size-12 black--text mb-0">{{ userInfo.user.username }}</p>
+                </div>
+              </div>
+            </template>
+            <v-list nav dense>
+              <v-list-item>
+                <v-list-item-content>
+                  <p class="jh-font-size-12 black--text mb-0">{{ userInfo.user.username }}</p>
+                  <p class="jh-font-size-10 grey--text mb-0">{{ userInfo.user.userId }}</p>
+                </v-list-item-content>
+              </v-list-item>
+
+              <template>
+                <div style="max-width: 220px;">
+                  <v-chip label x-small outlined class="jh-font-size-10 mr-1 mb-1 py-1 px-1.5" v-for="(userGroupRole, i) of userInfo.userGroupRoleList" :key="i">
+                    {{ userGroupRole.groupName||userGroupRole.groupId }}
+                    <span v-if="userGroupRole.roleName||userGroupRole.roleId" class="ml-1">| {{ userGroupRole.roleName||userGroupRole.roleId }}</span>
+                  </v-chip>
+                </div>
+                <v-divider class="my-1 jh-divider"></v-divider>
+              </template>
+
+              <v-list-item v-for="avatarMenu of inAvatarMenuList" :key="avatarMenu.path" @click="openUrl(avatarMenu.path)">
+                <v-list-item-icon class="mr-1 mt-1">
+                  <v-icon size="16" color="grey darken-3">mdi-account-cog-outline</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title color="grey darken-3">{{ avatarMenu.title }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-list-item @click="logout">
+                <v-list-item-icon class="mr-1 mt-1">
+                  <v-icon size="16" color="grey darken-3">mdi-logout</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title color="grey darken-3">登出</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </template>
+      </div>
+    </v-app-bar>
+  </div>
+</script>
+
+<script>
+  Vue.component('jh-menu', {
+    template: "#jh-menu-desktop",
+    vueComponent: 'jh-menu-desktop',
+    vuetify: new Vuetify(),
+    props: { showAvatar: { type: Boolean, default: true } },
+    data() {
+      return {
+        isMobile: false,
+        appDirectoryLink: '<$ ctx.app.config.appDirectoryLink $>',
+        appTitle: '<$ ctx.app.config.appTitle $>',
+        userInfo: window.userInfo,
+        isAvatarMenuShown: false,
+        menuSort: null,
+        menuGroup: null,
+        inMenuList: [],
+        inRightMenuList: [],
+        inAvatarMenuList: [],
+        inMenuShownStatusList: [],
+        currentMenuTabIndex: -1,
+        currentSecondMenuPageId: null,
+      };
+    },
+    watch: {
+      inMenuShownStatusList: {
+        deep: true,
+        handler(value) {
+          if (this.currentMenuTabIndex > -1 && !value[this.currentMenuTabIndex]) {
+            this.setCurrentMenuItem();
+          }
+        }
+      }
+    },
+    computed: {
+      allowPageList() {
+        if (this.userInfo.allowPageList.some(e => e.pageId.startsWith('mobile/'))) {
+          return this.userInfo.allowPageList.filter(e => !e.pageId.startsWith('mobile/'));
+        }
+        return this.userInfo.allowPageList;
+      }
+    },
+    created() {
+      this.computedPageId();
+      this.groupMenuList();
+      this.computedMenuList();
+      this.computedMultiAppMenuList();
+      this.computedRightMenuList();
+      this.computedAvatarMenuList();
+      this.setCurrentMenuItem();
+    },
+    methods: {
+      computedPageId() {
+        const urlPathList = window.location.pathname.split('/page/');
+        this.currentPageId = urlPathList && urlPathList[urlPathList.length - 1];
+      },
+      openUrl(url, queryParams) {
+        if (queryParams) {
+          const queryStrings = Object.keys(queryParams).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(queryParams[k])).join('&');
+          window.location.href = url + '?' + queryStrings;
+        } else {
+          if (url.split('/page/')[1] === this.currentPageId) {
+            const page = this.userInfo.allowPageList.find(item => item.pageId === this.currentPageId);
+            if (page && page.pageType == 'dynamicInMenu') {
+              location.reload();
+              return;
+            }
+          }
+          window.location.href = url;
+        }
+      },
+      setCurrentMenuItem() {
+        const index = _.findIndex(this.inMenuList, { path: location.pathname });
+        if (index > -1) {
+          this.currentMenuTabIndex = index;
+          const currentPageTitle = this.inMenuList[index].title;
+          document.title = this.appTitle + (currentPageTitle ? " - " + currentPageTitle : "");
+          return;
+        }
+        this.inMenuList.some((item, index) => {
+          const findSecondMenuSuccess = item.children && item.children.some(child => {
+            if (child.pageId === this.currentPageId) {
+              this.currentMenuTabIndex = index;
+              this.currentSecondMenuPageId = child.pageId;
+              item.active = true;
+              const currentPageTitle = `[${item.title}]${child.title}`;
+              document.title = this.appTitle + (currentPageTitle ? " - " + currentPageTitle : "");
+              return true;
+            }
+            return false;
+          });
+          return findSecondMenuSuccess;
+        });
+      },
+      groupMenuList() {
+        const menuListResource = _.chain(this.allowPageList)
+          .filter(page => _.includes(['showInMenu', 'link'], page.pageType) || (_.includes(['dynamicInMenu', 'avatarInMenu'], page.pageType) && this.currentPageId === page.pageId))
+          .value();
+        this.menuGroup = _.groupBy(menuListResource, function (item) {
+          if (item.pageName.startsWith("[")) {
+            const pageName = item.pageName.substring(1);
+            const pageNameArr = pageName.split("]");
+            return `${pageNameArr[0]}`;
+          }
+          return `${item.pageName}`;
+        });
+        for (let key in this.menuGroup) {
+          this.menuGroup[key] = _.orderBy(this.menuGroup[key], ['sort'], ['asc']);
+        }
+        this.menuSort = Object.keys(this.menuGroup).sort((a, b) => this.menuGroup[a][0].sort - this.menuGroup[b][0].sort);
+      },
+      computedMenuList() {
+        this.inMenuList = this.menuSort.map(key => {
+          const page = this.menuGroup[key];
+          if (page.length === 1) {
+            const menu = page[0];
+            return {
+              path: menu.pageType === 'link' ? menu.pageFile : `/${window.appInfo.appId}/page/${menu.pageId}`,
+              pageId: menu.pageId,
+              title: menu.pageName.replace(/\[.*\]/, ''),
+              children: null
+            };
+          }
+          const children = page.map(child => {
+            let title = '';
+            if (child.pageName.startsWith("[")) {
+              const pageName = child.pageName.substring(1);
+              title = pageName.split("]")[1];
+            } else if (child.pageName.includes("|")) {
+              title = child.pageName.split('|')[1];
+            } else {
+              title = child.pageName;
+            }
+            return {
+              path: child.pageType === 'link' ? child.pageFile : `/${window.appInfo.appId}/page/${child.pageId}`,
+              pageId: child.pageId,
+              title,
+              children: null
+            };
+          });
+          return { path: null, pageId: null, title: key, children };
+        });
+      },
+      computedMultiAppMenuList() {
+        if (window.appInfo.appId !== 'directory') {
+          const appType = '<$ ctx.app.config.appType $>';
+          if (appType === 'multiApp' && this.appDirectoryLink) {
+            this.inMenuList.unshift({
+              path: this.appDirectoryLink,
+              pageId: 'directory',
+              title: '回到目录',
+              children: null
+            });
+          }
+        }
+      },
+      computedRightMenuList() {
+        this.inRightMenuList = _.chain(this.allowPageList)
+          .filter(['pageType', 'showInRightMenu'])
+          .map((page) => ({
+            path: _.includes(page.pageId, 'http') ? page.pageId : `/${window.appInfo.appId}/page/${page.pageId}`,
+            title: page.pageName,
+            sort: parseInt(page.sort),
+            icon: page.pageIcon
+          }))
+          .orderBy(['sort'], ['asc'])
+          .value();
+      },
+      computedAvatarMenuList() {
+        this.inAvatarMenuList = _.chain(this.allowPageList)
+          .filter(['pageType', 'showInAvatarMenu'])
+          .map((page) => ({
+            path: `/${window.appInfo.appId}/page/${page.pageId}`,
+            title: page.pageName,
+            sort: parseInt(page.sort)
+          }))
+          .orderBy(['sort'], ['asc'])
+          .value();
+      },
+      async logout() {
+        try {
+          await window.jianghuAxios({ data: { appData: { pageId: 'allPage', actionId: 'logout' } } });
+          vtoast.success('注销成功');
+          this.routeToLoginPage();
+        } catch (error) {
+          vtoast.fail(error.errorReason);
+          this.routeToLoginPage();
+        }
+      },
+      routeToLoginPage() {
+        localStorage.removeItem(`${window.appInfo.authTokenKey}_authToken`);
+        setTimeout(() => { location.href = '<$ ctx.app.config.loginPage $>'; }, 700);
+      }
+    },
+  });
+</script>
+
+<style>
+  .second-active .v-list-item__title { color: #4caf50 !important; }
+  .second-active { caret-color: #4caf50 !important; background-color: rgba(76, 175, 80, 0.1) !important; }
+  .jh-avatar-menu-btn { display: flex; align-items: center; cursor: pointer; transition: all .3s; border-radius: 5px; }
+  .jh-avatar-menu-btn:hover { opacity: 0.8; }
+  .jh-header-tab.v-tab--active { color: var(--gray-900) !important; }
+  .jh-header-tab.jh-header-tab-active { color: #4caf50 !important; }
+  .jh-right-menu svg { width: 28px; height: 28px; vertical-align: middle; }
+</style>
+<!-- <<<<<<<<<<<<< jhMenuDesktopV4.html -->
