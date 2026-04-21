@@ -374,7 +374,7 @@ const mixin = {
             }
             if (!res.attrs.placeholder) {
               // 替换掉 （.*）|（.*）|{{.*}}
-              const placeholder = res.label.replace(/（.*）|（.*）|{{.*}}/g, '');
+              const placeholder = res.label.replace(/（.*）|（.*）|{{.*}}/g, '').replace(/<.*?>/g, '');
               res.attrs.placeholder = prefix + placeholder;
             }
           } else {
@@ -389,7 +389,7 @@ const mixin = {
           }
         } else {
           if (!classList.includes('w-2/3')) {
-            classList.push('w-2/3 inline-block');
+            classList.push('flex-1 inline-block');
           }
         }
         res.attrs.class = classList.join(' ');
@@ -541,7 +541,7 @@ const mixin = {
       });
     });
     nunjucksEnv.addFilter('includes', function(arr, val) {
-      return arr.includes(val);
+      return arr?.includes(val);
     });
     // 填充随机key
     nunjucksEnv.addFilter('fillConfigKey', function(config) { 
@@ -1029,11 +1029,11 @@ const mixin = {
           if ([ 'jh-create-drawer', 'jh-update-drawer', 'jh-detail-drawer', 'jh-drawer' ].includes(content.tag)) {
             content.contentList.forEach(item => {
               if (item.type === 'form') {
-                item.formItemList.forEach(formItem => {
+                item.formItemList.forEach((formItem, formIndex) => {
                   if (_.isObject(formItem)) {
                     if (!formItem.colAttrs) formItem.colAttrs = {};
                     if (!formItem.colAttrs?.class) {
-                      formItem.colAttrs.class = 'flex flex-wrap items-start border-b py-2';
+                      formItem.colAttrs.class = 'flex flex-wrap items-start' + (formIndex != 0 ? ' border-t' : '') + ' py-2';
                     }
                   }
                 });

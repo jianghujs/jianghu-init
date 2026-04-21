@@ -76,9 +76,10 @@ Vue.component("jh-confirm-dialog", {
 </script>
 
 <script>
-  window.jhConfirmDailog = async ({ 
+  const confirmDialog = async ({ 
     title = '提示',                 // Dialog 标题
     htmlTemplate = '',             // Dialog 正文, <v-combobox <v-text-field ....
+    data = {},                      // Vue data
     methods = {},                   // Vue methods
     computed = {},                  // Vue computed
     created = async ($instance) => {}, // Vue created
@@ -158,5 +159,8 @@ Vue.component("jh-confirm-dialog", {
       vueInstance.$mount(div)
     });
   }
+
+  window.jhConfirmDailog = confirmDialog;
+  window.jhConfirmDialog = confirmDialog;
 </script>
 <!-- <<<<<<<<<<<<< jhConfirmDialog.html -->

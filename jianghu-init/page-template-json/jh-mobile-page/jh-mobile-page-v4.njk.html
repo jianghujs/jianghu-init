@@ -164,7 +164,6 @@
               <=% if content.props.rightArrow %=>
               <div v-if="viewMode == 'simple'" class="ml-2 translate-y-[3px] shrink-0 inline-flex items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]">
                 <span class="text-xs"><=$ content.props.rightArrowText | default('详情') $=></span>
-                <v-icon size="16" color="success"><=$ content.props.rightArrowIcon | default('mdi-chevron-right') $=></v-icon>
               </div>
               <=% endif %=>
             </div>
@@ -219,7 +218,17 @@
             <=%- if content.props.limit %=>
             每页 {{ tableOptions.limit }} 项，
             <=%- endif %=>
-            共 {{ tableOptions.totalCount == tableDataComputed.length ? tableOptions.totalCount : tableDataComputed.length + '/' + tableOptions.totalCount }} 项
+            {{ 
+              (
+                (tableOptions.page - 1) * tableOptions.limit + 1
+              ) + '-' + (
+                Math.min(
+                  ((tableOptions.page - 1) * tableOptions.limit) + (tableDataComputed.length || 0),
+                  tableOptions.totalCount
+                )
+              ) + ' 共' + tableOptions.totalCount + '条'
+            }}
+       
 
             <=%- if content.props.limit %=>
             <div>
@@ -286,16 +295,17 @@
     <!-- <=$ actionItem.title $=> >>>>>>>>>>>>> -->
     <v-bottom-sheet v-if="is<=$ actionItem.key | ucfirst $=>DrawerShown" v-model="is<=$ actionItem.key | ucfirst $=>DrawerShown" style="z-index: 111;" fixed temporary <=% for attr, value in actionItem.attrs %=><=$ attr | tagAttr(value) $=> <=% endfor %=>>
       <v-form ref="<=$ actionItem.key $=>Form" lazy-validation>
-        <div class="!h-[calc(100dvh-52px)] relative rounded-t-lg bg-white overflow-hidden overflow-y-auto">
+        <div class="!h-[calc(100vh-52px)] relative rounded-t-lg bg-white overflow-hidden overflow-y-auto">
         <=% if actionItem.title %=>
         <!-- 抽屉标题 -->
         <v-row class="jh-drawer-header px-3 py-1 h-[48px] relative" no-gutters align="center">
+          <div class="absolute left-3">
+          <=%- if actionItem.headSlot %=>
+          <=$ actionItem.headSlot | tagFormat(12) $=>
+          <=%- endif %=>
+          </div>
           <div class="text-center w-full">
             <span class="text-base font-medium line-clamp-1"><=$ actionItem.title $=></span>
-
-            <=%- if actionItem.headSlot %=>
-            <=$ actionItem.headSlot | tagFormat(12) $=>
-            <=%- endif %=>
             <!-- <v-icon >mdi-dots-vertical</v-icon> -->
             <!-- 抽屉操作按钮 -->
             <=%- for content in actionItem.contentList %=>
@@ -330,7 +340,7 @@
           </v-col>
         </v-row>
         <=%- endif %=>
-        <div class="h-[calc(100dvh-101px)] overflow-hidden overflow-y-auto relative">
+        <div class="h-[calc(100vh-101px)] overflow-hidden overflow-y-auto relative">
           <=%- if actionItem.card %=>
           <=$ actionItem.card | tagFormat(4) $=>
           <=%- endif %=>
@@ -366,7 +376,15 @@
                 <=%- if not formItem.hidden %=>
                 <v-col cols="<=$ formItem.cols | default('12') $=>" sm="<=$ formItem.sm | default('12') $=>" md="<=$ formItem.md | default('3') $=>" <=% for attr, value in formItem.colAttrs %=> <=$ attr | tagAttr(value) $=><=% endfor %=>>
                   <=%- if formItem.label %=>
-                  <span class="jh-input-label w-1/3 pr-2 <=$ formItem.labelClass $=>"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 mr-1">* </span><=%- endif %=><=$ formItem.label $=></span>
+                  <span class="jh-input-label max-w-1/3 min-w-[120px] pr-2 <=$ formItem.labelClass $=>"><=%- if (formItem.required or formItem.rules) %=><span class="red--text text--accent-2 mr-1">* </span>
+                    <=%- endif %=><=$ formItem.label $=>
+                    <=%- if formItem.model and not (formItem.model | includes('.')) %=>
+                    <span class="relative right-0 top-0 inline-flex size-2 ml-0.5" v-if="<=$ actionItem.key $=>ItemOrigin.<=$ formItem.model $=> != <=$ actionItem.key $=>Item.<=$ formItem.model $=>">
+                      <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-500 opacity-90"></span>
+                      <span class="relative inline-flex size-2 rounded-full bg-orange-500"></span>
+                    </span>
+                    <=%- endif %=>
+                  </span>
                   <=%- endif %=>
                   <=%- if formItem.tag == "v-date-picker" %=>
                   <v-menu class="" transition="scale-transition" offset-y min-width="auto"<=%- if formItem.attrs[':range'] %=> :close-on-content-click="false"<=%- endif %=>>
@@ -434,7 +452,7 @@
           <=%- endif %=>
         </div>
           <=%- for content in actionItem.contentList %=>
-          <=%- if content.action %=>
+          <=%- if content.action.length > 0 %=>
           <div v-if="
           <=%- if actionItem.contentList.length === 1 %=>true
           <=%- else %=><=$ actionItem.key $=>DrawerTab == '<=$ loop.index - 1 $=>'
@@ -456,11 +474,14 @@
       <v-card class="ma-0 w-full rounded-b-0 rounded-t-lg">
         <!-- 标题 -->
         <v-card-title class="px-3 flex items-center relative">
+
+          <div class="absolute left-3">
+          <=%- if actionItem.headSlot %=>
+          <=$ actionItem.headSlot | tagFormat(12) $=>
+          <=%- endif %=>
+          </div>
           <div class="text-center w-full">
             <span class="text-base line-clamp-1"><=$ actionItem.title $=></span>
-            <=%- if actionItem.headSlot %=>
-            <=$ actionItem.headSlot | tagFormat(12) $=>
-            <=%- endif %=>
           </div>
           <div class="text--secondary text-xs text-center absolute right-3" @click="is<=$ actionItem.key | ucfirst $=>DrawerShown = false">
             <v-icon size="22" class="text--secondary">mdi-window-close</v-icon>

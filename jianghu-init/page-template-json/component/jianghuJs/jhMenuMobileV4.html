@@ -47,7 +47,7 @@
                         @click="openUrl(menu.path, menu.query)"
                         class="flex items-center pl-6 pr-4 py-2 mb-0 cursor-pointer rounded transition-all"
                         :class="{
-                          'second-active !bg-amber-50 border border-amber-100 text-blcak': currentSecondMenuPageId === menu.pageId && currentMenuTabIndex === index,
+                          'second-active !bg-amber-50 border border-[<$ ctx.app.config.primaryColor $>]/20 text-blcak': currentSecondMenuPageId === menu.pageId && currentMenuTabIndex === index,
                           'hover:bg-gray-100': !(currentSecondMenuPageId === menu.pageId && currentMenuTabIndex === index)
                         }"
                       >
@@ -66,7 +66,7 @@
                 @click="openUrl(item.path, item.query)"
                 class="flex flex-none items-center px-3 py-2.5 cursor-pointer rounded-[10px] transition-all"
                 :class="{
-                  'second-active !bg-amber-50 border border-amber-100 text-blcak': currentMenuTabIndex === index,
+                  'second-active !bg-amber-50 border border-[<$ ctx.app.config.primaryColor $>]/20 text-blcak': currentMenuTabIndex === index,
                   'hover:bg-gray-100': currentMenuTabIndex !== index
                 }"
               >
