@@ -1,0 +1,10 @@
+{
+  "id": "init-tool",
+  "label": "jianghu-init 工具仓（改编译器）",
+  "modules": [
+    "overview",
+    "v7-crud-authoring",
+    "jh-component",
+    "v7-compiler"
+  ]
+}

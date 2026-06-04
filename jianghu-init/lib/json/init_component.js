@@ -85,23 +85,26 @@ module.exports = class InitComponent extends CommandBase {
 
   // 生成 vue
   async renderVue(jsonConfig) {
-    const { table, pageType, componentPath, version } = jsonConfig;
-    const tableCamelCase = _.camelCase(table);
-    const filepath = `./app/view/component/${componentPath}.html`;
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-component`;
-    const templateTargetPath = `${templatePath}/${version ? pageType + '-' + version : pageType}.njk.html`;
-    const listTemplate = fs.readFileSync(templateTargetPath)
-      .toString()
-      .replace(/\/\/===\/\/ /g, '')
-      .replace(/\/\/===\/\//g, '');
+    const { version, pageType } = jsonConfig;
+    const njkRootPath = `${path.join(__dirname, '../../')}page-template-json`;
+    const templateTargetPath = `jh-component/${version ? pageType + '-' + version : pageType}.njk.html`;
 
     // 初始化 njk 模板标签、filter
-    this.handleNunjucksEnv(templateTargetPath);
+    const nunjucksEnv = this.handleNunjucksEnv(njkRootPath);
+    // v7/v6 配置在此处才会把 componentPath 等写入 jsonConfig（来自 legacyConfig）
     this.handleJsonConfig(jsonConfig);
 
-    const componentList = this.getConfigComponentList(jsonConfig);
-    const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
+    const { table, componentPath: _componentPath, page } = jsonConfig;
+    const componentPath = page?.componentPath || _componentPath || jsonConfig.component?.path;
+    if (!componentPath) {
+      throw new Error('jh-component: componentPath 未设置，请配置 component.path 或 componentPath');
+    }
+    const tableCamelCase = _.camelCase(table);
+    const filepath = `./app/view/component/${componentPath}.html`;
 
+    const componentList = this.getConfigComponentList(jsonConfig);
+    const htmlGenerate = nunjucksEnv.render(templateTargetPath, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
+    console.log('componentPath', componentPath);
     // fs.writeFileSync(filepath, htmlUser);
     const componentPathArr = componentPath.split('/');
     if (componentPathArr.length > 1) {

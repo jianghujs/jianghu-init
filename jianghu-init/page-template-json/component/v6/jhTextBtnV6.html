@@ -1,0 +1,135 @@
+<script type="text/x-template" id="jhTextBtn">
+  <!-- inheritAttrs:false + v-bind:$attrs；click 仅用 onClick 再 $emit，避免与 $listeners 重复 -->
+  <span
+    v-bind="$attrs"
+    v-on="Object.keys($listeners || {}).reduce((acc, k) => { if (k !== 'click') acc[k] = $listeners[k]; return acc; }, {})"
+    role="button"
+    :class="btnClass"
+    :style="btnStyle"
+    @click="onClick"
+  >
+    <template v-if="!iconRight">
+      <jh-icon
+        v-if="iconName"
+        :name="iconName"
+        :size="iconSize"
+        :stroke="iconStroke"
+        class="jh-text-btn__icon"
+      ></jh-icon>
+    </template>
+    <span class="jh-text-btn__text">
+      <slot>{{ text }}</slot>
+    </span>
+    <template v-if="iconRight">
+      <jh-icon
+        v-if="iconName"
+        :name="iconName"
+        :size="iconSize"
+        :stroke="iconStroke"
+        class="jh-text-btn__icon icon-right"
+      ></jh-icon>
+    </template>
+  </span>
+</script>
+
+<script>
+Vue.component('jh-text-btn', {
+  inheritAttrs: false,
+  template: '#jhTextBtn',
+  props: {
+    text: { type: String, default: '' },
+    iconName: { type: String, default: '' },
+    iconSize: { type: [String, Number], default: 16 },
+    iconStroke: { type: [String, Number], default: 1.5 },
+    color: { type: String, default: 'primary' },
+    fontSize: { type: [String, Number], default: '12px' },
+    dashed: { type: Boolean, default: true },
+    disabled: { type: Boolean, default: false },
+    alignSub: { type: Boolean, default: true },
+    iconRight: { type: Boolean, default: false }, // 新增
+  },
+  data() {
+    return {
+      colorMap: {
+        primary: '<$ ctx.app.config.primaryColor $>',
+        warning: '#ff9800',
+        error:   '#f44336',
+        success: '#4caf50',
+        info:    '#2196f3',
+        gray:    '#9e9e9e',
+        white:   '#fff',
+        black:   '#000',
+      },
+    }
+  },
+  computed: {
+    btnClass() {
+      return {
+        'jh-text-btn': true,
+        'jh-text-btn--disabled': this.disabled,
+        'jh-text-btn--align-sub': this.alignSub
+      };
+    },
+    btnStyle() {
+      const fontSize = typeof this.fontSize === 'number' ? `${this.fontSize}px` : this.fontSize;
+      return {
+        color: this.colorMap[this.color] || this.color,
+        fontSize,
+        lineHeight: '1rem',
+        borderBottom: this.dashed ? `1px dashed ${this.colorMap[this.color] || this.color}` : 'none'
+      };
+    }
+  },
+  methods: {
+    onClick(event) {
+      if (this.disabled) {
+        return;
+      }
+      this.$emit('click', event);
+    }
+  }
+});
+</script>
+
+<style>
+.jh-text-btn {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  line-height: 1.2;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.jh-text-btn--align-sub {
+  vertical-align: sub;
+}
+
+.jh-text-btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-bottom: none !important;
+}
+
+.jh-text-btn__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.jh-text-btn__icon.icon-right {
+  margin-left: 0.2em;
+  margin-right: 0;
+}
+
+/* 默认左侧 icon 和右侧互不影响布局 */
+.jh-text-btn__icon:not(.icon-right) {
+  margin-right: 0.2em;
+}
+
+.jh-text-btn__text {
+  display: inline-block;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+</style>

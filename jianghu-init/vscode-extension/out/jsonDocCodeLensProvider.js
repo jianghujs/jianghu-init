@@ -27,6 +27,7 @@ exports.activateJsonDocCodeLens = exports.JsonDocHoverProvider = exports.JsonDoc
 const vscode = __importStar(require("vscode"));
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
+const configVersionDetect_1 = require("./configVersionDetect");
 /**
  * JSON文档代码镶边提供者
  * 在/app/view/init-json/目录中的JSON文件中显示文档链接
@@ -70,6 +71,11 @@ class JsonDocCodeLensProvider {
             return;
         }
         const text = editor.document.getText();
+        // v6 / v7 只使用各自 hover，不走 v4 md-doc 装饰
+        if ((0, configVersionDetect_1.isModernConfigText)(text)) {
+            editor.setDecorations(this.decorationType, []);
+            return;
+        }
         const decorations = [];
         const propertyRegex = /(?:^|\s+)['"]?([\w]+)['"]?\s*:/gm;
         let match;
@@ -154,6 +160,10 @@ class JsonDocCodeLensProvider {
         console.log(`开始处理文件: ${document.fileName}`);
         const codeLenses = [];
         const text = document.getText();
+        // v6 / v7 只使用各自 hover，不走 v4 md-doc
+        if ((0, configVersionDetect_1.isModernConfigText)(text)) {
+            return [];
+        }
         // 使用正则表达式匹配所有属性，包括缩进的属性
         const propertyRegex = /(?:^|\s+)['"]?([\w]+)['"]?\s*:/gm;
         let match;
@@ -226,6 +236,10 @@ class JsonDocHoverProvider {
     }
     provideHover(document, position, token) {
         if (!this.isInitJsonFile(document.fileName)) {
+            return null;
+        }
+        // v6 / v7 只使用各自 hover，不走 v4 md-doc
+        if ((0, configVersionDetect_1.isModernConfigText)(document.getText())) {
             return null;
         }
         const line = document.lineAt(position.line);

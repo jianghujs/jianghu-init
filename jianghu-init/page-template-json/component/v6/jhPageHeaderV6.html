@@ -1,0 +1,394 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  jh-page-header  v6 页头组件
+  
+  props:
+    title           页面标题
+    helpBtn         Boolean  是否显示帮助按钮，默认 false
+    helpSrc         String   帮助页 iframe src，省略时自动拼 /{appId}/pageDoc#{pageId}.md
+    pageId          String   用于自动拼 helpSrc（helpBtn:true 时有效）
+    searchFieldList 搜索字段数组（formItem 规范），每项:
+                      { key, label, op, type, options, attrs, quickAttrs }
+                      · op → tableParams 桶（与 jh-page-v6 prepareTableParamsDefault 一致）：
+                        eq / gt / lt / gte / lte → serverSearchWhere → where
+                        like 或省略（text/number 类）→ serverSearchWhereLike → whereLike（%%）
+                        in → serverSearchWhereIn → whereIn（数组）
+                      · type：
+                        select — 默认单选 where；op:in 多选 whereIn；op:like 单选 whereLike
+                        date — serverSearchWhere → where（不支持 op:in）
+                        keyword — keyword / keywordFieldList（whereOrOptions），见下
+                        text / number / 省略 — 三桶按 op；op:in 有 options 用多选下拉，无则用 combobox 多选
+                      · options：Array | String 路径；select、op:in 建议配置
+                      · attrs：Object  键值型 Vuetify prop，透传给底层组件
+                                        例：{ "item-text": "netName", "item-value": "memberId" }
+                      · quickAttrs：Array|String  布尔型 Vuetify prop
+                                        例：["suffix-icon","solo"] 或 "solo suffix-icon"
+    keyword          String  keyword 搜索词初始值；支持 :keyword.sync 外部重置
+    keywordFieldList Array   keyword 已选列初始值；支持 :keyword-field-list.sync 外部重置
+                            省略时：keywordHeaders 首次非空自动全选（watch immediate）
+    type === 'keyword'：
+      · 本地状态 localKeyword / localKeywordFieldList 负责 UI，prop 变化时向下同步
+      · keywordHeaders 由生成器从 Table 同步或 :keyword-headers 绑定
+    keywordHeaders  可选；keyword chip 可选列，默认排除 value==='action'
+  
+  events:
+    @search               { where, whereLike, whereIn, keyword, keywordFieldList }
+    @update:keyword       localKeyword 的最新值（配合 .sync）
+    @update:keywordFieldList  localKeywordFieldList 的最新值（配合 .sync）
+    根节点 v-bind="$attrs"：支持 v6 pageContent 节点 attrs（class、:class、v-if、id 等）
+───────────────────────────────────────────────────────────────────── -->
+<script type="text/html" id="jh-page-header-template">
+  <div v-bind="$attrs" v-on="$listeners" class="jh-page-second-bar">
+    <v-row class="align-center" no-gutters>
+
+      <!-- 标题区 -->
+      <v-col v-if="title" cols="12" sm="12" :md="hasSearch ? 4 : 12" xl="3">
+        <div class="py-4 text-body-1 font-weight-bold d-flex align-center gap-0.5">
+          <span>{{ title }}</span>
+          <!-- 帮助页按钮 -->
+          <v-icon v-if="helpBtn" size="15" class="black--text ml-1" @click="isHelpDrawerShown = true">mdi-help-circle</v-icon>
+        </div>
+      </v-col>
+
+      <!-- 搜索区 -->
+      <v-col v-if="hasSearch" cols="12" sm="12" :md="title ? 8 : 12" xl="9"
+        class="pl-md-2 mb-2 mb-md-0">
+        <v-row class="jh-backend-form-container justify-end py-md-3" no-gutters>
+
+          <v-col
+            v-for="(field, sidx) in searchFieldList"
+            :key="(field.key || 'f') + '-' + sidx"
+            :cols="field.type === 'keyword' ? 12 : 12"
+            :sm="field.type === 'keyword' ? 8 : 4"
+            :md="field.type === 'keyword' ? 5 : 3"
+            :xl="field.type === 'keyword' ? 4 : 2"
+            class="pl-md-2"
+          >
+            <!-- select：in → 多选 whereIn；like → 单选模糊；默认 eq → where -->
+            <!-- fieldExtraAttrs：透传 field.attrs（键值）和 field.quickAttrs（布尔），优先级低于显式绑定 -->
+            <v-select
+              v-if="field.type === 'select' && fieldUsesIn(field)"
+              v-model="localWhereIn[field.key]"
+              v-bind="fieldExtraAttrs(field)"
+              :items="resolveOptions(field)"
+              :prefix="field.label"
+              class="jh-v-input"
+              dense single-line filled clearable multiple small-chips deletable-chips
+            />
+            <v-select
+              v-else-if="field.type === 'select' && fieldUsesLike(field)"
+              v-model="localWhereLike[field.key]"
+              v-bind="fieldExtraAttrs(field)"
+              :items="resolveOptions(field)"
+              :prefix="field.label"
+              class="jh-v-input"
+              dense single-line filled clearable
+            />
+            <v-select
+              v-else-if="field.type === 'select'"
+              v-model="localWhere[field.key]"
+              v-bind="fieldExtraAttrs(field)"
+              :items="resolveOptions(field)"
+              :prefix="field.label"
+              class="jh-v-input"
+              dense single-line filled clearable
+            />
+            <!-- date -->
+            <v-menu
+              v-else-if="field.type === 'date'"
+              transition="scale-transition" offset-y min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="localWhere[field.key]"
+                  v-bind="fieldExtraAttrs(field)"
+                  :prefix="field.label"
+                  prepend-inner-icon="mdi-calendar-range"
+                  class="jh-v-input"
+                  dense single-line filled readonly clearable
+                  v-bind="attrs" v-on="on"
+                />
+              </template>
+              <v-date-picker
+                color="success" elevation="20" no-title
+                v-model="localWhere[field.key]"
+              />
+            </v-menu>
+            <!-- keyword：多字段 OR 模糊，与 v4 nunjucks keyword 行为对齐 -->
+            <v-text-field
+              v-else-if="field.type === 'keyword'"
+              v-model="localKeyword"
+              v-bind="fieldExtraAttrs(field)"
+              :placeholder="keywordPlaceholder"
+              :disabled="!localKeywordFieldList || localKeywordFieldList.length === 0"
+              class="jh-v-input"
+              dense single-line filled clearable
+            >
+              <template v-slot:prepend-inner>
+                <v-menu :close-on-content-click="false" transition="scale-transition" offset-y min-width="290">
+                  <template v-slot:activator="{ on, attrs }">
+                    <div v-bind="attrs" v-on="on" class="text-no-wrap pt-[3px] pr-1" style="cursor:pointer">
+                      {{ field.label || '搜索' }}
+                      <span
+                        class="bg-[<$ ctx.app.config.primaryColor $>] text-white px-1 rounded text-xs align-text-bottom"
+                      >{{ localKeywordFieldList.length }}</span>
+                    </div>
+                  </template>
+                  <div class="pa-2" style="max-width:320px">
+                    <v-chip
+                      v-for="header in keywordHeaderOptions"
+                      :key="header.value"
+                      class="ma-1"
+                      :color="keywordFieldIncludes(header.value) ? 'primary' : undefined"
+                      label outlined small
+                      @click="toggleKeywordField(header.value)"
+                    >{{ header.text }}</v-chip>
+                  </div>
+                </v-menu>
+              </template>
+            </v-text-field>
+            <!-- text / number：in（有 options）→ 多选 whereIn；in 无 options → combobox；like → whereLike；其它 → where -->
+            <v-select
+              v-else-if="isSearchTextual(field) && fieldUsesIn(field) && hasResolveOptions(field)"
+              v-model="localWhereIn[field.key]"
+              v-bind="fieldExtraAttrs(field)"
+              :items="resolveOptions(field)"
+              :prefix="field.label"
+              class="jh-v-input"
+              dense single-line filled clearable multiple small-chips deletable-chips
+            />
+            <v-combobox
+              v-else-if="isSearchTextual(field) && fieldUsesIn(field)"
+              v-model="localWhereIn[field.key]"
+              v-bind="fieldExtraAttrs(field)"
+              :label="field.label"
+              class="jh-v-input"
+              dense filled clearable multiple small-chips deletable-chips
+              hide-details
+            />
+            <v-text-field
+              v-else-if="isSearchTextual(field) && fieldUsesLike(field)"
+              v-model="localWhereLike[field.key]"
+              v-bind="fieldExtraAttrs(field)"
+              :prefix="field.label"
+              :type="field.type === 'number' ? 'number' : 'text'"
+              class="jh-v-input"
+              dense single-line filled clearable
+            />
+            <v-text-field
+              v-else-if="isSearchTextual(field)"
+              v-model="localWhere[field.key]"
+              v-bind="fieldExtraAttrs(field)"
+              :prefix="field.label"
+              :type="field.type === 'number' ? 'number' : 'text'"
+              class="jh-v-input"
+              dense single-line filled clearable
+            />
+          </v-col>
+
+          <!-- 查询按钮 -->
+          <div v-if="showSearchBtn" class="jh-backend-search-btn ml-2 d-flex align-center">
+            <v-btn
+              class="elevation-0" color="success" small
+              @click="handleSearch()"
+            >查询</v-btn>
+          </div>
+
+        </v-row>
+      </v-col>
+
+    </v-row>
+
+    <!-- 帮助文档抽屉（状态完全内聚，不暴露到页面） -->
+    <v-navigation-drawer
+      v-if="helpBtn && isHelpDrawerShown"
+      v-model="isHelpDrawerShown"
+      fixed temporary right
+      width="80%"
+      class="elevation-24"
+    >
+      <v-btn
+        elevation="0" color="success"
+        fab absolute top left small tile
+        class="drawer-close-float-btn"
+        @click="isHelpDrawerShown = false"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+      <iframe
+        style="border:0; display:block"
+        :src="resolvedHelpSrc"
+        width="100%"
+        height="100%"
+      ></iframe>
+    </v-navigation-drawer>
+
+  </div>
+</script>
+
+<script>
+Vue.component('jh-page-header', {
+  inheritAttrs: false,
+  template: '#jh-page-header-template',
+  props: {
+    title:            { type: String,  default: '' },
+    helpBtn:          { type: Boolean, default: false },
+    helpSrc:          { type: String,  default: '' },
+    pageId:           { type: String,  default: '' },
+    searchFieldList:  { type: Array,   default: () => [] },
+    /** keyword 控件可选列（通常由 parse_schema 从 Table 同步） */
+    keywordHeaders:   { type: Array,   default: () => [] },
+    showSearchBtn:    { type: Boolean, default: true },
+    /** 支持父页面传入初始值 / 外部重置（配合 .sync 使用） */
+    keyword:          { type: String,  default: '' },
+    keywordFieldList: { type: Array,   default: () => [] },
+  },
+  data() {
+    return {
+      isHelpDrawerShown: false,
+      localWhere:            {},
+      localWhereLike:        {},
+      localWhereIn:          {},
+      localKeyword:          this.keyword,
+      localKeywordFieldList: this.keywordFieldList.length ? [...this.keywordFieldList] : [],
+    };
+  },
+  mounted() {
+    this.initWhereInArrays();
+  },
+  watch: {
+    /**
+     * 父页面通过 :keyword.sync / :keyword-field-list.sync 外部重置时同步本地状态。
+     */
+    keyword(val) {
+      if (val !== this.localKeyword) this.localKeyword = val;
+    },
+    keywordFieldList(val) {
+      this.localKeywordFieldList = val ? [...val] : [];
+    },
+    /**
+     * keywordFieldList prop 为空时，keywordHeaders 首次非空则默认全选所有可用列。
+     * immediate:true 保证同步传入的 headers 也能命中（不依赖 mounted 时序）。
+     */
+    keywordHeaders: {
+      immediate: true,
+      handler(headers) {
+        if (!Array.isArray(headers) || headers.length === 0) return;
+        if (this.localKeywordFieldList.length > 0) return;
+        const hasKeywordWidget = (this.searchFieldList || []).some(f => f && (f.type === 'keyword'));
+        if (!hasKeywordWidget) return;
+        this.localKeywordFieldList = headers
+          .filter(h => h && h.value !== 'action')
+          .map(h => h.value);
+      },
+    },
+  },
+  computed: {
+    hasSearch() {
+      return this.searchFieldList && this.searchFieldList.length > 0;
+    },
+    resolvedHelpSrc() {
+      if (this.helpSrc) return this.helpSrc;
+      const appId = (window.appInfo && window.appInfo.appId) || '';
+      return `/${appId}/pageDoc#${this.pageId}.md`;
+    },
+    keywordHeaderOptions() {
+      return (this.keywordHeaders || []).filter(h => h && h.value !== 'action');
+    },
+    keywordPlaceholder() {
+      const list = this.localKeywordFieldList || [];
+      const headers = this.keywordHeaderOptions;
+      const texts = _.compact(list.map(k => (headers.find(h => h.value === k) || {}).text));
+      return texts.length ? texts.join(' / ') : '';
+    },
+  },
+  methods: {
+    /**
+     * 将 field.attrs（键值型）和 field.quickAttrs（布尔型）合并为可透传的 extraAttrs 对象。
+     * quickAttrs 支持数组 ["clearable","small-chips"] 或空格字符串 "clearable small-chips"。
+     */
+    fieldExtraAttrs(field) {
+      const extra = Object.assign({}, field.attrs || {});
+      const qa = field.quickAttrs;
+      if (Array.isArray(qa)) {
+        qa.forEach(a => { if (a) extra[String(a).trim()] = true; });
+      } else if (typeof qa === 'string' && qa.trim()) {
+        qa.trim().split(/\s+/).forEach(a => { extra[a] = true; });
+      }
+      return extra;
+    },
+    resolveOptions(field) {
+      if (!field.options) return [];
+      if (Array.isArray(field.options)) return field.options;
+      if (typeof field.options === 'string') {
+        if (field.options.startsWith('$root.')) {
+          return _.get(this.$root, field.options.slice(6)) || [];
+        }
+        // jhPage 可选注入（standalone 使用时为 null）
+        const state = this.jhPage ? this.jhPage.state : null;
+        return (state && _.get(state, field.options)) || [];
+      }
+      return [];
+    },
+    hasResolveOptions(field) {
+      const o = this.resolveOptions(field);
+      return Array.isArray(o) && o.length > 0;
+    },
+    initWhereInArrays() {
+      (this.searchFieldList || []).forEach((f) => {
+        if (!f || (f.type === 'keyword')) return;
+        if ((f.type === 'date') && this.fieldUsesIn(f)) return;
+        if (this.fieldUsesIn(f)) {
+          if (!Array.isArray(this.localWhereIn[f.key])) {
+            this.$set(this.localWhereIn, f.key, []);
+          }
+        }
+      });
+    },
+    keywordFieldIncludes(value) {
+      return (this.localKeywordFieldList || []).includes(value);
+    },
+    toggleKeywordField(value) {
+      const cur = this.localKeywordFieldList || [];
+      if (cur.includes(value)) {
+        this.localKeywordFieldList = cur.filter(k => k !== value);
+      } else {
+        this.localKeywordFieldList = [...cur, value];
+      }
+    },
+    handleSearch() {
+      // .sync 支持：让父页面的 keyword / keywordFieldList 与本地保持同步
+      this.$emit('update:keyword', this.localKeyword);
+      this.$emit('update:keywordFieldList', [...this.localKeywordFieldList]);
+      this.$emit('search', {
+        where:            { ...this.localWhere },
+        whereLike:        { ...this.localWhereLike },
+        whereIn:          { ...this.localWhereIn },
+        keyword:          this.localKeyword,
+        keywordFieldList: [...this.localKeywordFieldList],
+      });
+    },
+    /** 非 select/date/keyword 的输入检索（text/number/省略/未知 type 均按此项处理） */
+    isSearchTextual(field) {
+      const w = field.type;
+      if (w === 'select' || w === 'date' || w === 'keyword') return false;
+      return true;
+    },
+    /** op === 'in' → serverSearchWhereIn / whereIn */
+    fieldUsesIn(field) {
+      return !!(field && field.op === 'in');
+    },
+    /**
+     * select：仅 op==='like' 时为 whereLike
+     * text/number 等：like 或省略 op → whereLike；eq/gt/lt/… → where
+     */
+    fieldUsesLike(field) {
+      if (!field || this.fieldUsesIn(field)) return false;
+      if (field.type === 'select') return field.op === 'like';
+      if (!this.isSearchTextual(field)) return false;
+      if (field.op === 'like') return true;
+      if (!field.op) return true;
+      return false;
+    },
+  },
+});
+</script>

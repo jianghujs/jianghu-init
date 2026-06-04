@@ -35,8 +35,27 @@ const acorn = __importStar(require("acorn"));
 const walk = __importStar(require("acorn-walk"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-// 主schema文件
+// 组合入口（v6 | legacy oneOf），供 $id 解析与文档工具
 const jianghu_config_schema_json_1 = __importDefault(require("../schemas/jianghu-config.schema.json"));
+const jianghu_config_legacy_schema_json_1 = __importDefault(require("../schemas/jianghu-config-legacy.schema.json"));
+const include_list_schema_json_1 = __importDefault(require("../schemas/components/include-list.schema.json"));
+const resource_list_schema_json_1 = __importDefault(require("../schemas/components/resource-list.schema.json"));
+const v6_page_tree_schema_json_1 = __importDefault(require("../schemas/components/v6-page-tree.schema.json"));
+// v6 完整文档
+const jianghu_config_v6_schema_json_1 = __importDefault(require("../schemas/v6/jianghu-config-v6.schema.json"));
+const jianghu_config_v7_schema_json_1 = __importDefault(require("../schemas/v7/jianghu-config-v7.schema.json"));
+/** V7 根级互斥字段 → 简短提示（标在属性键上，不含「根对象」前缀） */
+const V7_FORBIDDEN_PROPERTY_MSG = {
+    resourceList: 'jh-component 不需要 resourceList',
+    page: 'jh-component 不需要 page',
+    pageContent: 'CRUD 不需要根级 pageContent',
+    mode: 'UI 模式不需要 mode',
+    fields: 'UI 模式不需要 fields',
+    views: 'UI 模式不需要 views',
+    dataSource: 'UI 模式不需要 dataSource',
+    pc: 'UI 模式不需要根级 pc',
+    mobile: 'UI 模式不需要根级 mobile',
+};
 class JianghuSchemaValidator {
     constructor(context) {
         // 初始化 AJV 实例，启用高级特性
@@ -47,7 +66,7 @@ class JianghuSchemaValidator {
             strict: false,
             $data: true,
             discriminator: true,
-            logger: false // 禁用控制台日志
+            logger: false
         });
         // 添加格式验证和错误信息增强
         (0, ajv_formats_1.default)(this.ajv);
@@ -58,10 +77,20 @@ class JianghuSchemaValidator {
             validate: () => true,
             errors: false
         });
-        // 注册所有schema
+        // 注册所有schema（含 main / legacy / 子目录）
         this.registerSchemas();
-        // 编译主schema
-        this.validateFn = this.ajv.compile(jianghu_config_schema_json_1.default);
+        this.validateFn = this.ajv.compile(jianghu_config_legacy_schema_json_1.default);
+        const ajvV6 = new ajv_1.default({ allErrors: true, strict: false, logger: false });
+        (0, ajv_formats_1.default)(ajvV6);
+        ajvV6.addSchema(v6_page_tree_schema_json_1.default);
+        ajvV6.addSchema(resource_list_schema_json_1.default);
+        ajvV6.addSchema(include_list_schema_json_1.default);
+        this.validateV6Fn = ajvV6.compile(jianghu_config_v6_schema_json_1.default);
+        const ajvV7 = new ajv_1.default({ allErrors: true, strict: false, logger: false });
+        (0, ajv_formats_1.default)(ajvV7);
+        ajvV7.addSchema(resource_list_schema_json_1.default);
+        ajvV7.addSchema(include_list_schema_json_1.default);
+        this.validateV7Fn = ajvV7.compile(jianghu_config_v7_schema_json_1.default);
         // 创建诊断集合
         this.diagnosticCollection = vscode.languages.createDiagnosticCollection('jianghu-config');
         context.subscriptions.push(this.diagnosticCollection);
@@ -70,8 +99,9 @@ class JianghuSchemaValidator {
      * 注册所有schema文件
      */
     registerSchemas() {
-        // 注册主schema
+        // 注册主入口（oneOf 组合）与 legacy；具体目录扫描跳过与主入口同名的孤立文件避免重复 id
         this.ajv.addSchema(jianghu_config_schema_json_1.default, 'jianghu-config.schema.json');
+        this.ajv.addSchema(jianghu_config_legacy_schema_json_1.default, 'jianghu-config-legacy.schema.json');
         // 注册子schema目录
         const schemasDir = path.join(__dirname, '..', 'schemas');
         this.registerSchemaDir(schemasDir);
@@ -91,7 +121,16 @@ class JianghuSchemaValidator {
             if (stats.isDirectory()) {
                 this.registerSchemaDir(filePath);
             }
-            else if (file.endsWith('.schema.json') && file !== 'jianghu-config.schema.json') {
+            else if (file.endsWith('.schema.json')) {
+                const skipFiles = new Set([
+                    'jianghu-config.schema.json',
+                    'jianghu-config-legacy.schema.json',
+                    'jianghu-config-v6.schema.json',
+                    'jianghu-config-v7.schema.json',
+                ]);
+                if (skipFiles.has(file)) {
+                    continue;
+                }
                 try {
                     const schema = require(filePath);
                     this.ajv.addSchema(schema, schema.$id || file);
@@ -104,6 +143,9 @@ class JianghuSchemaValidator {
     }
     /**
      * 验证文档
+     * - version === 'v7' 使用 v7 语义 schema（jianghu-config-v7.schema.json）
+     * - version === 'v6' 使用 v6 专属 schema（jianghu-config-v6.schema.json）
+     * - 其他版本走原有 v1-v5 schema（保持兼容性不变）
      */
     validate(document) {
         if (!this.isTargetFile(document.uri.fsPath)) {
@@ -115,13 +157,16 @@ class JianghuSchemaValidator {
             if (!configObject || !location) {
                 return;
             }
-            const valid = this.validateFn(configObject);
-            if (!valid && this.validateFn.errors) {
-                // 记录原始错误，用于调试
-                console.log('原始验证错误:', JSON.stringify(this.validateFn.errors, null, 2));
-                // 对错误进行分组和过滤，保留最具体的错误
-                const filteredErrors = this.filterErrors(this.validateFn.errors);
-                // 创建诊断信息
+            const isV7 = configObject.version === 'v7';
+            const isV6 = configObject.version === 'v6';
+            const validateFn = isV7 ? this.validateV7Fn : (isV6 ? this.validateV6Fn : this.validateFn);
+            const valid = validateFn(configObject);
+            if (!valid && validateFn.errors) {
+                let errors = validateFn.errors;
+                if (isV7) {
+                    errors = this.normalizeV7ForbiddenNotErrors(errors, configObject);
+                }
+                const filteredErrors = this.filterErrors(errors);
                 const diagnostics = this.createDiagnostics(document, filteredErrors, location);
                 this.diagnosticCollection.set(document.uri, diagnostics);
             }
@@ -135,8 +180,14 @@ class JianghuSchemaValidator {
     }
     /**
      * 过滤和分组错误，保留最具体的错误
+     *
+     * 说明：`additionalProperties` / `unevaluatedProperties` 的 instancePath 指向「包含多余属性的对象」
+     * （如 `/page`），而不是多余字段本身（不会是 `/page/type`）。若同期还存在 `/page/id` 等更深路径错误，
+     * 简单按「父路径剔除」会把整条 `/page` 分组扔掉，导致永远看不到「不支持的额外属性」提示。
+     * 因此对这类关键字强制保留其 instancePath 对应分组。
      */
     filterErrors(errors) {
+        errors = this.dropRedundantIfErrors(errors);
         // 首先按照路径分组
         const errorsByPath = new Map();
         for (const error of errors) {
@@ -161,18 +212,27 @@ class JianghuSchemaValidator {
                 pathsToKeep.add(path);
             }
         }
+        // 强制保留「额外属性」类错误所在路径（避免因同期存在 /page/foo 而误删整条 /page）
+        const forceKeepKeywords = new Set([
+            'additionalProperties',
+            'unevaluatedProperties',
+            'jianghuForbiddenProperty',
+        ]);
+        for (const error of errors) {
+            if (forceKeepKeywords.has(error.keyword)) {
+                pathsToKeep.add(error.instancePath || '/');
+            }
+        }
         // 收集要保留的错误
         let result = [];
         for (const path of pathsToKeep) {
             const pathErrors = errorsByPath.get(path);
-            // 优先保留 required 错误，其次是 additionalProperties 错误
             const requiredErrors = pathErrors.filter(e => e.keyword === 'required');
             const additionalPropsErrors = pathErrors.filter(e => e.keyword === 'additionalProperties');
-            if (requiredErrors.length > 0) {
-                result.push(...requiredErrors);
-            }
-            else if (additionalPropsErrors.length > 0) {
-                result.push(...additionalPropsErrors);
+            const restErrors = pathErrors.filter(e => e.keyword !== 'required' && e.keyword !== 'additionalProperties');
+            // required 与 additionalProperties 常见于同一 instancePath（如 /page），用 else-if 会吞掉后者
+            if (requiredErrors.length > 0 || additionalPropsErrors.length > 0) {
+                result.push(...requiredErrors, ...additionalPropsErrors, ...restErrors);
             }
             else {
                 result.push(...pathErrors);
@@ -195,6 +255,80 @@ class JianghuSchemaValidator {
             return 0;
         });
         return result;
+    }
+    /**
+     * V7 根级 `not`（must NOT be valid）展开为按属性键定位的错误，避免整对象标红。
+     */
+    normalizeV7ForbiddenNotErrors(errors, config) {
+        const result = [];
+        for (const error of errors) {
+            const isRootNot = error.keyword === 'not' &&
+                (!error.instancePath || error.instancePath === '');
+            if (!isRootNot) {
+                result.push(error);
+                continue;
+            }
+            const forbiddenKeys = this.detectV7ForbiddenRootKeys(config);
+            if (forbiddenKeys.length === 0) {
+                result.push({
+                    ...error,
+                    message: '配置模式与顶层字段冲突',
+                });
+                continue;
+            }
+            for (const key of forbiddenKeys) {
+                result.push({
+                    ...error,
+                    keyword: 'jianghuForbiddenProperty',
+                    instancePath: '',
+                    message: V7_FORBIDDEN_PROPERTY_MSG[key] ?? `不应使用 ${key}`,
+                    params: { forbiddenProperty: key },
+                });
+            }
+        }
+        return result;
+    }
+    detectV7ForbiddenRootKeys(config) {
+        const has = (k) => Object.prototype.hasOwnProperty.call(config, k);
+        const keys = [];
+        const isCrud = config.mode === 'crud';
+        const isComponent = config.pageType === 'jh-component' ||
+            (has('component') && config.component != null);
+        if (isCrud && has('pageContent')) {
+            keys.push('pageContent');
+        }
+        if (isComponent) {
+            if (has('page'))
+                keys.push('page');
+            if (has('resourceList'))
+                keys.push('resourceList');
+        }
+        if (!isCrud) {
+            for (const k of ['mode', 'fields', 'views', 'dataSource', 'pc', 'mobile']) {
+                if (has(k))
+                    keys.push(k);
+            }
+        }
+        return keys;
+    }
+    /**
+     * AJV 在 if/then/else 失败时常附带 keyword:if（如 failingKeyword: then）。
+     * 若同一路径或该路径下的子路径已有更具体的校验错误，则去掉冗余 if，避免与 additionalProperties 等重复刷屏。
+     */
+    dropRedundantIfErrors(errors) {
+        return errors.filter((e) => {
+            if (e.keyword !== 'if')
+                return true;
+            const path = e.instancePath || '/';
+            const childPrefix = path === '/' ? '/' : `${path}/`;
+            const hasConcreteSibling = errors.some((x) => {
+                if (x === e || x.keyword === 'if')
+                    return false;
+                const xp = x.instancePath || '/';
+                return xp === path || xp.startsWith(childPrefix);
+            });
+            return !hasConcreteSibling;
+        });
     }
     /**
      * 判断文件是否为目标验证文件
@@ -307,6 +441,7 @@ class JianghuSchemaValidator {
         // 根据错误类型确定严重性
         switch (error.keyword) {
             case 'additionalProperties':
+            case 'jianghuForbiddenProperty':
                 return vscode.DiagnosticSeverity.Warning;
             case 'required':
                 return vscode.DiagnosticSeverity.Error;
@@ -324,45 +459,15 @@ class JianghuSchemaValidator {
         if (error.params && error.params.errorPath) {
             path.push(error.params.errorPath);
         }
-        // 处理额外属性错误，只标记属性键
-        if (error.keyword === 'additionalProperties') {
-            const additionalProp = error.params.additionalProperty;
-            let currentNode = location.node;
-            // 导航到包含额外属性的对象
-            for (const key of path) {
-                if (currentNode.type === 'ObjectExpression') {
-                    const property = currentNode.properties.find((p) => (p.key.type === 'Identifier' && p.key.name === key) ||
-                        (p.key.type === 'Literal' && p.key.value === key));
-                    if (property) {
-                        currentNode = property.value;
-                    }
-                    else {
-                        break;
-                    }
-                }
-                else if (currentNode.type === 'ArrayExpression') {
-                    const index = parseInt(key, 10);
-                    if (!isNaN(index) && index < currentNode.elements.length) {
-                        currentNode = currentNode.elements[index];
-                    }
-                    else {
-                        break;
-                    }
-                }
-                else {
-                    break;
-                }
-            }
-            // 在当前对象中查找额外属性的键
-            if (currentNode.type === 'ObjectExpression') {
-                const property = currentNode.properties.find((p) => (p.key.type === 'Identifier' && p.key.name === additionalProp) ||
-                    (p.key.type === 'Literal' && p.key.value === additionalProp));
-                if (property) {
-                    // 只标记属性键，而不是整个属性
-                    const start = document.positionAt(property.key.start);
-                    const end = document.positionAt(property.key.end);
-                    return new vscode.Range(start, end);
-                }
+        // 额外属性 / V7 互斥字段：只标记属性键
+        if (error.keyword === 'additionalProperties' ||
+            error.keyword === 'jianghuForbiddenProperty') {
+            const propName = error.keyword === 'additionalProperties'
+                ? error.params.additionalProperty
+                : error.params.forbiddenProperty;
+            const keyRange = this.getPropertyKeyRange(document, path, location, propName);
+            if (keyRange) {
+                return keyRange;
             }
         }
         // 处理required错误，标记整个对象
@@ -403,6 +508,47 @@ class JianghuSchemaValidator {
         }
         // 处理一般错误，尝试精确定位到属性或元素
         return this.getNodeRangeByPath(document, path, location);
+    }
+    /**
+     * 在配置对象 AST 上定位某一属性的键名范围
+     */
+    getPropertyKeyRange(document, path, location, propertyName) {
+        let currentNode = location.node;
+        for (const key of path) {
+            if (currentNode.type === 'ObjectExpression') {
+                const property = currentNode.properties.find((p) => (p.key.type === 'Identifier' && p.key.name === key) ||
+                    (p.key.type === 'Literal' && p.key.value === key));
+                if (property) {
+                    currentNode = property.value;
+                }
+                else {
+                    return null;
+                }
+            }
+            else if (currentNode.type === 'ArrayExpression') {
+                const index = parseInt(key, 10);
+                if (!isNaN(index) && index < currentNode.elements.length) {
+                    currentNode = currentNode.elements[index];
+                }
+                else {
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
+        }
+        if (currentNode.type !== 'ObjectExpression') {
+            return null;
+        }
+        const property = currentNode.properties.find((p) => (p.key.type === 'Identifier' && p.key.name === propertyName) ||
+            (p.key.type === 'Literal' && p.key.value === propertyName));
+        if (!property) {
+            return null;
+        }
+        const start = document.positionAt(property.key.start);
+        const end = document.positionAt(property.key.end);
+        return new vscode.Range(start, end);
     }
     /**
      * 根据路径获取节点范围
@@ -496,6 +642,12 @@ class JianghuSchemaValidator {
         }
         // 根据错误类型构建简洁的错误消息
         switch (error.keyword) {
+            case 'jianghuForbiddenProperty': {
+                const prop = error.params?.forbiddenProperty;
+                return (error.message ||
+                    V7_FORBIDDEN_PROPERTY_MSG[prop] ||
+                    `不应使用 ${prop}`);
+            }
             case 'additionalProperties':
                 return `不支持的额外属性: ${error.params.additionalProperty}`;
             case 'required':
@@ -510,6 +662,8 @@ class JianghuSchemaValidator {
                 return `${displayPath}: 格式不正确`;
             case 'oneOf':
                 return `${displayPath}: 结构不符合要求`;
+            case 'if':
+                return `${displayPath}: 分支条件不满足（${error.params?.failingKeyword ?? 'then/else'}）`;
             default:
                 return `${displayPath}: ${error.message}`;
         }

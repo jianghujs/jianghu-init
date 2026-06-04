@@ -1,0 +1,750 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  jh-input-label   字段标签组件
+
+    props:
+      label     String   标签文字
+      required  Boolean  是否显示必填红星，默认 false
+    slot default：label 右侧自定义内容（如 tooltip、说明图标）
+
+  ─────────────────────────────────────────────────────────────────────
+  jh-form          v6 通用表单渲染组件
+
+    props:
+      fields      Array   字段配置列表，每项支持以下属性（formItem 规范）：
+                    key          String   字段 key（必填，结构性 type 可用 label 代替）
+                    label        String   显示标签
+                    type         String   'text'|'number'|'select'|'textarea'|'date'|'custom'
+                                          结构性（不绑定数据）：
+                                            'section'  分组标题，渲染一行标题文字
+                                            'divider'  水平分割线
+                                            'tip'      提示文本块，内容来自 html 或 label
+                    required     Boolean  是否必填（labelMode='above' 时显示红星）
+                    rules        Array<Function> | String  校验规则
+                                          · Array<Function>：Vuetify 标准格式，直接使用
+                                          · String：从 jhPage.state 按路径解析
+                                            如 "validationRules.requireRules"
+                                          · 省略 + required:true → 自动生成非空校验
+                    disabled     Boolean  禁用
+                    readonly     Boolean  只读
+                    options      Array/String  下拉选项（type='select'）
+                    placeholder  String   输入框 placeholder
+                    hint         String   输入框下方提示文字
+                    html         String   type='tip' 时的 HTML 内容
+                    span         Number|String|Object  跨列数，优先级低于 cls
+                                          · 数字：span: 2  → jh-span-2
+                                          · 字符串：span: 'full' → jh-span-full（1/-1 全宽）
+                                          · 对象（响应式）：span: { xs: 'full', md: 2 }
+                                            断点同 cols：xs/sm/md/lg/xl
+                    cls          String   字段容器 CSS class
+                    component    String   type='custom' 时的全局 Vue 组件名
+                    ── Vuetify 组件透传（不影响 jh-form 内部逻辑）──
+                    attrs        Object   键值型 Vuetify prop，直接透传给底层组件
+                                          例：{ "item-text": "netName", "item-value": "memberId" }
+                    quickAttrs   Array|String  布尔型 Vuetify prop（无需写 true），
+                                          支持数组 ["clearable","small-chips"] 或空格字符串 "clearable small-chips"
+      initialData Object  表单初始值，外部变更自动同步到本地
+      cols        Number | Object  表单列数，默认 3
+                          · 数字：固定列数，如 cols: 3
+                          · 对象：响应式，断点与 Vuetify 2 一致（xs/sm/md/lg/xl）
+                            如 { xs: 1, sm: 2, md: 3, lg: 4 }
+                            · xs ≥ 0px  sm ≥ 600px  md ≥ 960px  lg ≥ 1264px  xl ≥ 1904px
+      gap         String  CSS gap（行 列），默认 '12px 16px'
+      labelMode   String  'float' | 'above'（标签在上）| 'inline'（移动端 v4：表单无外左右边距，px 在 item 内；行间全宽分隔线）
+
+  slots:
+    field-{key}   完全接管该字段渲染，优先级最高
+                  scope: { field, value, onChange(val) }
+    label-{key}   在 label 文字右侧插入内容（如状态 badge、说明图标、小按钮）
+                  scope: { field }
+    after-{key}   在字段输入框下方追加内容（如换算提示、快捷操作）
+                  scope: { field, value }
+
+    events:
+      field-change  { key, value }  字段值变化
+
+    methods（通过 ref 调用）:
+      validate()          Vuetify v-form 校验
+      resetValidation()   重置校验状态
+    根 v-form v-bind="$attrs"：支持外层传入的 class、id、data-* 等（v6 节点 attrs）
+───────────────────────────────────────────────────────────────────── -->
+
+<style>
+/* jh-form 通用跨列工具 class（配合 grid 布局使用） */
+.jh-col-span-full { grid-column: 1 / -1; }
+.jh-col-span-2    { grid-column: span 2; }
+.jh-col-span-3    { grid-column: span 3; }
+
+/* ── formItem span 响应式（断点与 cols 一致）──
+   span 传数字/字符串 → jh-span-{n} / jh-span-full
+   span 传对象 { xs,sm,md,lg,xl } → 各断点类名叠加
+   用法：span: 2  |  span: 'full'  |  span: { xs: 'full', md: 2 }  */
+.jh-span-full { grid-column: 1 / -1; }
+.jh-span-1    { grid-column: span 1; }
+.jh-span-2    { grid-column: span 2; }
+.jh-span-3    { grid-column: span 3; }
+.jh-span-4    { grid-column: span 4; }
+.jh-span-5    { grid-column: span 5; }
+.jh-span-6    { grid-column: span 6; }
+@media (min-width: 600px) {
+  .jh-sm-span-full { grid-column: 1 / -1; }
+  .jh-sm-span-1    { grid-column: span 1; }
+  .jh-sm-span-2    { grid-column: span 2; }
+  .jh-sm-span-3    { grid-column: span 3; }
+  .jh-sm-span-4    { grid-column: span 4; }
+  .jh-sm-span-5    { grid-column: span 5; }
+  .jh-sm-span-6    { grid-column: span 6; }
+}
+@media (min-width: 960px) {
+  .jh-md-span-full { grid-column: 1 / -1; }
+  .jh-md-span-1    { grid-column: span 1; }
+  .jh-md-span-2    { grid-column: span 2; }
+  .jh-md-span-3    { grid-column: span 3; }
+  .jh-md-span-4    { grid-column: span 4; }
+  .jh-md-span-5    { grid-column: span 5; }
+  .jh-md-span-6    { grid-column: span 6; }
+}
+@media (min-width: 1264px) {
+  .jh-lg-span-full { grid-column: 1 / -1; }
+  .jh-lg-span-1    { grid-column: span 1; }
+  .jh-lg-span-2    { grid-column: span 2; }
+  .jh-lg-span-3    { grid-column: span 3; }
+  .jh-lg-span-4    { grid-column: span 4; }
+  .jh-lg-span-5    { grid-column: span 5; }
+  .jh-lg-span-6    { grid-column: span 6; }
+}
+/* 结构性 type */
+.jh-form-section  { grid-column: 1 / -1; font-size: 14px; font-weight: 600; color: #555; border-left: 4px solid var(--cPrimaryColor); color: var(--cPrimaryColor); padding-left: 8px; line-height: 1.2 }
+.jh-form-divider  { grid-column: 1 / -1; }
+.jh-form-tip      { grid-column: 1 / -1; font-size: 12px; color: #888; line-height: 1.6; }
+
+/* ── cols 响应式（与 Vuetify 2 断点对齐：sm≥600 md≥960 lg≥1264 xl≥1904）──
+   cols 传数字时由 inline gridStyle 控制；传对象 { xs,sm,md,lg,xl } 时使用下列类名。
+   用法：cols: { xs: 1, sm: 2, md: 3, lg: 4 }  */
+.jh-form-cols-1  { grid-template-columns: repeat(1, 1fr); }
+.jh-form-cols-2  { grid-template-columns: repeat(2, 1fr); }
+.jh-form-cols-3  { grid-template-columns: repeat(3, 1fr); }
+.jh-form-cols-4  { grid-template-columns: repeat(4, 1fr); }
+.jh-form-cols-5  { grid-template-columns: repeat(5, 1fr); }
+.jh-form-cols-6  { grid-template-columns: repeat(6, 1fr); }
+@media (min-width: 600px) {
+  .jh-form-sm-cols-1 { grid-template-columns: repeat(1, 1fr); }
+  .jh-form-sm-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .jh-form-sm-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .jh-form-sm-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .jh-form-sm-cols-5 { grid-template-columns: repeat(5, 1fr); }
+  .jh-form-sm-cols-6 { grid-template-columns: repeat(6, 1fr); }
+}
+@media (min-width: 960px) {
+  .jh-form-md-cols-1 { grid-template-columns: repeat(1, 1fr); }
+  .jh-form-md-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .jh-form-md-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .jh-form-md-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .jh-form-md-cols-5 { grid-template-columns: repeat(5, 1fr); }
+  .jh-form-md-cols-6 { grid-template-columns: repeat(6, 1fr); }
+}
+@media (min-width: 1264px) {
+  .jh-form-lg-cols-1 { grid-template-columns: repeat(1, 1fr); }
+  .jh-form-lg-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .jh-form-lg-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .jh-form-lg-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .jh-form-lg-cols-5 { grid-template-columns: repeat(5, 1fr); }
+  .jh-form-lg-cols-6 { grid-template-columns: repeat(6, 1fr); }
+}
+@media (min-width: 1904px) {
+  .jh-form-xl-cols-1 { grid-template-columns: repeat(1, 1fr); }
+  .jh-form-xl-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .jh-form-xl-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .jh-form-xl-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .jh-form-xl-cols-5 { grid-template-columns: repeat(5, 1fr); }
+  .jh-form-xl-cols-6 { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* inline（对齐 jh-mobile-page-v4 formItem colAttrs + mobileFormItemFormat） */
+.jh-form--inline {
+  --jh-form-inline-px: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.jh-form--inline .jh-form-inline-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 8px var(--jh-form-inline-px);
+  width: 100%;
+  box-sizing: border-box;
+}
+.jh-form--inline .jh-form-inline-row.is-bordered {
+  border-bottom: 1px solid #eee;
+}
+.jh-form--inline .jh-form-inline-label {
+  max-width: 120px;
+  min-width: 120px;
+  padding-right: 8px;
+  flex-shrink: 0;
+  line-height: 20px;
+}
+.jh-form--inline .jh-form-inline-control {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.jh-form--inline .jh-form-inline-control.is-full-width {
+  flex: 1 1 100%;
+  width: 100%;
+}
+.jh-form--inline .jh-form-inline-control .jh-v-input {
+  margin-top: 0;
+  padding-top: 0;
+}
+.jh-form--inline .jh-form-divider,
+.jh-form--inline .jh-form-tip {
+  width: 100%;
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+.jh-form--inline .jh-form-section {
+  border-bottom: 1px solid #eee;
+}
+/* section：外层全宽贴边；标题与左边色条在 __inner 内缩进（与普通 item 同 px） */
+.jh-form--inline .jh-form-section--inline {
+  padding: 10px 0;
+  border-left: none;
+}
+.jh-form--inline .jh-form-section__inner {
+  margin: 0 var(--jh-form-inline-px);
+  padding: 0 8px;
+  border-left: 4px solid var(--cPrimaryColor);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cPrimaryColor);
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+.jh-form--inline .jh-form-divider {
+  padding: 4px 0;
+}
+.jh-form--inline .jh-form-tip {
+  padding: 4px var(--jh-form-inline-px) 8px;
+  box-sizing: border-box;
+}
+</style>
+
+<!-- ══════════════════════════════════════════════════════════════
+  jh-input-label
+══════════════════════════════════════════════════════════════════ -->
+<script type="text/html" id="jh-input-label-template">
+  <div v-bind="$attrs" v-on="$listeners" class="d-flex align-center">
+    <span class="jh-input-label">{{ label }}</span>
+    <span v-if="required" class="red--text ml-1 text-body-2" aria-hidden="true">*</span>
+    <slot></slot>
+  </div>
+</script>
+<script>
+Vue.component('jh-input-label', {
+  inheritAttrs: false,
+  template: '#jh-input-label-template',
+  props: {
+    label:    { type: String,  default: '' },
+    required: { type: Boolean, default: false },
+  },
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+  jh-form
+══════════════════════════════════════════════════════════════════ -->
+<script type="text/html" id="jh-form-template">
+  <v-form v-bind="$attrs" v-on="$listeners" ref="innerForm" lazy-validation>
+    <div
+      :style="isInlineLayout ? null : gridStyle"
+      :class="[isInlineLayout ? 'jh-form--inline' : '', !isInlineLayout ? gridClass : '']"
+    >
+
+      <template v-for="(field, fieldIdx) in normalizedFields">
+
+        <!-- ══ 结构性 type（不绑定数据，不参与校验）══ -->
+
+        <!-- section：分组标题 -->
+        <div
+          v-if="field.structural === 'section' && field.visible !== false"
+          :key="field.key"
+          :class="['jh-form-section', isInlineLayout ? 'jh-form-section--inline' : '', field.cls || '']"
+        >
+          <div v-if="isInlineLayout" class="jh-form-section__inner">{{ field.label }}</div>
+          <template v-else>{{ field.label }}</template>
+        </div>
+
+        <!-- divider：分割线 -->
+        <div v-else-if="field.structural === 'divider' && field.visible !== false" :key="field.key" :class="['jh-form-divider', field.cls || '']">
+          <v-divider></v-divider>
+        </div>
+
+        <!-- tip：提示文本（支持 html） -->
+        <div
+          v-else-if="field.structural === 'tip' && field.visible !== false"
+          :key="field.key"
+          :class="['jh-form-tip', field.cls || '']"
+          v-html="field.html || field.label || ''"
+        ></div>
+
+        <!-- ══ 普通字段 ══ -->
+        <div
+          v-else-if="field.visible !== false"
+          :key="field.key"
+          :class="[field.cls, isInlineLayout ? '' : field.spanClass, isInlineLayout ? 'jh-form-inline-row' : '', isInlineLayout && inlineFieldHasBorder(fieldIdx) ? 'is-bordered' : '']"
+        >
+          <!-- labelMode='above'：标签在上 -->
+          <jh-input-label
+            v-if="!isInlineLayout && labelMode === 'above' && field.label"
+            :label="field.label"
+            :required="field.required"
+          >
+            <slot :name="'label-' + field.key" :field="field"></slot>
+          </jh-input-label>
+
+          <!-- labelMode='inline'：标签左（对齐 v4 mobileFormItemFormat + colAttrs） -->
+          <span
+            v-if="isInlineLayout && field.label"
+            class="jh-input-label jh-form-inline-label"
+          >
+            <span v-if="field.required" class="red--text text--accent-2 mr-1">*</span>{{ field.label }}
+            <slot :name="'label-' + field.key" :field="field"></slot>
+          </span>
+
+          <div :class="[isInlineLayout ? 'jh-form-inline-control' : '', isInlineLayout && inlineControlFullWidth(field) ? 'is-full-width' : '']">
+
+          <!-- ── slot 优先：field-{key} 存在时完全由父层控制渲染 ── -->
+          <template v-if="$scopedSlots['field-' + field.key]">
+            <slot
+              :name="'field-' + field.key"
+              :field="field"
+              :value="formData[field.key]"
+              :on-change="(val) => handleChange(field.key, val)"
+            ></slot>
+          </template>
+
+          <!-- ── 内置 type ── -->
+          <template v-else>
+
+          <!-- ── select ── -->
+          <v-select
+            v-if="field.type === 'select'"
+            v-model="formData[field.key]"
+            v-bind="field.extraAttrs"
+            :label="fieldInputLabel(field)"
+            :placeholder="field.placeholder"
+            :hint="field.hint"
+            :persistent-hint="!!field.hint"
+            :items="field.options || []"
+            :rules="field.rules"
+            :disabled="field.disabled"
+            :readonly="field.readonly"
+            dense single-line filled
+            :class="fieldInputClass(field)"
+            @change="handleChange(field.key, formData[field.key])"
+          ></v-select>
+
+          <!-- ── textarea ── -->
+          <v-textarea
+            v-else-if="field.type === 'textarea'"
+            v-model="formData[field.key]"
+            v-bind="textareaBindAttrs(field)"
+            :label="fieldInputLabel(field)"
+            :placeholder="field.placeholder"
+            :hint="field.hint"
+            :persistent-hint="!!field.hint"
+            :rules="field.rules"
+            :disabled="field.disabled"
+            :readonly="field.readonly"
+            :rows="textareaRows(field)"
+            :auto-grow="textareaAutoGrow(field)"
+            dense filled
+            :class="fieldInputClass(field, true)"
+            @input="handleChange(field.key, formData[field.key])"
+          ></v-textarea>
+
+          <!-- ── date picker ── -->
+          <v-menu
+            v-else-if="field.type === 'date'"
+            :ref="'dp_' + field.key"
+            v-model="datePickerOpen[field.key]"
+            :close-on-content-click="false"
+            transition="scale-transition"
+            offset-y min-width="290"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-text-field
+                :value="formData[field.key]"
+                v-bind="field.extraAttrs"
+                :label="fieldInputLabel(field)"
+                :placeholder="field.placeholder || (isInlineLayout ? '请选择日期' : '')"
+                :hint="field.hint"
+                :persistent-hint="!!field.hint"
+                :rules="field.rules"
+                :disabled="field.disabled"
+                :readonly="field.readonly"
+                :prepend-inner-icon="isInlineLayout ? 'mdi-calendar-range' : 'mdi-calendar'"
+                dense single-line filled readonly clearable
+                :class="fieldInputClass(field)"
+                v-bind="attrs" v-on="on"
+              ></v-text-field>
+            </template>
+            <v-date-picker
+              v-model="formData[field.key]"
+              color="success"
+              elevation="20"
+              no-title scrollable
+              @input="handleChange(field.key, formData[field.key]); $set(datePickerOpen, field.key, false)"
+            ></v-date-picker>
+          </v-menu>
+
+          <!-- ── number ── -->
+          <v-text-field
+            v-else-if="field.type === 'number'"
+            v-model.number="formData[field.key]"
+            v-bind="field.extraAttrs"
+            :label="fieldInputLabel(field)"
+            :placeholder="field.placeholder"
+            :hint="field.hint"
+            :persistent-hint="!!field.hint"
+            :rules="field.rules"
+            :disabled="field.disabled"
+            :readonly="field.readonly"
+            type="number"
+            dense single-line filled
+            :class="fieldInputClass(field)"
+            @input="handleChange(field.key, formData[field.key])"
+          ></v-text-field>
+
+          <!-- ── custom ── -->
+          <component
+            v-else-if="field.type === 'custom' && field.component"
+            :is="field.component"
+            :value="formData[field.key]"
+            v-bind="field.extraAttrs"
+            @input="handleChange(field.key, $event)"
+          ></component>
+
+          <!-- ── text（默认）── -->
+          <v-text-field
+            v-else
+            v-model="formData[field.key]"
+            v-bind="field.extraAttrs"
+            :label="fieldInputLabel(field)"
+            :placeholder="field.placeholder"
+            :hint="field.hint"
+            :persistent-hint="!!field.hint"
+            :rules="field.rules"
+            :disabled="field.disabled"
+            :readonly="field.readonly"
+            dense single-line filled
+            :class="fieldInputClass(field)"
+            @input="handleChange(field.key, formData[field.key])"
+          ></v-text-field>
+
+          </template><!-- end 内置 type -->
+
+          </div><!-- inline control wrapper -->
+
+          <!-- after-{key} slot：字段下方追加内容（换算提示、快捷操作等） -->
+          <slot :name="'after-' + field.key" :field="field" :value="formData[field.key]"></slot>
+
+        </div>
+
+      </template>
+    </div>
+  </v-form>
+</script>
+<script>
+/**
+ * 将 formItem.span 转为 CSS 类名字符串。
+ *   数字/字符串  → 'jh-span-{n}'（n 可为 'full'）
+ *   对象        → 各断点类名，如 { xs:'full', md:2 } → 'jh-span-full jh-md-span-2'
+ */
+function resolveSpanClass(span) {
+  if (span == null || span === '') return '';
+  if (typeof span === 'number' || typeof span === 'string') {
+    return `jh-span-${span}`;
+  }
+  if (typeof span === 'object') {
+    return Object.entries(span)
+      .map(([bp, n]) => bp === 'xs' ? `jh-span-${n}` : `jh-${bp}-span-${n}`)
+      .join(' ');
+  }
+  return '';
+}
+
+Vue.component('jh-form', {
+  inheritAttrs: false,
+  template: '#jh-form-template',
+  props: {
+    fields:      { type: Array,  default: () => [] },
+    initialData: { type: Object, default: () => ({}) },
+    // cols：数字 → 固定列数；对象 → 响应式，如 { xs: 1, sm: 2, md: 3, lg: 4 }
+    cols:        { default: 3 },
+    gap:         { type: String, default: '12px 16px' },
+    labelMode:   { type: String, default: 'above' }, // 'float' | 'above' | 'inline'
+    // scope：父级 $data，用于解析 options/rules 字符串路径（如 'memberList'）
+    // 用法：:scope="$data"
+    scope:       { type: Object, default: null },
+  },
+  data() {
+    return {
+      formData:       Object.assign({}, this.initialData),
+      datePickerOpen: {},
+    };
+  },
+  computed: {
+    isInlineLayout() {
+      return this.labelMode === 'inline';
+    },
+    // cols 为数字时用 inline style；为对象时只设 display/gap，列数由 gridClass 的 CSS 类控制。
+    gridStyle() {
+      const base = { display: 'grid', gap: this.gap };
+      if (typeof this.cols === 'number') {
+        base.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
+      }
+      return base;
+    },
+    // cols 对象时生成响应式 CSS 类名，如 { xs:1, md:3 } → 'jh-form-cols-1 jh-form-md-cols-3'
+    gridClass() {
+      if (!this.cols || typeof this.cols !== 'object') return '';
+      return Object.entries(this.cols)
+        .map(([bp, n]) => bp === 'xs' ? `jh-form-cols-${n}` : `jh-form-${bp}-cols-${n}`)
+        .join(' ');
+    },
+    // 统一字段格式：仅使用 field.type
+    normalizedFields() {
+      return (this.fields || []).map((field, idx) => {
+        // 结构性 type：不绑定数据，不参与校验
+        const structuralType = field.type === 'section' ? 'section'
+          : field.type === 'divider' ? 'divider'
+          : field.type === 'tip'     ? 'tip'
+          : null;
+        if (structuralType) {
+          return {
+            key:        field.key || (structuralType + '_' + idx),
+            label:      field.label || '',
+            html:       field.html  || '',
+            cls:        field.cls   || '',
+            structural: structuralType,
+            visible:    this.evaluateWhen(field.visibleWhen, true),
+          };
+        }
+
+        const type =
+          field.type === 'select'   ? 'select'   :
+          field.type === 'date'     ? 'date'     :
+          field.type === 'textarea' ? 'textarea' :
+          field.type === 'number'   ? 'number'   : 'text';
+
+        const required = !!field.required;
+
+        // rules 支持三种写法：
+        //   Array<Function>  → 直接使用（Vuetify 标准格式）
+        //   String           → 按路径从 scope 解析，如 "validationRules.requireRules"
+        //   省略 + required  → 自动生成非空校验
+        const rules = Array.isArray(field.rules) && field.rules.length
+          ? field.rules
+          : typeof field.rules === 'string' && field.rules
+            ? this._resolveByPath(field.rules) || []
+            : required
+              ? [v => (v !== null && v !== undefined && v !== '') || `${field.label || field.key || '此字段'} 不能为空`]
+              : [];
+
+        // options 支持三种写法：
+        //   Array          → 直接使用
+        //   String 路径    → _resolveByPath 解析（支持 $root. 前缀）
+        //   attrs.items    → 向下兼容旧格式
+        const options = Array.isArray(field.options)
+          ? field.options
+          : typeof field.options === 'string' && field.options
+            ? this._resolveByPath(field.options) || []
+            : (field.attrs && field.attrs.items) || [];
+
+        const disabled = (field.disabled || !!(field.attrs && field.attrs.disabled))
+          || this.evaluateWhen(field.disabledWhen, false);
+        const readonly = (field.readonly || !!(field.attrs && field.attrs.readonly))
+          || this.evaluateWhen(field.readonlyWhen, false);
+        const visible = this.evaluateWhen(field.visibleWhen, true);
+
+        // extraAttrs：透传给底层 Vuetify 组件（v-bind，放在显式绑定前，低优先级）
+        //   attrs      → 键值型 Vuetify prop，如 { "item-text": "netName" }
+        //   quickAttrs → 布尔型，支持数组 ["clearable"] 或空格字符串 "clearable small-chips"
+        const extraAttrs = Object.assign({}, field.attrs || {});
+        const qa = field.quickAttrs;
+        if (Array.isArray(qa)) {
+          qa.forEach(a => { if (a) extraAttrs[String(a).trim()] = true; });
+        } else if (typeof qa === 'string' && qa.trim()) {
+          qa.trim().split(/\s+/).forEach(a => { extraAttrs[a] = true; });
+        }
+
+        const placeholder = field.placeholder || (this.isInlineLayout
+          ? this.resolveInlinePlaceholder(field, type, disabled, readonly)
+          : '');
+
+        return {
+          key:         field.key,
+          label:       field.label || '',
+          type,
+          required,
+          rules,
+          options,
+          disabled,
+          readonly,
+          visible,
+          placeholder,
+          hint:        field.hint        || '',
+          // span → spanClass：数字/字符串/对象均转为 CSS 类名，inline style 无法响应式
+          spanClass:   resolveSpanClass(field.span),
+          cls:         field.cls         || '',
+          component:   field.component   || '',
+          extraAttrs,
+        };
+      });
+    },
+  },
+  watch: {
+    initialData(newVal) {
+      this.formData = Object.assign({}, newVal);
+    },
+  },
+  methods: {
+    fieldInputLabel(field) {
+      if (this.isInlineLayout || this.labelMode === 'above') return '';
+      return field.label || '';
+    },
+    fieldInputClass(field, fullWidth) {
+      const cls = [ 'jh-v-input' ];
+      if (this.isInlineLayout) cls.push('mt-0', 'pt-0');
+      if (fullWidth || (this.isInlineLayout && this.inlineControlFullWidth(field))) cls.push('w-full');
+      return cls.join(' ');
+    },
+    inlineControlFullWidth(field) {
+      return field && [ 'textarea', 'date' ].includes(field.type);
+    },
+    inlineFieldHasBorder(fieldIdx) {
+      if (!this.isInlineLayout) return false;
+      const f = this.normalizedFields[fieldIdx];
+      if (!f || f.structural || f.visible === false) return false;
+      for (let i = fieldIdx - 1; i >= 0; i--) {
+        const prev = this.normalizedFields[i];
+        if (prev.structural) return false;
+        if (prev.visible === false) continue;
+        return true;
+      }
+      // 第一项也需底部分隔线（否则第一、二行之间无线）
+      return true;
+    },
+    textareaBindAttrs(field) {
+      const raw = Object.assign({}, (field && field.extraAttrs) || {});
+      delete raw.rows;
+      delete raw.autoGrow;
+      delete raw['auto-grow'];
+      return raw;
+    },
+    textareaRows(field) {
+      const n = field && field.extraAttrs && field.extraAttrs.rows;
+      if (n != null && n !== '') return Number(n) || n;
+      return 3;
+    },
+    textareaAutoGrow(field) {
+      const raw = field && field.extraAttrs;
+      if (raw && Object.prototype.hasOwnProperty.call(raw, 'autoGrow')) return !!raw.autoGrow;
+      if (raw && Object.prototype.hasOwnProperty.call(raw, 'auto-grow')) return !!raw['auto-grow'];
+      return true;
+    },
+    _resolveByPath(path) {
+      if (!path || typeof path !== 'string') return undefined;
+      const raw = path.startsWith('$root.') ? path.slice(6) : path;
+      const root = (this.scope && typeof this.scope === 'object') ? this.scope : (this.$parent || {});
+      return raw.split('.').reduce((o, k) => (o != null ? o[k] : undefined), root);
+    },
+    _resolveInteractionRef(name) {
+      if (!name) return undefined;
+      if (this.formData && Object.prototype.hasOwnProperty.call(this.formData, name)) {
+        return this.formData[name];
+      }
+      if (this.scope && Object.prototype.hasOwnProperty.call(this.scope, name)) {
+        return this.scope[name];
+      }
+      const parent = this.$parent;
+      if (parent && Object.prototype.hasOwnProperty.call(parent, name)) {
+        const val = parent[name];
+        return typeof val === 'function' ? val.call(parent) : val;
+      }
+      return undefined;
+    },
+    _interactionContext() {
+      const ctx = Object.assign({}, this.formData || {});
+      if (this.scope && typeof this.scope === 'object') {
+        Object.assign(ctx, this.scope);
+      }
+      return ctx;
+    },
+    _evalInteractionExpr(expr) {
+      if (!expr || typeof expr !== 'string') return false;
+      const ctx = this._interactionContext();
+      try {
+        const keys = Object.keys(ctx);
+        const vals = keys.map(k => ctx[k]);
+        // eslint-disable-next-line no-new-func
+        return !!new Function(...keys, 'return (' + expr + ');').apply(null, vals);
+      } catch (e) {
+        return false;
+      }
+    },
+    _evalFieldOp(cond) {
+      if (!cond || cond.field == null) return false;
+      const actual = this.formData[cond.field];
+      const value = cond.value;
+      switch (cond.op) {
+        case 'eq': return actual == value;
+        case 'ne': return actual != value;
+        case 'in': return Array.isArray(value) && value.includes(actual);
+        default: return actual == value;
+      }
+    },
+    evaluateWhen(cond, defaultVal) {
+      if (cond === undefined || cond === null) return defaultVal;
+      if (typeof cond === 'boolean') return cond;
+      if (cond && typeof cond === 'object' && cond.__expr__ != null) {
+        return this._evalInteractionExpr(String(cond.__expr__));
+      }
+      if (typeof cond === 'string') {
+        const trimmed = cond.trim();
+        if (!trimmed) return defaultVal;
+        const fromRef = this._resolveInteractionRef(trimmed);
+        if (fromRef !== undefined) return !!fromRef;
+        if (/[=<>!]|&&|\|\||\./.test(trimmed)) {
+          return this._evalInteractionExpr(trimmed);
+        }
+        return false;
+      }
+      if (typeof cond === 'object') {
+        if (Array.isArray(cond.and)) return cond.and.every(c => this.evaluateWhen(c, true));
+        if (Array.isArray(cond.or)) return cond.or.some(c => this.evaluateWhen(c, false));
+        if (cond.field != null) return this._evalFieldOp(cond);
+      }
+      return defaultVal;
+    },
+    resolveInlinePlaceholder(field, type, disabled, readonly) {
+      if (!field || !field.label || disabled || readonly) return '';
+      const plain = String(field.label).replace(/（.*）|\(.*\)|{{.*}}/g, '').replace(/<.*?>/g, '').trim();
+      if (!plain) return '';
+      const prefix = type === 'select' ? '请选择' : '请输入';
+      return prefix + plain;
+    },
+    handleChange(key, value) {
+      this.$emit('field-change', { key, value });
+    },
+    validate() {
+      return this.$refs.innerForm.validate();
+    },
+    resetValidation() {
+      return this.$refs.innerForm.resetValidation();
+    },
+  },
+});
+</script>

@@ -1,0 +1,75 @@
+<=#
+  v6 shared macros
+  - renderAttrs / renderProps / renderBindings：统一 props/attrs 输出与表达式处理
+  - renderTreeItem：递归渲染组件树（支持 children / 原始 HTML 字符串）
+#=>
+
+<=%- macro renderProps(resolvedProps, indent = '') %=><=%- for propKey, propVal in resolvedProps %=>
+  <=$ indent $=>:<=$ propKey $=>="<=$ propVal | vueBindAttrValue(0) $=>"<=%- endfor %=>
+<=%- endmacro %=>
+
+<=%- macro renderBindings(resolvedBindings, indent = '') %=><=%- for attr, varName in resolvedBindings %=>
+  <=$ indent $=><=$ attr $=>="<=$ varName $=>"<=%- endfor %=>
+<=%- endmacro %=>
+
+<#-
+  renderAttrs：JSON node.attrs 解析结果。
+  · 普通键（class、style、id、data-*）→ HTML 转义
+  · : / @ / v- 开头：值为 object/array → vueBindAttrValue（单行字面量，不用 &quot）；否则为表达式字符串 → vueAttrExpr
+  · v-else: true → 仅输出 v-else（无 =）
+#->
+<=%- macro renderAttrs(resolvedAttrs, indent = '') %=>
+<=%- if resolvedAttrs %=>
+<=%- for attrKey, attrVal in resolvedAttrs %=>
+<=%- if attrKey == 'v-else' and attrVal is sameas(true) %=>
+  <=$ indent $=>v-else
+<=%- elif attrKey | isVueDynamicAttrKey %=>
+<=%- if attrVal | shouldUseVueBindAttrValue %=>
+  <=$ indent $=><=$ attrKey $=>="<=$ attrVal | vueBindAttrValue(0) $=>"
+<=%- else %=>
+  <=$ indent $=><=$ attrKey $=>="<=$ attrVal | vueAttrExpr $=>"
+<=%- endif %=>
+<=%- else %=>
+  <=$ indent $=><=$ attrKey $=>="<=$ attrVal | e $=>"
+<=%- endif %=>
+<=%- endfor %=>
+<=%- endif %=>
+<=%- endmacro %=>
+
+<=%- macro renderLeaf(node, indent = '') %=>
+<=$ indent $=><<=$ node.resolvedComponent $=>
+  <=$- renderAttrs(node.resolvedAttrs, indent) $=>
+  <=$- renderProps(node.resolvedProps, indent) $=>
+  <=$- renderBindings(node.resolvedBindings, indent) $=>
+  <=%- if node.key %=> ref="<=$ node.key $=>Ref"<=%- endif %=>
+<=$ indent $=>/>
+<=%- endmacro %=>
+
+<#
+  renderTreeItem：递归渲染 pageContent/actionContent 子树（任意层嵌套）。
+  节点可为：
+    - 字符串（原始 HTML）→ 原样输出
+    - 有 resolvedComponent 且无 children → renderLeaf（自闭合）
+    - 有 resolvedComponent 且有 children → 开闭标签，子项递归 renderTreeItem
+#>
+<=%- macro renderTreeItem(node, indent = 0) %=>
+<=%- if node and node.resolvedComponent %=>
+<=%- if node.children and node.children.length %=>
+<=$ indent $=><<=$ node.resolvedComponent $=>
+  <=$- renderAttrs(node.resolvedAttrs, indent) $=>
+  <=$- renderProps(node.resolvedProps, indent) $=>
+  <=$- renderBindings(node.resolvedBindings, indent) $=>
+  <=%- if node.key %=> ref="<=$ node.key $=>Ref"<=%- endif %=>
+<=$ indent $=>>
+  <=%- for c in node.children %=>
+  <=$ renderTreeItem(c, indent + '  ') $=>
+  <=%- endfor %=>
+<=$ indent $=></<=$ node.resolvedComponent $=>>
+<=%- else %=>
+  <=$ renderLeaf(node, indent) $=>
+<=%- endif %=>
+<=%- elif node %=>
+<=$ node $=>
+<=%- endif %=>
+<=%- endmacro %=>
+

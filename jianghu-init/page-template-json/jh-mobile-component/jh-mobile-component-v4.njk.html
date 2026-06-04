@@ -678,6 +678,11 @@ Vue.component("<=$ componentPath.split('/').pop() | camelToKebab $=>", {
   template: '#<=$ componentPath.split('/').pop() | camelToKebab $=>',
   vuetify: new Vuetify(),
   name: '<=$ componentPath.split('/').pop() | camelToKebab $=>',
+  //===// <=%- if common.provideString %=> 
+  //===// <=$ common.provideString $=>,
+  //===// <=%- elif common.provide %=> 
+  //===// <=$ common.provide | variableToVar('provide') | safe $=>,
+  //===// <=%- endif %=>
   //===// <=%- if common.model | isObject %=> 
   //===// <=$ common.model | variableToVar('model') $=>,
   //===// <=%- endif %=>

@@ -1,0 +1,172 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  v6 布局 Primitive 组件
+  jh-vstack / jh-hstack / jh-box / jh-grid
+  
+  设计原则：
+  - 只负责 CSS 布局，不含任何业务逻辑
+  - props 与 classV6.js pageContent 中的 props 字段一一对应
+  - children 通过默认 slot 传入
+  - v6 JSON node.attrs（class、:class、v-if 等）由生成器写在标签上，经 inheritAttrs: false + v-bind="$attrs" 落到根节点
+
+  PC / 移动端适配（与 Tailwind）：
+  - 排版用 class：写在节点 attrs（class / :class），经 v-bind="$attrs" 落在根节点。
+  - jh-box：Tailwind 响应式类写在 attrs.class（如 grid grid-cols-1 md:grid-cols-2 gap-4）。
+  - jh-vstack / jh-hstack：默认用内联 flex，会覆盖同元素上 Tailwind 的 flex-direction；
+    需要「小屏竖排、大屏横排」等时，设 flexFromCls: true，仅用 attrs 上的 flex / gap（内联只保留 gap、padding）。
+  - jh-grid：仍可用 cols / colsMd / colsSm；有 Vuetify 时按断点自动重算（无需 resize 才更新）。
+───────────────────────────────────────────────────────────────────── -->
+
+<!-- ── jh-vstack ── -->
+<script type="text/html" id="jh-vstack-template">
+  <div v-bind="$attrs" v-on="$listeners" :style="stackStyle">
+    <slot />
+  </div>
+</script>
+<script>
+Vue.component('jh-vstack', {
+  inheritAttrs: false,
+  template: '#jh-vstack-template',
+  props: {
+    gap:     { type: [Number, String], default: 0 },
+    align:   { type: String, default: 'stretch' },
+    justify: { type: String, default: 'start' },
+    padding: { type: String, default: '' },
+    /** 为 true 时不写 display/flexDirection/对齐到内联样式，仅用 attrs 上的 flex 类控制布局（便于 Tailwind 响应式） */
+    flexFromCls: { type: Boolean, default: false },
+  },
+  computed: {
+    stackStyle() {
+      const gap = typeof this.gap === 'number' ? `${this.gap}px` : this.gap;
+      const padding = this.padding || undefined;
+      if (this.flexFromCls) {
+        return { gap, padding };
+      }
+      return {
+        display:        'flex',
+        flexDirection:  'column',
+        gap,
+        alignItems:     this.align === 'start' ? 'flex-start'
+                      : this.align === 'end'   ? 'flex-end'
+                      : this.align,
+        justifyContent: this.justify === 'start'   ? 'flex-start'
+                      : this.justify === 'end'     ? 'flex-end'
+                      : this.justify === 'between' ? 'space-between'
+                      : this.justify,
+        padding,
+      };
+    },
+  },
+});
+</script>
+
+<!-- ── jh-hstack ── -->
+<script type="text/html" id="jh-hstack-template">
+  <div v-bind="$attrs" v-on="$listeners" :style="stackStyle">
+    <slot />
+  </div>
+</script>
+<script>
+Vue.component('jh-hstack', {
+  inheritAttrs: false,
+  template: '#jh-hstack-template',
+  props: {
+    gap:     { type: [Number, String], default: 0 },
+    align:   { type: String, default: 'center' },
+    justify: { type: String, default: 'start' },
+    wrap:    { type: Boolean, default: false },
+    padding: { type: String, default: '' },
+    flexFromCls: { type: Boolean, default: false },
+  },
+  computed: {
+    stackStyle() {
+      const gap = typeof this.gap === 'number' ? `${this.gap}px` : this.gap;
+      const padding = this.padding || undefined;
+      if (this.flexFromCls) {
+        return { gap, padding };
+      }
+      return {
+        display:        'flex',
+        flexDirection:  'row',
+        flexWrap:       this.wrap ? 'wrap' : 'nowrap',
+        gap,
+        alignItems:     this.align === 'start' ? 'flex-start'
+                      : this.align === 'end'   ? 'flex-end'
+                      : this.align,
+        justifyContent: this.justify === 'start'   ? 'flex-start'
+                      : this.justify === 'end'     ? 'flex-end'
+                      : this.justify === 'between' ? 'space-between'
+                      : this.justify,
+        padding,
+      };
+    },
+  },
+});
+</script>
+
+<!-- ── jh-box ── -->
+<script type="text/html" id="jh-box-template">
+  <div v-bind="$attrs" v-on="$listeners" :style="boxStyle">
+    <slot />
+  </div>
+</script>
+<script>
+Vue.component('jh-box', {
+  inheritAttrs: false,
+  template: '#jh-box-template',
+  props: {
+    padding: { type: String, default: '' },
+    margin:  { type: String, default: '' },
+    width:   { type: String, default: '100%' },
+    extraStyle: { type: Object, default: () => ({}) },
+  },
+  computed: {
+    boxStyle() {
+      return {
+        padding: this.padding || undefined,
+        margin:  this.margin  || undefined,
+        width:   this.width   || undefined,
+        ...this.extraStyle,
+      };
+    },
+  },
+});
+</script>
+
+<!-- ── jh-grid ── -->
+<script type="text/html" id="jh-grid-template">
+  <div v-bind="$attrs" v-on="$listeners" :style="gridStyle">
+    <slot />
+  </div>
+</script>
+<script>
+Vue.component('jh-grid', {
+  inheritAttrs: false,
+  template: '#jh-grid-template',
+  props: {
+    cols:    { type: [Number, String], default: 1 },
+    gap:     { type: [Number, String], default: 0 },
+    colsMd:  { type: [Number, String], default: null },
+    colsSm:  { type: [Number, String], default: null },
+  },
+  computed: {
+    resolvedGridCols() {
+      let cols = this.cols;
+      const bp = this.$vuetify && this.$vuetify.breakpoint;
+      const w = bp && typeof bp.width === 'number' ? bp.width
+        : (typeof window !== 'undefined' ? window.innerWidth : 960);
+      // 与原先 window 断点一致：<600 用 colsSm，<960 用 colsMd，否则 cols
+      if (this.colsSm != null && w < 600) cols = this.colsSm;
+      else if (this.colsMd != null && w < 960) cols = this.colsMd;
+      return cols;
+    },
+    gridStyle() {
+      const cols = this.resolvedGridCols;
+      return {
+        display:             'grid',
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gap:                 typeof this.gap === 'number' ? `${this.gap}px` : this.gap,
+      };
+    },
+  },
+});
+</script>

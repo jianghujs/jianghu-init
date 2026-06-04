@@ -184,6 +184,45 @@ module.exports = class CommandBase {
     throw new Error(`未获取到多应用项目【${systemDir}】，请检查项目目录结构`);
   }
 
+  /**
+   * 从 EggJS config.default.js 中读取 jhId
+   * EggJS 配置文件导出格式为 (appInfo) => ({...})，需要用 mock appInfo 调用
+   * 优先读 config.default.js，不存在时降级读 config.local.js
+   * 只有 jhIdConfig.enable === true 且 jhId 有值时才返回
+   */
+  readJhIdFromEggConfig() {
+    const candidates = [
+      path.resolve(process.cwd(), 'config/config.default.js'),
+      path.resolve(process.cwd(), 'config/config.local.js'),
+    ];
+    for (const configPath of candidates) {
+      if (!fs.existsSync(configPath)) continue;
+      try {
+        // 清除 require 缓存，确保每次都读最新的
+        delete require.cache[require.resolve(configPath)];
+        let exported = require(configPath);
+        // EggJS config 是工厂函数: (appInfo) => ({...})
+        if (typeof exported === 'function') {
+          const mockAppInfo = {
+            name: '',
+            baseDir: process.cwd(),
+            HOME: process.env.HOME || '',
+            pkg: {},
+            root: process.cwd(),
+          };
+          exported = exported(mockAppInfo);
+        }
+        const jhIdConfig = _.get(exported, 'jianghuConfig.jhIdConfig');
+        if (jhIdConfig && jhIdConfig.enable && jhIdConfig.jhId) {
+          return jhIdConfig.jhId;
+        }
+      } catch (e) {
+        // 读取失败时静默跳过，不影响主流程
+      }
+    }
+    return null;
+  }
+
   // 获取.jianghu/init-config.json
   getInitConfig() {
     // 判断是否存在

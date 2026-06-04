@@ -672,6 +672,10 @@
     .v-application--is-ltr .v-btn-toggle>.v-btn.v-btn:not(:first-child), .v-application--is-rtl .v-btn-toggle>.v-btn.v-btn:not(:last-child) {
         border-left-width: thin;
     }
+
+    .v-dialog:not(.v-dialog--fullscreen) {
+      max-height: calc(100vh - 52px);
+    }
     
  
 </style>

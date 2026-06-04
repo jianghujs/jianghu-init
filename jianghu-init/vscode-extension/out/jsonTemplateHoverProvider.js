@@ -25,6 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activateJsonTemplateHover = exports.JsonTemplateHoverProvider = void 0;
 const vscode = __importStar(require("vscode"));
+const configVersionDetect_1 = require("./configVersionDetect");
 /**
  * JSON模板文件的预设key说明
  */
@@ -37,7 +38,7 @@ const JSON_TEMPLATE_KEY_DOCS = {
     'pageData': '页面的数据配置',
     // 资源项属性
     'actionId': '资源操作的唯一标识符',
-    'resourceType': '资源的类型，如sql、service等',
+    'resourceType': '资源的类型，仅支持 sql、service',
     'resourceHook': '资源的前置和后置钩子',
     'desc': '资源的描述信息',
     'resourceData': '资源的具体数据配置',
@@ -81,6 +82,10 @@ class JsonTemplateHoverProvider {
             'page-template-json',
             'init-json'
         ];
+        // v6 / v7 只使用各自的路径感知 hover，不走 v4 json 模板提示
+        if ((0, configVersionDetect_1.isModernConfigText)(document.getText())) {
+            return null;
+        }
         if (!isFileInTargetDirs(document.fileName, targetDirs)) {
             return null;
         }

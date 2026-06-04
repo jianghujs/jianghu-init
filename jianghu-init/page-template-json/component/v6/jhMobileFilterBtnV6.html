@@ -1,0 +1,64 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  jh-mobile-filter-btn
+
+  移动端中继触发按钮（parse_schema：MobileOrder / MobileFilter / MobileAction / MobileSearch 共用）：
+  · showActive 且（activeDisplay 有值 或 #active-display 插槽）→ 双行摘要块；否则 → 圆角 v-btn。
+  · 富文本第二行：children 内 <template v-slot:active-display>…</template>（与 Table 插槽写法一致）。
+  · 点击 $emit('click')，例如：@click="isMobileOrderDrawerShown = true"
+───────────────────────────────────────────────────────────────────── -->
+
+<script type="text/html" id="jh-mobile-filter-btn-v6-template">
+  <span class="jh-mobile-filter-btn inline-flex items-center">
+    <div
+      v-if="showSummaryBlock"
+      class="inline-flex flex-col bg-white h-8 leading-8 text-gray-400"
+      role="button"
+      tabindex="0"
+      @click="handleClick"
+      @keydown.enter.prevent="handleClick"
+      @keydown.space.prevent="handleClick"
+    >
+      <div class="text-xs">{{ label }}</div>
+      <div class="font-bold text-black text-sm">
+        <slot name="active-display">{{ activeDisplay }}</slot>
+      </div>
+    </div>
+    <v-btn v-else small :class="btnClass" @click="handleClick">
+      <jh-icon v-if="icon" size="16" class="-ml-0.5 mr-1" :name="icon"></jh-icon>
+      {{ label }}
+    </v-btn>
+  </span>
+</script>
+
+<script>
+Vue.component('jh-mobile-filter-btn', {
+  template: '#jh-mobile-filter-btn-v6-template',
+  inheritAttrs: false,
+  props: {
+    label: { type: String, default: '' },
+    btnClass: { type: String, default: '!rounded-xl px-2 border border-solid border-gray-300' },
+    showActive: { type: Boolean, default: false },
+    /** 与配置里 active / activeDisplayBind 绑定；有 #active-display 插槽时可省略 */
+    activeDisplay: { default: undefined },
+    icon: { type: String, default: '' },
+  },
+  computed: {
+    hasActiveDisplaySlot() {
+      const slot = this.$slots['active-display'];
+      return !!(slot && slot.length);
+    },
+    hasActiveDisplayProp() {
+      const v = this.activeDisplay;
+      return v != null && v !== '';
+    },
+    showSummaryBlock() {
+      return this.showActive && (this.hasActiveDisplaySlot || this.hasActiveDisplayProp);
+    },
+  },
+  methods: {
+    handleClick(e) {
+      this.$emit('click', e);
+    },
+  },
+});
+</script>

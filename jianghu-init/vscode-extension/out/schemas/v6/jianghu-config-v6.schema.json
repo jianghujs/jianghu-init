@@ -1,0 +1,148 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://jianghu.example.com/schemas/v6/jianghu-config-v6.schema.json",
+    "title": "Jianghu V6 Config Schema",
+    "description": "version: v6；page + dataSource；pageContent / actionContent 为 component 树（定义见 components/v6-page-tree.schema.json）",
+    "type": "object",
+    "required": ["version", "page", "pageContent", "dataSource"],
+    "additionalProperties": false,
+    "properties": {
+        "version": {
+            "type": "string",
+            "const": "v6",
+            "description": "固定为 v6"
+        },
+        "pageType": {
+            "type": "string",
+            "enum": ["jh-page", "jh-mobile-page", "jh-component"],
+            "description": "页面类型"
+        },
+        "template": {
+            "type": "string",
+            "description": "NJK 模板名，省略时工具链默认 jhTemplateV4"
+        },
+        "page": {
+            "type": "object",
+            "description": "页面元信息（替代顶层 pageId / pageName）",
+            "required": ["id", "name"],
+            "additionalProperties": false,
+            "properties": {
+                "id": { "type": "string", "minLength": 1, "description": "pageId / 路由" },
+                "name": { "type": "string", "minLength": 1, "description": "显示名称" },
+                "componentPath": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "仅 jh-component 使用：组件文件路径（输出到 app/view/component/<componentPath>.html）；组件名默认取最后一段"
+                },
+                "hook": {
+                    "oneOf": [
+                        { "type": "string", "minLength": 1, "description": "钩子点（字符串）" },
+                        {
+                            "type": "object",
+                            "description": "钩子点（对象）",
+                            "additionalProperties": true
+                        }
+                    ]
+                },
+                "menu": { "type": "boolean", "description": "是否显示在菜单" },
+                "vuetify": { "type": "object", "description": "Vuetify 配置" },
+                "template": { "type": "string", "minLength": 1, "description": "NJK 模板名，省略时工具链默认 jhTemplateV4" }
+            }
+        },
+        "pageContent": {
+            "$ref": "../components/v6-page-tree.schema.json#/definitions/pageContentArray"
+        },
+        "actionContent": {
+            "$ref": "../components/v6-page-tree.schema.json#/definitions/actionContentArray"
+        },
+        "dataSource": {
+            "type": "object",
+            "description": "数据源配置：指定操作的数据库表及各 CRUD 对应的 actionId。\n\n最简写法：{ \"table\": \"myTable\" }\n所有 actionId 均有默认值，无需手动指定。",
+            "additionalProperties": false,
+            "properties": {
+                "table": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "数据库表名（必填）。\n示例：\"projectInfo\""
+                },
+                "model": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "向下兼容别名，等同于 table；新代码建议统一使用 table。\n示例：\"projectInfo\""
+                },
+                "primaryKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "default": "id",
+                    "description": "主键字段名，影响 updateItem / deleteItem 的 where 条件。\n默认：\"id\""
+                },
+                "listResource": {
+                    "type": "string",
+                    "default": "selectItemList",
+                    "description": "列表查询对应的 resourceList.actionId。\n默认：\"selectItemList\""
+                },
+                "createResource": {
+                    "type": "string",
+                    "default": "insertItem",
+                    "description": "新增对应的 resourceList.actionId。\n默认：\"insertItem\""
+                },
+                "updateResource": {
+                    "type": "string",
+                    "default": "updateItem",
+                    "description": "编辑对应的 resourceList.actionId。\n默认：\"updateItem\""
+                },
+                "deleteResource": {
+                    "type": "string",
+                    "default": "deleteItem",
+                    "description": "删除对应的 resourceList.actionId。\n默认：\"deleteItem\""
+                },
+                "resource": {
+                    "type": "object",
+                    "description": "嵌套写法：resource.list → listResource（经 flattenDataSource）",
+                    "additionalProperties": false,
+                    "properties": {
+                        "list": { "type": "string" },
+                        "create": { "type": "string" },
+                        "update": { "type": "string" },
+                        "delete": { "type": "string" },
+                        "get": { "type": "string" }
+                    }
+                },
+                "actions": {
+                    "type": "object",
+                    "description": "嵌套写法：actions.list → listResource",
+                    "additionalProperties": false,
+                    "properties": {
+                        "list": { "type": "string" },
+                        "create": { "type": "string" },
+                        "update": { "type": "string" },
+                        "delete": { "type": "string" }
+                    }
+                }
+            }
+        },
+        "resourceList": {
+            "$ref": "../components/resource-list.schema.json#/definitions/resourceListArray"
+        },
+        "common": {
+            "type": "object",
+            "description": "扩展 data / 生命周期 / methods / doUiAction",
+            "additionalProperties": false,
+            "properties": {
+                "props": {},
+                "data": { "type": "object" },
+                "dataExpression": { "type": "object" },
+                "watch": { "type": "object" },
+                "computed": { "type": "object" },
+                "created": {},
+                "mounted": {},
+                "doUiAction": { "type": "object" },
+                "methods": { "type": "object" }
+            }
+        },
+        "includeList": {
+            "$ref": "../components/include-list.schema.json#/definitions/includeListArray"
+        },
+        "style": {}
+    }
+}

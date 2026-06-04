@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://jianghu.example.com/schemas/components/resource-list.schema.json",
     "title": "Resource List Schema",
-    "description": "资源列表定义",
+    "description": "资源列表定义；resourceData 结构仅按 resourceType（sql | service）走对应 if/then 分支校验",
     "definitions": {
         "resourceList": {
             "type": "object",
@@ -18,32 +18,7 @@
                 },
                 "resourceData": {
                     "type": "object",
-                    "oneOf": [
-                        {
-                            "type": "object",
-                            "properties": {
-                                "table": { "type": "string", "minLength": 1 },
-                                "operation": {
-                                    "enum": ["select", "jhInsert", "jhUpdate", "jhDelete", "insert", "update", "delete"]
-                                }
-                            },
-                            "required": ["table", "operation"],
-                            "additionalProperties": false,
-                            "if": { "properties": { "resourceType": { "const": "sql" } } },
-                            "then": { "properties": { "resourceType": { "const": "sql" } } }
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "service": { "type": "string", "minLength": 1 },
-                                "serviceFunction": { "type": "string", "minLength": 1 }
-                            },
-                            "required": ["service", "serviceFunction"],
-                            "additionalProperties": false,
-                            "if": { "properties": { "resourceType": { "const": "service" } } },
-                            "then": { "properties": { "resourceType": { "const": "service" } } }
-                        }
-                    ]
+                    "description": "sql / service 下的字段组合见 allOf 内按 resourceType 分支"
                 },
                 "resourceHook": {
                     "type": "object",
@@ -78,33 +53,52 @@
             },
             "required": ["actionId", "resourceType", "resourceData"],
             "additionalProperties": false,
-            "if": {
-                "properties": {
-                    "resourceType": { "const": "sql" }
-                }
-            },
-            "then": {
-                "properties": {
-                    "resourceData": {
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "resourceType": { "const": "sql" } },
+                        "required": ["resourceType"]
+                    },
+                    "then": {
                         "properties": {
-                            "table": { "type": "string" },
-                            "operation": { "type": "string" }
+                            "resourceData": {
+                                "type": "object",
+                                "properties": {
+                                    "table": { "type": "string", "minLength": 1 },
+                                    "operation": {
+                                        "enum": ["select", "jhInsert", "jhUpdate", "jhDelete", "insert", "update", "delete"]
+                                    },
+                                    "fieldList": {
+                                        "type": "array",
+                                        "items": { "type": "string" }
+                                    }
+                                },
+                                "required": ["table", "operation"],
+                                "additionalProperties": false
+                            }
+                        }
+                    },
+                    "else": {
+                        "if": {
+                            "properties": { "resourceType": { "const": "service" } },
+                            "required": ["resourceType"]
                         },
-                        "required": ["table", "operation"]
+                        "then": {
+                            "properties": {
+                                "resourceData": {
+                                    "type": "object",
+                                    "properties": {
+                                        "service": { "type": "string", "minLength": 1 },
+                                        "serviceFunction": { "type": "string", "minLength": 1 }
+                                    },
+                                    "required": ["service", "serviceFunction"],
+                                    "additionalProperties": false
+                                }
+                            }
+                        }
                     }
                 }
-            },
-            "else": {
-                "properties": {
-                    "resourceData": {
-                        "properties": {
-                            "service": { "type": "string" },
-                            "serviceFunction": { "type": "string" }
-                        },
-                        "required": ["service", "serviceFunction"]
-                    }
-                }
-            }
+            ]
         },
         "resourceListArray": {
             "type": "array",

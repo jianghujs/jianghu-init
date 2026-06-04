@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-
+import { isModernConfigText } from './configVersionDetect';
 /**
  * JSON模板文件的预设key说明
  */
@@ -13,7 +13,7 @@ const JSON_TEMPLATE_KEY_DOCS: Record<string, string> = {
   
   // 资源项属性
   'actionId': '资源操作的唯一标识符',
-  'resourceType': '资源的类型，如sql、service等',
+  'resourceType': '资源的类型，仅支持 sql、service',
   'resourceHook': '资源的前置和后置钩子',
   'desc': '资源的描述信息',
   'resourceData': '资源的具体数据配置',
@@ -67,6 +67,10 @@ export class JsonTemplateHoverProvider implements vscode.HoverProvider {
       'init-json'
     ];
     
+    // v6 / v7 只使用各自的路径感知 hover，不走 v4 json 模板提示
+    if (isModernConfigText(document.getText())) {
+      return null;
+    }
     if (!isFileInTargetDirs(document.fileName, targetDirs)) {
       return null;
     }
@@ -76,6 +80,7 @@ export class JsonTemplateHoverProvider implements vscode.HoverProvider {
     if (!range) {
       return null;
     }
+
     
     const word = document.getText(range);
     console.log('word', word);

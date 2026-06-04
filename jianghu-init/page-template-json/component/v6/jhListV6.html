@@ -1,0 +1,426 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  jh-list  v6 列表组件（移动端/卡片式展示）
+
+  设计目标：尽量与 jh-table 配置口径一致，方便 schema 复用：
+    - 配置层：rowActionList / headActionList（由生成器转换为组件 props）
+    - 组件层：headers / rowActionList / toolbarActionList / filterList / serverPagination / pageSize / selectable / primaryKey
+    - 响应式绑定：items / loading / options(.sync) / tableSelected(.sync)
+    - 事件：@action(actionId, item?)
+
+  列表 UI / 底部分页对齐 jh-mobile-page-v4.njk.html 内联 jh-list 行为。
+  options 兼容 tableOptions：page / totalCount / limit(V4) / itemsPerPage(V7 页面模板)。
+
+  rowActions 交互：点击 item 块 → 弹出中继 ActionSheet → Sheet 内显示 rowActionList 操作列表
+
+  slots（可选）：
+    - toolbar-prepend / toolbar-append：同 jh-table
+    - cell-{value}：自定义某个字段的展示，scope: { item, header }
+    - action：行操作指示区（默认 chevron 或 rightArrow 文案），scope: { item }；可完全自定义
+───────────────────────────────────────────────────────────────────── -->
+
+<script type="text/html" id="jh-list-v6-template">
+  <div v-bind="$attrs" v-on="$listeners" class="jh-list-v6-root">
+    <!-- 工具栏（复用 jh-table 约定） -->
+    <div v-if="hasToolbar" class="jh-list-v6-toolbar d-flex align-center p-3 flex-shrink-0" style="gap:8px; flex-wrap:wrap">
+      <slot name="toolbar-prepend"></slot>
+      <template v-for="(action, idx) in toolbarActionList">
+        <v-spacer v-if="action.type === 'spacer'" :key="'spacer-' + idx"></v-spacer>
+        <jh-table-filter
+          v-else-if="action.type === 'filter' && hasJhTableFilter"
+          :key="'filter-' + idx"
+          :fields="action.fields || filterList"
+        ></jh-table-filter>
+        <slot
+          v-else-if="action.type === 'slot'"
+          :key="'slot-' + idx"
+          :name="action.slotName || ('toolbar-slot-' + idx)"
+          :action="action"
+        ></slot>
+        <v-btn
+          v-else
+          :key="action.id || action.intent || idx"
+          :color="action.color || 'success'"
+          small
+          @click="handleToolbarAction(action)"
+        >{{ action.label }}</v-btn>
+      </template>
+
+      <jh-table-filter
+        v-if="hasJhTableFilter && filterList && filterList.length && !hasExplicitFilter"
+        :fields="filterList"
+      ></jh-table-filter>
+
+      <slot name="toolbar-append"></slot>
+    </div>
+
+    <!-- 列表主体：有分页时 flex-1 + overflow-y-auto，高度由父级 flex 链自动计算 -->
+    <div
+      class="jh-list-v6-body d-flex flex-column pb-2"
+      :class="{ 'jh-list-v6-body--flex-scroll': showPaginationBar }"
+      :style="{ gap: gapStyle }"
+    >
+      <div
+        v-for="(item, idx) in filteredItems"
+        :key="itemKey(item, idx)"
+        class="flex flex-none p-3 relative bg-white"
+        :role="hasActions ? 'button' : undefined"
+        @click="hasActions && openActionSheet(item)"
+      >
+        <v-checkbox
+          v-if="selectable"
+          v-model="localTableSelected"
+          :value="item"
+          class="mt-0 pt-0 flex-shrink-0"
+          hide-details
+          @click.stop
+        ></v-checkbox>
+
+        <div class="flex-1" style="min-width:0">
+          <!-- 标题区（primaryHeaders，对齐 v4 isTitle 行） -->
+          <div
+            v-if="primaryHeaders.length"
+            class="flex items-start border-b pb-1.5 w-full"
+          >
+            <div class="flex-1 flex min-w-0 flex-col">
+              <div
+                v-for="h in primaryHeaders"
+                :key="'title-' + h.value"
+                class="flex min-w-0"
+              >
+                <div class="flex-1 flex min-w-0">
+                  <div class="text-base font-medium break-words break-all" :class="titleClampClass(h)">
+                    <slot :name="'cell-' + h.value" :item="item" :header="h">
+                      {{ item[h.value] }}
+                    </slot>
+                  </div>
+                  <slot v-if="h.slot" name="title-append" :item="item" :header="h"></slot>
+                </div>
+              </div>
+            </div>
+            <template v-if="showActionArea">
+              <slot name="action" :item="item">
+                <div
+                  v-if="showRightArrow"
+                  class="ml-2 shrink-0 inline-flex items-center font-medium success--text"
+                  style="border-bottom:1px dashed currentColor"
+                >
+                  <span class="text-xs">{{ rightArrowText }}</span>
+                </div>
+                <v-icon v-else-if="hasActions" size="16" class="grey--text flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
+              </slot>
+            </template>
+          </div>
+
+          <!-- 详情区（对齐 v4 grid + label 色） -->
+          <slot name="body" :item="item">
+            <div v-if="detailHeaders.length" class="text-xs pt-2" :style="gridStyle">
+              <div
+                v-for="h in detailHeaders"
+                :key="'field-' + h.value"
+                class="flex items-center gap-1 text-[0.8125rem]"
+                :class="h.cls || h.class"
+                :style="detailCellGridStyle(h)"
+              >
+                <div class="flex-shrink-0" style="color:#7E838F">{{ h.text }}：</div>
+                <div class="flex-grow-1 text-truncate">
+                  <slot :name="'cell-' + h.value" :item="item" :header="h">
+                    {{ item[h.value] }}
+                  </slot>
+                </div>
+              </div>
+            </div>
+          </slot>
+        </div>
+      </div>
+
+      <div v-if="!loading && filteredItems.length === 0" class="text-center text--secondary py-4">暂无更多</div>
+    </div>
+
+    <!-- 底部分页（文档流底部，与列表区同属 flex 列） -->
+    <div
+      v-if="showPaginationBar"
+      class="jh-list-v6-pagination flex-shrink-0 py-2 px-3 bg-white border-t w-full"
+    >
+      <div class="flex justify-space-between align-center">
+        <div class="text-caption grey--text text--darken-1">
+          <span v-if="showPageSizeHint">每页 {{ pageLimit }} 项，</span>{{ paginationRangeText }}
+        </div>
+        <div class="d-flex align-center">
+          <v-icon
+            v-if="canGoPrev"
+            @click="goPrevPage"
+          >mdi-chevron-left</v-icon>
+          <v-icon v-else color="#eaeaea">mdi-chevron-left</v-icon>
+
+          <span class="mx-1 text-caption">
+            <span class="success--text font-weight-medium">{{ currentPage }}</span>
+            / {{ totalPages }}
+          </span>
+
+          <v-icon
+            v-if="canGoNext"
+            @click="goNextPage"
+          >mdi-chevron-right</v-icon>
+          <v-icon v-else color="#eaeaea">mdi-chevron-right</v-icon>
+        </div>
+      </div>
+      <div class="jh-safe-bottom"></div>
+    </div>
+
+    <v-overlay v-if="loading" :value="loading" absolute opacity="0.1">
+      <v-progress-circular light indeterminate color="primary"></v-progress-circular>
+    </v-overlay>
+
+    <!-- 行操作中继 Sheet -->
+    <jh-sheet
+      v-if="hasActions"
+      :shown="isActionSheetShown"
+      :rounded="true"
+      :title="actionSheetTitle"
+      :action-list="resolvedSheetActions"
+      @update:shown="isActionSheetShown = $event"
+      @action="handleSheetAction"
+    ></jh-sheet>
+  </div>
+</script>
+
+<style>
+.jh-list-v6-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  position: relative;
+}
+.jh-list-v6-body--flex-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background-color: #F3F4F6;
+}
+</style>
+
+<script>
+Vue.component('jh-list', {
+  inheritAttrs: false,
+  template: '#jh-list-v6-template',
+  props: {
+    headers:          { type: Array,   default: () => [] },
+    rowActionList:    { type: Array,   default: () => [] },
+    toolbarActionList:{ type: Array,   default: () => [] },
+    filterList:       { type: Array,   default: () => [] },
+    serverPagination: { type: Boolean, default: false },
+    pageSize:         { type: Number,  default: 50 },
+    selectable:       { type: Boolean, default: false },
+    primaryKey:       { type: String,  default: 'id' },
+    items:            { type: Array,   default: () => [] },
+    loading:          { type: Boolean, default: false },
+    options:          { type: Object,  default: () => ({ page: 1, limit: 20, totalCount: 0 }) },
+    tableSelected:    { type: Array,   default: () => [] },
+    /** 详情区 grid 列数，默认 2；单项可用 header.span 跨列（2=占满一行） */
+    cols:             { type: [Number, String], default: 2 },
+    titleField:       { type: String,  default: '' },
+    gap:              { type: [Number, String], default: 8 },
+    actionSheetTitle: { type: String,  default: '操作' },
+    showPageSizeHint: { type: Boolean, default: true },
+    rightArrow:       { type: Boolean, default: false },
+    rightArrowText:   { type: String,  default: '详情' },
+  },
+  data() {
+    return {
+      isActionSheetShown: false,
+      activeItem: null,
+    };
+  },
+  computed: {
+    gapStyle() {
+      if (typeof this.gap === 'number') return `${this.gap}px`;
+      if (typeof this.gap === 'string' && this.gap.trim()) return this.gap.trim();
+      return '8px';
+    },
+    hasJhTableFilter() {
+      return typeof (Vue && Vue.options && Vue.options.components && Vue.options.components['jh-table-filter']) !== 'undefined';
+    },
+    hasToolbar() {
+      return (
+        (this.toolbarActionList && this.toolbarActionList.length) ||
+        (this.filterList && this.filterList.length && this.hasJhTableFilter) ||
+        !!this.$slots['toolbar-prepend'] ||
+        !!this.$slots['toolbar-append']
+      );
+    },
+    hasExplicitFilter() {
+      return (this.toolbarActionList || []).some(a => a && a.type === 'filter');
+    },
+    internalHeaders() {
+      return (this.headers || []).filter(h => h && h.value);
+    },
+    primaryHeaders() {
+      const hs = this.internalHeaders.filter(h => h.value !== 'action');
+      if (this.titleField) {
+        const h = hs.find(x => x.value === this.titleField);
+        return h ? [h] : [];
+      }
+      const t = hs.filter(h => h.isTitle === true);
+      if (t.length) return t;
+      return hs.length ? [hs[0]] : [];
+    },
+    detailHeaders() {
+      const titleValues = new Set((this.primaryHeaders || []).map(h => h.value));
+      return this.internalHeaders.filter(h => h.value !== 'action' && !titleValues.has(h.value) && h.isSimpleMode !== false);
+    },
+    hasActions() {
+      return Array.isArray(this.rowActionList) && this.rowActionList.length > 0;
+    },
+    showRightArrow() {
+      return this.rightArrow && this.hasActions;
+    },
+    hasActionSlot() {
+      return !!(this.$scopedSlots && this.$scopedSlots.action);
+    },
+    showActionArea() {
+      return this.hasActionSlot || this.showRightArrow || this.hasActions;
+    },
+    filteredItems() {
+      return Array.isArray(this.items) ? this.items : [];
+    },
+    localTableSelected: {
+      get() { return this.tableSelected || []; },
+      set(v) { this.$emit('update:tableSelected', v || []); },
+    },
+    syncedOptions: {
+      get() { return this.options || { page: 1, limit: 20, totalCount: 0 }; },
+      set(v) { this.$emit('update:options', v); },
+    },
+    pageLimit() {
+      const o = this.syncedOptions || {};
+      const n = Number(o.limit != null ? o.limit : (o.itemsPerPage != null ? o.itemsPerPage : this.pageSize));
+      return n > 0 ? n : 50;
+    },
+    currentPage() {
+      return Number(this.syncedOptions.page || 1) || 1;
+    },
+    totalCount() {
+      return Number(this.syncedOptions.totalCount || 0) || 0;
+    },
+    totalPages() {
+      return Math.max(1, Math.ceil(this.totalCount / this.pageLimit));
+    },
+    showPaginationBar() {
+      return this.serverPagination && this.filteredItems.length > 0 && this.totalCount != null;
+    },
+    canGoPrev() {
+      return this.currentPage > 1;
+    },
+    canGoNext() {
+      return this.totalCount > this.currentPage * this.pageLimit;
+    },
+    paginationRangeText() {
+      const limit = this.pageLimit;
+      const total = this.totalCount;
+      const page = this.currentPage;
+      const len = this.filteredItems.length;
+      if (!total && !len) return '共0条';
+      const start = total ? (page - 1) * limit + 1 : 0;
+      const end = Math.min((page - 1) * limit + (len || 0), total || (page - 1) * limit + len);
+      return `${start}-${end} 共${total}条`;
+    },
+    gridCols() {
+      const n = Number(this.cols);
+      return n > 0 ? n : 2;
+    },
+    gridStyle() {
+      const n = this.gridCols;
+      return {
+        display: 'grid',
+        gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`,
+        gap: '4px 16px',
+      };
+    },
+    iconMap() {
+      return { update: 'mdi-pencil', delete: 'mdi-delete', detail: 'mdi-eye' };
+    },
+    resolvedSheetActions() {
+      const item = this.activeItem;
+      return (this.rowActionList || [])
+        .filter(action => {
+          if (!action) return false;
+          if (typeof action.visible === 'function') return !!action.visible(item);
+          if (typeof action.visible === 'boolean') return action.visible;
+          return true;
+        })
+        .map(action => ({
+          value: action.label || action.text || '',
+          icon: action.icon || this.iconMap[action.intent] || 'mdi-circle-small',
+          color: action.color || (action.intent === 'delete' ? 'error' : 'primary'),
+          _action: action,
+        }));
+    },
+  },
+  methods: {
+    titleClampClass(h) {
+      const n = h && h.lineClamp != null ? Number(h.lineClamp) : 5;
+      return n > 1 ? '' : 'text-truncate';
+    },
+    resolveDetailSpan(h) {
+      if (!h) return 1;
+      const cols = this.gridCols;
+      if (h.span != null) {
+        const n = Number(h.span);
+        if (n > 0) return Math.min(n, cols);
+      }
+      if (h.colSpan != null) {
+        const n = Number(h.colSpan);
+        if (n > 0) return Math.min(n, cols);
+      }
+      const cls = String(h.cls || h.class || '');
+      if (cls.includes('jh-col-span-full') || cls.includes('col-span-full')) return cols;
+      const m = cls.match(/jh-col-span-(\d+)/);
+      if (m) return Math.min(Number(m[1]) || 1, cols);
+      return 1;
+    },
+    detailCellGridStyle(h) {
+      const span = this.resolveDetailSpan(h);
+      const cols = this.gridCols;
+      if (span >= cols) return { gridColumn: '1 / -1', minWidth: 0 };
+      if (span > 1) return { gridColumn: `span ${span}`, minWidth: 0 };
+      return { minWidth: 0 };
+    },
+    itemKey(item, idx) {
+      if (item && this.primaryKey && item[this.primaryKey] != null) return item[this.primaryKey];
+      return idx;
+    },
+    openActionSheet(item) {
+      this.activeItem = item;
+      this.isActionSheetShown = true;
+    },
+    handleSheetAction(sheetAction) {
+      const original = sheetAction && sheetAction._action;
+      if (!original) return;
+      const actionId = original.id || original.intent;
+      if (!actionId) return;
+      this.isActionSheetShown = false;
+      this.$emit('action', actionId, this.activeItem);
+    },
+    handleToolbarAction(action) {
+      const actionId = action && (action.id || action.intent);
+      if (!actionId) return;
+      this.$emit('action', actionId);
+    },
+    patchPage(page) {
+      const next = Math.max(1, Math.min(this.totalPages, Number(page) || 1));
+      if (next === this.currentPage) return;
+      this.syncedOptions = Object.assign({}, this.syncedOptions, { page: next });
+    },
+    goPrevPage() {
+      if (!this.canGoPrev) return;
+      this.patchPage(this.currentPage - 1);
+    },
+    goNextPage() {
+      if (!this.canGoNext) return;
+      this.patchPage(this.currentPage + 1);
+    },
+  },
+});
+</script>

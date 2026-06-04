@@ -369,9 +369,9 @@ new Vue({
     // 删除数据
     deleteItemId: null,
     // actionId
-    createActionId: null,
-    updateActionId: null,
-    deleteActionId: null,
+    createResource: null,
+    updateResource: null,
+    deleteResource: null,
   },
   watch: {
     dataTypeSwitch(value) {
@@ -472,7 +472,7 @@ new Vue({
       }
     },
     async prepareDoCreateItem() {
-      this.createActionId = `insertItemOf${this.pageId}`;
+      this.createResource = `insertItemOf${this.pageId}`;
       this.createActionData = this.createItem;
     },
     async doCreateItem() {
@@ -481,7 +481,7 @@ new Vue({
         data: {
           appData: {
             pageId: '<=$ pageId $=>',
-            actionId: this.createActionId,
+            actionId: this.createResource,
             actionData: this.createActionData
           }
         }
@@ -489,7 +489,7 @@ new Vue({
       await window.vtoast.success("保存成功");
     },
     async closeCreateDrawer() {
-      this.createActionId = null;
+      this.createResource = null;
       this.createActionData = null;
       this.createItem = {};
       this.isCreateDrawerShown = false;
@@ -514,7 +514,7 @@ new Vue({
     },
     async prepareDoUpdateItem() {
       const {id, ...data} = this.updateItem;
-      this.updateActionId = `updateItemOf${this.pageId}`;
+      this.updateResource = `updateItemOf${this.pageId}`;
       this.updateItemId = id;
       this.updateActionData = data;
     },
@@ -525,7 +525,7 @@ new Vue({
         data: {
           appData: {
             pageId: '<=$ pageId $=>',
-            actionId: this.updateActionId,
+            actionId: this.updateResource,
             actionData: this.updateActionData,
             where: {id: this.updateItemId}
           }
@@ -535,7 +535,7 @@ new Vue({
     },
     async closeUpdateDrawer() {
       this.updateItem = {};
-      this.updateActionId = null;
+      this.updateResource = null;
       this.updateItemId = null;
       this.updateActionData = null;
       this.isUpdateDrawerShown = false;
@@ -544,7 +544,7 @@ new Vue({
     // ---------------删除数据 uiAction >>>>>>>>>>>>>>>> ---------------
     async prepareDeleteItem(funObj) {
       this.deleteItemId = funObj.id;
-      this.deleteActionId = `deleteItemOf${this.pageId}`;
+      this.deleteResource = `deleteItemOf${this.pageId}`;
     },
     async confirmDeleteItemDialog() {
       if (await window.confirmDialog({title: "删除", content: "确定删除吗？"}) === false) {
@@ -557,13 +557,13 @@ new Vue({
         data: {
           appData: {
             pageId: '<=$ pageId $=>',
-            actionId: this.deleteActionId,
+            actionId: this.deleteResource,
             where: {id: this.deleteItemId}
           }
         }
       });
       window.vtoast.success('删除成功');
-      this.deleteActionId = null;
+      this.deleteResource = null;
       this.deleteItemId = null;
     },
     // ---------------删除数据 uiAction <<<<<<<<<<<<<<<< ---------------

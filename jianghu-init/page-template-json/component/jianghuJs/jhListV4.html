@@ -1,0 +1,155 @@
+<!-- jhListV4.html >>>>>>>>>>>>> -->
+<script type="text/html" id="jh-list-v4">
+  <div v-bind="$attrs" v-on="$listeners">
+    <div
+      class="flex p-3 relative bg-white mb-2"
+      v-for="(item, index) in items"
+      :key="(primaryKey ? item[primaryKey] : index) || index"
+      @click="$emit('item-click', item, index)"
+    >
+      <v-checkbox
+        v-if="showSelect"
+        v-model="localSelected"
+        :value="item"
+        class="mt-0 pt-0"
+        hide-details
+        :disabled="disableSelect"
+        @change="$event && $event.stopPropagation && $event.stopPropagation()"
+      ></v-checkbox>
+      <div class="flex-1">
+        <!-- 标题区（headers 里标记 isTitle:true 的行） -->
+        <div v-for="header in headers" :key="'t-' + header.value">
+          <template v-if="header && header.isSimpleMode && header.isTitle === true">
+            <div class="flex items-start border-b pb-1.5 w-full">
+              <div class="flex-1 flex min-w-0">
+                <div
+                  class="text-base font-medium break-words break-all"
+                  :class="header.lineClamp ? ('line-clamp-' + header.lineClamp) : 'line-clamp-1'"
+                >
+                  <slot :name="'title-' + header.value" :item="item" :header="header">
+                    <slot :name="'cell-' + header.value" :item="item" :header="header">
+                      {{ item[header.value] }}
+                    </slot>
+                  </slot>
+                </div>
+                <div class="shrink-0 grow">
+                  <slot :name="'right-' + header.value" :item="item" :header="header"></slot>
+                </div>
+              </div>
+              <div
+                v-if="rightArrow"
+                class="ml-2 translate-y-[3px] shrink-0 inline-flex items-center font-medium text-[#4caf50] border-b border-dashed border-[#4caf50]"
+              >
+                <span class="text-xs">{{ rightArrowText }}</span>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- 简洁模式字段区 -->
+        <div v-show="viewMode !== 'detail'" class="text-xs pt-2 grid gap-x-4 gap-y-1" :class="'grid-cols-' + cols">
+          <template v-for="header in headers">
+            <template v-if="header && header.isSimpleMode && !header.isTitle">
+              <div :key="'s-' + header.value" class="flex items-center gap-1">
+                <div class="text-[#7E838F]">{{ header.text }}：</div>
+                <div v-bind="header.attrs || {}">
+                  <slot :name="'cell-' + header.value" :item="item" :header="header">
+                    {{ item[header.value] }}
+                  </slot>
+                </div>
+              </div>
+            </template>
+          </template>
+        </div>
+
+        <!-- 详情模式字段区 -->
+        <div v-show="viewMode === 'detail'" class="text-xs pt-2 grid gap-x-4 gap-y-1" :class="'grid-cols-' + cols">
+          <template v-for="header in headers">
+            <template v-if="header && !header.isTitle">
+              <div v-if="header.value === 'action'" :key="'a-' + header.value" class="flex justify-end items-center" :class="'col-span-' + cols">
+                <slot name="actions" :item="item"></slot>
+              </div>
+              <div v-else :key="'d-' + header.value" class="flex items-center gap-1">
+                <div class="text-[#7E838F]">{{ header.text }}：</div>
+                <div v-bind="header.attrs || {}">
+                  <slot :name="'cell-' + header.value" :item="item" :header="header">
+                    {{ item[header.value] }}
+                  </slot>
+                </div>
+              </div>
+            </template>
+          </template>
+        </div>
+
+        <slot name="value" :item="item"></slot>
+      </div>
+    </div>
+
+    <!-- 分页条 -->
+    <div class="fixed left-0 right-0 bottom-0 py-2 px-3 bg-white border-t w-full" v-if="showPagination && items && items.length">
+      <div class="flex justify-space-between items-center">
+        <div v-if="limit">每页 {{ limit }} 项，</div>
+        <div>{{ rangeText }}</div>
+        <div v-if="limit">
+          <v-icon v-if="page > 1" @click="$emit('page-change', page - 1)">mdi-chevron-left</v-icon>
+          <v-icon v-else color="#eaeaea">mdi-chevron-left</v-icon>
+          <span><span class="primary--text font-weight-medium text-sm">{{ page }}</span> / {{ totalPages }}</span>
+          <v-icon v-if="totalCount > page * limit" @click="$emit('page-change', page + 1)">mdi-chevron-right</v-icon>
+          <v-icon v-else color="#eaeaea">mdi-chevron-right</v-icon>
+        </div>
+      </div>
+      <div class="jh-safe-bottom"></div>
+    </div>
+
+    <div class="text-center text-gray-500 py-2" v-if="!loading && (!items || items.length === 0)">暂无更多</div>
+    <v-overlay v-if="loading" :value="loading" opacity="0.1">
+      <v-progress-circular light indeterminate color="primary"></v-progress-circular>
+    </v-overlay>
+  </div>
+</script>
+
+<script>
+Vue.component("jh-list", {
+  template: "#jh-list-v4",
+  props: {
+    headers:        { type: Array,   default: () => [] },
+    items:          { type: Array,   default: () => [] },
+    loading:        { type: Boolean, default: false },
+    // 交互与模式
+    viewMode:       { type: String,  default: 'simple' }, // 'simple' | 'detail'
+    cols:           { type: [Number, String], default: 1 },
+    rightArrow:     { type: Boolean, default: false },
+    rightArrowText: { type: String,  default: '详情' },
+    // 选择
+    showSelect:     { type: Boolean, default: false },
+    disableSelect:  { type: Boolean, default: false },
+    selected:       { type: Array,   default: () => [] }, // v-model: selected.sync
+    // 分页
+    page:           { type: Number,  default: 1 },
+    limit:          { type: Number,  default: 0 },
+    totalCount:     { type: Number,  default: 0 },
+    showPagination: { type: Boolean, default: true },
+    // key
+    primaryKey:     { type: String,  default: '' },
+  },
+  computed: {
+    localSelected: {
+      get() { return this.selected || []; },
+      set(v) { this.$emit('update:selected', v || []); },
+    },
+    totalPages() {
+      if (!this.limit) return 1;
+      return Math.max(1, Math.ceil((this.totalCount || 0) / this.limit));
+    },
+    rangeText() {
+      if (!this.limit) return `共${this.totalCount || 0}条`;
+      if (!this.items || !this.items.length) return `0-0 共${this.totalCount || 0}条`;
+      const start = (this.page - 1) * this.limit + 1;
+      const end = Math.min((this.page - 1) * this.limit + this.items.length, this.totalCount || 0);
+      return `${start}-${end} 共${this.totalCount || 0}条`;
+    },
+  },
+});
+</script>
+<!-- <<<<<<<<<<<<< jhListV4.html -->
+

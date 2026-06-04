@@ -1,0 +1,89 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  jh-mobile-actions
+
+  移动端多按钮统一展示（首项平铺 + 其余三点菜单）：
+  · 列表顶栏 toolbarActions
+  · jh-form-sheet 标题栏 headActionList
+
+  props:
+    actionList   Array  label / intent / id / color / visibleWhen / disabledWhen
+    initialData  Object 条件求值上下文（与 jh-form-sheet initialData 一致）
+    scope        Object 条件求值上下文（页面 $data）
+
+  events:
+    @action(actionId)
+───────────────────────────────────────────────────────────────────── -->
+
+<script type="text/html" id="jh-mobile-actions-template">
+  <div v-if="actionList && actionList.length" class="jh-mobile-actions inline-flex items-center flex-shrink-0" style="gap:8px">
+    <v-btn
+      v-if="primaryAction"
+      small
+      class="elevation-0 !rounded-xl px-2"
+      :color="primaryAction.color || 'success'"
+      :disabled="isActionDisabled(primaryAction)"
+      @click="emitAction(primaryAction)"
+    >{{ actionLabel(primaryAction) }}</v-btn>
+
+    <v-menu v-if="moreActions.length" offset-y left>
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn fab x-small v-bind="attrs" v-on="on" aria-label="更多操作" outlined class="!rounded-xl px-2 border-gray-300">
+          <v-icon>mdi-dots-vertical</v-icon>
+        </v-btn>
+      </template>
+      <v-list dense>
+        <v-list-item
+          v-for="(action, idx) in moreActions"
+          :key="action.id || action.intent || idx"
+          :disabled="isActionDisabled(action)"
+          @click="emitAction(action)"
+        >
+          <v-list-item-title :class="(action.color || 'success') + '--text'">
+            {{ actionLabel(action) }}
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+  </div>
+</script>
+
+<script>
+(function () {
+  const MobileActions = {
+    inheritAttrs: false,
+    template: '#jh-mobile-actions-template',
+    mixins: [window.jhActionWhenMixin],
+    props: {
+      actionList: { type: Array, default: () => [] },
+      initialData: { type: Object, default: () => ({}) },
+      scope: { type: Object, default: null },
+    },
+    computed: {
+      normalizedActions() {
+        return this.filterVisibleActions(this.actionList || [])
+          .filter(a => a && (a.intent || a.id || a.label));
+      },
+      primaryAction() {
+        return this.normalizedActions[0] || null;
+      },
+      moreActions() {
+        return this.normalizedActions.length > 1 ? this.normalizedActions.slice(1) : [];
+      },
+    },
+    methods: {
+      actionLabel(action) {
+        return (action && (action.label || action.text)) || '';
+      },
+      emitAction(action) {
+        if (!action || this.isActionDisabled(action)) return;
+        const actionId = action.actionId || action.id || action.intent;
+        if (!actionId) return;
+        this.$emit('action', actionId);
+      },
+    },
+  };
+  Vue.component('jh-mobile-actions', MobileActions);
+  Vue.component('jh-head-toolbar-actions', MobileActions);
+  Vue.component('jh-mobile-toolbar-actions', MobileActions);
+})();
+</script>

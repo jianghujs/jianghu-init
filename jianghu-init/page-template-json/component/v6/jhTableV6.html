@@ -1,0 +1,538 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  jh-table  v6 数据表格组件
+
+  props（静态配置）：
+    headers         Vuetify 2 `v-data-table` 表头数组，与官方文档一致：{ text, value, align?, sortable?, width?, class?, ... }
+                      · v6 生成器：静态写在 Table.props.headers 或 columns（二选一，数组内容相同）；headersBinding（或 historic 键名 columnsBinding）→ :headers="变量名"
+                      · width 可为函数：function() { return this.jhPage.state.isMobile ? '60px' : '120px' }（以 jh-table 实例为 this）
+    rowActionList      行操作数组 { label, intent, id, confirm, visible, disabled, color, icon }
+                      · visible(item)  → Boolean  条件渲染（隐藏/显示）
+                      · disabled(item) → Boolean  条件禁用（显示但禁止点击，opacity 变灰）
+                      · color          语义色：'primary'|'success'|'error'|'warning'|'info'|'gray'
+                                       默认：delete → error，其余 → success
+                      · icon           jh-icon name（可选，显示在文字左侧）
+                      · 操作列宽自动计算：中文 12px/字 + icon 16px + icon 与文字间距 2px（0.2em@12px）+ 按钮间距 8px
+    toolbarActionList  工具栏数组，顺序即布局顺序：
+                      标准按钮：{ label, intent, id, color }
+                      分隔符：  { type: 'spacer' }           ← 推开两侧
+                      过滤器：  { type: 'filter', fields? }  ← 内联 jh-table-filter，
+                                                               fields 省略时用 filterList
+                      自定义：  { type: 'slot', slotName }   ← scoped slot，scope: { action }
+    filterList    客户端二次过滤字段（不触发 API，对已加载 items 实时筛选）：
+                      { key, label, type:'text'|'select'|'keyword',
+                        keys,    ← keyword 必填：OR 模糊匹配列；text/select 可选：多列 OR
+                        exact,   ← Boolean，text 类型精确匹配，默认 false（子串）
+                        options, placeholder, clearable, width }
+    serverPagination  服务端分页，默认 false
+    pageSize          每页条数，默认 50
+    selectable        复选框，默认 false
+    primaryKey        主键字段，默认 'id'
+
+  props（响应式，父实例通过 resolvedBindings 绑定）：
+    items           表格数据
+    loading         加载状态
+    options         分页/排序选项（支持 .sync）
+
+  inject:
+    jhPage.doUiAction  触发行/工具栏操作
+    jhPage.state       tableOptions 双向同步、tableSelected 写回
+  
+  扩展 slots（已在模板中实现）：
+    toolbar-prepend              工具栏左侧最前（按钮组之前）；父组件 <template #toolbar-prepend>
+    toolbar-{action.slotName}    配置 { type:'slot', slotName:'extra' } → 插槽名即为 'extra'（建议写成 toolbar-extra 等避免与列名混淆）；scope: { action }；未设 slotName 时为 toolbar-slot-{idx}
+    toolbar-append               模板中在「隐式 filter」之后；用于在过滤器后再追加内容
+    注意：v6 生成页若 Table 无子节点则 NJK 输出自闭合 <jh-table />，仅 toolbarActionList 无法附带插槽 HTML。可用二选一：
+      ① pageContent 里 Table.children 写整段 '<template v-slot:toolbar-append>...</template>' 字符串；
+      ② Table.props.slotTemplates：{ "toolbar-append": "<v-btn>...</v-btn>" }（解析器展开为子节点且不当作 jh-table 的 prop）。
+    内置 toolbar-append / toolbar-prepend：
+      · 推荐：`Table.children` / `slotTemplates` / `slots.list.pc.children` 写 `<template v-slot:toolbar-append>`（固定落在隐式 filter 之后）
+      · 可选：在 `toolbarActionList` 写 `{ type: 'slot', slotName: 'toolbar-append' }` 控制其在按钮组中的顺序（与固定 outlet 二选一，勿重复）
+      · 勿同时用两种方式，否则 Vue 2 会把同一段内容分发到两个同名 `<slot>` 而重复渲染
+    v-data-table 插槽透传：父写在 <jh-table> 内、且名称不以 toolbar- 开头的作用域插槽（如 item.operationAt、loading、header.xxx）会转发到内部 v-data-table。
+      未覆盖时仍保留内置：item.action（仅 rowActionList 有配置且无父级 item.action）、loading、no-data、no-results、footer.page-text。
+    仅填 prepend/append、不配 toolbarActionList/filterList 时，已用 $slots 检测以显示工具栏。
+
+  ── jh-table-filter ─────────────────────────────────────────────────
+  fields 字段配置（同 filterList）
+  inject: jhPage → 读写 serverSearchWhere / serverSearchWhereLike / serverSearchWhereIn
+  change 事件 debounce 400ms → doUiAction('getTableData')
+  根节点 v-bind="$attrs"：支持 v6 Table 节点 attrs（class、:class、v-if、data-* 等）
+───────────────────────────────────────────────────────────────────── -->
+<script type="text/html" id="jh-table-v6-template">
+  <div v-bind="$attrs" v-on="$listeners">
+    <!-- 工具栏 -->
+    <div v-if="hasToolbar" class="d-flex align-center mb-3" style="gap:8px; flex-wrap:wrap">
+
+      <!-- 左侧最前插槽（未在 toolbarActionList 声明 type:slot 时） -->
+      <slot v-if="showFixedToolbarPrepend" name="toolbar-prepend"></slot>
+
+      <!-- 操作区：支持 button / spacer / slot / filter 四种类型，顺序完全由配置决定 -->
+      <template v-for="(action, idx) in toolbarActionList">
+        <!-- spacer：推开左右两侧内容 -->
+        <v-spacer v-if="action.type === 'spacer'" :key="'spacer-' + idx"></v-spacer>
+        <!-- filter：jh-table-filter 内联过滤器，放在按钮组任意位置 -->
+        <jh-table-filter
+          v-else-if="action.type === 'filter'"
+          :key="'filter-' + idx"
+          :fields="action.fields || filterList"
+        ></jh-table-filter>
+        <!-- 内置 toolbar-prepend / toolbar-append：在配置顺序处渲染；未写入 toolbarActionList 时走下方固定 outlet -->
+        <slot
+          v-else-if="action.type === 'slot' && action.slotName === 'toolbar-prepend'"
+          :key="'toolbar-prepend-' + idx"
+          name="toolbar-prepend"
+        ></slot>
+        <slot
+          v-else-if="action.type === 'slot' && action.slotName === 'toolbar-append'"
+          :key="'toolbar-append-' + idx"
+          name="toolbar-append"
+        ></slot>
+        <slot
+          v-else-if="action.type === 'slot'"
+          :key="'slot-' + idx"
+          :name="action.slotName || ('toolbar-slot-' + idx)"
+          :action="action"
+        ></slot>
+        <!-- 标准按钮（默认） -->
+        <v-btn
+          v-else
+          :key="action.id || action.intent || idx"
+          :color="action.color || 'success'"
+          small
+          @click="handleToolbarAction(action)"
+        >{{ action.label }}</v-btn>
+      </template>
+
+      <!-- filterList 快捷配置：无显式 filter 时追加在末尾；其前自动 v-spacer（工具栏未配置 spacer 时） -->
+      <v-spacer
+        v-if="spacerBeforeImplicitFilter"
+        key="jh-table-implicit-filter-spacer"
+      ></v-spacer>
+      <jh-table-filter
+        v-if="showImplicitFilter"
+        key="jh-table-implicit-filter"
+        :fields="filterList"
+      ></jh-table-filter>
+
+      <!-- 末尾追加插槽（隐式 filter 之后；未在 toolbarActionList 声明 type:slot 时） -->
+      <span v-if="showFixedToolbarAppend" class="d-inline-flex align-center flex-shrink-0">
+        <slot name="toolbar-append"></slot>
+      </span>
+
+    </div>
+
+    <!-- 表格主体 -->
+    <v-data-table
+      :headers="internalHeaders"
+      :items="filteredItems"
+      :loading="loading"
+      :item-key="primaryKey"
+      :show-select="selectable"
+      v-model="localTableSelected"
+      :options.sync="syncedOptions"
+      :server-items-length="serverPagination ? syncedOptions.totalCount : -1"
+      :items-per-page="serverPagination ? (pageSize || 50) : -1"
+      :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有' }"
+      mobile-breakpoint="0"
+      checkbox-color="success"
+      :class="{ zebraLine: true }"
+      fixed-header
+      class="jh-fixed-table-height elevation-0 mt-0 mx-0 mb-xs-4"
+    >
+      <!-- 父级 → v-data-table：除 toolbar-* 外的作用域插槽全部转发（含 item.xxx、header.xxx、loading 等） -->
+      <template
+        v-for="slotN in dataTableForwardedSlotNames"
+        :key="'jh-dt-slot-' + slotN"
+        v-slot:[slotN]="slotProps"
+      >
+        <slot :name="slotN" v-bind="slotProps || {}"></slot>
+      </template>
+
+      <!-- 行操作列（无父级 item.action 时） -->
+      <template v-if="useDefaultItemAction" v-slot:item.action="{ item }">
+        <div class="d-inline-flex flex-nowrap flex-shrink-0 align-center text-no-wrap" style="gap:8px">
+          <jh-text-btn
+            v-for="action in visibleRowActions(item)"
+            :key="action.id || action.intent"
+            :text="action.label"
+            :color="resolveActionColor(action)"
+            :disabled="resolveActionDisabled(action, item)"
+            :icon-name="action.icon || iconMap[action.intent] || ''"
+            :dashed="true"
+            class="flex-shrink-0"
+            @click="handleRowAction(action, item)"
+          ></jh-text-btn>
+        </div>
+      </template>
+
+      <!-- 空/加载状态（无父级同名插槽时） -->
+      <template v-if="useDefaultLoading" v-slot:loading>
+        <div class="jh-no-data">数据加载中</div>
+      </template>
+      <template v-if="useDefaultNoData" v-slot:no-data>
+        <div class="jh-no-data">暂无数据</div>
+      </template>
+      <template v-if="useDefaultNoResults" v-slot:no-results>
+        <div class="jh-no-data">暂无数据</div>
+      </template>
+
+      <!-- 分页文字 -->
+      <template v-if="useDefaultFooterPageText" v-slot:footer.page-text="pagination">
+        <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+        <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+      </template>
+    </v-data-table>
+  </div>
+</script>
+
+<script>
+Vue.component('jh-table', {
+  inheritAttrs: false,
+  template: '#jh-table-v6-template',
+  props: {
+    headers:          { type: Array,   default: () => [] },
+    rowActionList:    { type: Array,   default: () => [] },
+    toolbarActionList:{ type: Array,   default: () => [] },
+    filterList:       { type: Array,   default: () => [] },
+    serverPagination: { type: Boolean, default: false },
+    pageSize:         { type: Number,  default: 50 },
+    selectable:       { type: Boolean, default: false },
+    primaryKey:       { type: String,  default: 'id' },
+    // 响应式 props（由父实例通过 resolvedBindings 绑定）
+    items:         { type: Array,   default: () => [] },
+    loading:       { type: Boolean, default: false },
+    options:       { type: Object,  default: () => ({}) },
+    tableSelected: { type: Array,   default: () => [] },
+  },
+  data() {
+    return {
+      // 内置 update delete icon
+      iconMap: {
+        update: 'pencil',
+        delete: 'trash',
+      },
+      // 客户端过滤状态（由子组件 jh-table-filter 通过 provide 写入）
+      inlineFilterValues: {},
+    };
+  },
+  provide() {
+    return {
+      // 暴露给 jh-table-filter：读写客户端过滤状态
+      jhTableCtx: {
+        getValues: () => this.inlineFilterValues,
+        setValue:  (key, val) => this.$set(this.inlineFilterValues, key, val),
+      },
+    };
+  },
+  computed: {
+    isMobile() {
+      return window.innerWidth < 600;
+    },
+    hasToolbar() {
+      const hasActions = (this.toolbarActionList && this.toolbarActionList.length > 0);
+      const hasFilterFields = (this.filterList && this.filterList.length > 0);
+      const slots = this.$slots || {};
+      const scoped = this.$scopedSlots || {};
+      const hasSlotToolbar =
+        !!(scoped['toolbar-prepend'] || (slots['toolbar-prepend'] && slots['toolbar-prepend'].length))
+        || !!(scoped['toolbar-append'] || (slots['toolbar-append'] && slots['toolbar-append'].length))
+        || Object.keys(scoped).some((name) => /^toolbar-/.test(name));
+      return hasActions || hasFilterFields || hasSlotToolbar;
+    },
+    hasToolbarPrependInActions() {
+      return (this.toolbarActionList || []).some(
+        a => a && a.type === 'slot' && a.slotName === 'toolbar-prepend',
+      );
+    },
+    hasToolbarAppendInActions() {
+      return (this.toolbarActionList || []).some(
+        a => a && a.type === 'slot' && a.slotName === 'toolbar-append',
+      );
+    },
+    showFixedToolbarPrepend() {
+      const slots = this.$slots || {};
+      const scoped = this.$scopedSlots || {};
+      const has = !!(scoped['toolbar-prepend'] || (slots['toolbar-prepend'] && slots['toolbar-prepend'].length));
+      return has && !this.hasToolbarPrependInActions;
+    },
+    showFixedToolbarAppend() {
+      const slots = this.$slots || {};
+      const scoped = this.$scopedSlots || {};
+      const has = !!(scoped['toolbar-append'] || (slots['toolbar-append'] && slots['toolbar-append'].length));
+      return has && !this.hasToolbarAppendInActions;
+    },
+    internalHeaders() {
+      const cols = (this.headers || []).map(col => {
+        const out = Object.assign({}, col);
+        if (typeof out.width === 'function') {
+          out.width = out.width.call(this);
+        }
+        return out;
+      });
+      if (this.rowActionList && this.rowActionList.length && !cols.some(col => col.value === 'action')) {
+        cols.push({
+          text: '操作',
+          value: 'action',
+          align: 'center',
+          sortable: false,
+          width: this.actionColumnWidth,
+          class: 'fixed',
+          cellClass: 'fixed noWarp',
+        });
+      }
+      return cols;
+    },
+    /** 操作列宽：按 rowActionList 按钮 label/icon 动态估算（中文 12px/字，icon 16px，按钮 gap 8px） */
+    actionColumnWidth() {
+      return this.computeActionColumnWidth(this.rowActionList);
+    },
+    // toolbarActionList 中是否已有 type:'filter' 显式配置（避免自动追加重复）
+    hasExplicitFilter() {
+      return (this.toolbarActionList || []).some(a => a.type === 'filter');
+    },
+    hasToolbarSpacer() {
+      return (this.toolbarActionList || []).some(a => a.type === 'spacer');
+    },
+    showImplicitFilter() {
+      return !!(this.filterList && this.filterList.length && !this.hasExplicitFilter);
+    },
+    /** 隐式 filter 前补 spacer，把筛选区推到右侧（已有 spacer 则不重复） */
+    spacerBeforeImplicitFilter() {
+      return this.showImplicitFilter && !this.hasToolbarSpacer;
+    },
+    // 客户端二次过滤（基于 inlineFilterValues，不触发 API）
+    // · exact:true → 精确匹配；默认 → 大小写不敏感子串匹配
+    // · keys 数组  → 任意一个字段匹配即算通过（OR 逻辑）
+    filteredItems() {
+      const fields = this.filterList || [];
+      if (!fields.length) return this.items;
+      const vals = this.inlineFilterValues;
+      return this.items.filter(item => {
+        return fields.every(field => {
+          const val = vals[field.key];
+          if (val === null || val === undefined || val === '') return true;
+          const needle = String(val).toLowerCase();
+          if (field.type === 'keyword') {
+            const targets = Array.isArray(field.keys) && field.keys.length ? field.keys : [];
+            if (!targets.length) return true;
+            return targets.some(k => {
+              const hay = String(item[k] == null ? '' : item[k]).toLowerCase();
+              return hay.includes(needle);
+            });
+          }
+          const targets = Array.isArray(field.keys) && field.keys.length
+            ? field.keys : [field.key];
+          return targets.some(k => {
+            const hay = String(item[k] == null ? '' : item[k]).toLowerCase();
+            return field.exact ? hay === needle : hay.includes(needle);
+          });
+        });
+      });
+    },
+    syncedOptions: {
+      get() { return this.options; },
+      set(val) { this.$emit('update:options', val); },
+    },
+    localTableSelected: {
+      get() { return this.tableSelected; },
+      set(val) { this.$emit('update:tableSelected', val); },
+    },
+    /** 转发到 v-data-table 的插槽名（排除仅用于工具栏的 toolbar-*） */
+    dataTableForwardedSlotNames() {
+      const scoped = this.$scopedSlots || {};
+      return Object.keys(scoped).filter((name) => !/^toolbar-/.test(name));
+    },
+    useDefaultItemAction() {
+      return !!(this.rowActionList && this.rowActionList.length && !this.$scopedSlots['item.action']);
+    },
+    useDefaultLoading() {
+      return !this.$scopedSlots.loading;
+    },
+    useDefaultNoData() {
+      return !this.$scopedSlots['no-data'];
+    },
+    useDefaultNoResults() {
+      return !this.$scopedSlots['no-results'];
+    },
+    useDefaultFooterPageText() {
+      return !this.$scopedSlots['footer.page-text'];
+    },
+  },
+  methods: {
+    hasToolbarSlotContent(name) {
+      const slots = this.$slots || {};
+      const scoped = this.$scopedSlots || {};
+      return !!(
+        scoped[name]
+        || (slots[name] && slots[name].length)
+      );
+    },
+    // 行操作按钮宽度估算（对齐 jh-text-btn：fontSize 12px，icon 16px，icon margin-right 0.2em）
+    computeRowActionButtonWidth(action) {
+      const CHAR_WIDTH = 12;
+      const ICON_SIZE = 16;
+      const ICON_TEXT_GAP = 2; // 0.2em @ 12px font
+      const label = String((action && action.label) || '');
+      const textWidth = [...label].length * CHAR_WIDTH;
+      const iconName = (action && (action.icon || this.iconMap[action.intent])) || '';
+      if (iconName) return ICON_SIZE + ICON_TEXT_GAP + textWidth;
+      return textWidth;
+    },
+    computeActionColumnWidth(rowActionList) {
+      const BTN_GAP = 8;
+      const HEADER_LABEL = '操作';
+      const HEADER_WIDTH = [...HEADER_LABEL].length * 12;
+      const actions = rowActionList || [];
+      if (!actions.length) return HEADER_WIDTH;
+      const buttonWidths = actions.map(action => this.computeRowActionButtonWidth(action));
+      const buttonsWidth = buttonWidths.reduce((sum, w) => sum + w, 0)
+        + Math.max(0, actions.length - 1) * BTN_GAP;
+      return Math.max(buttonsWidth + 30, HEADER_WIDTH + 30);
+    },
+    isReservedToolbarSlotName(name) {
+      return name === 'toolbar-prepend' || name === 'toolbar-append';
+    },
+    // 过滤出对当前 item 可见的行操作（支持 visible(item) 条件）
+    visibleRowActions(item) {
+      return (this.rowActionList || []).filter(action => {
+        if (typeof action.visible === 'function') return action.visible(item);
+        return true;
+      });
+    },
+    // resolveActionColor：action.color 优先；无配置时 delete→error，其余→success
+    resolveActionColor(action) {
+      if (action.color) return action.color;
+      return action.intent === 'delete' ? 'error' : 'success';
+    },
+    // resolveActionDisabled：支持 Boolean 或 function(item) => Boolean
+    resolveActionDisabled(action, item) {
+      if (typeof action.disabled === 'function') return action.disabled(item);
+      return !!action.disabled;
+    },
+    handleToolbarAction(action) {
+      const actionId = action.intent === 'create' ? 'startCreateItem' : (action.id || action.intent);
+      this.$emit('action', actionId);
+    },
+    async handleRowAction(action, item) {
+      if (action.confirm) {
+        const ok = await window.confirmDialog({ title: action.label, content: `确定${action.label}吗？` });
+        if (!ok) return;
+      }
+      const actionId = action.intent === 'update' ? 'startUpdateItem'
+                     : action.intent === 'delete' ? 'deleteItem'
+                     : (action.id || action.intent);
+      this.$emit('action', actionId, item);
+    },
+  },
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+  jh-table-filter  表格工具栏内联过滤器（客户端二次过滤）
+
+  · 过滤已加载到 items 的数据，不触发任何 API 请求
+  · 通过 provide/inject 向父级 jh-table 写入 inlineFilterValues
+  · jh-table.filteredItems computed 据此在浏览器端实时筛选
+
+  props:
+    fields  Array  过滤字段配置：
+      { key,         ← 过滤的字段名（也是 inlineFilterValues 的 key）；keyword 固定 key 建议 'keyword'
+        keys,        ← keyword 必填列名数组；text/select 可选多列 OR
+        label,       ← 输入框 placeholder 默认值
+        type,        ← 'text' | 'select' | 'keyword'（多列 OR 子串，仅客户端）
+        exact,       ← Boolean，text 类型是否精确匹配，默认 false
+        options,     ← Array 或指向 jhPage.state 的字符串路径（select 用）
+        placeholder,
+        clearable,   ← 默认 true
+        width        ← 默认 text=180px / select=150px }
+
+  inject:
+    jhTableCtx  由父级 jh-table 提供
+      · .getValues()   → 当前过滤值对象
+      · .setValue(k,v) → 写入某个字段的过滤值
+      · .getState()    → jhPage.state（用于 options 路径解析）
+
+  根节点 v-bind="$attrs"：支持 class、:class、v-if、data-* 等（与 jh-table 一致）
+══════════════════════════════════════════════════════════════════ -->
+<script type="text/html" id="jh-table-filter-template">
+  <div v-bind="$attrs" v-on="$listeners" class="d-flex align-center" style="gap:8px; flex-wrap:wrap">
+    <template v-for="field in orderedFields">
+      <!-- keyword：当前页多列 OR 子串（与服务端 search.keyword 对称，状态 key 仍为 field.key） -->
+      <v-text-field
+        v-if="field.type === 'keyword'"
+        :key="field.key"
+        class="jh-v-input"
+        :value="getFilterValue(field)"
+        :placeholder="field.placeholder || field.label"
+        :clearable="field.clearable !== false"
+        dense single-line filled clearable
+        prepend-inner-icon="mdi-magnify"
+        :style="{ width: field.width || '200px', minWidth: field.width || '200px', maxWidth: field.width || '200px' }"
+        @input="setFilterValue(field, $event)"
+      >
+        <!-- 前置icon -->
+        <template v-slot:prepend-inner>
+          <jh-icon :name="field.icon || 'filter-2'"></jh-icon>
+        </template>
+      </v-text-field>
+      <!-- select 类型：精确匹配（可用 exact:false 覆盖） -->
+      <v-select
+        class="jh-v-input"
+        v-else-if="field.type === 'select'"
+        :key="field.key"
+        :value="getFilterValue(field)"
+        :items="resolveOptions(field)"
+        :placeholder="field.placeholder || field.label"
+        :clearable="field.clearable !== false"
+        dense single-line filled clearable
+        :style="{ width: field.width || '150px', minWidth: field.width || '150px', maxWidth: field.width || '150px' }"
+        @change="setFilterValue(field, $event)"
+      ></v-select>
+      <!-- text 类型（默认）：子串匹配，exact:true 改为精确 -->
+      <v-text-field
+        v-else
+        :key="field.key"
+        class="jh-v-input"
+        :value="getFilterValue(field)"
+        :placeholder="field.placeholder || field.label"
+        :clearable="field.clearable !== false"
+        dense single-line filled clearable
+        :style="{ width: field.width || '180px', minWidth: field.width || '180px', maxWidth: field.width || '180px' }"
+        @input="setFilterValue(field, $event)"
+      ></v-text-field>
+    </template>
+  </div>
+</script>
+<script>
+Vue.component('jh-table-filter', {
+  inheritAttrs: false,
+  template: '#jh-table-filter-template',
+  inject: ['jhTableCtx'],
+  props: {
+    fields: { type: Array, default: () => [] },
+  },
+  computed: {
+    /** keyword 固定排在工具栏筛选区最后 */
+    orderedFields() {
+      const list = this.fields || [];
+      const normal = list.filter(f => f && f.type !== 'keyword');
+      const keywords = list.filter(f => f && f.type === 'keyword');
+      return [...normal, ...keywords];
+    },
+  },
+  methods: {
+    getFilterValue(field) {
+      return (this.jhTableCtx.getValues() || {})[field.key];
+    },
+    setFilterValue(field, val) {
+      // 值统一存在 field.key 下；多列 OR 匹配由 jh-table.filteredItems 处理
+      this.jhTableCtx.setValue(field.key, val);
+    },
+    resolveOptions(field) {
+      if (!field.options) return [];
+      if (Array.isArray(field.options)) return field.options;
+      return [];
+    },
+  },
+});
+</script>

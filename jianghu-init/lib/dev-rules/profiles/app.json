@@ -1,0 +1,9 @@
+{
+  "id": "app",
+  "label": "江湖 App（业务项目）",
+  "modules": [
+    "overview",
+    "v7-crud-authoring",
+    "jh-component"
+  ]
+}

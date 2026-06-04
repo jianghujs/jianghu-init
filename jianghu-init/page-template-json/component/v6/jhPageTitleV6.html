@@ -1,0 +1,52 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  jh-page-title  页面标题组件（纯展示）
+
+  props:
+    title     String  页面标题
+    helpDoc   Boolean 是否显示帮助按钮
+    helpSrc   String  帮助页 iframe src
+
+  根节点 v-bind="$attrs"
+───────────────────────────────────────────────────────────────────── -->
+<script type="text/html" id="jh-page-title-template">
+  <div v-bind="$attrs" v-on="$listeners" class="d-flex align-center py-4">
+    <span class="text-body-1 font-weight-bold">{{ title }}</span>
+    <v-icon v-if="helpDoc" size="15" class="black--text ml-1" @click="isHelpDrawerShown = true">mdi-help-circle</v-icon>
+    <slot></slot>
+
+    <!-- 帮助文档抽屉 -->
+    <v-navigation-drawer
+      v-if="helpDoc && isHelpDrawerShown"
+      v-model="isHelpDrawerShown"
+      fixed temporary right width="80%" class="elevation-24"
+    >
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpDrawerShown = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+      <iframe style="border:0; display:block" :src="resolvedHelpSrc" width="100%" height="100%"></iframe>
+    </v-navigation-drawer>
+  </div>
+</script>
+
+<script>
+Vue.component('jh-page-title', {
+  inheritAttrs: false,
+  template: '#jh-page-title-template',
+  props: {
+    title:   { type: String,  default: '' },
+    helpDoc: { type: Boolean, default: false },
+    helpSrc: { type: String,  default: '' },
+    pageId:  { type: String,  default: '' },
+  },
+  data() {
+    return { isHelpDrawerShown: false };
+  },
+  computed: {
+    resolvedHelpSrc() {
+      if (this.helpSrc) return this.helpSrc;
+      const appId = (window.appInfo && window.appInfo.appId) || '';
+      return `/${appId}/pageDoc#${this.pageId}.md`;
+    },
+  },
+});
+</script>

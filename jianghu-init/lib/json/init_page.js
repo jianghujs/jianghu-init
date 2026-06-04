@@ -3,7 +3,6 @@ const CommandBase = require('../command_base');
 
 require('colors');
 const fs = require('fs');
-const nunjucks = require('nunjucks');
 const _ = require('lodash');
 const path = require('path');
 const mixin = require('./mixin.js');
@@ -61,6 +60,7 @@ module.exports = class InitPage1Table extends CommandBase {
     if (renderResult) {
       await this.modifyTable(jsonConfig);
       await this.handleOtherResource(jsonConfig);
+      await this.checkPage(jsonConfig);
 
       // 生成组件
       await this.renderComponent(jsonConfig);
@@ -155,27 +155,32 @@ module.exports = class InitPage1Table extends CommandBase {
    * ================================================================================================
    */
   async renderVue(jsonConfig) {
-    // const pageBakDir = './app/view/pageBak';
-    // if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
-
-    const { table, pageId, pageType, version, pageFile } = jsonConfig;
-    const tableCamelCase = _.camelCase(table);
-    const filepath = `./app/view/page/${pageFile || pageId}.html`;
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-page`;
-    const templateTargetPath = `${templatePath}/${version ? pageType + '-' + version : pageType}.njk.html`;
-    const listTemplate = fs.readFileSync(templateTargetPath)
-      .toString()
-      .replace(/\/\/===\/\/ /g, '')
-      .replace(/\/\/===\/\//g, '');
+    // version / pageType 在 v6 原始配置里已有，用于确定模板路径
+    const { version, pageType } = jsonConfig;
+    const njkRootPath = `${path.join(__dirname, '../../')}page-template-json`;
+    const templateTargetPath = `jh-page/${version ? pageType + '-' + version : pageType}.njk.html`;
 
     // 初始化 njk 模板标签、filter
-    this.handleNunjucksEnv(templateTargetPath);
+    const nunjucksEnv = this.handleNunjucksEnv(njkRootPath);
+    // v6 配置在此处才会把 pageId 等写入 jsonConfig（来自 legacyConfig）
     this.handleJsonConfig(jsonConfig);
 
-    const componentList = this.getConfigComponentList(jsonConfig);
-    const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
+    // handleJsonConfig 之后再解构，确保 v6 的 pageId / table 已填充
+    const { table, pageId, pageFile } = jsonConfig;
+    const tableCamelCase = _.camelCase(table);
+    const v7MobileOnly = version === 'v7' && jsonConfig.v7BuildTargets === 'mobile';
+    const pcFilepath = `./app/view/page/${pageFile || pageId}.html`;
+    const mobileFilepath = `./app/view/page/mobile/${pageFile || pageId}.html`;
 
-    if (pageId.includes('/')) {
+    const componentList = this.getConfigComponentList(jsonConfig);
+
+    const writePageHtml = (filepath, templatePath, renderCtx) => {
+      const html = nunjucksEnv.render(templatePath, Object.assign({ tableCamelCase }, renderCtx, { componentList }));
+      fs.mkdirSync(path.dirname(filepath), { recursive: true });
+      fs.writeFileSync(filepath, html);
+    };
+
+    if (pageId && pageId.includes('/')) {
       const pageIdArr = pageId.split('/');
       const pageIdDir = pageIdArr.slice(0, pageIdArr.length - 1).join('/');
       [ 'page', 'pageDoc' ].forEach(dir => {
@@ -193,8 +198,36 @@ module.exports = class InitPage1Table extends CommandBase {
       }
     }
 
-    // fs.writeFileSync(filepath, htmlUser);
-    fs.writeFileSync(filepath, htmlGenerate);
+    if (v7MobileOnly) {
+      fs.mkdirSync('./app/view/page/mobile', { recursive: true });
+      writePageHtml(
+        mobileFilepath,
+        'jh-mobile-page/jh-mobile-page-v7.njk.html',
+        jsonConfig,
+      );
+      this.notice(`[v7] mobile-only page generated: ${mobileFilepath}`);
+      return true;
+    }
+
+    writePageHtml(pcFilepath, templateTargetPath, jsonConfig);
+
+    // v7 双端：PC 已写入根路径，再生成 mobile/ 子目录
+    if (version === 'v7' && jsonConfig.mobileStandardConfig) {
+      const mobilePageId = `mobile/${pageId}`;
+      const mobileSubFilepath = `./app/view/page/${mobilePageId}.html`;
+      fs.mkdirSync('./app/view/page/mobile', { recursive: true });
+
+      const mobileRenderCtx = Object.assign({}, jsonConfig, {
+        standardConfig: jsonConfig.mobileStandardConfig,
+        includeList: jsonConfig.mobileStandardConfig.includeList || [],
+        basicUiActionConfig: jsonConfig.mobileBasicUiActionConfig || jsonConfig.basicUiActionConfig,
+        pageId: mobilePageId,
+        tableCamelCase,
+      });
+      writePageHtml(mobileSubFilepath, 'jh-mobile-page/jh-mobile-page-v7.njk.html', mobileRenderCtx);
+      this.notice(`[v7] mobile page generated: ${mobileSubFilepath}`);
+    }
+
     return true;
   }
 };

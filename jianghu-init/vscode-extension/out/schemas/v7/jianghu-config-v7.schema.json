@@ -1,0 +1,383 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://jianghu.example.com/schemas/v7/jianghu-config-v7.schema.json",
+    "title": "Jianghu V7 Config Schema",
+    "description": "默认 UI（pageContent）；显式 mode:\"crud\" 走 fields/views。jh-component 用 component.path，禁止 page.id / resourceList。",
+    "type": "object",
+    "required": ["version"],
+    "additionalProperties": false,
+    "properties": {
+        "version": {
+            "type": "string",
+            "const": "v7"
+        },
+        "mode": {
+            "type": "string",
+            "enum": ["crud"],
+            "description": "仅 CRUD 语义须显式声明；省略为 UI 模式"
+        },
+        "pageType": {
+            "type": "string",
+            "enum": ["jh-page", "jh-mobile-page", "jh-component"],
+            "description": "NJK 模板族"
+        },
+        "targetPlatform": {
+            "type": "string",
+            "enum": ["pc", "mobile"]
+        },
+        "page": {
+            "$ref": "#/definitions/pageMeta"
+        },
+        "component": {
+            "$ref": "#/definitions/componentMeta"
+        },
+        "pageContent": {
+            "$ref": "#/definitions/pageContentRoot"
+        },
+        "actionContent": {
+            "type": "array"
+        },
+        "dataSource": {
+            "$ref": "#/definitions/dataSource"
+        },
+        "fields": {
+            "type": "object",
+            "description": "mode:crud 字段字典",
+            "additionalProperties": { "$ref": "#/definitions/fieldDef" }
+        },
+        "views": {
+            "type": "object",
+            "description": "mode:crud 视图",
+            "additionalProperties": false,
+            "properties": {
+                "list": { "$ref": "#/definitions/listView" },
+                "create": { "$ref": "#/definitions/formView" },
+                "update": { "$ref": "#/definitions/updateView" }
+            }
+        },
+        "platform": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "desktop": { "$ref": "#/definitions/platformSlice" },
+                "mobile": { "$ref": "#/definitions/platformSlice" }
+            }
+        },
+        "layout": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "slots": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "common": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "includeList": {
+            "$ref": "../components/include-list.schema.json#/definitions/includeListArray"
+        },
+        "resourceList": {
+            "$ref": "../components/resource-list.schema.json#/definitions/resourceListArray"
+        },
+        "resourceHints": {
+            "$ref": "#/definitions/resourceHints"
+        },
+        "pc": {
+            "description": "mode:crud — (views, blocks) => { pageContent?, actionContent? }"
+        },
+        "mobile": {
+            "description": "mode:crud — (views, blocks) => { pageContent?, actionContent? }"
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": { "mode": { "const": "crud" } },
+                "required": ["mode"]
+            },
+            "then": {
+                "required": ["fields", "dataSource"],
+                "not": { "required": ["pageContent"] }
+            },
+            "else": {
+                "required": ["pageContent"],
+                "not": {
+                    "anyOf": [
+                        { "required": ["mode"] },
+                        { "required": ["fields"] },
+                        { "required": ["views"] },
+                        { "required": ["dataSource"] },
+                        { "required": ["pc"] },
+                        { "required": ["mobile"] }
+                    ]
+                }
+            }
+        },
+        {
+            "if": {
+                "anyOf": [
+                    {
+                        "properties": { "pageType": { "const": "jh-component" } },
+                        "required": ["pageType"]
+                    },
+                    { "required": ["component"] }
+                ]
+            },
+            "then": {
+                "required": ["component"],
+                "not": {
+                    "anyOf": [
+                        { "required": ["page"] },
+                        { "required": ["resourceList"] }
+                    ]
+                }
+            },
+            "else": {
+                "required": ["page"]
+            }
+        }
+    ],
+    "definitions": {
+        "pageMeta": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["id"],
+            "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "name": { "type": "string" },
+                "hook": {},
+                "menu": { "type": "boolean" },
+                "targets": { "type": "string", "enum": ["pc", "mobile", "both"], "description": "UI 模式默认 pc；mode:crud 固定双端" },
+                "vuetify": { "type": "object" },
+                "template": { "type": "string" }
+            }
+        },
+        "componentMeta": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["path"],
+            "properties": {
+                "path": { "type": "string", "minLength": 1 },
+                "name": { "type": "string" },
+                "targets": { "type": "string", "enum": ["pc", "mobile", "both"] },
+                "props": { "type": "object", "additionalProperties": true }
+            }
+        },
+        "resourceHints": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "properties": {
+                    "actionId": { "type": "string" },
+                    "desc": { "type": "string" },
+                    "resourceType": { "type": "string" }
+                }
+            }
+        },
+        "pageContentRoot": {
+            "description": "页面主体 UI 树；纯 actionContent 时可写 {}",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "maxProperties": 0
+                },
+                {
+                    "type": "object",
+                    "required": ["component"],
+                    "properties": {
+                        "component": { "type": "string" },
+                        "props": { "type": "object" },
+                        "attrs": { "type": "object" },
+                        "children": { "type": "array" },
+                        "key": { "type": "string" }
+                    },
+                    "additionalProperties": true
+                }
+            ]
+        },
+        "dataSource": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "table": { "type": "string", "minLength": 1 },
+                "model": { "type": "string", "minLength": 1 },
+                "primaryKey": { "type": "string" },
+                "listResource": { "type": "string" },
+                "createResource": { "type": "string" },
+                "updateResource": { "type": "string" },
+                "deleteResource": { "type": "string" },
+                "listActionId": { "type": "string" },
+                "createActionId": { "type": "string" },
+                "updateActionId": { "type": "string" },
+                "deleteActionId": { "type": "string" },
+                "getActionId": { "type": "string" },
+                "resource": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "list": { "type": "string" },
+                        "create": { "type": "string" },
+                        "update": { "type": "string" },
+                        "delete": { "type": "string" },
+                        "get": { "type": "string" }
+                    }
+                },
+                "actions": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "list": { "type": "string" },
+                        "create": { "type": "string" },
+                        "update": { "type": "string" },
+                        "delete": { "type": "string" }
+                    }
+                }
+            }
+        },
+        "fieldDef": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "label": { "type": "string" },
+                "type": {
+                    "type": "string",
+                    "enum": ["text", "select", "number", "textarea", "date", "custom", "section", "divider", "tip"]
+                },
+                "options": {},
+                "required": { "type": "boolean" },
+                "readonly": { "type": "boolean" },
+                "op": { "type": "string" },
+                "width": { "type": "number" },
+                "class": { "type": "string" },
+                "cellClass": { "type": "string" },
+                "html": { "type": "string", "description": "type='tip' 时的 HTML 内容" },
+                "cls": { "type": "string", "description": "结构性字段或表单项额外 class" },
+                "placeholder": { "type": "string", "description": "表单 placeholder" },
+                "hint": { "type": "string", "description": "表单 hint（persistent-hint）" },
+                "quickAttrs": {
+                    "description": "布尔型 Vuetify 属性：数组 [\"clearable\"] 或空格字符串"
+                },
+                "attrs": {
+                    "type": "object",
+                    "description": "透传 jh-form → Vuetify 组件 props（如 textarea.rows、select item-text）",
+                    "additionalProperties": true
+                },
+                "pc": {
+                    "type": "object",
+                    "description": "PC 端 attrs 覆写（直接 merge 进 fields.attrs，如 { rows: 8 }）",
+                    "additionalProperties": true
+                },
+                "mobile": {
+                    "type": "object",
+                    "description": "Mobile 端 attrs 覆写（直接 merge 进 fields.attrs，如 { rows: 5 }）",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "fieldAttrsMap": {
+            "type": "object",
+            "description": "按 field key 覆写 attrs；合并于 fields.{key}.attrs 之上",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": true
+            }
+        },
+        "listView": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "columns": { "type": "array", "description": "有 views.list 时须非空；省略 views.list 则无需 columns" },
+                "mobileColumns": { "type": "array" },
+                "search": { "$ref": "#/definitions/searchOrFilterConfig" },
+                "filter": {},
+                "toolbarActions": { "type": "array" },
+                "rowActions": { "type": "array" },
+                "orderBy": { "type": "array" },
+                "serverPagination": { "type": "boolean" },
+                "pageSize": { "type": "number", "minimum": 1 },
+                "selectable": { "type": "boolean" },
+                "layout": {
+                    "type": "object",
+                    "properties": {
+                        "type": { "type": "string", "enum": ["table", "card"] }
+                    }
+                },
+                "mobileSearchTitle": { "type": "string", "description": "SearchSheet 标题；默认「搜索」" },
+                "searchSheet": { "$ref": "#/definitions/sheetOverlay", "description": "SearchSheet 叠层行为（高度 / persistent 等）" }
+            }
+        },
+        "sheetOverlay": {
+            "type": "object",
+            "description": "Sheet 叠层行为（仅 FormSheet / SearchSheet / Sheet，不含 Drawer）",
+            "additionalProperties": false,
+            "properties": {
+                "persistent": { "type": "boolean", "description": "点外侧不关闭" },
+                "rounded": { "type": "boolean", "description": "卡片顶部圆角 rounded-t-lg" },
+                "autoHeight": { "type": "boolean", "description": "FormSheet：true 为 max-h，false 为固定 h（create/update 默认 true）" },
+                "viewportOffset": { "type": "number", "description": "FormSheet calc(100vh-Npx)；单 tab 默认 102，多 tab 152" },
+                "maxBodyHeight": { "type": "string", "description": "内容区最大高度，如 70vh、400px" },
+                "bodyHeight": { "type": "string", "description": "固定内容区高度；优先于 maxBodyHeight" },
+                "minCardHeight": { "type": "string", "description": "卡片 min-h，默认 100px" },
+                "beforeCloseConfirm": { "type": "boolean", "description": "FormSheet 关前脏检测" }
+            }
+        },
+        "searchOrFilterConfig": {
+            "oneOf": [
+                { "type": "array", "items": { "type": "string" } },
+                {
+                    "type": "object",
+                    "properties": {
+                        "keyword": {
+                            "type": "object",
+                            "properties": {
+                                "fields": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+                                "placeholder": { "type": "string" },
+                                "label": { "type": "string" }
+                            },
+                            "required": ["fields"]
+                        },
+                        "fields": { "type": "array" }
+                    }
+                }
+            ]
+        },
+        "formView": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "type": { "type": "string" },
+                "title": { "type": "string" },
+                "fields": { "type": "array", "items": { "type": "string" } },
+                "interaction": { "type": "object" },
+                "actions": { "type": "array" },
+                "saveTipBeforeClose": { "type": "boolean" },
+                "sheet": { "$ref": "#/definitions/sheetOverlay", "description": "FormSheet 叠层行为（mobile create 默认满高）" },
+                "fieldAttrs": { "$ref": "#/definitions/fieldAttrsMap", "description": "覆写 create 表单 fieldList[].attrs" }
+            }
+        },
+        "updateView": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "tabs": { "type": "array" },
+                "fields": { "type": "array", "items": { "type": "string" } },
+                "sheet": { "$ref": "#/definitions/sheetOverlay", "description": "FormSheet 叠层行为（mobile update 默认满高）" },
+                "fieldAttrs": { "$ref": "#/definitions/fieldAttrsMap", "description": "单表单模式覆写 fieldList[].attrs" }
+            }
+        },
+        "platformSlice": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "list": { "type": "string" },
+                "create": { "type": "string" },
+                "update": { "type": "string" },
+                "filter": { "type": "string", "enum": ["inline", "sheet"] }
+            }
+        }
+    }
+}

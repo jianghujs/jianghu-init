@@ -1,0 +1,186 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  jh-search  统一搜索组件
+
+  props:
+    fields        Array   筛选字段配置：
+                    { key, label, type, op, options, multiple, placeholder, attrs }
+                    · type: 'text'(默认) | 'select' | 'date' | 'number'
+                    · op:   'eq'(默认) | 'like' | 'in' | 'gte' | 'lte'
+                    · options: Array | String（Vue 变量路径）
+                    · multiple: Boolean（select 多选时自动 op='in'）
+    keyword       Object  全局模糊搜索配置：
+                    { fields: string[], placeholder?: string }
+    searchBtn     Boolean 是否显示查询按钮，默认 true
+
+  events:
+    @search       { where, whereLike, whereIn, whereOrOptions }
+
+  inject:
+    jhPage（可选）：用于解析 options 字符串路径
+───────────────────────────────────────────────────────────────────── -->
+<script type="text/html" id="jh-search-template">
+  <div v-bind="$attrs" v-on="$listeners" class="inline-flex items-center flex-wrap gap-2">
+
+    <!-- keyword 全局搜索 -->
+    <v-text-field
+      v-if="keyword && keyword.fields && keyword.fields.length"
+      v-model="localKeyword"
+      :placeholder="keyword.placeholder || '搜索'"
+      class="jh-v-input max-w-[240px]"
+      dense single-line filled clearable
+      @keyup.enter="handleSearch"
+      @click:clear="localKeyword = ''; handleSearch()"
+      :style="{ width: keyword.width || '200px', minWidth: keyword.width || '200px', maxWidth: keyword.width || '200px' }"
+    >
+      <template v-slot:prepend-inner>
+        <jh-icon name="lucide:search" size="20"></jh-icon>
+      </template>
+    </v-text-field>
+
+    <!-- 字段筛选 -->
+    <template v-for="(field, idx) in fields">
+      <!-- 跳过 keyword 类型（已由上面的 keyword 输入框处理） -->
+      <template v-if="field.type === 'keyword'"></template>
+
+      <!-- select 单选 -->
+      <v-select
+        v-else-if="field.type === 'select' && !field.multiple"
+        :key="field.key || idx"
+        v-model="localValues[field.key]"
+        v-bind="field.attrs || {}"
+        :items="resolveOptions(field)"
+        :prefix="field.label"
+        class="jh-v-input max-w-[180px]"
+        dense single-line filled clearable
+        @change="!searchBtn && handleSearch()"
+      ></v-select>
+
+      <!-- select 多选 -->
+      <v-select
+        v-else-if="field.type === 'select' && field.multiple"
+        :key="field.key || idx"
+        v-model="localValues[field.key]"
+        v-bind="field.attrs || {}"
+        :items="resolveOptions(field)"
+        :prefix="field.label"
+        class="jh-v-input max-w-[220px]"
+        dense single-line filled clearable multiple small-chips deletable-chips
+        @change="!searchBtn && handleSearch()"
+      ></v-select>
+
+      <!-- date -->
+      <v-menu v-else-if="field.type === 'date'"
+        :key="field.key || idx"
+        transition="scale-transition" offset-y min-width="auto">
+        <template v-slot:activator="{ on, attrs }">
+          <v-text-field
+            v-model="localValues[field.key]"
+            v-bind="Object.assign({}, field.attrs || {}, attrs)"
+            v-on="on"
+            :prefix="field.label"
+            prepend-inner-icon="mdi-calendar-range"
+            class="jh-v-input max-w-[180px]"
+            dense single-line filled readonly clearable
+            @click:clear="localValues[field.key] = null; !searchBtn && handleSearch()"
+          ></v-text-field>
+        </template>
+        <v-date-picker
+          color="success" elevation="20" no-title
+          v-model="localValues[field.key]"
+          @input="!searchBtn && handleSearch()"
+        ></v-date-picker>
+      </v-menu>
+
+      <!-- text / number -->
+      <v-text-field
+        v-else
+        :key="field.key || idx"
+        v-model="localValues[field.key]"
+        v-bind="field.attrs || {}"
+        :prefix="field.label"
+        :type="field.type === 'number' ? 'number' : 'text'"
+        class="jh-v-input max-w-[180px]"
+        dense single-line filled clearable
+        @keyup.enter="handleSearch"
+        @click:clear="localValues[field.key] = ''; !searchBtn && handleSearch()"
+      ></v-text-field>
+    </template>
+
+    <!-- 查询按钮 -->
+    <v-btn v-if="searchBtn" class="elevation-0" color="success" small @click="handleSearch">查询</v-btn>
+
+  </div>
+</script>
+
+<script>
+Vue.component('jh-search', {
+  inheritAttrs: false,
+  template: '#jh-search-template',
+  inject: { jhPage: { default: null } },
+  props: {
+    fields:    { type: Array,   default: () => [] },
+    keyword:   { type: Object,  default: null },
+    searchBtn: { type: Boolean, default: true },
+  },
+  data() {
+    return {
+      localKeyword: '',
+      localValues: {},
+    };
+  },
+  created() {
+    (this.fields || []).forEach(f => {
+      if (f.type === 'keyword') return;
+      this.$set(this.localValues, f.key, f.multiple ? [] : null);
+    });
+  },
+  methods: {
+    resolveOptions(field) {
+      if (!field.options) return [];
+      if (Array.isArray(field.options)) return field.options;
+      if (typeof field.options === 'string') {
+        const state = this.jhPage ? this.jhPage.state : null;
+        if (state) return _.get(state, field.options) || [];
+        return _.get(this.$root, field.options) || [];
+      }
+      return [];
+    },
+    handleSearch() {
+      const where = {};
+      const whereLike = {};
+      const whereIn = {};
+      let whereOrOptions = [];
+
+      for (const field of (this.fields || [])) {
+        if (field.type === 'keyword') continue;
+        const val = this.localValues[field.key];
+        if (val == null || val === '' || (Array.isArray(val) && !val.length)) continue;
+
+        const op = field.multiple ? 'in' : (field.op || 'eq');
+        switch (op) {
+          case 'like':
+            whereLike[field.key] = _.isString(val) ? val.trim() : val;
+            break;
+          case 'in':
+            whereIn[field.key] = Array.isArray(val) ? val : [val];
+            break;
+          default:
+            where[field.key] = _.isString(val) ? val.trim() : val;
+            break;
+        }
+      }
+
+      if (this.keyword && this.keyword.fields && this.keyword.fields.length) {
+        const k = (this.localKeyword || '').trim();
+        if (k) {
+          this.keyword.fields.forEach(fieldKey => {
+            whereOrOptions.push([fieldKey, 'like', '%' + k + '%']);
+          });
+        }
+      }
+
+      this.$emit('search', { where, whereLike, whereIn, whereOrOptions });
+    },
+  },
+});
+</script>

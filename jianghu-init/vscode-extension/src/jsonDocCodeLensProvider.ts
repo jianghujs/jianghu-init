@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { isModernConfigText } from './configVersionDetect';
 
 /**
  * JSON文档代码镶边提供者
@@ -52,6 +53,11 @@ export class JsonDocCodeLensProvider implements vscode.CodeLensProvider {
     }
 
     const text = editor.document.getText();
+    // v6 / v7 只使用各自 hover，不走 v4 md-doc 装饰
+    if (isModernConfigText(text)) {
+      editor.setDecorations(this.decorationType, []);
+      return;
+    }
     const decorations: vscode.DecorationOptions[] = [];
     const propertyRegex = /(?:^|\s+)['"]?([\w]+)['"]?\s*:/gm;
     let match;
@@ -153,6 +159,10 @@ export class JsonDocCodeLensProvider implements vscode.CodeLensProvider {
     console.log(`开始处理文件: ${document.fileName}`);
     const codeLenses: vscode.CodeLens[] = [];
     const text = document.getText();
+    // v6 / v7 只使用各自 hover，不走 v4 md-doc
+    if (isModernConfigText(text)) {
+      return [];
+    }
     
     // 使用正则表达式匹配所有属性，包括缩进的属性
     const propertyRegex = /(?:^|\s+)['"]?([\w]+)['"]?\s*:/gm;
@@ -240,6 +250,11 @@ export class JsonDocHoverProvider implements vscode.HoverProvider {
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.Hover> {
     if (!this.isInitJsonFile(document.fileName)) {
+      return null;
+    }
+
+    // v6 / v7 只使用各自 hover，不走 v4 md-doc
+    if (isModernConfigText(document.getText())) {
       return null;
     }
 

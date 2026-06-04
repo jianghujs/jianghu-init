@@ -270,9 +270,9 @@ const content = {
       pageId: 'Resource',
 
       // actionId
-      createActionId: null,
-      updateActionId: null,
-      deleteActionId: null,
+      createResource: null,
+      updateResource: null,
+      deleteResource: null,
     },
     dataExpression: {
       isMobile: 'window.innerWidth < 500'
@@ -335,7 +335,7 @@ const content = {
 
 
       async prepareDoCreateItem() {
-        this.createActionId = `insertItemOf${this.pageId}`;
+        this.createResource = `insertItemOf${this.pageId}`;
         this.createActionData = this.createItem;
       },
       async doCreateItem() {
@@ -344,7 +344,7 @@ const content = {
           data: {
             appData: {
               pageId: 'userPageResource',
-              actionId: this.createActionId,
+              actionId: this.createResource,
               actionData: this.createActionData
             }
           }
@@ -353,7 +353,7 @@ const content = {
       },
       async prepareDoUpdateItem() {
         const {id, ...data} = this.updateItem;
-        this.updateActionId = `updateItemOf${this.pageId}`;
+        this.updateResource = `updateItemOf${this.pageId}`;
         this.updateItemId = id;
         this.updateActionData = data;
       },
@@ -364,7 +364,7 @@ const content = {
           data: {
             appData: {
               pageId: 'userPageResource',
-              actionId: this.updateActionId,
+              actionId: this.updateResource,
               actionData: this.updateActionData,
               where: {id: this.updateItemId}
             }
@@ -381,7 +381,7 @@ const content = {
       async prepareDoDeleteItem() {
         const {id} = this.deleteItem;
         this.deleteItemId = id;
-        this.deleteActionId = `deleteItemOf${this.pageId}`;
+        this.deleteResource = `deleteItemOf${this.pageId}`;
       },
       async doDeleteItem() {
         window.vtoast.loading('正在删除');
@@ -389,13 +389,13 @@ const content = {
           data: {
             appData: {
               pageId: 'userPageResource',
-              actionId: this.deleteActionId,
+              actionId: this.deleteResource,
               where: {id: this.deleteItemId}
             }
           }
         });
         window.vtoast.success('删除成功');
-        this.deleteActionId = null;
+        this.deleteResource = null;
         this.deleteItemId = null;
       },
       // ---------------删除数据 uiAction <<<<<<<<<<<<<<<< ---------------

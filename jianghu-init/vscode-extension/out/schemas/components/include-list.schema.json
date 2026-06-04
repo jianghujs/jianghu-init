@@ -28,6 +28,18 @@
                 "component": {
                     "type": "string",
                     "description": "组件名称"
+                },
+                "target": {
+                    "description": "编译端：'pc' | 'mobile'；省略则两端都引入（v7 buildPage 按 targetPlatform 过滤）",
+                    "oneOf": [
+                        { "type": "string", "enum": ["pc", "mobile"] },
+                        {
+                            "type": "array",
+                            "items": { "type": "string", "enum": ["pc", "mobile"] },
+                            "minItems": 1,
+                            "uniqueItems": true
+                        }
+                    ]
                 }
             },
             "required": ["type"],
@@ -64,7 +76,7 @@
             "items": {
                 "$ref": "#/definitions/includeList"
             },
-            "description": "List of resources included in the page"
+            "description": "引入资源列表；v7 可在项上设 target: pc|mobile，省略则两端共用"
         }
     }
 }

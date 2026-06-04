@@ -15,6 +15,17 @@ const chokidar = require('chokidar');
 const dayjs = require('dayjs');
 const _ = require('lodash');
 const chalk = require('chalk');
+const { attachProvideStringFromSource } = require('./json/mixin/extract_provide_source');
+
+const resolveConfigPageId = (item) => {
+  if (!item || typeof item !== 'object') return undefined;
+  return item.pageId || item.page?.id || item.page?.pageId;
+};
+
+const resolveConfigComponentPath = (item) => {
+  if (!item || typeof item !== 'object') return undefined;
+  return item.componentPath || item.component?.path || item.page?.componentPath;
+};
 
 const jsonTypes = [
   {
@@ -296,12 +307,14 @@ module.exports = class InitByJsonCommand extends CommandBase {
     // 如果没有jianghuJs 目录，则创建
     fs.mkdirSync('./app/view/common/jianghuJs', { recursive: true });
     fs.mkdirSync('./app/view/component/jianghuJs', { recursive: true });
+    fs.mkdirSync('./app/view/component/v6', { recursive: true });
     fs.mkdirSync('./app/view/template', { recursive: true });
     fs.mkdirSync('./app/public/lib', { recursive: true });
 
     const initConfig = this.getInitConfig();
     let isCommonOverwrite = true;
     let isComponentOverwrite = true;
+    let isV6ComponentOverwrite = true;
     let isTemplateOverwrite = true;
     let isPublicwrite = true;
     if (initConfig && initConfig.initJsonOverwrite) {
@@ -313,6 +326,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
       }
       if (isFalse('component')) {
         isComponentOverwrite = false;
+      }
+      if (isFalse('v6Component')) {
+        isV6ComponentOverwrite = false;
       }
       if (isFalse('template')) {
         isTemplateOverwrite = false;
@@ -327,7 +343,8 @@ module.exports = class InitByJsonCommand extends CommandBase {
       { flag: isComponentOverwrite, name: 'component', desc: 'component' },
       { flag: isCommonOverwrite, name: 'common', desc: 'common' },
       { flag: isPublicwrite, name: 'publicStatic', desc: 'public' },
-      { flag: isTemplateOverwrite, name: 'template', desc: 'template' }
+      { flag: isTemplateOverwrite, name: 'template', desc: 'template' },
+      { flag: isV6ComponentOverwrite, name: 'v6Component', desc: 'v6Component' }
     ];
     this.notice('------------依赖文件覆盖 START------------');
     copyConfigs.forEach(({ flag, name, desc }) => {
@@ -343,12 +360,14 @@ module.exports = class InitByJsonCommand extends CommandBase {
     if (isCommonOverwrite) {
       this.copyDir(`${path.join(__dirname, '../')}page-template-json/common/jianghuJs`, './app/view/common/jianghuJs');
     }
+    if (isV6ComponentOverwrite) {
+      this.copyDir(`${path.join(__dirname, '../')}page-template-json/component/v6`, './app/view/component/v6');
+    }
     if (isPublicwrite) {
       this.copyDir(`${path.join(__dirname, '../')}page-template-json/public/lib`, './app/public/lib');
     }
     if (isTemplateOverwrite) {
-      fs.copyFileSync(`${path.join(__dirname, '../')}page-template-json/common/jhMobileTemplateV4.html`, './app/view/template/jhMobileTemplateV4.html');
-      fs.copyFileSync(`${path.join(__dirname, '../')}page-template-json/common/jhTemplateV4.html`, './app/view/template/jhTemplateV4.html');
+      this.copyDir(`${path.join(__dirname, '../')}page-template-json/common/template`, './app/view/template');
     }
   }
 
@@ -383,9 +402,29 @@ module.exports = class InitByJsonCommand extends CommandBase {
     this.info(`共有 ${fileList.length} 个配置文件，加载中...`);
     const configFileList = [];
     for (const file of fileList) {
-      // eslint-disable-next-line no-eval
-      const fileObj = eval(fs.readFileSync('./' + file).toString());
-      configFileList.push({ pageType: fileObj.pageType, pageId: fileObj.pageId, componentPath: fileObj.componentPath, file: file.replace('app/view/init-json/', '') });
+      let fileObj;
+      let fileContent;
+      try {
+        fileContent = fs.readFileSync('./' + file).toString();
+        // eslint-disable-next-line no-eval
+        fileObj = eval(fileContent);
+        attachProvideStringFromSource(fileObj, fileContent);
+      } catch (e) {
+        this.error(`文件语法错误 (${file}): ${e.message}`);
+        console.error(
+          chalk.red(
+            `eval 失败：${file} — init-json 须为可被 eval 的 JS（推荐 module.exports = { ... };，或对顶层写成 ({ pageType: 'jh-page', ... });）。`,
+          ),
+        );
+        console.log(e);
+        continue;
+      }
+      configFileList.push({
+        pageType: fileObj.pageType,
+        pageId: resolveConfigPageId(fileObj),
+        componentPath: resolveConfigComponentPath(fileObj),
+        file: file.replace('app/view/init-json/', ''),
+      });
       await this.renderContent(fileObj, file.replace('app/view/init-json/', ''));
     }
     this.success(`共有 ${fileList.length} 个配置文件，加载完成`);
@@ -403,10 +442,18 @@ module.exports = class InitByJsonCommand extends CommandBase {
         console.log(chalk.gray(`File ${pathStr.replace('app/view/init-json', '')} change ${dayjs().format('HH:mm:ss')}`));
         let fileObj = {};
         try {
+          const fileContent = fs.readFileSync('./' + pathStr).toString();
           // eslint-disable-next-line no-eval
-          fileObj = eval(fs.readFileSync('./' + pathStr).toString());
+          fileObj = eval(fileContent);
+          attachProvideStringFromSource(fileObj, fileContent);
         } catch (e) {
-          this.error(`文件语法错误: ${e.message}`);
+          const rel = path.relative(process.cwd(), pathStr) || pathStr;
+          this.error(`文件语法错误 (${rel}): ${e.message}`);
+          console.error(
+            chalk.red(
+              `eval 失败：${rel} — init-json 须为可被 eval 的 JS（推荐 module.exports = { ... };，或对顶层写成 ({ pageType: 'jh-page', ... });）。仅以 { ... } 开头且无赋值时常触发 Unexpected token。`,
+            ),
+          );
           console.log(e);
           return;
         }
@@ -585,16 +632,18 @@ module.exports = class InitByJsonCommand extends CommandBase {
 
     // 检查 this.allConfigFileList 内是否有除了 fileObj 的其他重复项, 有则检查提示重复, 没有则添加
     this.allConfigFileList = this.allConfigFileList || [];
+    const getPageId = resolveConfigPageId;
+    const getComponentPath = resolveConfigComponentPath;
     let duplicateList = [];
     if ([ 'jh-page', '1table-page', 'jh-mobile-page' ].includes(fileObj.pageType)) {
-      duplicateList = this.allConfigFileList.filter(item => (item.pageType || '').includes('-page') && (item.pageId || '') === fileObj.pageId && item.file !== file);
+      duplicateList = this.allConfigFileList.filter(item => (item.pageType || '').includes('-page') && getPageId(item) === getPageId(fileObj) && item.file !== file);
     } else {
-      duplicateList = this.allConfigFileList.filter(item => (item.pageType || '').includes('-component') && item.componentPath === fileObj.componentPath && item.file !== file);
+      duplicateList = this.allConfigFileList.filter(item => (item.pageType || '').includes('-component') && getComponentPath(item) === getComponentPath(fileObj) && item.file !== file);
     }
     if (duplicateList.length) {
-      error.push(`pageId: ${fileObj.pageId} [ ${file}, ${duplicateList.map(e => e.file).join(',')} ] 文件重复，请检查`);
+      error.push(`pageId: ${getPageId(fileObj)} [ ${file}, ${duplicateList.map(e => e.file).join(',')} ] 文件重复，请检查`);
     } else {
-      this.allConfigFileList.push({ pageId: fileObj.pageId, pageType: fileObj.pageType, componentPath: fileObj.componentPath, file });
+      this.allConfigFileList.push({ pageId: getPageId(fileObj), pageType: fileObj.pageType, componentPath: getComponentPath(fileObj), file });
     }
 
     // 检查 jh-json-editor 资源引入

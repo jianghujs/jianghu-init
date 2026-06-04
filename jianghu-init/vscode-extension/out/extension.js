@@ -31,6 +31,8 @@ const semver = __importStar(require("semver"));
 const jsonTemplateCompletionProvider_1 = require("./jsonTemplateCompletionProvider");
 const jsonTemplateHoverProvider_1 = require("./jsonTemplateHoverProvider");
 const jsonDocCodeLensProvider_1 = require("./jsonDocCodeLensProvider");
+const v6ConfigHoverProvider_1 = require("./v6ConfigHoverProvider");
+const v7ConfigHoverProvider_1 = require("./v7ConfigHoverProvider");
 const jianghuSchemaValidator_1 = require("./validators/jianghuSchemaValidator");
 // 当前扩展版本
 const CURRENT_VERSION = '0.0.1';
@@ -409,6 +411,9 @@ async function activate(context) {
     (0, jsonTemplateCompletionProvider_1.activateJsonTemplateCompletion)(context);
     // 激活JSON模板悬停提示
     (0, jsonTemplateHoverProvider_1.activateJsonTemplateHover)(context);
+    // 激活 V6 / V7 配置路径感知悬停提示
+    (0, v6ConfigHoverProvider_1.activateV6ConfigHover)(context);
+    (0, v7ConfigHoverProvider_1.activateV7ConfigHover)(context);
     // 激活JSON文档代码镶边
     (0, jsonDocCodeLensProvider_1.activateJsonDocCodeLens)(context);
     // 设置定期检查更新（每天检查一次）

@@ -1,0 +1,369 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  jh-mobile-search-sheet
+
+  移动端专用搜索底部 Sheet（基于 jh-sheet）。
+  页面绑定可与 jh-page-header 一致，例如：
+    · :search-field-list / searchFieldList（静态数组 JSON，或 schema 里写字符串变量名 → :search-field-list）
+    · :keyword.sync（关键字文案，绑定页面 keyword）
+    · keywordMeta.fields（views.list.search.keyword.fields，固定 OR 列，与 PC jh-search 一致）
+    · :keyword-field-list.sync 仅在没有 keywordMeta.fields 时用于可选列
+    · :keyword-headers（schema 字符串变量名，或与 Table 同步注入）
+    · @search="handleSearch"
+───────────────────────────────────────────────────────────────────── -->
+
+<script type="text/html" id="jh-mobile-search-sheet-v6-template">
+  <jh-sheet
+    :shown="shown"
+    :rounded="rounded"
+    :persistent="persistent"
+    :min-card-height="minCardHeight"
+    :title="title"
+    :body-height="bodyHeight"
+    :max-body-height="maxBodyHeight"
+    :body-class="sheetBodyClassMerged"
+    @update:shown="$emit('update:shown', $event)"
+  >
+    <template v-slot:actions>
+      <template v-if="showSearchBtn">
+        <v-btn class="elevation-0" @click="handleResetLocal">重置</v-btn>
+        <v-btn class="elevation-0 ml-2" color="success" @click="handleSearchSubmit">查询</v-btn>
+      </template>
+    </template>
+
+    <v-row class="jh-backend-form-container" no-gutters>
+      <v-col
+        v-for="(field, sidx) in searchFieldList"
+        :key="(field.key || 'sf') + '-' + sidx"
+        cols="12"
+        class="pb-2"
+      >
+        <v-select
+          v-if="field.type === 'select' && fieldUsesIn(field)"
+          v-model="localWhereIn[field.key]"
+          v-bind="fieldExtraAttrs(field)"
+          :items="resolveOptions(field)"
+          :prefix="field.label"
+          class="jh-v-input"
+          dense single-line filled clearable multiple small-chips deletable-chips
+        />
+        <v-select
+          v-else-if="field.type === 'select' && fieldUsesLike(field)"
+          v-model="localWhereLike[field.key]"
+          v-bind="fieldExtraAttrs(field)"
+          :items="resolveOptions(field)"
+          :prefix="field.label"
+          class="jh-v-input"
+          dense single-line filled clearable
+        />
+        <v-select
+          v-else-if="field.type === 'select'"
+          v-model="localWhere[field.key]"
+          v-bind="fieldExtraAttrs(field)"
+          :items="resolveOptions(field)"
+          :prefix="field.label"
+          class="jh-v-input"
+          dense single-line filled clearable
+        />
+        <v-menu
+          v-else-if="field.type === 'date'"
+          transition="scale-transition" offset-y min-width="auto"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-text-field
+              v-model="localWhere[field.key]"
+              v-bind="fieldExtraAttrs(field)"
+              :prefix="field.label"
+              prepend-inner-icon="mdi-calendar-range"
+              class="jh-v-input"
+              dense single-line filled readonly clearable
+              v-bind="attrs" v-on="on"
+            />
+          </template>
+          <v-date-picker
+            color="success" elevation="20" no-title
+            v-model="localWhere[field.key]"
+          />
+        </v-menu>
+        <v-text-field
+          v-else-if="field.type === 'keyword'"
+          v-model="localKeyword"
+          v-bind="fieldExtraAttrs(field)"
+          :placeholder="keywordPlaceholderText"
+          :disabled="!hasKeywordSearchColumns"
+          class="jh-v-input"
+          dense single-line filled clearable
+          :prefix="field.prefix || undefined"
+        >
+          <template v-if="!keywordUsesFixedFields" v-slot:prepend-inner>
+            <v-menu :close-on-content-click="false" transition="scale-transition" offset-y min-width="290">
+              <template v-slot:activator="{ on, attrs }">
+                <div v-bind="attrs" v-on="on" class="text-no-wrap pt-[3px] pr-1" style="cursor:pointer">
+                  {{ field.label || '搜索' }}
+                  <span class="primary white--text px-1 rounded text-xs align-text-bottom">{{ localKeywordFieldList.length }}</span>
+                </div>
+              </template>
+              <div class="pa-2" style="max-width:320px">
+                <v-chip
+                  v-for="header in keywordHeaderOptions"
+                  :key="header.value"
+                  class="ma-1"
+                  :color="keywordFieldIncludes(header.value) ? 'primary' : undefined"
+                  label outlined small
+                  @click="toggleKeywordField(header.value)"
+                >{{ header.text }}</v-chip>
+              </div>
+            </v-menu>
+          </template>
+        </v-text-field>
+        <v-select
+          v-else-if="isSearchTextual(field) && fieldUsesIn(field) && hasResolveOptions(field)"
+          v-model="localWhereIn[field.key]"
+          v-bind="fieldExtraAttrs(field)"
+          :items="resolveOptions(field)"
+          :prefix="field.label"
+          class="jh-v-input"
+          dense single-line filled clearable multiple small-chips deletable-chips
+        />
+        <v-combobox
+          v-else-if="isSearchTextual(field) && fieldUsesIn(field)"
+          v-model="localWhereIn[field.key]"
+          v-bind="fieldExtraAttrs(field)"
+          :label="field.label"
+          class="jh-v-input"
+          dense filled clearable multiple small-chips deletable-chips
+          hide-details
+        />
+        <v-text-field
+          v-else-if="isSearchTextual(field) && fieldUsesLike(field)"
+          v-model="localWhereLike[field.key]"
+          v-bind="fieldExtraAttrs(field)"
+          :prefix="field.label"
+          :type="field.type === 'number' ? 'number' : 'text'"
+          class="jh-v-input"
+          dense single-line filled clearable
+        />
+        <v-text-field
+          v-else-if="isSearchTextual(field)"
+          v-model="localWhere[field.key]"
+          v-bind="fieldExtraAttrs(field)"
+          :prefix="field.label"
+          :type="field.type === 'number' ? 'number' : 'text'"
+          class="jh-v-input"
+          dense single-line filled clearable
+        />
+      </v-col>
+    </v-row>
+  </jh-sheet>
+</script>
+
+<script>
+Vue.component('jh-mobile-search-sheet', {
+  inheritAttrs: false,
+  template: '#jh-mobile-search-sheet-v6-template',
+  inject: {
+    jhPage: { default: null },
+  },
+  props: {
+    shown:       { type: Boolean, default: false },
+    title:       { type: String,  default: '搜索' },
+    rounded:     { type: Boolean, default: true },
+    searchFieldList:  { type: Array, default: () => [] },
+    keywordHeaders:   { type: Array, default: () => [] },
+    showSearchBtn:    { type: Boolean, default: true },
+    /** 页面 :keyword.sync 绑定的关键字文案 */
+    keyword:          { type: String,  default: '' },
+    /** views.list.search.keyword → { fields, placeholder }，有 fields 时列范围固定（同 PC） */
+    keywordMeta:      { type: Object,  default: null },
+    keywordFieldList: { type: Array,   default: () => [] },
+    /** 内容区最大高度，默认 70vh（views.list.searchSheet.maxBodyHeight） */
+    maxBodyHeight:    { type: String,  default: '70vh' },
+    /** 固定内容区高度；设置后优先于 maxBodyHeight */
+    bodyHeight:       { type: String,  default: null },
+    /** 点外侧不关闭 */
+    persistent:       { type: Boolean, default: false },
+    /** 卡片 min-h，透传 jh-sheet */
+    minCardHeight:    { type: [String, Number], default: null },
+    /** 透传 jh-sheet v-card-text：会与默认滚动类合并 */
+    bodyClass:   { type: [Array, Object, String], default: null },
+  },
+  data() {
+    return {
+      localWhere:            {},
+      localWhereLike:        {},
+      localWhereIn:          {},
+      localKeyword:          this.keyword,
+      localKeywordFieldList: this.keywordFieldList.length ? [...this.keywordFieldList] : [],
+    };
+  },
+  computed: {
+    keywordUsesFixedFields() {
+      return !!(this.keywordMeta && Array.isArray(this.keywordMeta.fields) && this.keywordMeta.fields.length);
+    },
+    configKeywordFields() {
+      return this.keywordUsesFixedFields ? this.keywordMeta.fields.slice() : [];
+    },
+    effectiveKeywordFieldList() {
+      return this.keywordUsesFixedFields
+        ? this.configKeywordFields
+        : (this.localKeywordFieldList || []);
+    },
+    hasKeywordSearchColumns() {
+      return this.effectiveKeywordFieldList.length > 0;
+    },
+    keywordHeaderOptions() {
+      return (this.keywordHeaders || []).filter(h => h && h.value !== 'action');
+    },
+    keywordPlaceholderText() {
+      if (this.keywordMeta && this.keywordMeta.placeholder) {
+        return this.keywordMeta.placeholder;
+      }
+      const list = this.effectiveKeywordFieldList || [];
+      const headers = this.keywordHeaderOptions;
+      const texts = _.compact(list.map(k => (headers.find(h => h.value === k) || {}).text));
+      return texts.length ? texts.join(' / ') : '';
+    },
+    sheetBodyClassMerged() {
+      const base = ['pb-6', 'px-4', 'pt-4'];
+      const ext = this.bodyClass;
+      if (!ext) return base;
+      if (Array.isArray(ext)) return [...base, ...ext];
+      if (typeof ext === 'object') return [ext, ...base];
+      return [...base, ext];
+    },
+  },
+  created() {
+    this.syncLocalKeywordFieldsFromConfig();
+  },
+  mounted() {
+    this.initWhereInArrays();
+  },
+  watch: {
+    keyword(val) {
+      if (val !== this.localKeyword) this.localKeyword = val;
+    },
+    keywordFieldList(val) {
+      if (this.keywordUsesFixedFields) return;
+      this.localKeywordFieldList = val ? [...val] : [];
+    },
+    keywordMeta: {
+      deep: true,
+      handler() {
+        this.syncLocalKeywordFieldsFromConfig();
+      },
+    },
+    keywordHeaders: {
+      immediate: true,
+      handler(headers) {
+        if (this.keywordUsesFixedFields) return;
+        if (!Array.isArray(headers) || headers.length === 0) return;
+        if (this.localKeywordFieldList.length > 0) return;
+        const hasKeywordWidget = (this.searchFieldList || []).some(f => f && (f.type === 'keyword'));
+        if (!hasKeywordWidget) return;
+        this.localKeywordFieldList = headers
+          .filter(h => h && h.value !== 'action')
+          .map(h => h.value);
+      },
+    },
+  },
+  methods: {
+    fieldExtraAttrs(field) {
+      const extra = Object.assign({}, field.attrs || {});
+      const qa = field.quickAttrs;
+      if (Array.isArray(qa)) {
+        qa.forEach(a => { if (a) extra[String(a).trim()] = true; });
+      } else if (typeof qa === 'string' && qa.trim()) {
+        qa.trim().split(/\s+/).forEach(a => { extra[a] = true; });
+      }
+      return extra;
+    },
+    resolveOptions(field) {
+      if (!field.options) return [];
+      if (Array.isArray(field.options)) return field.options;
+      if (typeof field.options === 'string') {
+        if (field.options.startsWith('$root.')) {
+          return _.get(this.$root, field.options.slice(6)) || [];
+        }
+        const state = this.jhPage ? this.jhPage.state : null;
+        return (state && _.get(state, field.options)) || [];
+      }
+      return [];
+    },
+    hasResolveOptions(field) {
+      const o = this.resolveOptions(field);
+      return Array.isArray(o) && o.length > 0;
+    },
+    initWhereInArrays() {
+      (this.searchFieldList || []).forEach((f) => {
+        if (!f || (f.type === 'keyword')) return;
+        if ((f.type === 'date') && this.fieldUsesIn(f)) return;
+        if (this.fieldUsesIn(f)) {
+          if (!Array.isArray(this.localWhereIn[f.key])) {
+            this.$set(this.localWhereIn, f.key, []);
+          }
+        }
+      });
+    },
+    keywordFieldIncludes(value) {
+      return (this.localKeywordFieldList || []).includes(value);
+    },
+    syncLocalKeywordFieldsFromConfig() {
+      if (!this.keywordUsesFixedFields) return;
+      this.localKeywordFieldList = this.configKeywordFields.slice();
+    },
+    toggleKeywordField(value) {
+      if (this.keywordUsesFixedFields) return;
+      const cur = this.localKeywordFieldList || [];
+      if (cur.includes(value)) {
+        this.localKeywordFieldList = cur.filter(k => k !== value);
+      } else {
+        this.localKeywordFieldList = [...cur, value];
+      }
+    },
+    handleSearchSubmit() {
+      const fieldList = this.effectiveKeywordFieldList.slice();
+      this.$emit('update:keyword', this.localKeyword);
+      this.$emit('update:keywordFieldList', fieldList);
+      this.$emit('search', {
+        where:            { ...this.localWhere },
+        whereLike:        { ...this.localWhereLike },
+        whereIn:          { ...this.localWhereIn },
+        keyword:          this.localKeyword,
+        keywordFieldList: fieldList,
+      });
+    },
+    handleResetLocal() {
+      this.localWhere = {};
+      this.localWhereLike = {};
+      this.localWhereIn = {};
+      this.localKeyword = '';
+      if (this.keywordUsesFixedFields) {
+        this.localKeywordFieldList = this.configKeywordFields.slice();
+      } else {
+        const headers = this.keywordHeaderOptions;
+        if (headers.length) {
+          this.localKeywordFieldList = headers.map(h => h.value);
+        } else {
+          this.localKeywordFieldList = [];
+        }
+      }
+      this.initWhereInArrays();
+    },
+    isSearchTextual(field) {
+      const w = field.type;
+      if (w === 'select' || w === 'date' || w === 'keyword') return false;
+      return true;
+    },
+    fieldUsesIn(field) {
+      return !!(field && field.op === 'in');
+    },
+    fieldUsesLike(field) {
+      if (!field || this.fieldUsesIn(field)) return false;
+      if (field.type === 'select') return field.op === 'like';
+      if (!this.isSearchTextual(field)) return false;
+      if (field.op === 'like') return true;
+      if (!field.op) return true;
+      return false;
+    },
+  },
+});
+</script>

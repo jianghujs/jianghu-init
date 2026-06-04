@@ -7,6 +7,8 @@ import * as semver from 'semver';
 import { activateJsonTemplateCompletion } from './jsonTemplateCompletionProvider';
 import { activateJsonTemplateHover } from './jsonTemplateHoverProvider';
 import { activateJsonDocCodeLens } from './jsonDocCodeLensProvider';
+import { activateV6ConfigHover } from './v6ConfigHoverProvider';
+import { activateV7ConfigHover } from './v7ConfigHoverProvider';
 import { JianghuSchemaValidator } from './validators/jianghuSchemaValidator';
 
 // 当前扩展版本
@@ -484,6 +486,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   
   // 激活JSON模板悬停提示
   activateJsonTemplateHover(context);
+
+  // 激活 V6 / V7 配置路径感知悬停提示
+  activateV6ConfigHover(context);
+  activateV7ConfigHover(context);
   
   // 激活JSON文档代码镶边
   activateJsonDocCodeLens(context);

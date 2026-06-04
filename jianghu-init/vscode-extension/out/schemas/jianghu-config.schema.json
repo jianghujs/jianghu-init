@@ -1,70 +1,17 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://jianghu.example.com/schemas/jianghu-config.schema.json",
-    "title": "Jianghu Config Schema",
-    "description": "Schema for validating Jianghu configuration files",
-    "type": "object",
-    "properties": {
-        "pageType": {
-            "$ref": "components/basic-types.schema.json#/definitions/pageType"
-        },
-        "pageId": {
-            "$ref": "components/basic-types.schema.json#/definitions/pageId"
-        },
-        "pageName": {
-            "$ref": "components/basic-types.schema.json#/definitions/pageName"
-        },
-        "template": {
-            "$ref": "components/basic-types.schema.json#/definitions/template"
-        },
-        "table": {
-            "$ref": "components/basic-types.schema.json#/definitions/table"
-        },
-        "version": {
-            "$ref": "components/basic-types.schema.json#/definitions/version"
-        },
-        "jhMenu": {
-            "$ref": "components/basic-types.schema.json#/definitions/jhMenu"
-        },
-        "componentPath": {
-            "$ref": "components/basic-types.schema.json#/definitions/componentPath"
-        },
-        "headContent": {
-            "$ref": "components/head-content.schema.json#/definitions/headContentArray"
-        },
-        "pageContent": {
-            "$ref": "components/page-content.schema.json#/definitions/pageContentArray"
-        },
-        "actionContent": {
-            "$ref": "components/action-content.schema.json#/definitions/actionContentArray"
-        },
-        "includeList": {
-            "$ref": "components/include-list.schema.json#/definitions/includeListArray"
-        },
-        "common": {
-            "$ref": "components/common.schema.json#/definitions/common"
-        },
-        "style": {
-            "$ref": "components/basic-types.schema.json#/definitions/style"
-        },
-        "resourceList": {
-            "$ref": "components/resource-list.schema.json#/definitions/resourceListArray"
-        }
-    },
-    "allOf": [
+    "title": "Jianghu Page Config",
+    "description": "v7 语义配置（fields/views/platform/layout）；v6 使用 component + props 树；v1–v5 使用 tag 节点。由 version 区分。",
+    "oneOf": [
         {
-            "if": {
-                "properties": {
-                    "pageType": {
-                        "enum": ["jh-page", "jh-mobile-page"]
-                    }
-                }
-            },
-            "then": {
-                "required": ["pageType", "pageId", "pageName", "pageContent", "common"]
-            }
+            "$ref": "v7/jianghu-config-v7.schema.json"
+        },
+        {
+            "$ref": "v6/jianghu-config-v6.schema.json"
+        },
+        {
+            "$ref": "jianghu-config-legacy.schema.json"
         }
-    ],
-    "required": ["pageType", "pageContent", "common"],
-    "additionalProperties": false
+    ]
 }

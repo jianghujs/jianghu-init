@@ -1,0 +1,87 @@
+<!-- actionList / headActionList 项 visibleWhen / disabledWhen（与 jh-form field interaction 同口径） -->
+<script>
+(function () {
+  const jhActionWhenMixin = {
+    methods: {
+      _actionWhenContext() {
+        const ctx = Object.assign({}, this.initialData || {});
+        if (this.scope && typeof this.scope === 'object') {
+          Object.assign(ctx, this.scope);
+        }
+        return ctx;
+      },
+      _resolveActionWhenRef(name) {
+        if (!name) return undefined;
+        if (this.initialData && Object.prototype.hasOwnProperty.call(this.initialData, name)) {
+          return this.initialData[name];
+        }
+        if (this.scope && Object.prototype.hasOwnProperty.call(this.scope, name)) {
+          return this.scope[name];
+        }
+        const parent = this.$parent;
+        if (parent && Object.prototype.hasOwnProperty.call(parent, name)) {
+          const val = parent[name];
+          return typeof val === 'function' ? val.call(parent) : val;
+        }
+        return undefined;
+      },
+      _evalActionWhenExpr(expr) {
+        if (!expr || typeof expr !== 'string') return false;
+        const ctx = this._actionWhenContext();
+        try {
+          const keys = Object.keys(ctx);
+          const vals = keys.map(k => ctx[k]);
+          // eslint-disable-next-line no-new-func
+          return !!new Function(...keys, 'return (' + expr + ');').apply(null, vals);
+        } catch (e) {
+          return false;
+        }
+      },
+      evaluateActionWhen(cond, defaultVal) {
+        if (cond === undefined || cond === null) return defaultVal;
+        if (typeof cond === 'boolean') return cond;
+        if (cond && typeof cond === 'object' && cond.__expr__ != null) {
+          return this._evalActionWhenExpr(String(cond.__expr__));
+        }
+        if (typeof cond === 'string') {
+          const trimmed = cond.trim();
+          if (!trimmed) return defaultVal;
+          const fromRef = this._resolveActionWhenRef(trimmed);
+          if (fromRef !== undefined) return !!fromRef;
+          if (/[=<>!]|&&|\|\||\./.test(trimmed)) {
+            return this._evalActionWhenExpr(trimmed);
+          }
+          return false;
+        }
+        if (typeof cond === 'object') {
+          if (Array.isArray(cond.and)) return cond.and.every(c => this.evaluateActionWhen(c, true));
+          if (Array.isArray(cond.or)) return cond.or.some(c => this.evaluateActionWhen(c, false));
+          if (cond.field != null) {
+            const actual = (this.initialData || {})[cond.field];
+            const value = cond.value;
+            switch (cond.op) {
+              case 'eq': return actual == value;
+              case 'ne': return actual != value;
+              case 'in': return Array.isArray(value) && value.includes(actual);
+              default: return actual == value;
+            }
+          }
+        }
+        return defaultVal;
+      },
+      isActionVisible(action) {
+        if (!action) return false;
+        return this.evaluateActionWhen(action.visibleWhen, true);
+      },
+      isActionDisabled(action) {
+        if (!action) return false;
+        return this.evaluateActionWhen(action.disabledWhen, false);
+      },
+      filterVisibleActions(list) {
+        return (list || []).filter(a => this.isActionVisible(a));
+      },
+    },
+  };
+  window.jhActionWhenMixin = jhActionWhenMixin;
+})();
+</script>

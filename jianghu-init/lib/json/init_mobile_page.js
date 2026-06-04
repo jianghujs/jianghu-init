@@ -121,22 +121,22 @@ module.exports = class InitMobilePage extends CommandBase {
     // const pageBakDir = './app/view/pageBak';
     // if (!fs.existsSync(pageBakDir)) fs.mkdirSync(pageBakDir);
 
-    const { table, pageId, pageType, version, pageFile } = jsonConfig;
+    const { table, pageId: _pageId, pageType, version, pageFile } = jsonConfig;
+    const pageId = jsonConfig.page?.id || jsonConfig.page?.pageId ||  _pageId;
     const tableCamelCase = _.camelCase(table);
     const filepath = `./app/view/page/${pageFile || pageId}.html`;
-    const templatePath = `${path.join(__dirname, '../../')}page-template-json/jh-mobile-page`;
-    const templateTargetPath = `${templatePath}/${version ? pageType + '-' + version : pageType}.njk.html`;
-    const listTemplate = fs.readFileSync(templateTargetPath)
-      .toString()
-      .replace(/\/\/===\/\/ /g, '')
-      .replace(/\/\/===\/\//g, '');
+
+    const njkRootPath = `${path.join(__dirname, '../../')}page-template-json`;
+    const templateTargetDir = version == 'v6' ? 'jh-page' : 'jh-mobile-page';
+    const templateTargetFile = version == 'v6' ? 'jh-page-v6.njk.html' : (version ? pageType + '-' + version : pageType) + '.njk.html';
+    const templateTargetPath = `${templateTargetDir}/${templateTargetFile}`;
 
     // 初始化 njk 模板标签、filter
-    this.handleNunjucksEnv(templateTargetPath);
+    const nunjucksEnv = this.handleNunjucksEnv(njkRootPath);
     this.handleJsonConfig(jsonConfig);
 
     const componentList = this.getConfigComponentList(jsonConfig);
-    const htmlGenerate = nunjucks.renderString(listTemplate, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
+    const htmlGenerate = nunjucksEnv.render(templateTargetPath, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
 
     if (pageId.includes('/')) {
       const pageIdArr = pageId.split('/');

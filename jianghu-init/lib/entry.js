@@ -7,6 +7,7 @@ const CommandInitComponent = require('./init_component');
 const CommandInitByJson = require('./init_by_json');
 const CommandInitScript = require('./init_script');
 const CommandInitLint = require('./init_lint');
+const CommandInitDevRules = require('./init_dev_rules');
 const CommandInitVSCode = require('./init_vscode');
 const path = require('path');
 const fs = require('fs');
@@ -32,6 +33,10 @@ const initTypes = [
   {
     value: 'script',
     name: 'script - Add some scripts to manage your app.',
+  },
+  {
+    value: 'dev-rules',
+    name: 'dev-rules - Initialize AI dev rules (Cursor / Claude / Kiro).',
   },
   {
     value: 'lint',
@@ -115,7 +120,7 @@ module.exports = class Entry {
       return;
     }
 
-    if (![ 'project', 'page', 'component', 'json', 'script', 'vscode', 'lint'].includes(initType)) {
+    if (![ 'project', 'page', 'component', 'json', 'script', 'vscode', 'lint', 'dev-rules', 'rules'].includes(initType)) {
       const answer = await inquirer.prompt({
         name: 'initType',
         type: 'list',
@@ -152,6 +157,10 @@ module.exports = class Entry {
       case 'lint':
         await new CommandInitLint().run(process.cwd(), passArgv);
         break;
+      case 'dev-rules':
+      case 'rules':
+        await new CommandInitDevRules().run(process.cwd(), passArgv);
+        break;
       case 'vscode':
         await new CommandInitVSCode().run(process.cwd(), passArgv);
         break;
@@ -185,6 +194,7 @@ module.exports = class Entry {
   component [选项]             添加一些组件来管理你的应用
   json [选项]                  通过 JSON 文本初始化
   script [选项]                添加一些脚本来管理你的应用
+  dev-rules [选项]             初始化 AI 开发规范（Cursor / Claude / Kiro）
   lint [选项]                  初始化 lint 配置 (ESLint, Prettier, Husky)
   vscode                       安装VSCode扩展，辅助使用jianghu-init
 

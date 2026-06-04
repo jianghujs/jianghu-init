@@ -10,6 +10,15 @@ const nunjucks = require('nunjucks');
 const InitPage = require('./init_page');
 const InitMobilePage = require('./init_mobile_page');
 const InitComponent = require('./init_component');
+const { buildV7CrudContent, buildV7CustomContent } = require('./v7/generateInitJsonContent');
+
+const defaultComponentPathFromTable = table => `biz/${_.camelCase(table)}`;
+
+const defaultComponentNameFromTable = table => {
+  const stripped = String(table || '').replace(/^[a-z]_/i, '').replace(/_/g, ' ').trim();
+  return stripped || _.camelCase(table) || '组件';
+};
+
 const typeList = [
   { value: 'jh-page', name: 'jh-page' },
   { value: 'jh-mobile-page', name: 'jh-mobile-page' },
@@ -49,7 +58,7 @@ module.exports = class InitJson extends CommandBase {
   // 确认生成表
   async promptConfig() {
     const knex = await this.getKnex();
-    let { table, pageId, pageType, chartPage } = this.argv;
+    let { table, pageId, pageType, chartPage, pageName, filename, componentPath } = this.argv;
     if (!pageType) {
       const res = await inquirer.prompt({
         name: 'type',
@@ -78,57 +87,108 @@ module.exports = class InitJson extends CommandBase {
       // const tables = result.map(item => ({ value: item.TABLE_NAME, name: item.TABLE_NAME }));
 
       if (pageType.startsWith('jh-')) {
-        tables.unshift({ value: '', name: '自定义页面，不选择 table' });
+        tables.unshift({ value: '', name: '自定义（不选表，生成 UI pageContent）' });
       }
       const res = await inquirer.prompt({
         name: 'table',
         type: 'list',
-        message: '请选择你要生成 crud 的表',
+        message: '请选择数据表（选表 → mode:crud；不选 → 自定义 UI）',
         choices: tables,
         pageSize: 100,
       });
       table = res.table;
     }
-    if (!pageId) {
-      // 不要乱起名字，固定的名字最合适，否则 studio 会找不到对应的 json
-      const res = await inquirer.prompt({
-        name: 'pageId',
-        type: 'input',
-        default: table ? table + 'Management' : 'examplePage',
-        message: `请输入pageId，如"${table ? table + 'Management' : 'examplePage'}"`,
-      });
-      // table 转 驼峰
-      pageId = res.pageId;
-    }
-    let filename = pageId;
+
+    // jh-component 无 pageId：路径与名称由 component.path / component.name 决定，权限与路由归宿主 Page
     if (pageType === 'jh-component') {
-      const res = await inquirer.prompt({
-        name: 'filename',
-        type: 'input',
-        default: table ? table + 'Component' : 'examplePage',
-        message: `请输入文件名，如"${table ? table + 'Component' : 'examplePage'}"`,
-      });
-      filename = res.filename;
+      const defaultPath = table
+        ? defaultComponentPathFromTable(table)
+        : 'biz/exampleComponent';
+      const defaultName = table
+        ? defaultComponentNameFromTable(table)
+        : '示例组件';
+      const presetPath = componentPath || filename;
+      if (!presetPath) {
+        const res = await inquirer.prompt([
+          {
+            name: 'filename',
+            type: 'input',
+            default: defaultPath,
+            message: `请输入 component.path（相对 app/view/component/），如 "${defaultPath}"`,
+          },
+          {
+            name: 'pageName',
+            type: 'input',
+            default: answers => {
+              const leaf = String(answers.filename || defaultPath).split('/').filter(Boolean).pop();
+              return defaultName || leaf || '组件';
+            },
+            message: '请输入组件显示名称（component.name）',
+          },
+        ]);
+        filename = res.filename;
+        pageName = res.pageName;
+      } else {
+        filename = presetPath;
+        if (!pageName) {
+          pageName = table
+            ? defaultComponentNameFromTable(table)
+            : (String(filename).split('/').filter(Boolean).pop() || '组件');
+        }
+      }
+      const mobileFilePrefix = '';
+      return {
+        table,
+        pageId: undefined,
+        pageName,
+        pageType,
+        filename: `${mobileFilePrefix}${filename}`,
+      };
     }
+
+    if (!pageId) {
+      const defaultPageId = table ? `${_.camelCase(table)}Management` : 'examplePage';
+      const res = await inquirer.prompt([
+        {
+          name: 'pageId',
+          type: 'input',
+          default: defaultPageId,
+          message: `请输入 pageId（路由/权限边界），如 "${defaultPageId}"`,
+        },
+        {
+          name: 'pageName',
+          type: 'input',
+          default: answers => answers.pageId,
+          message: '请输入显示名称',
+        },
+      ]);
+      pageId = res.pageId;
+      pageName = res.pageName;
+    } else if (!pageName) {
+      pageName = pageId;
+    }
+    const filenameForPage = pageId;
+    const mobileFilePrefix = pageType === 'jh-mobile-page' ? 'mobile/' : '';
     return {
       table,
-      pageId: pageType.startsWith('jh-mobile') ? 'mobile/' + pageId : pageId,
+      pageId,
+      pageName: pageName || pageId,
       pageType,
-      filename: pageType.startsWith('jh-mobile') ? 'mobile/' + filename : filename,
+      filename: `${mobileFilePrefix}${filenameForPage}`,
     };
   }
 
 
   // 生成 json
-  async buildJson({ table, pageId, pageType, chartType, filename }) {
+  async buildJson({ table, pageId, pageType, chartType, filename, pageName }) {
 
-    this.notice(`生成${pageId || ''}的配置文件...`);
+    const label = pageType === 'jh-component' ? (filename || 'component') : (pageId || filename || '');
+    this.notice(`生成 ${label} 的 v7 配置文件...`);
     // 检测创建文件夹
     const generateFileDir = [ '1table-page', 'jh-mobile-page', 'jh-page' ].includes(pageType) ? './app/view/init-json/page' : './app/view/init-json/component';
     fs.mkdirSync(generateFileDir, { recursive: true });
 
 
-    const fields = table ? await this.getTableFields(table) : [];
     let fileName = filename;
     let content;
     if (![ 'jh-component', 'jh-page', 'jh-mobile-page' ].includes(pageType)) {
@@ -148,11 +208,15 @@ module.exports = class InitJson extends CommandBase {
         }
         // 添加依赖的public 静态资源
         this.checkStaticChartFile();
+      } else if (table) {
+        content = await this.getV7CrudContent({ table, pageId, pageName, pageType, filename: fileName });
       } else {
-        content = await this.getCrudContent({ table, pageId, pageType, fields, filename: fileName });
+        content = this.getV7CustomContent({ pageId, pageName, pageType, filename: fileName });
       }
+    } else if (table) {
+      content = await this.getV7CrudContent({ table, pageId, pageName, pageType, filename: fileName });
     } else {
-      content = await this.getCrudContent({ table, pageId, pageType, fields, filename: fileName });
+      content = this.getV7CustomContent({ pageId, pageName, pageType, filename: fileName });
     }
 
     if (fileName.includes('/')) {
@@ -181,23 +245,59 @@ module.exports = class InitJson extends CommandBase {
     //     break;
     // }
     if (pageType.includes('component')) {
+      const tag = fileName.split('/').pop().replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
       this.info(`
-    ---------- 引入示例 ----------
+    ---------- v7 宿主 Page 引入示例 ----------
     includeList: [
-      { type: 'component', path: "${fileName}" },
+      { type: 'html', path: 'component/${fileName}.html' },
     ],
-
-    ---------- 渲染示例 ----------
-    <${fileName.split('/').pop().replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '\$1-\$2')
-    .toLowerCase()}/>
+    slots / pageContent 中挂载：
+    <${tag} />
       `);
     }
   }
 
   /**
-   * 读取生成 json 的模板
-   * @param {*} param0 
-   * @returns 
+   * V7 CRUD 配置（选表 → mode: 'crud'，fields 来自表结构）
+   */
+  async getV7CrudContent({ table, pageId, pageName, pageType, filename }) {
+    const columns = await this.getTableFields(table);
+    if (!columns.length) {
+      this.warn(`表 ${table} 无可用业务字段，将仅生成最小 CRUD 骨架`);
+    }
+    const componentPath = pageType === 'jh-component' ? filename : undefined;
+    const componentName = pageName
+      || (componentPath && String(componentPath).split('/').filter(Boolean).pop())
+      || pageId;
+    return buildV7CrudContent({
+      pageType,
+      pageId,
+      pageName: componentName,
+      table,
+      columns,
+      componentPath,
+    });
+  }
+
+  /**
+   * V7 自定义 UI（不选表 → 默认 UI，pageContent 骨架）
+   */
+  getV7CustomContent({ pageId, pageName, pageType, filename }) {
+    const componentPath = pageType === 'jh-component' ? filename : undefined;
+    const componentName = pageName
+      || (componentPath && String(componentPath).split('/').filter(Boolean).pop())
+      || pageId
+      || '组件';
+    return buildV7CustomContent({
+      pageType,
+      pageId,
+      pageName: componentName,
+      componentPath,
+    });
+  }
+
+  /**
+   * @deprecated 旧版 v3 模板，已由 getV7CrudContent 替代
    */
   async getCrudContent({ table, pageId, pageType, fields, filename = '' }) {
     // 读取文件
@@ -692,7 +792,7 @@ module.exports = content;
    */
   async getTableFields(table) {
     const knex = await this.getKnex();
-    const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT').from('INFORMATION_SCHEMA.COLUMNS').where({
+    const result = await knex.select('COLUMN_NAME', 'COLUMN_COMMENT', 'DATA_TYPE').from('INFORMATION_SCHEMA.COLUMNS').where({
       TABLE_SCHEMA: this.dbSetting.database,
       TABLE_NAME: table,
     });
@@ -711,12 +811,11 @@ module.exports = content;
 
     return result.filter(column => {
       return ![ ...defaultColumn, 'id' ].includes(column.COLUMN_NAME);
-    }).map(column => {
-      return {
-        COLUMN_NAME: column.COLUMN_NAME,
-        COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '').split(';')[0].split('；')[0].split(':')[0],
-      };
-    });
+    }).map(column => ({
+      COLUMN_NAME: column.COLUMN_NAME,
+      COLUMN_COMMENT: (column.COLUMN_COMMENT || column.COLUMN_NAME || '').split(';')[0].split('；')[0].split(':')[0],
+      DATA_TYPE: column.DATA_TYPE,
+    }));
   }
 
   async example(cwd, argv) {

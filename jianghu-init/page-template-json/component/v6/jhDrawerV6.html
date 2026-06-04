@@ -1,0 +1,858 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  抽屉组件族（从基础到业务，同文件内自上而下依赖）
+
+  jh-drawer           基础抽屉容器（v-navigation-drawer 的语义封装）
+  jh-create-drawer    新增业务抽屉（依赖 jh-drawer + jh-form）
+  jh-update-drawer    编辑业务抽屉（依赖 jh-drawer + jh-form）
+
+  ── jh-drawer props ──────────────────────────────────────────────
+    value   Boolean              v-model，控制显隐
+    title   String               标题栏文字
+    width   String               抽屉宽度，默认 '90%'
+    排版 class 写在节点 attrs，经 v-bind="$attrs" 落在 v-navigation-drawer 根上。
+  slots: default（主体内容）、actions（标题栏右侧按钮区）
+  内置：左侧浮动关闭按钮（drawer-close-float-btn，与 v4 一致）
+  根节点 v-bind="$attrs" v-on="$listeners"：支持 v6 actionContent 节点 attrs；v-model 由 $listeners 转发至 v-navigation-drawer
+
+  ── jh-create-drawer / jh-update-drawer props ────────────────────
+    title       String   抽屉标题
+    cols        Number   表单列数，透传给 jh-form，默认 1
+    gap         String   表单间距，透传给 jh-form，默认 '12px 16px'
+    labelMode   String   标签模式，透传给 jh-form，'float'|'above'
+    tabList     Array    多 tab 配置（可选）：
+                           [{ key, title, fieldList|fields, cols, gap, labelMode, actionList, beforeCloseConfirm,beforeCloseCompareFields }]
+                           actionList 项：{ label, color, actionId|id|intent }（cancel 为内置）
+    fieldList   Array    字段配置（推荐键名，直接透传给 jh-form；无 tab 时使用）
+    fields      Array    兼容旧键名（与 fieldList 二选一，fieldList 优先；无 tab 时使用）
+                           { key, label, type, required, readonly, options,
+                             placeholder, hint, span, cls （字段格子 class，见 jh-form） }
+    value       Boolean  v-model，控制显隐
+    initialData Object   当前编辑数据
+  inject: jhPage.doUiAction / jhPage.state
+───────────────────────────────────────────────────────────────────── -->
+
+<!-- ══════════════════════════════════════════════════════════════
+  jh-drawer  基础抽屉容器
+══════════════════════════════════════════════════════════════════ -->
+<script type="text/html" id="jh-drawer-template">
+  <v-navigation-drawer
+    v-bind="$attrs"
+    v-on="$listeners"
+    v-if="value"
+    :value="value"
+    :permanent="value"
+    fixed temporary right
+    :width="width"
+    class="elevation-24"
+  >
+    <!-- 浮动关闭按钮（左侧边缘，与 v4 保持一致） -->
+    <v-btn
+      elevation="0" color="primary"
+      fab absolute top left small tile
+      class="drawer-close-float-btn"
+      @click="$emit('input', false)"
+    >
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+
+    <v-row class="jh-drawer-header px-4" no-gutters align="center">
+      <span class="text-h7 font-weight-bold py-3">{{ title }}</span>
+      <slot name="title-right"></slot>
+      <v-spacer></v-spacer>
+      <div class="jh-drawer-action-btn-group d-flex align-center" style="gap:8px">
+        <slot name="actions"></slot>
+      </div>
+    </v-row>
+    <v-divider class="jh-divider"></v-divider>
+    <slot></slot>
+  </v-navigation-drawer>
+</script>
+<script>
+Vue.component('jh-drawer', {
+  inheritAttrs: false,
+  template: '#jh-drawer-template',
+  props: {
+    value: { type: Boolean, default: false },
+    title: { type: String,  default: '' },
+    width: { type: String,  default: '90%' },
+  },
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+  jh-create-drawer  新增业务抽屉
+══════════════════════════════════════════════════════════════════ -->
+<script type="text/html" id="jh-create-drawer-template">
+  <jh-drawer
+    v-if="value"
+    v-bind="$attrs"
+    v-on="drawerForwardListeners"
+    @input="onDrawerInput"
+    :value="value"
+    :title="title"
+  >
+    <template v-slot:actions>
+      <v-btn
+        v-for="(action, idx) in currentTabActions"
+        :key="'create-action-' + (action.actionId || action.id || action.intent || idx)"
+        :class="['elevation-0', action.color ? '' : '']"
+        :color="action.color || undefined"
+        :disabled="isActionDisabled(action)"
+        small
+        @click="handleTabAction(action)"
+      >{{ action.label }}</v-btn>
+    </template>
+    <v-tabs
+      v-if="resolvedTabList.length > 1"
+      v-model="activeTab"
+      color="success"
+      class="px-4"
+    >
+      <v-tab
+        v-for="(tab, idx) in resolvedTabList"
+        :key="'create-tab-' + (tab.key || idx)"
+      >{{ tab.title || ('Tab ' + (idx + 1)) }}</v-tab>
+    </v-tabs>
+    <v-tabs-items v-if="resolvedTabList.length > 1" v-model="activeTab">
+      <v-tab-item
+        v-for="(tab, idx) in resolvedTabList"
+        :key="'create-tab-item-' + (tab.key || idx)"
+      >
+        <jh-form
+          class="px-4 py-4 overflow-hidden overflow-y-auto"
+          :class="resolvedTabList.length > 1 ? 'h-[calc(100vh-100px)]' : 'h-[calc(100vh-52px)]'"
+          :ref="'createForm_' + idx"
+          :fields="tab.fieldList"
+          :initialData="initialData"
+          :cols="tab.cols"
+          :gap="tab.gap"
+          :label-mode="tab.labelMode"
+          :scope="scope"
+          @field-change="$emit('field-change', $event)"
+        >
+          <!-- 父级 -> jh-create-drawer -> jh-form：透传 field-* scoped slots -->
+          <template
+            v-for="slotN in formForwardedSlotNames"
+            :key="'create-form-slot-' + idx + '-' + slotN"
+            v-slot:[slotN]="slotProps"
+          >
+            <slot :name="slotN" v-bind="slotProps || {}"></slot>
+          </template>
+        </jh-form>
+      </v-tab-item>
+    </v-tabs-items>
+    <jh-form
+      v-else
+      class="px-4 py-4 overflow-hidden overflow-y-auto h-[calc(100vh-52px)]"
+      ref="createForm_0"
+      :fields="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
+      :initialData="initialData"
+      :cols="resolvedTabList[0] ? resolvedTabList[0].cols : cols"
+      :gap="resolvedTabList[0] ? resolvedTabList[0].gap : gap"
+      :label-mode="resolvedTabList[0] ? resolvedTabList[0].labelMode : labelMode"
+      :scope="scope"
+      @field-change="$emit('field-change', $event)"
+    >
+      <template
+        v-for="slotN in formForwardedSlotNames"
+        :key="'create-form-slot-single-' + slotN"
+        v-slot:[slotN]="slotProps"
+      >
+        <slot :name="slotN" v-bind="slotProps || {}"></slot>
+      </template>
+    </jh-form>
+  </jh-drawer>
+</script>
+<script>
+Vue.component('jh-create-drawer', {
+  inheritAttrs: false,
+  template: '#jh-create-drawer-template',
+  mixins: [window.jhActionWhenMixin],
+  props: {
+    title:       { type: String,  default: '新增' },
+    tabList:     { type: Array,   default: () => [] },
+    fieldList:   { type: Array,   default: () => [] },
+    fields:      { type: Array,   default: () => [] },
+    beforeCloseConfirm: { type: Boolean, default: false },
+    beforeCloseCompareFields: { type: Array, default: null },
+    value:       { type: Boolean, default: false },
+    initialData: { type: Object,  default: () => ({}) },
+    cols:        { type: Number,  default: 1 },
+    gap:         { type: String,  default: '12px 16px' },
+    labelMode:   { type: String,  default: 'above' },
+    actionList:  { type: Array,   default: () => [] },
+    // scope：父级 $data，透传给 jh-form 用于 options/rules 字符串路径解析
+    scope:       { type: Object,  default: null },
+  },
+  data() {
+    return {
+      activeTab: 0,
+      _originSnapshot: {},
+    };
+  },
+  watch: {
+    value(val, oldVal) {
+      if (val && !oldVal) {
+        this._originSnapshot = _.cloneDeep(this.initialData || {});
+        this.activeTab = 0;
+      }
+    },
+  },
+  computed: {
+    resolvedFieldList() {
+      return (this.fieldList && this.fieldList.length) ? this.fieldList : (this.fields || []);
+    },
+    resolvedTabList() {
+      if (Array.isArray(this.tabList) && this.tabList.length) {
+        return this.tabList.map((tab, idx) => ({
+          key: tab.key || String(idx),
+          title: tab.title || tab.label || `Tab ${idx + 1}`,
+          fieldList: (tab.fieldList && tab.fieldList.length) ? tab.fieldList : (tab.fields || []),
+          cols: tab.cols != null ? tab.cols : this.cols,
+          gap: tab.gap != null ? tab.gap : this.gap,
+          labelMode: tab.labelMode || this.labelMode,
+          actionList: Array.isArray(tab.actionList) ? tab.actionList : [],
+          // 规则：有 tabList 时仅认 tab 自己配置；不回退根级
+          beforeCloseConfirm: !!tab.beforeCloseConfirm,
+          // null = 比较全部字段；数组 = 只比较指定字段
+          beforeCloseCompareFields: Array.isArray(tab.beforeCloseCompareFields) ? tab.beforeCloseCompareFields : null,
+        }));
+      }
+      return [{
+        key: 'default',
+        title: this.title || '新增',
+        fieldList: this.resolvedFieldList,
+        cols: this.cols,
+        gap: this.gap,
+        labelMode: this.labelMode,
+        actionList: this.actionList,
+        beforeCloseConfirm: !!this.beforeCloseConfirm,
+        beforeCloseCompareFields: Array.isArray(this.beforeCloseCompareFields) ? this.beforeCloseCompareFields : null,
+      }];
+    },
+    currentTabConfig() {
+      return this.resolvedTabList[this.activeTab] || this.resolvedTabList[0] || {};
+    },
+    currentTabActions() {
+      const list = this.currentTabConfig.actionList || [];
+      return this.filterVisibleActions([{ label: '取消', intent: 'cancel' }, ...list]);
+    },
+    formForwardedSlotNames() {
+      const names = Object.keys(this.$scopedSlots || {});
+      return names.filter(name => typeof name === 'string' && (
+        name.startsWith('field-') ||
+        name.startsWith('label-') ||
+        name.startsWith('after-')
+      ));
+    },
+    drawerForwardListeners() {
+      const { input, ...rest } = this.$listeners || {};
+      return rest;
+    },
+  },
+  methods: {
+    async onDrawerInput(nextVal) {
+      if (nextVal === false) {
+        await this.close();
+        return;
+      }
+      this.$emit('input', nextVal);
+    },
+    getCurrentTabFieldKeys() {
+      const tab = this.currentTabConfig || {};
+      // 优先使用手动指定的字段列表，否则取 fieldList 全部字段
+      if (Array.isArray(tab.beforeCloseCompareFields) && tab.beforeCloseCompareFields.length) {
+        return tab.beforeCloseCompareFields;
+      }
+      const fields = tab.fieldList || [];
+      const structuralTypes = ['section', 'divider', 'tip'];
+      return fields
+        .filter(f => f && !structuralTypes.includes(f.type))
+        .map(f => f.key)
+        .filter(Boolean);
+    },
+    pickItemByKeys(item, keys) {
+      const out = {};
+      (keys || []).forEach(key => { out[key] = item ? item[key] : undefined; });
+      return out;
+    },
+    async checkFormBeforeClose() {
+      const tab = this.currentTabConfig || {};
+      if (!tab.beforeCloseConfirm) return true;
+      const keys = this.getCurrentTabFieldKeys();
+      if (!keys.length) return true;
+      const current = this.pickItemByKeys(this.initialData || {}, keys);
+      const origin  = this.pickItemByKeys(this._originSnapshot || {}, keys);
+      if (JSON.stringify(current) === JSON.stringify(origin)) return true;
+      if (!window.jhConfirmDialog) return true;
+      const res = await window.jhConfirmDialog({
+        title: '保存提示',
+        htmlTemplate: '你还没有保存更改内容，是否先保存？',
+        confirmText: '不保存',
+        confirmColor: 'error',
+        width: '300px',
+      });
+      return res;
+    },
+    async close() {
+      if (this._isHandlingClose) return;
+      this._isHandlingClose = true;
+      try {
+        const ok = await this.checkFormBeforeClose();
+        if (!ok) return;
+        this.$emit('input', false);
+      } finally {
+        this._isHandlingClose = false;
+      }
+    },
+    handleTabAction(action) {
+      if (this.isActionDisabled(action)) return;
+      const actionId = action && (action.actionId || action.id || action.intent);
+      if (!actionId || actionId === 'cancel') {
+        this.close();
+        return;
+      }
+      this.$emit('action', actionId);
+    },
+    getActiveFormRef() {
+      const refName = `createForm_${this.activeTab}`;
+      const ref = this.$refs[refName];
+      return Array.isArray(ref) ? ref[0] : ref;
+    },
+    validate() {
+      const formRef = this.getActiveFormRef();
+      return formRef && formRef.validate ? formRef.validate() : true;
+    },
+    resetValidation() {
+      const formRef = this.getActiveFormRef();
+      return formRef && formRef.resetValidation ? formRef.resetValidation() : undefined;
+    },
+  },
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+  jh-update-drawer  编辑业务抽屉
+══════════════════════════════════════════════════════════════════ -->
+<script type="text/html" id="jh-update-drawer-template">
+  <jh-drawer
+    v-if="value"
+    v-bind="$attrs"
+    v-on="drawerForwardListeners"
+    @input="onDrawerInput"
+    :value="value"
+    :title="title"
+  >
+    <template v-slot:actions>
+      <v-btn
+        v-for="(action, idx) in currentTabActions"
+        :key="'update-action-' + (action.actionId || action.id || action.intent || idx)"
+        :class="['elevation-0', action.color ? '' : '']"
+        :color="action.color || undefined"
+        :disabled="isActionDisabled(action)"
+        small
+        @click="handleTabAction(action)"
+      >{{ action.label }}</v-btn>
+    </template>
+    <v-tabs
+      v-if="resolvedTabList.length > 1"
+      v-model="activeTab"
+      color="success"
+      class="px-4"
+    >
+      <v-tab
+        v-for="(tab, idx) in resolvedTabList"
+        :key="'update-tab-' + (tab.key || idx)"
+      >{{ tab.title || ('Tab ' + (idx + 1)) }}</v-tab>
+    </v-tabs>
+    <v-tabs-items v-if="resolvedTabList.length > 1" v-model="activeTab">
+      <v-tab-item
+        v-for="(tab, idx) in resolvedTabList"
+        :key="'update-tab-item-' + (tab.key || idx)"
+      >
+        <jh-form
+          class="px-4 py-4 overflow-hidden overflow-y-auto"
+          :class="resolvedTabList.length > 1 ? 'h-[calc(100vh-100px)]' : 'h-[calc(100vh-52px)]'"
+          :ref="'updateForm_' + idx"
+          :fields="tab.fieldList"
+          :initialData="initialData"
+          :cols="tab.cols"
+          :gap="tab.gap"
+          :label-mode="tab.labelMode"
+          :scope="scope"
+          @field-change="$emit('field-change', $event)"
+        >
+          <template
+            v-for="slotN in formForwardedSlotNames"
+            :key="'update-form-slot-' + idx + '-' + slotN"
+            v-slot:[slotN]="slotProps"
+          >
+            <slot :name="slotN" v-bind="slotProps || {}"></slot>
+          </template>
+        </jh-form>
+      </v-tab-item>
+    </v-tabs-items>
+    <jh-form
+      v-else
+      class="px-4 py-4"
+      ref="updateForm_0"
+      :fields="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
+      :initialData="initialData"
+      :cols="resolvedTabList[0] ? resolvedTabList[0].cols : cols"
+      :gap="resolvedTabList[0] ? resolvedTabList[0].gap : gap"
+      :label-mode="resolvedTabList[0] ? resolvedTabList[0].labelMode : labelMode"
+      :scope="scope"
+      @field-change="$emit('field-change', $event)"
+    >
+      <template
+        v-for="slotN in formForwardedSlotNames"
+        :key="'update-form-slot-single-' + slotN"
+        v-slot:[slotN]="slotProps"
+      >
+        <slot :name="slotN" v-bind="slotProps || {}"></slot>
+      </template>
+    </jh-form>
+  </jh-drawer>
+</script>
+<script>
+Vue.component('jh-update-drawer', {
+  inheritAttrs: false,
+  template: '#jh-update-drawer-template',
+  mixins: [window.jhActionWhenMixin],
+  props: {
+    title:       { type: String,  default: '编辑' },
+    tabList:     { type: Array,   default: () => [] },
+    fieldList:   { type: Array,   default: () => [] },
+    fields:      { type: Array,   default: () => [] },
+    beforeCloseConfirm: { type: Boolean, default: false },
+    beforeCloseCompareFields: { type: Array, default: null },
+    value:       { type: Boolean, default: false },
+    initialData: { type: Object,  default: () => ({}) },
+    cols:        { type: Number,  default: 1 },
+    gap:         { type: String,  default: '12px 16px' },
+    labelMode:   { type: String,  default: 'above' },
+    actionList:  { type: Array,   default: () => [] },
+    // scope：父级 $data，透传给 jh-form 用于 options/rules 字符串路径解析
+    scope:       { type: Object,  default: null },
+  },
+  data() {
+    return {
+      activeTab: 0,
+      _originSnapshot: {},
+    };
+  },
+  watch: {
+    value(val, oldVal) {
+      if (val && !oldVal) {
+        this._originSnapshot = _.cloneDeep(this.initialData || {});
+        this.activeTab = 0;
+      }
+    },
+  },
+  computed: {
+    resolvedFieldList() {
+      return (this.fieldList && this.fieldList.length) ? this.fieldList : (this.fields || []);
+    },
+    resolvedTabList() {
+      if (Array.isArray(this.tabList) && this.tabList.length) {
+        return this.tabList.map((tab, idx) => ({
+          key: tab.key || String(idx),
+          title: tab.title || tab.label || `Tab ${idx + 1}`,
+          fieldList: (tab.fieldList && tab.fieldList.length) ? tab.fieldList : (tab.fields || []),
+          cols: tab.cols != null ? tab.cols : this.cols,
+          gap: tab.gap != null ? tab.gap : this.gap,
+          labelMode: tab.labelMode || this.labelMode,
+          actionList: Array.isArray(tab.actionList) ? tab.actionList : [],
+          // 规则：有 tabList 时仅认 tab 自己配置；不回退根级
+          beforeCloseConfirm: !!tab.beforeCloseConfirm,
+          // null = 比较全部字段；数组 = 只比较指定字段
+          beforeCloseCompareFields: Array.isArray(tab.beforeCloseCompareFields) ? tab.beforeCloseCompareFields : null,
+        }));
+      }
+      return [{
+        key: 'default',
+        title: this.title || '编辑',
+        fieldList: this.resolvedFieldList,
+        cols: this.cols,
+        gap: this.gap,
+        labelMode: this.labelMode,
+        actionList: this.actionList,
+        beforeCloseConfirm: !!this.beforeCloseConfirm,
+        beforeCloseCompareFields: Array.isArray(this.beforeCloseCompareFields) ? this.beforeCloseCompareFields : null,
+      }];
+    },
+    currentTabConfig() {
+      return this.resolvedTabList[this.activeTab] || this.resolvedTabList[0] || {};
+    },
+    currentTabActions() {
+      const list = this.currentTabConfig.actionList || [];
+      return this.filterVisibleActions([{ label: '取消', intent: 'cancel' }, ...list]);
+    },
+    formForwardedSlotNames() {
+      const names = Object.keys(this.$scopedSlots || {});
+      return names.filter(name => typeof name === 'string' && (
+        name.startsWith('field-') ||
+        name.startsWith('label-') ||
+        name.startsWith('after-')
+      ));
+    },
+    drawerForwardListeners() {
+      const { input, ...rest } = this.$listeners || {};
+      return rest;
+    },
+  },
+  methods: {
+    async onDrawerInput(nextVal) {
+      if (nextVal === false) {
+        await this.close();
+        return;
+      }
+      this.$emit('input', nextVal);
+    },
+    getCurrentTabFieldKeys() {
+      const tab = this.currentTabConfig || {};
+      // 优先使用手动指定的字段列表，否则取 fieldList 全部字段
+      if (Array.isArray(tab.beforeCloseCompareFields) && tab.beforeCloseCompareFields.length) {
+        return tab.beforeCloseCompareFields;
+      }
+      const fields = tab.fieldList || [];
+      const structuralTypes = ['section', 'divider', 'tip'];
+      return fields
+        .filter(f => f && !structuralTypes.includes(f.type))
+        .map(f => f.key)
+        .filter(Boolean);
+    },
+    pickItemByKeys(item, keys) {
+      const out = {};
+      (keys || []).forEach(key => { out[key] = item ? item[key] : undefined; });
+      return out;
+    },
+    async checkFormBeforeClose() {
+      const tab = this.currentTabConfig || {};
+      if (!tab.beforeCloseConfirm) return true;
+      const keys = this.getCurrentTabFieldKeys();
+      if (!keys.length) return true;
+      const current = this.pickItemByKeys(this.initialData || {}, keys);
+      const origin  = this.pickItemByKeys(this._originSnapshot || {}, keys);
+      if (JSON.stringify(current) === JSON.stringify(origin)) return true;
+      if (!window.jhConfirmDialog) return true;
+      const res = await window.jhConfirmDialog({
+        title: '保存提示',
+        htmlTemplate: '你还没有保存更改内容，是否先保存？',
+        confirmText: '不保存',
+        confirmColor: 'error',
+        width: '300px',
+      });
+      return res;
+    },
+    async close() {
+      if (this._isHandlingClose) return;
+      this._isHandlingClose = true;
+      try {
+        const ok = await this.checkFormBeforeClose();
+        if (!ok) return;
+        this.$emit('input', false);
+      } finally {
+        this._isHandlingClose = false;
+      }
+    },
+    handleTabAction(action) {
+      if (this.isActionDisabled(action)) return;
+      const actionId = action && (action.actionId || action.id || action.intent);
+      if (!actionId || actionId === 'cancel') {
+        this.close();
+        return;
+      }
+      this.$emit('action', actionId);
+    },
+    getActiveFormRef() {
+      const refName = `updateForm_${this.activeTab}`;
+      const ref = this.$refs[refName];
+      return Array.isArray(ref) ? ref[0] : ref;
+    },
+    validate() {
+      const formRef = this.getActiveFormRef();
+      return formRef && formRef.validate ? formRef.validate() : true;
+    },
+    resetValidation() {
+      const formRef = this.getActiveFormRef();
+      return formRef && formRef.resetValidation ? formRef.resetValidation() : undefined;
+    },
+  },
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+  jh-form-drawer  通用表单抽屉（纯 props/事件驱动，无 inject 依赖）
+
+  · 适用于任意 key 的抽屉（create / update / detail / review / …）
+  · 不绑定任何页面状态命名约定，由父级通过 props 传入并监听 events
+  · beforeCloseConfirm：抽屉打开时内部自动快照 initialData，关闭时比对
+
+  props（同 jh-create-drawer / jh-update-drawer）：
+    value / title / initialData / tabList / fieldList / fields
+    cols / gap / labelMode / actionList
+    beforeCloseConfirm / beforeCloseCompareFields
+    formKey  String  内部 jh-form 的 ref 命名前缀（推荐与 drawer 业务名对齐，如 'createProject'）
+             无 tab：ref = formKey + 'Form'           → createProjectForm
+             有 tab：ref = formKey + capitalize(tab.key) + 'Form' → createProjectBasicInfoForm
+
+  events：
+    field-change  { key, value }  字段变更（由父级写回 initialData）
+    action        actionId        标题栏非 cancel 按钮点击
+    input         Boolean         v-model 显隐控制
+══════════════════════════════════════════════════════════════════ -->
+<script type="text/html" id="jh-form-drawer-template">
+  <jh-drawer
+    v-if="value"
+    v-bind="$attrs"
+    v-on="drawerForwardListeners"
+    @input="onDrawerInput"
+    :value="value"
+    :title="title"
+  >
+    <template v-slot:actions>
+      <v-btn
+        v-for="(action, idx) in currentTabActions"
+        :key="'form-action-' + (action.actionId || action.id || action.intent || idx)"
+        :class="['elevation-0']"
+        :color="action.color || undefined"
+        :disabled="isActionDisabled(action)"
+        small
+        @click="handleTabAction(action)"
+      >{{ action.label }}</v-btn>
+    </template>
+    <v-tabs
+      v-if="resolvedTabList.length > 1"
+      v-model="activeTab"
+      color="success"
+      class="px-4"
+    >
+      <v-tab
+        v-for="(tab, idx) in resolvedTabList"
+        :key="'form-tab-' + (tab.key || idx)"
+      >{{ tab.title || ('Tab ' + (idx + 1)) }}</v-tab>
+    </v-tabs>
+    <v-tabs-items v-if="resolvedTabList.length > 1" v-model="activeTab">
+      <v-tab-item
+        v-for="(tab, idx) in resolvedTabList"
+        :key="'form-tab-item-' + (tab.key || idx)"
+      >
+        <jh-form
+          class="px-4 py-4 overflow-hidden overflow-y-auto"
+          :class="resolvedTabList.length > 1 ? 'h-[calc(100vh-100px)]' : 'h-[calc(100vh-52px)]'"
+          :ref="_formRefName(tab)"
+          :fields="tab.fieldList"
+          :initialData="initialData"
+          :cols="tab.cols"
+          :gap="tab.gap"
+          :label-mode="tab.labelMode"
+          :scope="scope"
+          @field-change="$emit('field-change', $event)"
+        >
+          <template
+            v-for="slotN in formForwardedSlotNames"
+            :key="'form-slot-' + idx + '-' + slotN"
+            v-slot:[slotN]="slotProps"
+          >
+            <slot :name="slotN" v-bind="slotProps || {}"></slot>
+          </template>
+        </jh-form>
+      </v-tab-item>
+    </v-tabs-items>
+    <jh-form
+      v-else
+      class="px-4 py-4 overflow-hidden overflow-y-auto h-[calc(100vh-52px)]"
+      :ref="_formRefName(resolvedTabList[0])"
+      :fields="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
+      :initialData="initialData"
+      :cols="resolvedTabList[0] ? resolvedTabList[0].cols : cols"
+      :gap="resolvedTabList[0] ? resolvedTabList[0].gap : gap"
+      :label-mode="resolvedTabList[0] ? resolvedTabList[0].labelMode : labelMode"
+      :scope="scope"
+      @field-change="$emit('field-change', $event)"
+    >
+      <template
+        v-for="slotN in formForwardedSlotNames"
+        :key="'form-slot-single-' + slotN"
+        v-slot:[slotN]="slotProps"
+      >
+        <slot :name="slotN" v-bind="slotProps || {}"></slot>
+      </template>
+    </jh-form>
+  </jh-drawer>
+</script>
+<script>
+Vue.component('jh-form-drawer', {
+  inheritAttrs: false,
+  template: '#jh-form-drawer-template',
+  mixins: [window.jhActionWhenMixin],
+  props: {
+    value:       { type: Boolean, default: false },
+    title:       { type: String,  default: '' },
+    formKey:     { type: String,  default: '' },
+    initialData: { type: Object,  default: () => ({}) },
+    tabList:     { type: Array,   default: () => [] },
+    fieldList:   { type: Array,   default: () => [] },
+    fields:      { type: Array,   default: () => [] },
+    beforeCloseConfirm:       { type: Boolean, default: false },
+    beforeCloseCompareFields: { type: Array,   default: null },
+    cols:        { type: Number,  default: 1 },
+    gap:         { type: String,  default: '12px 16px' },
+    labelMode:   { type: String,  default: 'above' },
+    actionList:  { type: Array,   default: () => [] },
+    // scope：父级 $data，透传给 jh-form 用于 options/rules 字符串路径解析
+    scope:       { type: Object,  default: null },
+  },
+  data() {
+    return {
+      activeTab: 0,
+      _originSnapshot: {},
+    };
+  },
+  watch: {
+    value(val, oldVal) {
+      if (val && !oldVal) {
+        this._originSnapshot = _.cloneDeep(this.initialData || {});
+        this.activeTab = 0;
+      }
+    },
+  },
+  computed: {
+    resolvedFieldList() {
+      return (this.fieldList && this.fieldList.length) ? this.fieldList : (this.fields || []);
+    },
+    resolvedTabList() {
+      if (Array.isArray(this.tabList) && this.tabList.length) {
+        return this.tabList.map((tab, idx) => ({
+          key: tab.key || String(idx),
+          title: tab.title || tab.label || `Tab ${idx + 1}`,
+          fieldList: (tab.fieldList && tab.fieldList.length) ? tab.fieldList : (tab.fields || []),
+          cols: tab.cols != null ? tab.cols : this.cols,
+          gap: tab.gap != null ? tab.gap : this.gap,
+          labelMode: tab.labelMode || this.labelMode,
+          actionList: Array.isArray(tab.actionList) ? tab.actionList : [],
+          beforeCloseConfirm: !!tab.beforeCloseConfirm,
+          beforeCloseCompareFields: Array.isArray(tab.beforeCloseCompareFields) ? tab.beforeCloseCompareFields : null,
+        }));
+      }
+      return [{
+        key: 'default',
+        title: this.title,
+        fieldList: this.resolvedFieldList,
+        cols: this.cols,
+        gap: this.gap,
+        labelMode: this.labelMode,
+        actionList: this.actionList,
+        beforeCloseConfirm: !!this.beforeCloseConfirm,
+        beforeCloseCompareFields: Array.isArray(this.beforeCloseCompareFields) ? this.beforeCloseCompareFields : null,
+      }];
+    },
+    currentTabConfig() {
+      return this.resolvedTabList[this.activeTab] || this.resolvedTabList[0] || {};
+    },
+    currentTabActions() {
+      const list = this.currentTabConfig.actionList || [];
+      return this.filterVisibleActions([{ label: '取消', intent: 'cancel' }, ...list]);
+    },
+    formForwardedSlotNames() {
+      const names = Object.keys(this.$scopedSlots || {});
+      return names.filter(name => typeof name === 'string' && (
+        name.startsWith('field-') ||
+        name.startsWith('label-') ||
+        name.startsWith('after-')
+      ));
+    },
+    drawerForwardListeners() {
+      const { input, ...rest } = this.$listeners || {};
+      return rest;
+    },
+  },
+  methods: {
+    async onDrawerInput(nextVal) {
+      if (nextVal === false) {
+        await this.close();
+        return;
+      }
+      this.$emit('input', nextVal);
+    },
+    getCurrentTabFieldKeys() {
+      const tab = this.currentTabConfig || {};
+      if (Array.isArray(tab.beforeCloseCompareFields) && tab.beforeCloseCompareFields.length) {
+        return tab.beforeCloseCompareFields;
+      }
+      const structuralTypes = ['section', 'divider', 'tip'];
+      return (tab.fieldList || [])
+        .filter(f => f && !structuralTypes.includes(f.type))
+        .map(f => f.key)
+        .filter(Boolean);
+    },
+    pickItemByKeys(item, keys) {
+      const out = {};
+      (keys || []).forEach(key => { out[key] = item ? item[key] : undefined; });
+      return out;
+    },
+    async checkFormBeforeClose() {
+      const tab = this.currentTabConfig || {};
+      if (!tab.beforeCloseConfirm) return true;
+      const keys = this.getCurrentTabFieldKeys();
+      if (!keys.length) return true;
+      const current = this.pickItemByKeys(this.initialData || {}, keys);
+      const origin  = this.pickItemByKeys(this._originSnapshot || {}, keys);
+      if (JSON.stringify(current) === JSON.stringify(origin)) return true;
+      if (!window.jhConfirmDialog) return true;
+      const res = await window.jhConfirmDialog({
+        title: '保存提示',
+        htmlTemplate: '你还没有保存更改内容，是否先保存？',
+        confirmText: '不保存',
+        confirmColor: 'error',
+        width: '300px',
+      });
+      return res;
+    },
+    async close() {
+      if (this._isHandlingClose) return;
+      this._isHandlingClose = true;
+      try {
+        const ok = await this.checkFormBeforeClose();
+        if (!ok) return;
+        this.$emit('input', false);
+      } finally {
+        this._isHandlingClose = false;
+      }
+    },
+    handleTabAction(action) {
+      if (this.isActionDisabled(action)) return;
+      const actionId = action && (action.actionId || action.id || action.intent);
+      if (!actionId || actionId === 'cancel') {
+        this.close();
+        return;
+      }
+      this.$emit('action', actionId);
+    },
+    _capitalize(str) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+    _formRefName(tab) {
+      const prefix = this.formKey || '';
+      const tabSuffix = (tab && tab.key && tab.key !== 'default') ? this._capitalize(tab.key) : '';
+      return prefix + tabSuffix + 'Form';
+    },
+    getActiveFormRef() {
+      const tab = this.resolvedTabList[this.activeTab] || this.resolvedTabList[0];
+      const refName = this._formRefName(tab);
+      const ref = this.$refs[refName];
+      return Array.isArray(ref) ? ref[0] : ref;
+    },
+    validate() {
+      const formRef = this.getActiveFormRef();
+      return formRef && formRef.validate ? formRef.validate() : true;
+    },
+    resetValidation() {
+      const formRef = this.getActiveFormRef();
+      return formRef && formRef.resetValidation ? formRef.resetValidation() : undefined;
+    },
+  },
+});
+</script>

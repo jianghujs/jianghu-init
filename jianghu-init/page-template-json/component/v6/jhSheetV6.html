@@ -1,0 +1,616 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+  v6 Sheet 组件族（命名与 Drawer 族对称）
+
+  - jh-sheet      ：通用底部叠层基座（对标 jh-drawer）
+                    orderList / actionList / headActionList / 默认插槽
+  - jh-form-sheet ：表单式底部叠层（对标 jh-form-drawer）
+                    基于 jh-sheet + jh-form / tabList 等
+
+  Schema：Sheet → jh-sheet，FormSheet → jh-form-sheet（与 Drawer / FormDrawer 命名对称）
+  rounded：true 时卡片顶部才有 Tailwind rounded-t-lg（需在 props / 标签上显式设定）
+
+  注意：不内置 doUiAction，只对外 emit，由页面承接。
+───────────────────────────────────────────────────────────────────── -->
+<style>
+  .bottom-sheet-card {
+    border: none !important;
+  }
+
+  .bottom-sheet-card-title {
+    border-bottom: 1px solid #e0e0e0 !important;
+  }
+</style>
+<script type="text/html" id="jh-sheet-v6-template">
+  <!--
+    与 jh-drawer 一致：用 v-model 语义驱动（computed 桥接 .sync 的 update:shown）。
+    attach 默认 false，叠层留在 .v-application 内；挂 body 易脱离 Vuetify 根节点导致「value 已为 true 但仍看不见」。
+  -->
+  <v-bottom-sheet
+    v-model="openProxy"
+    :attach="attachTarget"
+    :persistent="persistent"
+    :z-index="stackZIndex"
+    :lazy="lazy"
+    v-bind="bottomSheetAttrs"
+  >
+    <v-card :class="mergedCardClass" class="border-none !rounded-t-lg bottom-sheet-card">
+      <!-- 标题栏 -->
+      <v-card-title class=" px-2.5 py-2 h-[50px] bottom-sheet-card-title relative border-b">
+        <div class="absolute left-3 space-x-2">
+          <slot name="head-actions">
+            <template v-if="orderList && orderList.length > 0">
+              <v-btn @click="handleReset">重置</v-btn>
+              <v-btn color="success" class="ml-3" @click="handleOrderConfirm">确认</v-btn>
+            </template>
+            <template v-else-if="headActionList && headActionList.length > 0">
+              <jh-mobile-actions
+                :action-list="headActionList"
+                :initial-data="initialData"
+                :scope="scope"
+                @action="handleHeadAction"
+              />
+            </template>
+          </slot>
+        </div>
+        <span class="text-base w-full text-center">{{ title }}</span>
+        <v-spacer></v-spacer>
+
+        <div class="absolute right-3 primary--text text-xs text-center" @click="$emit('update:shown', false)">
+          <v-icon size="22" class="primary--text">mdi-window-close</v-icon>
+          <div class="primary--text mt-[-2px]">关闭</div>
+        </div>
+      </v-card-title>
+
+      <!-- 内容区：orderList / actionList / 默认插槽 三种模式互斥 -->
+      <v-card-text :class="mergedBodyClass" :style="bodyAreaStyle">
+        <!-- 排序模式 -->
+        <template v-if="orderList && orderList.length > 0">
+          <div class="pt-3">
+            <v-row>
+              <v-col cols="12" class="pb-0" v-for="(item, i) in orderList" :key="'o-' + i">
+                <v-btn
+                  block
+                  class="p-3 rounded"
+                  :color="isOrderActive(item.value) ? 'primary' : 'gray'"
+                  @click="localOrder = item.value"
+                >{{ item.text }}</v-btn>
+              </v-col>
+            </v-row>
+          </div>
+        </template>
+
+        <!-- 操作模式（图标网格）-->
+        <template v-else-if="actionList && actionList.length > 0">
+          <div class="pt-3">
+            <div class="grid" :class="'grid-cols-' + cols" style="gap:12px">
+              <template v-for="(action, idx) in actionList">
+                <div v-if="action && !action.tag" :key="'a-' + idx" class="flex flex-col gap-2 mx-auto">
+                  <div class="text-center" @click="$emit('action', action); $emit('update:shown', false)">
+                    <div class="bg-[#EDFAF5] mb-2 mx-auto w-[48px] flex items-center justify-center aspect-square !rounded-md">
+                      <v-icon :color="action.color || 'primary'" size="24">{{ action.icon || 'mdi-account-multiple-plus' }}</v-icon>
+                    </div>
+                    <div class="w-full">{{ action.value }}</div>
+                  </div>
+                </div>
+                <div v-else :key="'t-' + idx">
+                  <slot name="custom" :action="action" :index="idx"></slot>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- 默认插槽模式 -->
+        <template v-else>
+          <slot></slot>
+        </template>
+      </v-card-text>
+
+      <!-- 底部操作按钮区（actionList 模式不需要底部按钮）-->
+      <v-card-actions :class="actionsClass">
+        <!-- 排序模式：提供默认重置/确认；其他模式可通过 slot 自定义 -->
+        <slot name="actions">
+          <template v-if="orderList && orderList.length > 0">
+            <v-btn @click="handleReset">重置</v-btn>
+            <v-btn color="success" class="ml-3" @click="handleOrderConfirm">确认</v-btn>
+          </template>
+        </slot>
+      </v-card-actions>
+    </v-card>
+  </v-bottom-sheet>
+</script>
+
+<script>
+/** Sheet 族内容区高度（jh-sheet / jh-form-sheet 表单滚动共用） */
+function formatSheetHeightToken(val) {
+  if (val == null || val === '') return '';
+  return /^\d+$/.test(String(val)) ? `${val}px` : String(val);
+}
+
+function resolveSheetBodyAreaStyle({ bodyHeight, maxBodyHeight, autoHeight, viewportOffset }) {
+  if (bodyHeight) {
+    const h = formatSheetHeightToken(bodyHeight);
+    if (!h) return {};
+    return { height: h, overflowY: 'auto', boxSizing: 'border-box' };
+  }
+  if (maxBodyHeight) {
+    const h = formatSheetHeightToken(maxBodyHeight);
+    if (!h) return {};
+    return { maxHeight: h, overflowY: 'auto', boxSizing: 'border-box' };
+  }
+  if (autoHeight == null || viewportOffset == null || viewportOffset === '') return {};
+  const offset = Number(viewportOffset);
+  if (Number.isNaN(offset)) return {};
+  const key = autoHeight ? 'maxHeight' : 'height';
+  return { [key]: `calc(100vh - ${offset}px)`, overflowY: 'auto', boxSizing: 'border-box' };
+}
+
+Vue.component("jh-sheet", {
+  template: "#jh-sheet-v6-template",
+  inheritAttrs: false,
+  props: {
+    // ── 显隐控制 ──────────────────────────────────────────────────────────
+    shown:        { type: Boolean, default: false },             // :shown.sync
+    /** Dialog 栈 z-index，须高于 jh-mask(300) 等全屏层 */
+    stackZIndex:  { type: [Number, String], default: 340 },
+    /**
+     * false：跟随 Vuetify 默认挂载（通常在 .v-application 内），与 jh-drawer 同属一类叠层。
+     * 需要脱离裁剪时再设为 'body'。
+     */
+    attach:       { type: [Boolean, String], default: false },
+    /** false：首次打开前就挂载内容，避免懒挂载与受控 value 竞态 */
+    lazy:         { type: Boolean, default: false },
+    // ── 通用 ──────────────────────────────────────────────────────────────
+    title:        { type: String,  default: "" },
+    // ── 排序模式 props ─────────────────────────────────────────────────────
+    // orderList: [{ text: '最新', value: { sortBy: 'createdAt', desc: true } }, ...]
+    orderList:    { type: Array,   default: () => [] },
+    // ── 操作模式 props ─────────────────────────────────────────────────────
+    // actionList: [{ value: '新增', icon: 'mdi-plus', color: 'primary' }, ...]
+    actionList:   { type: Array,   default: () => [] },
+    // headActionList: [{ label, intent, id, color, visibleWhen?, disabledWhen? }, ...]
+    headActionList: { type: Array,   default: () => [] },
+    /** 供 headActionList 条件求值（与 jh-form-sheet initialData 一致） */
+    initialData:  { type: Object,  default: () => ({}) },
+    scope:        { type: Object,  default: null },
+    cols:         { type: [Number, String], default: 2 },        // 操作网格列数
+    /** true：卡片顶部加 Tailwind rounded-t-lg（与 Vuetify rounded 语义对齐，需显式开启） */
+    rounded:      { type: Boolean, default: false },
+    /** true：点外侧不关闭（v-bottom-sheet persistent） */
+    persistent:   { type: Boolean, default: false },
+    /** 卡片最小高度，默认 100px → min-h-[…] */
+    minCardHeight: { type: [String, Number], default: '100px' },
+    /** true：内容区 max-height: calc(100vh - viewportOffset)；false：固定 height */
+    autoHeight:      { type: Boolean, default: null },
+    /** calc(100vh - Npx) 扣减（与 autoHeight 配合；FormSheet 默认 102 / 多 tab 152） */
+    viewportOffset:  { type: [Number, String], default: null },
+    /** 内容区最大高度，如 '70vh' */
+    maxBodyHeight:   { type: String, default: null },
+    /** 固定内容区高度；优先于 maxBodyHeight / calc */
+    bodyHeight:      { type: String, default: null },
+    // ── 样式 ──────────────────────────────────────────────────────────────
+    cardClass:    { type: [String, Array, Object], default: () => ["ma-0", "w-full", "rounded-b-0"] },
+    bodyClass:    { type: [String, Array, Object], default: () => ["px-4", "py-4"] },
+    actionsClass: { type: [String, Array, Object], default: () => ["flex", "justify-end", "px-3", "jh-safe-bottom-3", "bg-white"] },
+  },
+  computed: {
+    resolvedMinCardHeight() {
+      const v = this.minCardHeight;
+      if (v == null || v === '') return '100px';
+      return /^\d+$/.test(String(v)) ? `${v}px` : String(v);
+    },
+    /** v-bottom-sheet 的 v-model ↔ 父级 :shown.sync */
+    openProxy: {
+      get() {
+        return !!this.shown;
+      },
+      set(val) {
+        const next = !!val;
+        this.$emit('update:shown', next);
+        this.$emit('input', next);
+      },
+    },
+    attachTarget() {
+      if (this.attach === false || this.attach === '' || this.attach == null) return false;
+      return this.attach;
+    },
+    mergedCardClass() {
+      const tail = this.rounded ? ['rounded-t-lg'] : [];
+      const minH = `min-h-[${this.resolvedMinCardHeight}]`;
+      const base = this.cardClass;
+      const withMin = (arr) => [...arr, minH, ...tail];
+      if (Array.isArray(base)) return withMin(base);
+      if (base && typeof base === 'object') return withMin([base]);
+      if (base == null || base === '') return withMin([]);
+      return withMin([base]);
+    },
+    bodyAreaStyle() {
+      return resolveSheetBodyAreaStyle({
+        bodyHeight: this.bodyHeight,
+        maxBodyHeight: this.maxBodyHeight,
+        autoHeight: this.autoHeight,
+        viewportOffset: this.viewportOffset,
+      });
+    },
+    mergedBodyClass() {
+      const scroll = Object.keys(this.bodyAreaStyle).length ? ['overflow-y-auto'] : [];
+      const base = this.bodyClass;
+      if (Array.isArray(base)) return [...base, ...scroll];
+      if (base && typeof base === 'object') return [base, ...scroll];
+      if (base == null || base === '') return scroll;
+      return [base, ...scroll];
+    },
+    bottomSheetAttrs() {
+      const raw = this.$attrs || {};
+      const skip = new Set([
+        'shown', 'stack-z-index', 'stackZIndex', 'attach', 'lazy',
+        'title', 'order-list', 'orderList', 'action-list', 'actionList',
+        'head-action-list', 'headActionList', 'initial-data', 'initialData', 'scope',
+        'cols',
+        'rounded',
+        'persistent',
+        'min-card-height', 'minCardHeight',
+        'auto-height', 'autoHeight', 'viewport-offset', 'viewportOffset',
+        'max-body-height', 'maxBodyHeight', 'body-height', 'bodyHeight',
+        'card-class', 'cardClass', 'body-class', 'bodyClass', 'actions-class', 'actionsClass',
+      ]);
+      const out = {};
+      Object.keys(raw).forEach(k => {
+        if (!skip.has(k)) out[k] = raw[k];
+      });
+      return out;
+    },
+  },
+  data() {
+    return {
+      localOrder: null,  // 排序模式下的当前选中值（内部状态）
+    };
+  },
+  methods: {
+    isOrderActive(val) {
+      try { return JSON.stringify(this.localOrder) === JSON.stringify(val); } catch (e) { return this.localOrder === val; }
+    },
+    handleReset() {
+      this.localOrder = null;
+      this.$emit('reset');
+    },
+    handleOrderConfirm() {
+      this.$emit('confirm', this.localOrder);
+    },
+    handleHeadAction(actionId) {
+      if (!actionId) return;
+      const action = (this.headActionList || []).find(
+        a => a && (a.actionId || a.id || a.intent) === actionId,
+      );
+      this.$emit('head-action', actionId);
+      if (action) this.$emit('action', action);
+    },
+  },
+});
+</script>
+
+<!-- ─────────────────────────────────────────────────────────────────────
+  jh-form-sheet：表单式底部叠层（对标 jh-form-drawer）
+  · tabList / fieldList / fields / actionList / beforeCloseConfirm / scope 等与 FormDrawer 一致
+  · shown.sync（及 input）控制显隐；关闭可走脏检测 tryClose
+───────────────────────────────────────────────────────────────────── -->
+
+<script type="text/html" id="jh-form-sheet-v6-template">
+  <jh-sheet
+    :shown="shown"
+    :rounded="rounded"
+    :persistent="persistent"
+    :min-card-height="minCardHeight"
+    :title="sheetTitle"
+    :body-class="sheetBodyClass"
+    :head-action-list="toolbarActions"
+    :initial-data="initialData"
+    :scope="scope"
+    @update:shown="onSheetUpdateShown"
+    @head-action="handleMobileAction"
+  >
+    <template v-slot:actions>
+      <v-btn
+        v-for="(action, idx) in actions"
+        :key="'fs-act-' + (action.actionId || action.id || action.intent || idx)"
+        :class="['elevation-0']"
+        :color="action.color || undefined"
+        :disabled="isActionDisabled(action)"
+        @click="handleTabAction(action)"
+      >{{ action.label }}</v-btn>
+    </template>
+    <v-tabs
+      v-if="resolvedTabList.length > 1"
+      v-model="activeTab"
+      color="success"
+      class="px-4"
+    >
+      <v-tab
+        v-for="(tab, idx) in resolvedTabList"
+        :key="'form-tab-' + (tab.key || idx)"
+      >{{ tab.title || ('Tab ' + (idx + 1)) }}</v-tab>
+    </v-tabs>
+    <v-tabs-items v-if="resolvedTabList.length > 1" v-model="activeTab">
+      <v-tab-item
+        v-for="(tab, idx) in resolvedTabList"
+        :key="'form-tab-item-' + (tab.key || idx)"
+      >
+        <jh-form
+          class="overflow-hidden overflow-y-auto pb-4"
+          :style="formScrollStyle"
+          :ref="_formRefName(tab)"
+          :fields="tab.fieldList"
+          :initialData="initialData"
+          :cols="tab.cols"
+          :gap="tab.gap"
+          :label-mode="tab.labelMode"
+          :scope="scope"
+          @field-change="$emit('field-change', $event)"
+        >
+          <template
+            v-for="slotN in formForwardedSlotNames"
+            :key="'form-slot-' + idx + '-' + slotN"
+            v-slot:[slotN]="slotProps"
+          >
+            <slot :name="slotN" v-bind="slotProps || {}"></slot>
+          </template>
+        </jh-form>
+      </v-tab-item>
+    </v-tabs-items>
+    <jh-form
+      v-else
+      class="overflow-hidden overflow-y-auto pb-4"
+      :style="formScrollStyle"
+      :ref="_formRefName(resolvedTabList[0])"
+      :fields="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
+      :initialData="initialData"
+      :cols="resolvedTabList[0] ? resolvedTabList[0].cols : cols"
+      :gap="resolvedTabList[0] ? resolvedTabList[0].gap : gap"
+      :label-mode="resolvedTabList[0] ? resolvedTabList[0].labelMode : labelMode"
+      :scope="scope"
+      @field-change="$emit('field-change', $event)"
+    >
+      <template
+        v-for="slotN in formForwardedSlotNames"
+        :key="'form-slot-single-' + slotN"
+        v-slot:[slotN]="slotProps"
+      >
+        <slot :name="slotN" v-bind="slotProps || {}"></slot>
+      </template>
+    </jh-form>
+  </jh-sheet>
+</script>
+
+<script>
+Vue.component("jh-form-sheet", {
+  inheritAttrs: false,
+  template: "#jh-form-sheet-v6-template",
+  mixins: [window.jhActionWhenMixin],
+  props: {
+    shown:       { type: Boolean, default: false },
+    title:       { type: String,  default: '' },
+    formKey:     { type: String,  default: '' },
+    initialData: { type: Object,  default: () => ({}) },
+    tabList:     { type: Array,   default: () => [] },
+    fieldList:   { type: Array,   default: () => [] },
+    fields:      { type: Array,   default: () => [] },
+    beforeCloseConfirm:       { type: Boolean, default: false },
+    beforeCloseCompareFields: { type: Array,   default: null },
+    cols:        { type: Number,  default: 1 },
+    gap:         { type: String,  default: '0' },
+    labelMode:   { type: String,  default: 'inline' }, // v4 mobile：标签左 + 输入右
+    actionList:  { type: Array,   default: () => [] },
+    headActionList:  { type: Array,   default: () => [] },
+    autoHeight:      { type: Boolean, default: true },
+    /** calc(100vh - Npx) 扣减；v7 FormSheet 默认单 tab 102、多 tab 152 */
+    viewportOffset:  { type: Number, default: null },
+    /** 覆盖 calc，如 '70vh'、'400px' */
+    maxBodyHeight:   { type: String, default: null },
+    /** 固定内容区高度；与 maxBodyHeight 互斥时 bodyHeight 优先 */
+    bodyHeight:      { type: String, default: null },
+    /** 点外侧不关闭 */
+    persistent:      { type: Boolean, default: false },
+    /** 卡片 min-h，透传 jh-sheet */
+    minCardHeight:   { type: [String, Number], default: null },
+    scope:       { type: Object,  default: null },
+    /** true：不显示标题栏「重置 / 确认」（仍保留各 tab 的 actionList 与「取消」） */
+    hiddenBtn:   { type: Boolean, default: false },
+    /** 透传给 jh-sheet 内容区；默认可滚动区域 */
+    bodyClass:   { type: [Array, Object, String], default: null },
+    /** 透传 jh-sheet：true 时卡片顶部 rounded-t-lg */
+    rounded:     { type: Boolean, default: false },
+  },
+  data() {
+    return {
+      activeTab: 0,
+      _originSnapshot: {},
+      _isHandlingClose: false,
+    };
+  },
+  watch: {
+    shown(val, oldVal) {
+      if (val && !oldVal) {
+        this._originSnapshot = _.cloneDeep(this.initialData || {});
+        this.activeTab = 0;
+      }
+    },
+  },
+  computed: {
+    sheetTitle() {
+      return this.title || '高级搜索';
+    },
+    sheetBodyClass() {
+      if (this.bodyClass != null && this.bodyClass !== '') return this.bodyClass;
+      return [ 'px-0', 'py-0', 'pa-0' ];
+    },
+    resolvedViewportOffset() {
+      if (this.viewportOffset != null && this.viewportOffset !== '') {
+        return Number(this.viewportOffset);
+      }
+      return (this.resolvedTabList && this.resolvedTabList.length > 1) ? 152 : 102;
+    },
+    formScrollStyle() {
+      return resolveSheetBodyAreaStyle({
+        bodyHeight: this.bodyHeight,
+        maxBodyHeight: this.maxBodyHeight,
+        autoHeight: this.autoHeight != null ? this.autoHeight : true,
+        viewportOffset: this.resolvedViewportOffset,
+      });
+    },
+    resolvedFieldList() {
+      return (this.fieldList && this.fieldList.length) ? this.fieldList : (this.fields || []);
+    },
+    resolvedTabList() {
+      if (Array.isArray(this.tabList) && this.tabList.length) {
+        return this.tabList.map((tab, idx) => ({
+          key: tab.key || String(idx),
+          title: tab.title || tab.label || ('Tab ' + (idx + 1)),
+          fieldList: (tab.fieldList && tab.fieldList.length) ? tab.fieldList : (tab.fields || []),
+          cols: tab.cols != null ? tab.cols : this.cols,
+          gap: tab.gap != null ? tab.gap : this.gap,
+          labelMode: tab.labelMode || this.labelMode,
+          actionList: Array.isArray(tab.actionList) ? tab.actionList : [],
+          headActionList: Array.isArray(tab.headActionList) ? tab.headActionList : [],
+          beforeCloseConfirm: !!tab.beforeCloseConfirm,
+          beforeCloseCompareFields: Array.isArray(tab.beforeCloseCompareFields) ? tab.beforeCloseCompareFields : null,
+        }));
+      }
+      return [{
+        key: 'default',
+        title: this.sheetTitle,
+        fieldList: this.resolvedFieldList,
+        cols: this.cols,
+        gap: this.gap,
+        labelMode: this.labelMode,
+        actionList: this.actionList,
+        headActionList: this.headActionList,
+        beforeCloseConfirm: !!this.beforeCloseConfirm,
+        beforeCloseCompareFields: Array.isArray(this.beforeCloseCompareFields) ? this.beforeCloseCompareFields : null,
+      }];
+    },
+    currentTabConfig() {
+      return this.resolvedTabList[this.activeTab] || this.resolvedTabList[0] || {};
+    },
+    actions() {
+      const list = this.currentTabConfig.actionList || [];
+      return this.filterVisibleActions(list);
+    },
+    toolbarActions() {
+      const list = this.currentTabConfig.headActionList || [];
+      return this.filterVisibleActions(list);
+    },
+    formForwardedSlotNames() {
+      const slots = this.$scopedSlots || {};
+      const names = Object.keys(slots);
+      return names.filter(name => typeof name === 'string' && (
+        name.startsWith('field-') ||
+        name.startsWith('label-') ||
+        name.startsWith('after-')
+      ));
+    },
+  },
+  methods: {
+    async onSheetUpdateShown(nextVal) {
+      if (nextVal === false) {
+        await this.tryClose();
+        return;
+      }
+      this.$emit('update:shown', true);
+      this.$emit('input', true);
+    },
+    getCurrentTabFieldKeys() {
+      const tab = this.currentTabConfig || {};
+      if (Array.isArray(tab.beforeCloseCompareFields) && tab.beforeCloseCompareFields.length) {
+        return tab.beforeCloseCompareFields;
+      }
+      const structuralTypes = ['section', 'divider', 'tip'];
+      return (tab.fieldList || [])
+        .filter(f => f && !structuralTypes.includes(f.type))
+        .map(f => f.key)
+        .filter(Boolean);
+    },
+    pickItemByKeys(item, keys) {
+      const out = {};
+      (keys || []).forEach(key => { out[key] = item ? item[key] : undefined; });
+      return out;
+    },
+    async checkFormBeforeClose() {
+      const tab = this.currentTabConfig || {};
+      if (!tab.beforeCloseConfirm) return true;
+      const keys = this.getCurrentTabFieldKeys();
+      if (!keys.length) return true;
+      const current = this.pickItemByKeys(this.initialData || {}, keys);
+      const origin = this.pickItemByKeys(this._originSnapshot || {}, keys);
+      if (JSON.stringify(current) === JSON.stringify(origin)) return true;
+      if (!window.jhConfirmDialog) return true;
+      const res = await window.jhConfirmDialog({
+        title: '保存提示',
+        htmlTemplate: '你还没有保存更改内容，是否先保存？',
+        confirmText: '不保存',
+        confirmColor: 'error',
+        width: '300px',
+      });
+      return res;
+    },
+    async tryClose() {
+      if (this._isHandlingClose) return;
+      this._isHandlingClose = true;
+      try {
+        const ok = await this.checkFormBeforeClose();
+        if (!ok) return;
+        this.$emit('update:shown', false);
+        this.$emit('input', false);
+      } finally {
+        this._isHandlingClose = false;
+      }
+    },
+    handleMobileAction(actionId) {
+      const action = (this.toolbarActions || []).find(
+        a => a && (a.actionId || a.id || a.intent) === actionId,
+      );
+      this.handleTabAction(action || { intent: actionId });
+    },
+    async handleTabAction(action) {
+      if (this.isActionDisabled(action)) return;
+      const actionId = action && (action.actionId || action.id || action.intent);
+      if (!actionId) {
+        await this.tryClose();
+        return;
+      }
+      if (actionId === 'reset') {
+        this.$emit('reset');
+        return;
+      }
+      if (actionId === 'confirm') {
+        if (!(await this.validate())) return;
+        this.$emit('confirm');
+        return;
+      }
+      this.$emit('action', actionId);
+    },
+    _capitalize(str) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+    _formRefName(tab) {
+      const prefix = this.formKey || '';
+      const tabSuffix = (tab && tab.key && tab.key !== 'default') ? this._capitalize(tab.key) : '';
+      return prefix + tabSuffix + 'Form';
+    },
+    getActiveFormRef() {
+      const tab = this.resolvedTabList[this.activeTab] || this.resolvedTabList[0];
+      const refName = this._formRefName(tab);
+      const ref = this.$refs[refName];
+      return Array.isArray(ref) ? ref[0] : ref;
+    },
+    validate() {
+      const formRef = this.getActiveFormRef();
+      return formRef && formRef.validate ? formRef.validate() : true;
+    },
+    resetValidation() {
+      const formRef = this.getActiveFormRef();
+      return formRef && formRef.resetValidation ? formRef.resetValidation() : undefined;
+    },
+  },
+});
+</script>

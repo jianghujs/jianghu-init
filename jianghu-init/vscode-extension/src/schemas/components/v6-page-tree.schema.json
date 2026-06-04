@@ -1,0 +1,591 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://jianghu.example.com/schemas/components/v6-page-tree.schema.json",
+  "title": "V6 Page / Action Component Tree",
+  "description": "v6 声明式 UI：component + props + children（children 可为嵌套节点或 HTML 字符串）",
+  "definitions": {
+
+    "pageChild": {
+      "description": "pageContent 子节点：组件树节点或原始 HTML 字符串（不用 oneOf，避免对象校验失败时连带报「应为 string」）",
+      "if": { "type": "string" },
+      "then": { "minLength": 1 },
+      "else": { "$ref": "#/definitions/pageNode" }
+    },
+
+    "pageNode": {
+      "type": "object",
+      "description": "pageContent 节点（布局 Primitive 或业务组件）；props 仅按 component 分支校验，避免 layoutProps（additionalProperties:true）与 PageHeader 同时满足 oneOf",
+      "required": ["component"],
+      "additionalProperties": false,
+      "properties": {
+        "component": {
+          "type": "string",
+          "enum": ["VStack", "HStack", "Box", "Grid", "PageHeader", "Table", "MobileOrder", "MobileFilter", "MobileAction", "MobileSearch"],
+          "description": "Schema 组件名，对应 Vue 标签 jh-{kebab-case}；MobileOrder/MobileFilter/MobileAction/MobileSearch 为解析期中继（生成触发按钮 + 自动追加 actionContent 弹出层；MobileSearch → SearchSheet）"
+        },
+        "key": { "type": "string", "description": "节点标识，Table 等可用于 ref" },
+        "attrs": {
+          "type": "object",
+          "description": "根标签属性：class、style、id、data-*；Vue 用字符串键名 :class、:style、v-if、@click 等（v-if 值为表达式文案）",
+          "additionalProperties": true
+        },
+        "attrsRef": {
+          "type": "string",
+          "description": "从配置根路径合并 attrs 对象（与 attrs 合并，attrs 覆盖同名键）"
+        },
+        "props": {
+          "type": "object",
+          "description": "字段约束见 allOf：Table → tableProps；PageHeader → pageHeaderProps；VStack/HStack/Box/Grid → layoutProps"
+        },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/pageChild" }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "component": { "const": "Table" } },
+            "required": ["component"]
+          },
+          "then": {
+            "required": ["props"],
+            "properties": {
+              "props": { "$ref": "#/definitions/tableProps" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "component": { "const": "PageHeader" } },
+            "required": ["component"]
+          },
+          "then": {
+            "properties": {
+              "props": { "$ref": "#/definitions/pageHeaderProps" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "component": { "enum": ["VStack", "HStack", "Box", "Grid"] }
+            },
+            "required": ["component"]
+          },
+          "then": {
+            "properties": {
+              "props": { "$ref": "#/definitions/layoutProps" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "component": { "enum": ["MobileOrder", "MobileFilter", "MobileAction", "MobileSearch"] }
+            },
+            "required": ["component"]
+          },
+          "then": {
+            "description": "移动端中继：触发侧专用 props 不传入弹出层；四类中继触发器统一 `jh-mobile-filter-btn`；MobileSearch → SearchSheet（jh-mobile-search-sheet），搜索表单字段可与 PageHeader 共用 searchFieldList（省略时继承 PageHeader / list.search.fields）；MobileFilter → FormSheet；其余 Sheet",
+            "properties": {
+              "props": {
+                "type": "object",
+                "additionalProperties": true,
+                "properties": {
+                  "title": { "type": "string" },
+                  "orderList": { "type": "array", "description": "MobileOrder → Schema：`Sheet` → Vue `jh-sheet`；排序选项 { text, value }" },
+                  "actionList": { "type": "array", "description": "MobileAction → Schema：`Sheet` → Vue `jh-sheet`；操作项" },
+                  "cols": { "description": "MobileAction 网格列数" },
+                  "hiddenBtn": { "type": "boolean", "description": "MobileFilter → FormSheet；隐藏重置/确认" },
+                  "searchFieldList": { "type": "array", "description": "MobileSearch → SearchSheet：与 PageHeader 同结构的搜索字段（省略时继承 PageHeader / list.search.fields）" },
+                  "btnText": { "type": "string", "description": "触发按钮文案（不传弹出层）" },
+                  "triggerText": { "type": "string" },
+                  "label": { "type": "string" },
+                  "btnClass": { "type": "string", "description": "触发按钮 class" },
+                  "openerClass": { "type": "string", "description": "同 btnClass" },
+                  "showActive": {
+                    "description": "可选：`jh-mobile-filter-btn` 为 true 且第二行有内容（`:active-display` / `active` 或 MobileFilterBtn 的 `v-slot:active-display`）时显示「标签+摘要」块"
+                  },
+                  "active": {
+                    "description": "可选（中继触发器）：与 showActive 搭配，`:active-display` 表达式；富文本请用手写 MobileFilterBtn + children 插槽"
+                  }
+                }
+              },
+              "key": {
+                "type": "string",
+                "description": "可选；默认 mobileOrder/mobileFilter/mobileAction；与已有抽屉 key 冲突时解析器自动加后缀"
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    "pageContentArray": {
+      "type": "array",
+      "description": "页面主体组件树根数组",
+      "items": { "$ref": "#/definitions/pageNode" }
+    },
+
+    "actionNode": {
+      "type": "object",
+      "description": "actionContent 节点（抽屉 / 底部 Sheet）；含 SearchSheet（移动端综合搜索，jh-mobile-search-sheet）",
+      "required": ["component", "key", "props"],
+      "properties": {
+        "component": {
+          "type": "string",
+          "enum": ["CreateDrawer", "UpdateDrawer", "FormDrawer", "Drawer", "Sheet", "FormSheet", "SearchSheet"],
+          "description": "叠层类型：含 SearchSheet → jh-mobile-search-sheet（与 PageHeader 搜索语义一致）"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "标识，对应 ref createDrawer / updateDrawer 等"
+        },
+        "attrs": {
+          "type": "object",
+          "description": "根标签属性（class、:class、v-if 等），规则同 pageNode",
+          "additionalProperties": true
+        },
+        "attrsRef": {
+          "type": "string",
+          "description": "从配置根路径合并 attrs"
+        },
+        "props": { "$ref": "#/definitions/drawerFormProps" },
+        "children": {
+          "type": "array",
+          "description": "抽屉内嵌主体区组件树（与 pageContent 相同的 pageChild 规则）",
+          "items": { "$ref": "#/definitions/pageChild" }
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "component": { "enum": ["CreateDrawer", "UpdateDrawer"] }
+            },
+            "required": ["component"]
+          },
+          "then": {
+            "properties": {
+              "props": { "$ref": "#/definitions/drawerFormProps" }
+            }
+          },
+          "elseIf": {
+            "if": {
+              "properties": { "component": { "const": "FormDrawer" } },
+              "required": ["component"]
+            },
+            "then": {
+              "properties": {
+                "props": { "$ref": "#/definitions/drawerFormProps" }
+              }
+            }
+          },
+          "else": {
+            "if": {
+              "properties": { "component": { "const": "Drawer" } },
+              "required": ["component"]
+            },
+            "then": {
+              "properties": {
+                "props": { "$ref": "#/definitions/drawerProps" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "component": { "const": "FormSheet" } },
+            "required": ["component"]
+          },
+          "then": {
+            "properties": {
+              "props": { "$ref": "#/definitions/drawerFormProps" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "component": { "const": "Sheet" } },
+            "required": ["component"]
+          },
+          "then": {
+            "properties": {
+              "props": {
+                "type": "object",
+                "description": "jh-sheet：orderList、actionList、headActionList、bodyHeight、maxBodyHeight、autoHeight、viewportOffset、title、shown、cols、rounded 等",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "component": { "const": "SearchSheet" } },
+            "required": ["component"]
+          },
+          "then": {
+            "properties": {
+              "props": { "$ref": "#/definitions/searchSheetProps" }
+            }
+          }
+        }
+      ]
+    },
+
+    "actionChild": {
+      "description": "actionContent 数组元素：抽屉节点或 HTML 字符串（不用 oneOf，避免对象校验失败时连带报「应为 string」）",
+      "if": { "type": "string" },
+      "then": { "minLength": 1 },
+      "else": { "$ref": "#/definitions/actionNode" }
+    },
+
+    "actionContentArray": {
+      "description": "覆盖层：整段 HTML 字符串，或抽屉/HTML 混合数组（不用 oneOf，避免数组校验失败时连带报「应为 string」）",
+      "if": { "type": "string" },
+      "then": { "minLength": 1 },
+      "else": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/actionChild" }
+      }
+    },
+
+    "layoutProps": {
+      "type": "object",
+      "description": "VStack / HStack / Box / Grid 等布局 props",
+      "additionalProperties": true,
+      "properties": {
+        "gap": { "description": "间距（数字或 CSS）" },
+        "align": { "type": "string" },
+        "justify": { "type": "string" },
+        "wrap": { "type": "boolean" },
+        "padding": { "type": "string" },
+        "flexFromCls": {
+          "type": "boolean",
+          "description": "为 true 时用节点 attrs（class / :class）控制 flex 方向，避免与内联样式冲突"
+        },
+        "cols": { "description": "Grid 列数" },
+        "colsMd": { "description": "Grid 中屏列数" },
+        "colsSm": { "description": "Grid 小屏列数" },
+        "margin": { "type": "string" },
+        "width": { "type": "string" },
+        "height": { "type": "string" },
+        "extraStyle": { "type": "object", "description": "jh-box 扩展内联样式" }
+      }
+    },
+
+    "pageHeaderProps": {
+      "type": "object",
+      "description": "jh-page-header props",
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string" },
+        "helpBtn": { "type": "boolean" },
+        "helpSrc": { "type": "string" },
+        "pageId": { "type": "string" },
+        "showSearchBtn": { "type": "boolean" },
+        "keywordHeaders": {
+          "type": "array",
+          "description": "keyword 控件可选列 { text, value }；省略时由生成器从同页 Table 同步",
+          "items": { "$ref": "#/definitions/tableColumn" }
+        },
+        "keywordHeadersRef": {
+          "type": "string",
+          "description": "从配置根路径解析列数组（同 xxxRef），写入 keywordHeaders"
+        },
+        "searchFieldList": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/searchField" }
+        },
+        "keyword": {},
+        "keywordFieldList": {}
+      }
+    },
+
+    "searchField": {
+      "type": "object",
+      "required": ["key", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "type": "string" },
+        "label": { "type": "string" },
+        "op": { "type": "string", "enum": ["eq", "like", "in", "gt", "lt", "gte", "lte"] },
+        "type": { "type": "string", "enum": ["text", "select", "date", "number", "keyword"] },
+        "options": {
+          "description": "select 下拉：静态数组，或页面状态路径字符串（如 \"constantObj.projectStatus\"）。编译阶段标 __expr__，NJK 输出 options:constantObj.projectStatus（Vue 变量，非引号字符串）"
+        }
+      }
+    },
+
+    "tableProps": {
+      "type": "object",
+      "description": "jh-table props；列定义需满足 columns / headers / columnsRef / headersBinding / columnsBinding 之一（JSON Schema anyOf）",
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["columns"] },
+        { "required": ["headers"] },
+        { "required": ["headersBinding"] },
+        { "required": ["columnsBinding"] },
+        { "required": ["columnsRef"] }
+      ],
+      "properties": {
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "description": "与 headers 二选一同义；每项为 Vuetify 2 { text, value, ... }",
+          "items": { "$ref": "#/definitions/tableColumn" }
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Vuetify 2 headers 数组，对应 jh-table 的 headers prop",
+          "items": { "$ref": "#/definitions/tableColumn" }
+        },
+        "headersBinding": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Vue 列配置变量名，生成 :headers=\"该名\"；存在时忽略静态 columns/headers"
+        },
+        "columnsBinding": {
+          "type": "string",
+          "minLength": 1,
+          "description": "与 headersBinding 相同语义；historic 键名"
+        },
+        "columnsRef": {
+          "type": "string",
+          "description": "从配置根路径解析静态列数组（结果写入 headers；同既有 xxxRef 规则）"
+        },
+        "rowActionList": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/rowAction" }
+        },
+        "headActionList": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/toolbarAction" }
+        },
+        "filterList": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/filterField" }
+        },
+        "serverPagination": { "type": "boolean" },
+        "pageSize": { "type": "number", "minimum": 1 },
+        "selectable": { "type": "boolean" },
+        "primaryKey": { "type": "string" },
+        "orderBy": { "type": "array" },
+        "slotTemplates": {
+          "type": "object",
+          "description": "jh-table 具名插槽：key 为插槽名（如 toolbar-append、toolbar-prepend），value 为插槽内 HTML 字符串；生成器包装为 <template v-slot:...>，且不传给 jh-table 的 props",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+
+    "tableColumn": {
+      "type": "object",
+      "description": "Vuetify 2 v-data-table headers 单项：至少 text + value",
+      "required": ["text", "value"],
+      "additionalProperties": true,
+      "properties": {
+        "text": {},
+        "value": { "type": "string", "minLength": 1 },
+        "align": { "type": "string" },
+        "width": {},
+        "sortable": { "type": "boolean" },
+        "formatter": {},
+        "class": { "type": "string" },
+        "cellClass": { "type": "string" },
+        "cellStyle": {}
+      }
+    },
+
+    "rowAction": {
+      "type": "object",
+      "required": ["label"],
+      "additionalProperties": true,
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "intent": { "type": "string" },
+        "id": { "type": "string" },
+        "confirm": { "type": "boolean" },
+        "color": { "type": "string" },
+        "icon": { "type": "string" },
+        "visible": {},
+        "disabled": {}
+      }
+    },
+
+    "toolbarAction": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "type": { "type": "string", "enum": ["button", "spacer", "filter", "slot"] },
+        "label": { "type": "string" },
+        "intent": { "type": "string" },
+        "id": { "type": "string" },
+        "color": { "type": "string" },
+        "slotName": { "type": "string" },
+        "fields": { "type": "array" }
+      }
+    },
+
+    "filterField": {
+      "type": "object",
+      "required": ["key"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "type": "string", "minLength": 1 },
+        "keys": { "type": "array", "items": { "type": "string" } },
+        "label": { "type": "string" },
+        "type": { "type": "string", "enum": ["text", "select"] },
+        "exact": { "type": "boolean" },
+        "options": {
+          "description": "select 下拉：静态数组，或状态路径字符串（编译为 __expr__ → NJK options:变量路径）"
+        },
+        "placeholder": { "type": "string" },
+        "clearable": { "type": "boolean" },
+        "width": { "type": "string" }
+      }
+    },
+
+    "drawerFormProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string" },
+        "cols": { "type": "number", "minimum": 1 },
+        "gap": { "type": "string" },
+        "labelMode": { "type": "string", "enum": ["float", "above"] },
+        "tabList": {
+          "type": "array",
+          "description": "抽屉 tab 列表：每个 tab 可配置独立字段与 actionList",
+          "items": { "$ref": "#/definitions/drawerTab" }
+        },
+        "fieldList": {
+          "type": "array",
+          "minItems": 1,
+          "description": "推荐键名：字段配置列表（fields 兼容保留）",
+          "items": { "$ref": "#/definitions/formField" }
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/formField" }
+        },
+        "beforeCloseConfirm": {
+          "type": "boolean",
+          "description": "关闭抽屉前是否做脏检测确认（有改动时弹出保存 / 不保存 / 取消）"
+        },
+        "actionList": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/drawerAction" }
+        },
+        "rounded": {
+          "type": "boolean",
+          "description": "jh-sheet：true 时卡片顶部 Tailwind rounded-t-lg（默认不加圆角）"
+        }
+      }
+    },
+
+    "drawerProps": {
+      "type": "object",
+      "description": "Drawer（非 Create/Update）不强制 fieldList；用于纯展示/自定义内容场景",
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string" },
+        "cols": { "type": "number", "minimum": 1 },
+        "gap": { "type": "string" }
+      }
+    },
+
+    "searchSheetProps": {
+      "type": "object",
+      "description": "jh-mobile-search-sheet：与 jh-page-header 对齐的搜索条件（keyword / keywordFieldList / keywordHeaders / searchFieldList）",
+      "additionalProperties": true,
+      "properties": {
+        "title": { "type": "string" },
+        "rounded": { "type": "boolean" },
+        "showSearchBtn": { "type": "boolean", "description": "底部是否显示「重置 / 查询」" },
+        "searchFieldList": {
+          "description": "与 PageHeader 相同：数组静态字段列表；或写字符串变量名（解析器生成 :search-field-list）"
+        },
+        "keywordHeaders": {
+          "description": "与 PageHeader 一致：数组静态 headers；或字符串变量名（生成 :keyword-headers）；亦可由解析器从 Table 注入"
+        },
+        "keyword": { "description": "字符串时为绑定变量名（与 PageHeader 一致）" },
+        "keywordFieldList": {},
+        "bodyClass": {}
+      }
+    },
+
+    "formField": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": true,
+      "properties": {
+        "key": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": ["text", "select", "date", "number", "textarea", "custom", "section", "divider", "tip"]
+        },
+        "required": { "type": "boolean" },
+        "readonly": { "type": "boolean" },
+        "options": {
+          "description": "select 下拉：静态数组，或状态路径字符串（编译为 __expr__ → NJK options:变量路径）"
+        },
+        "placeholder": { "type": "string" },
+        "hint": { "type": "string" },
+        "cls": { "type": "string" },
+        "span": { "type": "number" },
+        "autoId": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string" },
+            "prefix": { "type": "string" },
+            "start": { "type": "number" }
+          }
+        }
+      }
+    },
+
+    "drawerTab": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": { "type": "string", "minLength": 1 },
+        "title": { "type": "string" },
+        "cols": { "type": "number", "minimum": 1 },
+        "gap": { "type": "string" },
+        "labelMode": { "type": "string", "enum": ["float", "above"] },
+        "fieldList": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/formField" }
+        },
+        "fields": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/formField" }
+        },
+        "actionList": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/drawerAction" }
+        },
+        "beforeCloseConfirm": { "type": "boolean" },
+      }
+    },
+
+    "drawerAction": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "color": { "type": "string" },
+        "actionId": { "type": "string" },
+        "id": { "type": "string" },
+        "intent": { "type": "string" }
+      }
+    }
+  }
+}
