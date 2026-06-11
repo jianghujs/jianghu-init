@@ -678,5 +678,9 @@ console.assert(compCrud.legacyConfig.resourceList.length === 0, 'component no re
 const compUi = v.buildPage(summaryCard);
 console.assert(compUi.standardConfig.v7Meta.mode === 'ui', 'component ui mode');
 console.assert(compUi.standardConfig.pageContent[0].component === 'VStack', 'ui component pageContent');
+const uiRootClass = compUi.standardConfig.pageContent[0].resolvedAttrs && compUi.standardConfig.pageContent[0].resolvedAttrs.class;
+console.assert(!uiRootClass || !/\bh-full\b/.test(uiRootClass), 'ui jh-component VStack no h-full');
+const crudRootClass = compCrud.standardConfig.pageContent[0].resolvedAttrs && compCrud.standardConfig.pageContent[0].resolvedAttrs.class;
+console.assert(crudRootClass && /\bh-full\b/.test(crudRootClass), 'crud jh-component with Table keeps h-full on VStack');
 
 console.log('v7 platform/layout smoke ok');

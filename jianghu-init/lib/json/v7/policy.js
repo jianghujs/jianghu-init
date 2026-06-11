@@ -234,6 +234,13 @@ const containsListDescendant = node => {
   return (node.children || []).some(containsListDescendant);
 };
 
+/** pageContent 树内是否含 List / Table（需 flex 高度链时才加 h-full） */
+const containsCollectionComponent = node => {
+  if (!node || typeof node !== 'object') return false;
+  if (node.component === 'List' || node.component === 'Table') return true;
+  return (node.children || []).some(containsCollectionComponent);
+};
+
 /** pageContent flex 高度链：根 VStack 占满 + List/Table 区 flex-1 滚动 */
 const applyPageContentFlexLayout = (payload, { rootHeightClass = 'h-full' } = {}) => {
   const root = getPageContentRoot(payload.pageContent);
@@ -286,13 +293,16 @@ const adaptCrudPageMobile = payload => {
   return payload;
 };
 
-/** jh-component：无菜单壳；根 VStack 用 h-full 承接宿主传入高度，List/Table 区 flex-1 滚动 */
+/** jh-component：无菜单壳；仅含 List/Table 时根 VStack h-full + flex-1 滚动（UI 子组件勿撑满占位） */
 const adaptCrudComponent = payload => {
   if (!payload.pageType) payload.pageType = 'jh-component';
   if (payload.page) {
     payload.page = Object.assign({}, payload.page, { menu: false });
   }
-  applyPageContentFlexLayout(payload, { rootHeightClass: 'h-full' });
+  const root = getPageContentRoot(payload.pageContent);
+  if (root && containsCollectionComponent(root)) {
+    applyPageContentFlexLayout(payload, { rootHeightClass: 'h-full' });
+  }
   return payload;
 };
 

@@ -160,7 +160,11 @@
       <v-toolbar-title class="pl-0 w-full text-center">
         <span class="font-medium text-center">
           <div class="text-base">{{ appTitle }}</div>
-          <div class="text-xs grey--text text--darken-2 -mt-0.5"><slot name="title"></slot></div>
+          <div class="text-xs grey--text text--darken-2 -mt-0.5">
+            <slot name="title">
+              <$ ctx.packagePage.pageName $>
+            </slot>
+          </div>
         </span>
       </v-toolbar-title>
       <template v-if="showAvatar">

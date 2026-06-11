@@ -7,7 +7,7 @@
 <=%- set _componentName = _componentPath.split('/').pop() %=>
 <!-- <=$ _componentName $=>.html start -->
 <script type="text/x-template" id="<=$ _componentName | camelToKebab $=>">
-  <div class="flex flex-col min-h-0 h-full overflow-hidden">
+  <div>
     <!-- pageContent -->
     <=%- for node in standardConfig.pageContent %=>
     <=$ v6.renderTreeItem(node, '    ') $=>
