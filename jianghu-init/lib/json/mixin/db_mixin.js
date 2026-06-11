@@ -42,31 +42,15 @@ const resolvePageHook = jsonConfig => {
 };
 
 /**
- * 待同步的 _page 记录列表。
- * v7 双端：PC pageId + mobile/{pageId} 各一条（与 init_page.renderVue 一致）。
+ * 待同步的 _page / _resource 记录列表（resolvePageSyncEntries）。
+ * v7：仅同步 renderVue 本次写出的端（jsonConfig.v7GeneratedTargets）。
  */
-const resolvePageSyncEntries = jsonConfig => {
-  const pageId = jsonConfig.pageId || (jsonConfig.page && jsonConfig.page.id);
-  if (!pageId) return [];
-  const pageName = jsonConfig.pageName || (jsonConfig.page && jsonConfig.page.name) || pageId;
-  const entries = [{ pageId, pageName, pageType: 'showInMenu' }];
-  const isV7DualEnd =
-    jsonConfig.version === 'v7'
-    && !String(pageId).startsWith('mobile/');
-  if (isV7DualEnd) {
-    entries.push({
-      pageId: `mobile/${pageId}`,
-      pageName,
-      pageType: 'showInMenu',
-    });
-  }
-  return entries;
-};
+const { resolvePageSyncEntries } = require('../v7/mobilePageId');
 
 const dbMixin = {
   /**
    * 检查并同步 _page 表记录（pageId 不存在则插入；pageName / pageHook 变更则更新）
-   * v7：同时同步 PC pageId 与 mobile/{pageId}；page.hook → pageHook 字段
+   * v7：按 v7GeneratedTargets 同步（生成 PC 则 base pageId，生成 mobile 则 mobile/{pageId}）
    * @param {Object} jsonConfig
    */
   async checkPage(jsonConfig) {
@@ -125,12 +109,29 @@ const dbMixin = {
   },
 
   /**
-   * 同步 _resource 表：对比 resourceList 中的每条记录，有则更新、无则插入
+   * 同步 _resource 表：对比 resourceList 中的每条记录，有则更新、无则插入。
+   * 与 checkPage 相同：生成哪端就对哪端的 pageId 跑 resourceList。
    * @param {Object} jsonConfig
    */
   async handleOtherResource(jsonConfig) {
-    const { resourceList, pageId, jhId } = jsonConfig;
-    if (!resourceList || !pageId) return;
+    const { resourceList, jhId } = jsonConfig;
+    if (!Array.isArray(resourceList) || !resourceList.length) return;
+
+    const pageEntries = resolvePageSyncEntries(jsonConfig);
+    if (!pageEntries.length) return;
+
+    for (const { pageId } of pageEntries) {
+      await this.syncResourceListForPageId({ pageId, resourceList, jhId });
+    }
+  },
+
+  /**
+   * @param {{ pageId: string, resourceList: Array, jhId?: * }} opts
+   */
+  async syncResourceListForPageId(opts) {
+    const { pageId, resourceList, jhId } = opts;
+    if (!pageId || !Array.isArray(resourceList) || !resourceList.length) return;
+
     const knex = this.knex;
     const where = { pageId };
     if (jhId) { where.jhId = jhId; }

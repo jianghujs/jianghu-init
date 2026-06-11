@@ -15,6 +15,7 @@
 const _ = require('lodash');
 const { normalizeDataSource } = require('../semantic/normalizeDataSource');
 const { normalizePageContentToArray } = require('../semantic/pageContentShape');
+const { resolveSchemaComponentName } = require('../../../shared/schemaComponentAlias');
 // ─────────────────────────────────────────────
 // Component 注册表：schema component 名 → Vue 组件标签名
 // 命名规则：Schema 名 = Vue tag 去掉 jh- 前缀后做 PascalCase 转换，无额外后缀
@@ -51,6 +52,9 @@ const COMPONENT_MAP = {
   // Sheet 族（对标 Drawer 族）：jh-sheet ≈ jh-drawer；jh-form-sheet ≈ jh-form-drawer
   Sheet:     'jh-sheet',
   FormSheet: 'jh-form-sheet',
+  // platform token（手写 actionContent 时与 expandCrudPage 选型一致）
+  CreateSheet: 'jh-form-sheet',
+  UpdateSheet: 'jh-form-sheet',
   SearchSheet: 'jh-mobile-search-sheet',
   MobileFilterBtn: 'jh-mobile-filter-btn',
   MobileActions: 'jh-mobile-actions',
@@ -278,7 +282,7 @@ function tableNodeHasColumnConfig(props) {
 function resolveNode(schema, node) {
   if (!node || typeof node !== 'object') return node;
 
-  const component = node.component || '';
+  const component = resolveSchemaComponentName(node);
   const key = node.key || '';
   const resolvedComponent = COMPONENT_MAP[component] || component;
 
@@ -467,35 +471,27 @@ function resolveNode(schema, node) {
   }
 
   /**
-   * MobileFilterBtn（jh-mobile-filter-btn）
-   * - `labelBind` / `activeDisplayBind` / `iconBind`：值按 Vue 表达式写入 `:prop="…"`。
-   * - plain `label` / `activeDisplay` / `icon`：**一律静态**（走模板序列化），不作字符串→变量猜测。
-   * - 同时写 `*Bind` 与对应 plain 键时 **`*Bind` 优先**，并剔除 plain 键。
-   * - `children: string[]`：`<template v-slot:active-display>…</template>` → 组件 `#active-display` 插槽（renderTreeItem 原样输出）。
+   * 通用 *Bind（见 lib/json/shared/applyPropBind.js、docs/bind-slots-and-targets.md）
+   * - `<prop>Bind` → `:prop="Vue 表达式"`；plain `<prop>` 静态；同时存在时 *Bind 优先。
+   * - REACTIVE_BINDINGS_MAP / *Binding / PageHeader·SearchSheet 变量名协议 优先，不占 *Bind。
    */
-  const mobileFilterBtnBindingOverrides = {};
-  if (component === 'MobileFilterBtn') {
-    const MOBILE_FILTER_BTN_BIND_SUFFIX_PAIRS = [
-      ['labelBind', 'label', ':label'],
-      ['activeDisplayBind', 'activeDisplay', ':active-display'],
-      ['iconBind', 'icon', ':icon'],
-    ];
-    for (const [bindKey, plainKey, bindingAttr] of MOBILE_FILTER_BTN_BIND_SUFFIX_PAIRS) {
-      const rawBind = resolvedProps[bindKey];
-      if (typeof rawBind !== 'string' || !rawBind.trim()) continue;
-      mobileFilterBtnBindingOverrides[bindingAttr] = rawBind.trim();
-      delete resolvedProps[bindKey];
-      delete resolvedProps[plainKey];
-    }
-  }
-
-  const resolvedBindings = Object.assign(
+  const { applyPropBindOverrides } = require('../../../shared/applyPropBind');
+  const frameworkBindingOverrides = Object.assign(
     {},
-    BINDINGS_MAP({component, key}),
+    BINDINGS_MAP({ component, key }),
     headersBinding ? { ':headers': headersBinding } : {},
     pageHeaderBindingOverrides,
     searchSheetBindingOverrides,
-    mobileFilterBtnBindingOverrides,
+  );
+  const propBindOverrides = applyPropBindOverrides(resolvedProps, {
+    component,
+    bindingOverrides: frameworkBindingOverrides,
+  });
+
+  const resolvedBindings = Object.assign(
+    {},
+    frameworkBindingOverrides,
+    propBindOverrides,
   );
 
   let rawAttrs = {};
@@ -594,8 +590,9 @@ function findFormNodeByKey(nodeOrList, key) {
   let found = null;
   walkTree(nodeOrList, node => {
     if (found || !node || typeof node !== 'object' || node.key !== key) return;
-    if (key === 'create' && (node.component === 'CreateDrawer' || node.component === 'FormSheet')) found = node;
-    if (key === 'update' && (node.component === 'UpdateDrawer' || node.component === 'FormSheet')) found = node;
+    const comp = resolveSchemaComponentName(node);
+    if (key === 'create' && (comp === 'CreateDrawer' || comp === 'FormSheet')) found = node;
+    if (key === 'update' && (comp === 'UpdateDrawer' || comp === 'FormSheet')) found = node;
   });
   return found;
 }

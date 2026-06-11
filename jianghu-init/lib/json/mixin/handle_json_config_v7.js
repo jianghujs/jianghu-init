@@ -81,12 +81,19 @@ module.exports = function handleJsonConfigV7(jsonConfig) {
     mobileLegacyConfig = mobile.legacyConfig;
   }
 
+  const semanticPageId = jsonConfig.page && jsonConfig.page.id;
+
   Object.assign(jsonConfig, pcLegacyConfig, {
     standardConfig: pcStandardConfig,
     mobileStandardConfig: mobileStandardConfig || null,
     mobileLegacyConfig: mobileLegacyConfig || null,
     v7BuildTargets: buildTargets,
   });
+
+  // 文件生成用配置 id；移动端运行时 id 在 standardConfig.page.id（mobile/ 前缀，见 buildPage）
+  if (semanticPageId) {
+    jsonConfig.pageId = semanticPageId;
+  }
 
   if (jsonConfig.pageType === 'jh-component' && jsonConfig.component && jsonConfig.component.path) {
     jsonConfig.componentPath = jsonConfig.component.path;

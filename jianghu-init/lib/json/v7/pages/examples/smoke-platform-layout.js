@@ -2,6 +2,8 @@
 
 const v = require('../../index');
 const { expandCrudPage } = require('../../compiler/semantic/expandCrudPage');
+const { fieldKeyToFormField } = require('../../fieldFormProps');
+const { resolvePageSyncEntries } = require('../../mobilePageId');
 
 const desk = require('./projectManagement.v7.sample');
 
@@ -140,6 +142,44 @@ const moRemark = moAttrsIr.actionContent.find(n => n && n.key === 'create').prop
 console.assert(pcRemark.attrs.rows === 8, 'fields.pc rows merge into attrs on pc target');
 console.assert(moRemark.attrs.rows === 5, 'fields.mobile rows merge into attrs on mobile target');
 
+const customField = fieldKeyToFormField({
+  goal: {
+    label: '跟进目标',
+    type: 'custom',
+    component: 'jh-goal-picker',
+    rules: 'validationRules.requireRules',
+    attrs: { mode: 'single' },
+  },
+}, 'goal', 'pc');
+console.assert(customField.type === 'custom', 'fields custom type preserved');
+console.assert(customField.component === 'jh-goal-picker', 'fields custom component forwarded');
+console.assert(customField.rules === 'validationRules.requireRules', 'fields custom rules forwarded');
+console.assert(customField.attrs && customField.attrs.mode === 'single', 'fields custom attrs forwarded');
+
+const moCustomField = fieldKeyToFormField({
+  goal: { type: 'custom', component: 'jh-goal-pc', mobile: { component: 'jh-goal-mobile' } },
+}, 'goal', 'mobile');
+console.assert(moCustomField.component === 'jh-goal-mobile', 'fields.mobile component override');
+
+const customCrudDesk = {
+  mode: 'crud',
+  page: { id: 'customFieldSmoke' },
+  fields: {
+    goal: {
+      label: '跟进目标',
+      type: 'custom',
+      component: 'jh-goal-picker',
+      rules: 'validationRules.requireRules',
+    },
+  },
+  dataSource: { table: 't', listResource: 'list' },
+  views: { create: { fields: ['goal'] } },
+};
+const customCrudIr = expandCrudPage(Object.assign({}, customCrudDesk, { targetPlatform: 'pc' }));
+const customGoalField = customCrudIr.actionContent
+  .find(n => n && n.key === 'create').props.fieldList.find(f => f.key === 'goal');
+console.assert(customGoalField.type === 'custom' && customGoalField.component === 'jh-goal-picker', 'expandCrudPage create fieldList custom component');
+
 // ─── Req 7: slots 声明 ────────────────────────────────────────────────────────
 // 直接检查 expandCrudPage 原始输出（schemaPipeline 会把 slotTemplates 转为 children）
 const deskNoOverride = Object.assign({}, desk, { pc: undefined });
@@ -220,6 +260,138 @@ console.assert(pc.pageContent[0].component === 'VStack', 'standardConfig.pageCon
 const mobileBase = Object.assign({}, desk, { pageType: 'jh-mobile-page', pc: undefined });
 const { standardConfig: mo } = v.buildPage(mobileBase);
 console.assert(mo.v7Meta.target === 'mobile', 'mobile target');
+console.assert(mo.page.id === 'mobile/projectManagement', 'mobile standardConfig.page.id has mobile/ prefix for NJK pageId');
+
+const titleBindNode = parseSchema({
+  version: 'v7',
+  page: { id: 'titleBindSmoke' },
+  pageContent: [],
+  actionContent: [{
+    component: 'FormSheet',
+    key: 'bindGroup',
+    props: {
+      titleBind: "bindGroupItem.duoxingRoomId ? '已绑定' : '尚未绑定'",
+      headActionList: [],
+    },
+  }],
+}).standardConfig.actionContent[0];
+console.assert(
+  titleBindNode.resolvedBindings && titleBindNode.resolvedBindings[':title']
+    === "bindGroupItem.duoxingRoomId ? '已绑定' : '尚未绑定'",
+  'FormSheet titleBind → resolvedBindings :title expression',
+);
+console.assert(
+  titleBindNode.resolvedProps.title === undefined && titleBindNode.resolvedProps.titleBind === undefined,
+  'FormSheet titleBind strips static title/titleBind from resolvedProps',
+);
+
+const filterBtnNode = parseSchema({
+  version: 'v7',
+  page: { id: 'propBindSmoke' },
+  pageContent: [{
+    component: 'MobileFilterBtn',
+    props: {
+      label: '组织',
+      labelBind: 'filterLabelText',
+      activeDisplayBind: 'currentOrgInfo.orgName',
+    },
+  }],
+  actionContent: [],
+}).standardConfig.pageContent[0];
+console.assert(
+  filterBtnNode.resolvedBindings[':label'] === 'filterLabelText',
+  'universal *Bind: MobileFilterBtn labelBind',
+);
+console.assert(
+  filterBtnNode.resolvedBindings[':active-display'] === 'currentOrgInfo.orgName',
+  'universal *Bind: activeDisplayBind → :active-display',
+);
+console.assert(filterBtnNode.resolvedProps.label === undefined, 'labelBind drops plain label');
+
+const shownBindNode = parseSchema({
+  version: 'v7',
+  page: { id: 'shownBindSmoke' },
+  pageContent: [],
+  actionContent: [{
+    component: 'FormSheet',
+    key: 'create',
+    props: { shownBind: 'true', title: '新建' },
+  }],
+}).standardConfig.actionContent[0];
+console.assert(
+  shownBindNode.resolvedBindings[':shown.sync'] === 'isCreateDrawerShown',
+  'framework :shown.sync wins over shownBind',
+);
+console.assert(
+  shownBindNode.resolvedBindings[':shown'] === undefined,
+  'shownBind ignored when REACTIVE_BINDINGS_MAP owns shown',
+);
+
+const createSheetByComponent = parseSchema({
+  version: 'v7',
+  page: { id: 'createSheetSmoke' },
+  pageContent: [],
+  actionContent: [{
+    component: 'CreateSheet',
+    key: 'create',
+    props: { title: '新建', fieldList: [{ key: 'name', label: '名称' }] },
+  }],
+}).standardConfig.actionContent[0];
+console.assert(
+  createSheetByComponent.resolvedComponent === 'jh-form-sheet',
+  'CreateSheet token → jh-form-sheet',
+);
+console.assert(
+  createSheetByComponent.resolvedBindings[':shown.sync'] === 'isCreateDrawerShown',
+  'CreateSheet token → FormSheet bindings',
+);
+
+const createSheetByTag = parseSchema({
+  version: 'v7',
+  page: { id: 'createSheetTagSmoke' },
+  pageContent: [],
+  actionContent: [{
+    tag: 'CreateSheet',
+    key: 'create',
+    props: { title: '新建', fieldList: [] },
+  }],
+}).standardConfig.actionContent[0];
+console.assert(
+  createSheetByTag.resolvedComponent === 'jh-form-sheet',
+  'tag: CreateSheet → jh-form-sheet',
+);
+
+const bothSyncIds = resolvePageSyncEntries({
+  version: 'v7',
+  v7GeneratedTargets: ['pc', 'mobile'],
+  pageId: 'projectManagement',
+  pageName: '项目管理',
+}).map(e => e.pageId);
+console.assert(
+  bothSyncIds.length === 2
+  && bothSyncIds[0] === 'projectManagement'
+  && bothSyncIds[1] === 'mobile/projectManagement',
+  'v7 generated pc+mobile: sync entries for both pageIds',
+);
+const pcOnlySyncIds = resolvePageSyncEntries({
+  version: 'v7',
+  v7GeneratedTargets: ['pc'],
+  v7BuildTargets: 'both',
+  pageId: 'projectManagement',
+}).map(e => e.pageId);
+console.assert(
+  pcOnlySyncIds.length === 1 && pcOnlySyncIds[0] === 'projectManagement',
+  'v7 generated pc only: no mobile resource/page sync despite targets both in config',
+);
+const mobileOnlySyncIds = resolvePageSyncEntries({
+  version: 'v7',
+  v7GeneratedTargets: ['mobile'],
+  pageId: 'projectManagement',
+}).map(e => e.pageId);
+console.assert(
+  mobileOnlySyncIds.length === 1 && mobileOnlySyncIds[0] === 'mobile/projectManagement',
+  'v7 generated mobile only: mobile/ pageId for resource sync',
+);
 console.assert(mo.v7Meta.filterMode === 'sheet', 'mobile sheet filter');
 console.assert(mo.v7Meta.collectionComponent === 'List', 'mobile platform.list List');
 console.assert(mo.v7Meta.createFormComponent === 'FormSheet', 'mobile platform.create CreateSheet→FormSheet');
@@ -254,6 +426,8 @@ console.assert(
 console.assert(!moCreateProps.actionList, 'mobile FormSheet create has no bottom actionList');
 console.assert(moCreateProps.autoHeight === true, 'mobile FormSheet create default autoHeight');
 console.assert(moCreateProps.viewportOffset === 102, 'mobile FormSheet create default viewportOffset 102');
+console.assert(moCreateProps.beforeCloseConfirm === true, 'mobile FormSheet create beforeCloseConfirm');
+console.assert(moCreateProps.persistent === true, 'mobile FormSheet beforeCloseConfirm → persistent');
 console.assert(moSearchSheet, 'mobile SearchSheet exists');
 console.assert(
   (moSearchSheet.resolvedProps || moSearchSheet.props || {}).maxBodyHeight === '70vh',

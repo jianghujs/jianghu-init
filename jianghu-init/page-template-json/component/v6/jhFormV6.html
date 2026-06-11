@@ -537,7 +537,8 @@ Vue.component('jh-form', {
           field.type === 'select'   ? 'select'   :
           field.type === 'date'     ? 'date'     :
           field.type === 'textarea' ? 'textarea' :
-          field.type === 'number'   ? 'number'   : 'text';
+          field.type === 'number'   ? 'number'   :
+          field.type === 'custom'   ? 'custom'   : 'text';
 
         const required = !!field.required;
 

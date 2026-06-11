@@ -299,7 +299,7 @@ Vue.component("jh-sheet", {
   <jh-sheet
     :shown="shown"
     :rounded="rounded"
-    :persistent="persistent"
+    :persistent="effectivePersistent"
     :min-card-height="minCardHeight"
     :title="sheetTitle"
     :body-class="sheetBodyClass"
@@ -507,6 +507,11 @@ Vue.component("jh-form-sheet", {
         name.startsWith('label-') ||
         name.startsWith('after-')
       ));
+    },
+    /** beforeCloseConfirm 时禁止点外侧关闭，避免绕过脏检测 */
+    effectivePersistent() {
+      if (this.persistent) return true;
+      return (this.resolvedTabList || []).some(tab => tab && tab.beforeCloseConfirm);
     },
   },
   methods: {

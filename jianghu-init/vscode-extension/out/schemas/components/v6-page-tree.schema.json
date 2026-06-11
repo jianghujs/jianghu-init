@@ -127,12 +127,16 @@
         "actionNode": {
             "type": "object",
             "description": "actionContent 节点（抽屉 / 底部 Sheet）；含 SearchSheet（移动端综合搜索，jh-mobile-search-sheet）",
-            "required": ["component", "key", "props"],
+            "required": ["key", "props"],
             "properties": {
                 "component": {
                     "type": "string",
                     "enum": ["CreateDrawer", "UpdateDrawer", "FormDrawer", "Drawer", "Sheet", "FormSheet", "SearchSheet"],
-                    "description": "叠层类型：含 SearchSheet → jh-mobile-search-sheet（与 PageHeader 搜索语义一致）"
+                    "description": "叠层类型（v7 推荐）。与 tag 二选一"
+                },
+                "tag": {
+                    "type": "string",
+                    "description": "legacy 别名：同 component，或 jh-create-drawer 等 Vue 标签名；IDE 悬停 props 时按此识别组件类型"
                 },
                 "key": {
                     "type": "string",
@@ -437,12 +441,16 @@
         },
         "drawerFormProps": {
             "type": "object",
-            "additionalProperties": false,
+            "description": "CreateDrawer / UpdateDrawer / FormDrawer / FormSheet 共用 props",
+            "additionalProperties": true,
             "properties": {
-                "title": { "type": "string" },
+                "title": { "type": "string", "description": "标题（静态）；动态用 titleBind" },
+                "titleBind": { "type": "string", "description": "Vue 表达式 → :title" },
                 "cols": { "type": "number", "minimum": 1 },
                 "gap": { "type": "string" },
-                "labelMode": { "type": "string", "enum": ["float", "above"] },
+                "labelMode": { "type": "string", "enum": ["float", "above", "inline"] },
+                "formKey": { "type": "string", "description": "jh-form ref 前缀" },
+                "scope": { "type": "object", "description": "jh-form / 条件求值上下文" },
                 "tabList": {
                     "type": "array",
                     "description": "抽屉 tab 列表：每个 tab 可配置独立字段与 actionList",
@@ -461,16 +469,30 @@
                 },
                 "beforeCloseConfirm": {
                     "type": "boolean",
-                    "description": "关闭抽屉前是否做脏检测确认（有改动时弹出保存 / 不保存 / 取消）"
+                    "description": "关闭前脏检测（有改动时提示是否保存）"
+                },
+                "beforeCloseCompareFields": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "脏检测仅比较指定字段；默认比较全部 fieldList"
                 },
                 "actionList": {
                     "type": "array",
                     "items": { "$ref": "#/definitions/drawerAction" }
                 },
-                "rounded": {
-                    "type": "boolean",
-                    "description": "jh-sheet：true 时卡片顶部 Tailwind rounded-t-lg（默认不加圆角）"
-                }
+                "headActionList": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/drawerAction" },
+                    "description": "FormSheet 标题栏按钮；CreateDrawer 用 actionList"
+                },
+                "hiddenBtn": { "type": "boolean", "description": "FormSheet：隐藏标题栏默认重置/确认" },
+                "rounded": { "type": "boolean", "description": "FormSheet/Sheet 顶部圆角 rounded-t-lg" },
+                "persistent": { "type": "boolean", "description": "Sheet 族：点外侧不关闭" },
+                "autoHeight": { "type": "boolean", "description": "FormSheet 内容区 max-height 策略" },
+                "viewportOffset": { "type": "number", "description": "FormSheet calc(100vh - Npx)" },
+                "maxBodyHeight": { "type": "string" },
+                "bodyHeight": { "type": "string" },
+                "minCardHeight": { "type": "string" }
             }
         },
         "drawerProps": {

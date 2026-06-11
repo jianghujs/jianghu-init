@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const { normalizeDataSource } = require('../v7/compiler/semantic/normalizeDataSource');
+const { resolveSchemaComponentName } = require('../shared/schemaComponentAlias');
 // ─────────────────────────────────────────────
 // Component 注册表：schema component 名 → Vue 组件标签名
 // 命名规则：Schema 名 = Vue tag 去掉 jh- 前缀后做 PascalCase 转换，无额外后缀
@@ -35,6 +36,8 @@ const COMPONENT_MAP = {
   // Sheet 族（对标 Drawer 族）：jh-sheet ≈ jh-drawer；jh-form-sheet ≈ jh-form-drawer
   Sheet:     'jh-sheet',
   FormSheet: 'jh-form-sheet',
+  CreateSheet: 'jh-form-sheet',
+  UpdateSheet: 'jh-form-sheet',
   SearchSheet: 'jh-mobile-search-sheet',
   MobileFilterBtn: 'jh-mobile-filter-btn',
 };
@@ -228,7 +231,7 @@ function tableNodeHasColumnConfig(props) {
 function resolveNode(schema, node) {
   if (!node || typeof node !== 'object') return node;
 
-  const component = node.component || '';
+  const component = resolveSchemaComponentName(node);
   const key = node.key || '';
   const resolvedComponent = COMPONENT_MAP[component] || component;
 
@@ -413,36 +416,23 @@ function resolveNode(schema, node) {
     }
   }
 
-  /**
-   * MobileFilterBtn（jh-mobile-filter-btn）
-   * - `labelBind` / `activeDisplayBind` / `iconBind`：值按 Vue 表达式写入 `:prop="…"`。
-   * - plain `label` / `activeDisplay` / `icon`：**一律静态**（走模板序列化），不作字符串→变量猜测。
-   * - `children`：`v-slot:active-display` 插槽 HTML 字符串（与 Table slot children 相同）。
-   * - 同时写 `*Bind` 与对应 plain 键时 **`*Bind` 优先**，并剔除 plain 键。
-   */
-  const mobileFilterBtnBindingOverrides = {};
-  if (component === 'MobileFilterBtn') {
-    const MOBILE_FILTER_BTN_BIND_SUFFIX_PAIRS = [
-      ['labelBind', 'label', ':label'],
-      ['activeDisplayBind', 'activeDisplay', ':active-display'],
-      ['iconBind', 'icon', ':icon'],
-    ];
-    for (const [bindKey, plainKey, bindingAttr] of MOBILE_FILTER_BTN_BIND_SUFFIX_PAIRS) {
-      const rawBind = resolvedProps[bindKey];
-      if (typeof rawBind !== 'string' || !rawBind.trim()) continue;
-      mobileFilterBtnBindingOverrides[bindingAttr] = rawBind.trim();
-      delete resolvedProps[bindKey];
-      delete resolvedProps[plainKey];
-    }
-  }
-
-  const resolvedBindings = Object.assign(
+  const { applyPropBindOverrides } = require('../shared/applyPropBind');
+  const frameworkBindingOverrides = Object.assign(
     {},
-    BINDINGS_MAP({component, key}),
+    BINDINGS_MAP({ component, key }),
     headersBinding ? { ':headers': headersBinding } : {},
     pageHeaderBindingOverrides,
     searchSheetBindingOverrides,
-    mobileFilterBtnBindingOverrides,
+  );
+  const propBindOverrides = applyPropBindOverrides(resolvedProps, {
+    component,
+    bindingOverrides: frameworkBindingOverrides,
+  });
+
+  const resolvedBindings = Object.assign(
+    {},
+    frameworkBindingOverrides,
+    propBindOverrides,
   );
 
   let rawAttrs = {};

@@ -27,6 +27,7 @@ const {
   DEFAULT_PLATFORM_TOKENS,
 } = require('./policy');
 const { DEFAULT_LAYOUT, getEffectiveLayout } = require('./defaults');
+const { applyMobileRuntimePageId } = require('./mobilePageId');
 
 // ─── buildPage：完整编译入口 ──────────────────────────────────────────────────
 
@@ -62,6 +63,10 @@ const buildPage = semanticInput => {
 
   const result = parseSchema(payload);
   if (v7Meta) result.standardConfig.v7Meta = v7Meta;
+
+  if (v7Meta && v7Meta.target === 'mobile') {
+    applyMobileRuntimePageId(result.standardConfig);
+  }
 
   const pageId = result.standardConfig.page && result.standardConfig.page.id;
   if (!result.legacyConfig.pageId && pageId && payload.pageType !== 'jh-component') {

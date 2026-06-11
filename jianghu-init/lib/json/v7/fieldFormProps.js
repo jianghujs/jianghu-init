@@ -31,10 +31,15 @@ const resolveFieldDefForTarget = (raw, target) => {
   const baseAttrs = isPlainObject(base.attrs) ? base.attrs : undefined;
   let platformAttrsPatch = null;
   if (isPlainObject(slice)) {
+    if (slice.component != null) merged.component = slice.component;
+    if (slice.type != null) merged.type = slice.type;
+    const sliceForAttrs = { ...slice };
+    delete sliceForAttrs.component;
+    delete sliceForAttrs.type;
     // pc | mobile 直接是 attrs 对象；兼容旧写法 pc: { attrs: { … } }
-    platformAttrsPatch = isPlainObject(slice.attrs) && Object.keys(slice).length === 1
-      ? slice.attrs
-      : slice;
+    platformAttrsPatch = isPlainObject(sliceForAttrs.attrs) && Object.keys(sliceForAttrs).length === 1
+      ? sliceForAttrs.attrs
+      : (Object.keys(sliceForAttrs).length ? sliceForAttrs : null);
   }
   const attrs = mergeFieldAttrs(baseAttrs, platformAttrsPatch);
   if (attrs) merged.attrs = attrs;
@@ -56,6 +61,7 @@ const fieldKeyToFormField = (fieldsDict, key, target = 'pc') => {
   if (f.placeholder != null) out.placeholder = f.placeholder;
   if (f.hint != null) out.hint = f.hint;
   if (f.quickAttrs != null) out.quickAttrs = f.quickAttrs;
+  if (f.component != null && String(f.component).trim()) out.component = String(f.component).trim();
   if (isPlainObject(f.attrs)) out.attrs = Object.assign({}, f.attrs);
   return out;
 };

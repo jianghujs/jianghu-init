@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { parseComponentTypeFromLine } from './configHoverUtils';
 import { isV6ConfigDocument } from './configVersionDetect';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -337,7 +338,8 @@ const V6_PATH_DOCS: Record<string, DocEntry> = {
     type: 'string',
     description: '静态 **`jh-icon`** 名（如 `filter-2`）；动态图标请用 **`iconBind`**。',
   },
-  'Sheet|title':          { type: 'string',  description: '底部卡片标题（静态）；动态用 `{ __expr__: \'computedTitle\' }`' },
+  'Sheet|title':          { type: 'string',  description: '底部卡片标题（静态）；动态用 **`titleBind`**（→ `:title`）或 `{ __expr__: \'computedTitle\' }`' },
+  'Sheet|titleBind':      { type: 'string',  description: 'Vue 表达式 → `:title="…"`（与 `title` 互斥）' },
   'Sheet|shown':          { description: '显隐：解析器通常生成 `:shown.sync="is{Key}DrawerShown"`' },
   'Sheet|orderList':      { description: '排序模式（与 actionList / children 默认插槽三选一）：`[{ text, value }]`' },
   'Sheet|actionList':     {
@@ -405,7 +407,8 @@ const V6_PATH_DOCS: Record<string, DocEntry> = {
   'Grid|colsSm': { type: 'number | string', description: '小屏（< 600px）列数' },
 
   // ── Drawer props（CreateDrawer / UpdateDrawer）────────────────────────────
-  'Drawer|title':                    { type: 'string',   description: '抽屉标题，CreateDrawer 默认 `"新增"`，UpdateDrawer 默认 `"编辑"`' },
+  'Drawer|title':                    { type: 'string',   description: '抽屉标题（静态）；动态用 **`titleBind`**' },
+  'Drawer|titleBind':                { type: 'string',   description: 'Vue 表达式 → `:title`（FormSheet / Drawer 族）' },
   'Drawer|cols':                     { type: 'number',   description: '表单列数（无 tabList 时生效），默认 1', example: '2' },
   'Drawer|gap':                      { type: 'string',   description: '表单间距 CSS gap（无 tabList 时生效），默认 `"12px 16px"`' },
   'Drawer|labelMode':                { type: 'string',   description: '标签模式：`"above"` 标签在输入框上方（默认）| `"float"` Vuetify 浮动标签' },
@@ -566,7 +569,7 @@ function getIndent(text: string): number {
 //   { ancestors: string[], componentType: string | null }
 //
 // ancestors 是从最近祖先到最远祖先的 key 名列表。
-// componentType 是最近的 component: "XXX" 的值（用于区分 Table/Drawer 等）。
+// componentType 是最近的 component / tag 声明（用于区分 Table/Drawer 等）。
 // ─────────────────────────────────────────────────────────────────────────────
 function scanAncestors(
   document: vscode.TextDocument,
@@ -593,10 +596,9 @@ function scanAncestors(
       ancestors.push(k);
       targetIndent = indent; // 继续向上找更浅的层级
 
-      // 同时检查是否是 component: "XXX"
-      const compMatch = trimmed.match(/^component\s*:\s*['"](\w+)['"]/);
-      if (compMatch && !componentType) {
-        componentType = compMatch[1];
+      if (!componentType) {
+        const parsed = parseComponentTypeFromLine(trimmed);
+        if (parsed) componentType = parsed;
       }
     }
   }
@@ -610,9 +612,9 @@ function scanAncestors(
       const indent = getIndent(line);
       // 同级或稍浅的 component 声明
       if (Math.abs(indent - curIndent) <= 4) {
-        const compMatch = trimmed.match(/^component\s*:\s*['"](\w+)['"]/);
-        if (compMatch) {
-          componentType = compMatch[1];
+        const parsed = parseComponentTypeFromLine(trimmed);
+        if (parsed) {
+          componentType = parsed;
           break;
         }
       }
@@ -757,7 +759,7 @@ const findChildren = (
   const comp = componentType ? (COMPONENT_ALIASES[componentType] || componentType) : null;
   const prefixes: string[] = [];
 
-  // 悬停在 `props` 上：用组件类型展开其 props 集合（如 Drawer / Table / PageHeader）
+  // 悬停在 `props` 上：用 component / tag 识别的组件类型展开 props 集合
   if (word === 'props' && comp) prefixes.push(comp);
 
   // 完整祖先路径（最多 3 层）

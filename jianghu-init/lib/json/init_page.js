@@ -6,6 +6,7 @@ const fs = require('fs');
 const _ = require('lodash');
 const path = require('path');
 const mixin = require('./mixin.js');
+const { toBasePageId } = require('./v7/mobilePageId');
 
 /**
  * 根据 table 定义生成 crud 页面
@@ -167,10 +168,11 @@ module.exports = class InitPage1Table extends CommandBase {
 
     // handleJsonConfig 之后再解构，确保 v6 的 pageId / table 已填充
     const { table, pageId, pageFile } = jsonConfig;
+    const basePageId = toBasePageId(pageFile || pageId);
     const tableCamelCase = _.camelCase(table);
     const v7MobileOnly = version === 'v7' && jsonConfig.v7BuildTargets === 'mobile';
-    const pcFilepath = `./app/view/page/${pageFile || pageId}.html`;
-    const mobileFilepath = `./app/view/page/mobile/${pageFile || pageId}.html`;
+    const pcFilepath = `./app/view/page/${basePageId}.html`;
+    const mobileFilepath = `./app/view/page/mobile/${basePageId}.html`;
 
     const componentList = this.getConfigComponentList(jsonConfig);
 
@@ -205,26 +207,32 @@ module.exports = class InitPage1Table extends CommandBase {
         'jh-mobile-page/jh-mobile-page-v7.njk.html',
         jsonConfig,
       );
+      if (version === 'v7') {
+        jsonConfig.v7GeneratedTargets = ['mobile'];
+      }
       this.notice(`[v7] mobile-only page generated: ${mobileFilepath}`);
       return true;
     }
 
     writePageHtml(pcFilepath, templateTargetPath, jsonConfig);
+    if (version === 'v7') {
+      jsonConfig.v7GeneratedTargets = ['pc'];
+    }
 
     // v7 双端：PC 已写入根路径，再生成 mobile/ 子目录
     if (version === 'v7' && jsonConfig.mobileStandardConfig) {
-      const mobilePageId = `mobile/${pageId}`;
-      const mobileSubFilepath = `./app/view/page/${mobilePageId}.html`;
+      const mobileSubFilepath = mobileFilepath;
       fs.mkdirSync('./app/view/page/mobile', { recursive: true });
 
       const mobileRenderCtx = Object.assign({}, jsonConfig, {
         standardConfig: jsonConfig.mobileStandardConfig,
         includeList: jsonConfig.mobileStandardConfig.includeList || [],
         basicUiActionConfig: jsonConfig.mobileBasicUiActionConfig || jsonConfig.basicUiActionConfig,
-        pageId: mobilePageId,
+        pageId: jsonConfig.mobileStandardConfig.page && jsonConfig.mobileStandardConfig.page.id,
         tableCamelCase,
       });
       writePageHtml(mobileSubFilepath, 'jh-mobile-page/jh-mobile-page-v7.njk.html', mobileRenderCtx);
+      jsonConfig.v7GeneratedTargets = ['pc', 'mobile'];
       this.notice(`[v7] mobile page generated: ${mobileSubFilepath}`);
     }
 

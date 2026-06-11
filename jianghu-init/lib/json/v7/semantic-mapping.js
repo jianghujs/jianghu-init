@@ -32,6 +32,8 @@ const SCHEMA_TO_VUE_TAG = {
   CreateDrawer: 'jh-create-drawer',
   UpdateDrawer: 'jh-update-drawer',
   FormSheet: 'jh-form-sheet',
+  CreateSheet: 'jh-form-sheet',
+  UpdateSheet: 'jh-form-sheet',
   SearchSheet: 'jh-mobile-search-sheet',
   MobileFilterBtn: 'jh-mobile-filter-btn',
   MobileActions: 'jh-mobile-actions',

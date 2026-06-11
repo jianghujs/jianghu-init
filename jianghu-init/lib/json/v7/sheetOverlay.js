@@ -56,6 +56,7 @@ const mergeSheetOverlayProps = (sheetView, opts = {}) => {
     }
     if (view.beforeCloseConfirm != null) {
       props.beforeCloseConfirm = !!view.beforeCloseConfirm;
+      if (props.persistent == null && props.beforeCloseConfirm) props.persistent = true;
     }
     return props;
   }

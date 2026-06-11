@@ -25,6 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activateV7ConfigHover = exports.V7ConfigCompletionProvider = exports.V7ConfigSignatureHelpProvider = exports.V7ConfigHoverProvider = void 0;
 const vscode = __importStar(require("vscode"));
+const configHoverUtils_1 = require("./configHoverUtils");
 const configVersionDetect_1 = require("./configVersionDetect");
 /**
  * V7 语义配置路径文档
@@ -102,6 +103,12 @@ const V7_PATH_DOCS = {
         type: 'string',
         description: '控件：`text` | `select` | `number` | `textarea` | `date` | `custom`；\n'
             + '结构性（不绑数据）：`section` | `divider` | `tip`；缺省 text',
+    },
+    'fields|component': {
+        type: 'string',
+        description: '`type:"custom"` 时指定全局 Vue 组件名（须 `includeList` 引入并 `Vue.component` 注册）。\n'
+            + '组件协议：`:value` + `@input`；额外 props 写 `attrs`。',
+        example: '"jh-goal-picker"',
     },
     'fields|html': { type: 'string', description: '`type:"tip"` 时的 HTML 内容（v-html）' },
     'fields|cls': { type: 'string', description: '额外 CSS class（section/divider/tip 或普通字段）' },
@@ -445,7 +452,7 @@ const V7_PATH_DOCS = {
             + '- CreateDrawer / UpdateDrawer：`v-model`、`:initialData`、`@field-change`、`@action`\n'
             + '- FormSheet：`:shown.sync`、`:initialData`、`@field-change`、`@action`\n'
             + '- SearchSheet：`:shown.sync`、`:keyword.sync`、`@search` 等\n\n'
-            + '同节点已写 `component` 时，悬停 **props** 会展开该组件支持的子键；词条前缀见 `Component|prop`：\n'
+            + '同节点已写 **`component` 或 `tag`**（如 `tag: \'CreateDrawer\'`）时，悬停 **props** 会展开该组件支持的子键；词条前缀见 `Component|prop`：\n'
             + '- **CreateDrawer / UpdateDrawer / FormDrawer** → `Drawer|*`（底部 **`actionList`**）\n'
             + '- **FormSheet** → `Drawer|*` + **`headActionList`** / **`rounded`** / **`hiddenBtn`**\n'
             + '- **SearchSheet** → `SearchSheet|*`\n'
@@ -458,7 +465,11 @@ const V7_PATH_DOCS = {
             + '配置式表单（fieldList / tabList）走 **props**，字段级插槽走 **slots.create|update** 或 `<template v-slot:field-xxx>` 子串。',
     },
     // ── actionContent：CreateDrawer / UpdateDrawer / FormDrawer / FormSheet（jh-form 族）──
-    'Drawer|title': { type: 'string', description: '抽屉/Sheet 标题；create 默认「新建」，update 默认「编辑」' },
+    'Drawer|title': { type: 'string', description: '抽屉/Sheet 标题（静态）；动态用 **`titleBind`**（→ `:title`）或 `{ __expr__ }`' },
+    'Drawer|titleBind': {
+        type: 'string',
+        description: 'FormSheet / Drawer 动态标题 Vue 表达式 → `:title`（与 `title` 互斥，**titleBind 优先**）',
+    },
     'Drawer|cols': { type: 'number', description: '表单 grid 列数（无 tabList 时）；layout.create.cols / layout.update.cols 语义展开', example: '2' },
     'Drawer|gap': { type: 'string', description: '表单字段间距 CSS gap；FormSheet 默认 `"0"`', example: '"12px 16px"' },
     'Drawer|labelMode': { type: 'string', description: '标签模式：`above` | `float` | `inline`（FormSheet 默认 inline）' },
@@ -523,7 +534,11 @@ const V7_PATH_DOCS = {
     // ── actionContent：Sheet（jh-sheet 通用底部卡片）──────────────────────────
     'Sheet|title': {
         type: 'string',
-        description: '底部 Sheet 标题（静态）。动态标题用 `{ __expr__: \'computedTitle\' }` + common.computed',
+        description: '底部 Sheet 标题（静态）。动态标题优先用 **`titleBind`**（Vue 表达式 → `:title`）；或 `{ __expr__: \'computedTitle\' }` + computed',
+    },
+    'Sheet|titleBind': {
+        type: 'string',
+        description: '**通用 *Bind**：`titleBind` → `:title="Vue 表达式"`（与 plain `title` 互斥）。任意 prop 均可 `<prop>Bind`，见文档 *Bind 协议。',
     },
     'Sheet|rounded': { type: 'boolean', description: '顶部圆角 `rounded-t-lg`' },
     'Sheet|orderList': {
@@ -789,9 +804,10 @@ function scanAncestors(document, position) {
             const k = keyMatch[1];
             ancestors.push(k);
             targetIndent = indent;
-            const compMatch = trimmed.match(/^component\s*:\s*['"](\w+)['"]/);
-            if (compMatch && !componentType) {
-                componentType = compMatch[1];
+            if (!componentType) {
+                const parsed = (0, configHoverUtils_1.parseComponentTypeFromLine)(trimmed);
+                if (parsed)
+                    componentType = parsed;
             }
         }
     }
@@ -802,9 +818,9 @@ function scanAncestors(document, position) {
             const indent = getIndent(line);
             if (indent < curIndent)
                 break;
-            const compMatch = line.trim().match(/^component\s*:\s*['"](\w+)['"]/);
-            if (compMatch) {
-                componentType = compMatch[1];
+            const parsed = (0, configHoverUtils_1.parseComponentTypeFromLine)(line.trim());
+            if (parsed) {
+                componentType = parsed;
                 break;
             }
         }

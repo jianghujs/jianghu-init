@@ -281,6 +281,9 @@ const pushCreateForm = (actionContent, ir) => {
   const createComp = ir.createFormComponent || 'CreateDrawer';
   const createProps = { title: ir.createTitle || '新建', fieldList: ir.createFields };
   if (ir.createSaveTipBeforeClose) createProps.beforeCloseConfirm = true;
+  if (createComp === 'FormSheet' && createProps.beforeCloseConfirm && createProps.persistent == null) {
+    createProps.persistent = true;
+  }
   if (ir.createCols != null) createProps.cols = ir.createCols;
   assignFormActions(createProps, ir.createActions, createComp);
   if (createComp === 'FormSheet') applyFormSheetOverlay(createProps, ir.createSheet, 1);

@@ -1,26 +1,25 @@
 # *Bind、插槽与分端字段
 
-## 1. `*Bind` 协议（组件 props）
+## 1. `*Bind` 协议（组件 props，通用）
 
-适用于 **`MobileFilterBtn`**、部分 Drawer/Sheet 的 **`actionList`** 等。
+**任意** `pageContent` / `actionContent` 节点的 **`props`** 均支持：
 
 | 配置键 | 生成 | plain 键 |
 |--------|------|----------|
-| **`labelBind`** | `:label="expr"` | `label` 静态 |
-| **`activeDisplayBind`** | `:active-display="expr"` | `activeDisplay` 静态 |
-| **`iconBind`** | `:icon="expr"` | `icon` 静态 |
+| **`<prop>Bind`** | `:<kebab-prop>="expr"` | `<prop>` 静态 |
+
+示例：`titleBind` → `:title`；`activeDisplayBind` → `:active-display`；`minCardHeightBind` → `:min-card-height`。
 
 规则：
 
 - 值是 **一整段 Vue 表达式**，不是模板字符串（不要写 `{{ }}`）。
 - 同时写 `*Bind` 与 plain 时，**丢弃 plain**。
-
-单行摘要示例：
+- **不**适用于：`**Binding`（如 `headersBinding`）、`REACTIVE_BINDINGS_MAP`（如 FormSheet `:shown.sync`）、PageHeader/SearchSheet 的 plain 变量名 props（`keyword: 'keyword'`）。
 
 ```js
 props: {
+  titleBind: "bindGroupItem.duoxingRoomId ? '已绑定' : '尚未绑定'",
   label: '组织',
-  showActive: true,
   activeDisplayBind: 'currentOrgInfo.orgName',
 }
 ```
