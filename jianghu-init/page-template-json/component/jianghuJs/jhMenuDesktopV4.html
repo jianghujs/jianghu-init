@@ -8,7 +8,7 @@
         </span>
       </v-toolbar-title>
       <div style="flex-grow: 1; flex-shrink: 1"></div>
-      <v-tabs show-arrows slider-size="0" color="success" style="white-space: nowrap; overflow: hidden;">
+      <v-tabs show-arrows slider-size="0" color="success" class="pl-4" style="white-space: nowrap; overflow: hidden;">
         <template v-for="(item, index) in inMenuList">
           <template v-if="item.pageId && !item.children">
             <v-tab
