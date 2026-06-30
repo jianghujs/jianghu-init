@@ -31,6 +31,7 @@ const {
   buildFilterBlock,
   buildFormBlock,
   composeMobileToolbar,
+  BLOCK_V_SPACER,
 } = require('../../builders');
 const { fieldKeyToFormField, applyFieldAttrs } = require('../../fieldFormProps');
 
@@ -812,6 +813,8 @@ const expandCrudPage = semantic => {
     search: tp.search || null,
     toolbarActions: tp.toolbarActions || null,
     toolbarSpacer: tp.toolbarSpacer || null,
+    /** 通用 VSpacer；PC/Mobile 覆写顶栏均可用，与 toolbarSpacer 同节点形状 */
+    spacer: BLOCK_V_SPACER,
     searchBtn: searchBtnNode,
     filterBtn: searchBtnNode,
     searchSheet: extraActionNodes.find(n => n && n.component === 'SearchSheet') || null,

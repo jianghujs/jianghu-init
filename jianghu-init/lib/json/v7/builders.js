@@ -91,6 +91,9 @@ const escapeHtmlAttr = value =>
   String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const upperFirst = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 
+/** pc/mobile 覆写 blocks.spacer / blocks.toolbarSpacer 共用 */
+const BLOCK_V_SPACER = { component: 'VSpacer' };
+
 const buildInlineFilter = ir => {
   // PC 端：HStack 容器，左边 PageTitle，右边 Search
   const pageTitleProps = { title: ir.pageTitle };
@@ -153,7 +156,7 @@ const buildSheetFilter = ir => {
       component: 'MobileActions',
       props: { actionList: toolbarActions },
     };
-    toolbarParts.toolbarSpacer = { component: 'VSpacer' };
+    toolbarParts.toolbarSpacer = BLOCK_V_SPACER;
     hstackChildren.push(toolbarParts.toolbarActions, toolbarParts.toolbarSpacer);
   }
 
@@ -347,6 +350,7 @@ const buildFormBlock = ir => {
 };
 
 module.exports = {
+  BLOCK_V_SPACER,
   buildCollectionBlock, buildTableLayout, buildCardLayout, buildTreeTableLayout,
   buildFilterBlock, buildInlineFilter, buildSheetFilter, composeMobileToolbar,
   buildFormBlock, pushCreateForm, pushUpdateForm,

@@ -102,7 +102,8 @@ fields / views / platform / layout / dataSource  (authoring)
 |-----------|----------------|-------------|
 | `pageHeader` | 默认 HStack：`MobileActions` + `VSpacer` + `MobileFilterBtn` | 默认 HStack：`PageTitle` + `Search` |
 | `toolbarActions` | `MobileActions` 节点 | `null`（操作用 `Table.headActionList`） |
-| `toolbarSpacer` | `VSpacer` 节点 | `null` |
+| `toolbarSpacer` | `VSpacer` 节点（有 toolbarActions 时） | `null` |
+| `spacer` | `{ component: 'VSpacer' }`，PC/Mobile 通用 | 同上 |
 | `searchBtn` / `filterBtn` | `MobileFilterBtn` 节点 | `null` |
 | `searchSheet` | `SearchSheet`（放 `actionContent`） | `null` |
 | `pageTitle` / `search` | `null` | `PageTitle` / `Search` 节点 |

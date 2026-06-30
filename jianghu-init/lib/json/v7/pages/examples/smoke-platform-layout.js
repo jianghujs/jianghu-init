@@ -525,6 +525,8 @@ console.assert(blockSnapshot && blockSnapshot.toolbarActions && blockSnapshot.to
 console.assert(blockSnapshot && blockSnapshot.searchBtn && blockSnapshot.searchBtn.component === 'MobileFilterBtn', 'blocks.searchBtn node');
 console.assert(blockSnapshot && typeof blockSnapshot.composeToolbar === 'function', 'blocks.composeToolbar helper');
 console.assert(blockSnapshot && blockSnapshot.filterBtn === blockSnapshot.searchBtn, 'filterBtn alias searchBtn');
+console.assert(blockSnapshot && blockSnapshot.spacer && blockSnapshot.spacer.component === 'VSpacer', 'blocks.spacer VSpacer');
+console.assert(blockSnapshot && blockSnapshot.toolbarSpacer === blockSnapshot.spacer, 'toolbarSpacer same as blocks.spacer');
 
 const moComposeLayout = v.buildPage(Object.assign({}, desk, {
   targetPlatform: 'mobile',
