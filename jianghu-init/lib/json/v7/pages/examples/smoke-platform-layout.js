@@ -552,6 +552,8 @@ const readNodeClass = n => {
 const moToolbarCls = readNodeClass(moComposeToolbar);
 const moListCls = readNodeClass(moComposeList);
 console.assert(moComposeToolbar && moComposeToolbar.component === 'HStack', 'composeToolbar → HStack');
+const moComposeToolbarProps = (moComposeToolbar && (moComposeToolbar.props || moComposeToolbar.resolvedProps)) || {};
+console.assert(moComposeToolbarProps.wrap === true, 'composeToolbar default wrap:true for flex-wrap');
 console.assert(!/\bflex-1\b/.test(moToolbarCls), 'toolbar HStack must not have flex-1');
 console.assert(/\bflex-shrink-0\b/.test(moToolbarCls), 'toolbar HStack flex-shrink-0');
 console.assert(/\bflex-1\b/.test(moListCls), 'List body keeps flex-1');
@@ -593,6 +595,15 @@ const moProjectName = moCreateFormProps.fieldList && moCreateFormProps.fieldList
 console.assert(moProjectName && moProjectName.span === 3, 'default mobile create: projectName span=cols(3)');
 console.assert(moCreateFormProps.cols === 3, 'default mobile create cols=3');
 console.assert(moCreateFormProps.labelMode === 'inline', 'mobile FormSheet labelMode inline');
+console.assert(moCreateForm._meta && moCreateForm._meta.needsItemState === true, 'FormSheet needsItemState');
+const moCreateBindings = moCreateForm.resolvedBindings || {};
+console.assert(moCreateBindings[':initialData'] === 'createItem', 'FormSheet binds createItem');
+
+// Req 8c: Sheet / FormSheet 绑定 initialData 时，页面须生成 {key}Item
+const moMoreSheet = mo.actionContent.find(n => n && n.component === 'Sheet');
+if (moMoreSheet) {
+  console.assert(moMoreSheet._meta && moMoreSheet._meta.needsItemState === true, 'Sheet needsItemState when initialData bound');
+}
 
 // slots.list.mobile.children → jh-list 开闭标签内含 body 插槽
 const moRawIr = expandCrudPage(Object.assign({}, desk, {

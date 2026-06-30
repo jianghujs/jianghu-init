@@ -3,25 +3,47 @@
 (function () {
   const jhActionWhenMixin = {
     methods: {
+      _vmWhenContext(vm) {
+        if (!vm) return {};
+        const ctx = Object.assign({}, vm.$data || {});
+        const computed = vm.$options && vm.$options.computed;
+        if (computed && typeof computed === 'object') {
+          for (const k of Object.keys(computed)) {
+            try {
+              const v = vm[k];
+              if (v !== undefined) ctx[k] = v;
+            } catch (e) { /* skip */ }
+          }
+        }
+        return ctx;
+      },
+      _findPageVm() {
+        let p = this.$parent;
+        while (p) {
+          if (typeof p.doUiAction === 'function' && p.pageId != null) return p;
+          p = p.$parent;
+        }
+        return null;
+      },
       _actionWhenContext() {
         const ctx = Object.assign({}, this.initialData || {});
         if (this.scope && typeof this.scope === 'object') {
           Object.assign(ctx, this.scope);
         }
+        const pageVm = this._findPageVm();
+        if (pageVm) Object.assign(ctx, this._vmWhenContext(pageVm));
         return ctx;
       },
       _resolveActionWhenRef(name) {
         if (!name) return undefined;
-        if (this.initialData && Object.prototype.hasOwnProperty.call(this.initialData, name)) {
-          return this.initialData[name];
+        const ctx = this._actionWhenContext();
+        if (Object.prototype.hasOwnProperty.call(ctx, name)) {
+          return ctx[name];
         }
-        if (this.scope && Object.prototype.hasOwnProperty.call(this.scope, name)) {
-          return this.scope[name];
-        }
-        const parent = this.$parent;
-        if (parent && Object.prototype.hasOwnProperty.call(parent, name)) {
-          const val = parent[name];
-          return typeof val === 'function' ? val.call(parent) : val;
+        let p = this.$parent;
+        while (p) {
+          if (typeof p[name] !== 'undefined') return p[name];
+          p = p.$parent;
         }
         return undefined;
       },

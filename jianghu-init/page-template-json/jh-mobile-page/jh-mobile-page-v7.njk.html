@@ -88,6 +88,10 @@ new Vue({
   template: '#app-template',
   //===// vuetify: new Vuetify(<=%- if standardConfig.page.vuetify %=><=$ standardConfig.page.vuetify | objToVar('', 2) $=><=%- endif %=>),
 
+  //===// <=%- if common and common.mixins %=>
+  //===// mixins: <=$ common.mixins $=>,
+  //===// <=%- endif %=>=
+
   // ─────────────────────────────────────────────
   // provide：向所有子孙组件注入页面级上下文
   // 子组件通过 inject: ['jhPage'] 接入，不再依赖 $parent

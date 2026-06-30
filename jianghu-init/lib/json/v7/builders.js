@@ -197,7 +197,7 @@ const buildSheetFilter = ir => {
     ? {
         component: 'HStack',
         attrs: { class: 'border-b flex-none' },
-        props: { gap: 8, align: 'center', justify: 'flex-start', wrap: false, padding: '8px 12px' },
+        props: { gap: 8, align: 'center', justify: 'flex-start', wrap: true, padding: '8px 12px' },
         children: hstackChildren,
       }
     : null;
@@ -221,7 +221,7 @@ const composeMobileToolbar = (children, opts = {}) => {
     component: 'HStack',
     attrs: { class: opts.class != null ? opts.class : 'border-b flex-none' },
     props: Object.assign(
-      { gap: 8, align: 'center', justify: 'flex-start', wrap: false, padding: '8px 12px' },
+      { gap: 8, align: 'center', justify: 'flex-start', wrap: true, padding: '8px 12px' },
       opts.props || {},
     ),
     children: nodes,

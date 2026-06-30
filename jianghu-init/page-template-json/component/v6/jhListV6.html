@@ -15,6 +15,7 @@
   slots（可选）：
     - toolbar-prepend / toolbar-append：同 jh-table
     - cell-{value}：自定义某个字段的展示，scope: { item, header }
+    - title-append：标题行主文字右侧扩展区，scope: { item, header }；父组件提供即显示
     - action：行操作指示区（默认 chevron 或 rightArrow 文案），scope: { item }；可完全自定义
 ───────────────────────────────────────────────────────────────────── -->
 
@@ -53,10 +54,9 @@
       <slot name="toolbar-append"></slot>
     </div>
 
-    <!-- 列表主体：有分页时 flex-1 + overflow-y-auto，高度由父级 flex 链自动计算 -->
+    <!-- 列表主体：flex-1 + overflow-y-auto，高度由父级 flex 链计算（与是否有分页无关） -->
     <div
-      class="jh-list-v6-body d-flex flex-column pb-2"
-      :class="{ 'jh-list-v6-body--flex-scroll': showPaginationBar }"
+      class="jh-list-v6-body jh-list-v6-body--flex-scroll d-flex flex-column pb-2"
       :style="{ gap: gapStyle }"
     >
       <div
@@ -93,7 +93,7 @@
                       {{ item[h.value] }}
                     </slot>
                   </div>
-                  <slot v-if="h.slot" name="title-append" :item="item" :header="h"></slot>
+                  <slot v-if="hasTitleAppendSlot" name="title-append" :item="item" :header="h"></slot>
                 </div>
               </div>
             </div>
@@ -192,12 +192,14 @@
   height: 100%;
   position: relative;
 }
+.jh-list-v6-body {
+  background-color: #F3F4F6;
+}
 .jh-list-v6-body--flex-scroll {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background-color: #F3F4F6;
 }
 </style>
 
@@ -275,6 +277,9 @@ Vue.component('jh-list', {
     },
     showRightArrow() {
       return this.rightArrow && this.hasActions;
+    },
+    hasTitleAppendSlot() {
+      return !!(this.$scopedSlots && this.$scopedSlots['title-append']);
     },
     hasActionSlot() {
       return !!(this.$scopedSlots && this.$scopedSlots.action);

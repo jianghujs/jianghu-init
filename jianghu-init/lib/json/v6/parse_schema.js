@@ -358,11 +358,13 @@ function resolveNode(schema, node) {
       });
     } else if (component === 'Sheet') {
       const ku = _.upperFirst(key);
+      const sk = _.lowerFirst(key);
       return {
-        ':shown.sync': `is${ku}DrawerShown`,
-        '@confirm':    "doUiAction('getTableData')",
-        '@action':     'doUiAction',
-        '@head-action': 'doUiAction',
+        ':shown.sync':     `is${ku}DrawerShown`,
+        ':initialData':    `${sk}Item`,
+        '@confirm':        "doUiAction('getTableData')",
+        '@action':         'doUiAction',
+        '@head-action':    'doUiAction',
       };
     } else if (component === 'FormSheet') {
       const ku = _.upperFirst(key);
@@ -450,7 +452,7 @@ function resolveNode(schema, node) {
 
   // _meta：供 NJK 模板消费的结构化标志，避免模板里出现 component 名字判断
   const NEEDS_SHOWN_STATE = new Set(['Drawer', 'FormDrawer', 'Sheet', 'FormSheet', 'SearchSheet']);
-  const NEEDS_ITEM_STATE  = new Set(['Drawer', 'FormDrawer']);
+  const NEEDS_ITEM_STATE  = new Set(['Drawer', 'FormDrawer', 'Sheet', 'FormSheet']);
   const _meta = {
     needsShownState: NEEDS_SHOWN_STATE.has(component),  // 是否需要 is{Key}DrawerShown: false
     needsItemState:  NEEDS_ITEM_STATE.has(component),   // 是否需要 {key}Item / {key}ItemOrigin

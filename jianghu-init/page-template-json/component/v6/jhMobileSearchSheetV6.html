@@ -153,6 +153,9 @@
         />
       </v-col>
     </v-row>
+    <v-row v-if="$slots.default" class="jh-backend-form-container" no-gutters>
+      <slot></slot>
+    </v-row>
   </jh-sheet>
 </script>
 

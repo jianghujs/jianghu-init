@@ -351,7 +351,9 @@ const V7_PATH_DOCS = {
     'blocks|list': { description: 'Table / List 集合块' },
     'blocks|create': { description: 'CreateDrawer / FormSheet 节点' },
     'blocks|update': { description: 'UpdateDrawer / FormSheet 节点' },
-    'blocks|composeToolbar': { description: '(children, opts?) => HStack 顶栏容器' },
+    'blocks|composeToolbar': {
+        description: '(children, opts?) => HStack 顶栏容器；默认 `props.wrap: true`（jh-hstack flex-wrap），窄屏可换行；`opts.props.wrap: false` 可关闭',
+    },
     common: { description: '透传 Vue 实例：data / methods / doUiAction 等；**jh-component 的 Vue props 写 common.props**' },
     'common|props': {
         type: 'object | array',
@@ -360,6 +362,11 @@ const V7_PATH_DOCS = {
             + '与 `component.props` 二选一，**以 common.props 为准**（component.props 仅兼容合并）。',
     },
     'common|data': { type: 'object', description: '页面 data' },
+    'common|mixins': {
+        type: 'string',
+        description: 'Vue mixins 数组字面量字符串，NJK bake 为 `mixins: …`。\n'
+            + '例：`\'[userNameMixin]\'` → `mixins: [userNameMixin],`；mixin 须由 includeList js 挂到全局。',
+    },
     'common|computed': { type: 'object', description: 'computed' },
     'common|methods': { type: 'object', description: 'methods' },
     'common|watch': { type: 'object', description: 'watch' },
@@ -631,7 +638,7 @@ const V7_PATH_DOCS = {
     'HStack|gap': { type: 'number | string', description: '子项间距', example: '8' },
     'HStack|align': { type: 'string', description: '交叉轴对齐，默认 center' },
     'HStack|justify': { type: 'string', description: '主轴对齐；composeToolbar 常用 space-between' },
-    'HStack|wrap': { type: 'boolean', description: '是否换行' },
+    'HStack|wrap': { type: 'boolean', description: '是否换行（→ jh-hstack flex-wrap）；composeToolbar / 默认 mobile 顶栏为 true' },
     'HStack|padding': { type: 'string', description: 'CSS padding，默认 8px 12px（顶栏）' },
     // ── PageHeader（PC 顶栏 / blocks.pageHeader）────────────────────────────────
     'PageHeader|title': { type: 'string', description: '页面标题' },

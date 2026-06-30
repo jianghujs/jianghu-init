@@ -42,7 +42,9 @@
                                           例：{ "item-text": "netName", "item-value": "memberId" }
                     quickAttrs   Array|String  布尔型 Vuetify prop（无需写 true），
                                           支持数组 ["clearable","small-chips"] 或空格字符串 "clearable small-chips"
-      initialData Object  表单初始值，外部变更自动同步到本地
+      initialData Object  表单当前值，外部变更自动同步到本地 formData
+      originData  Object  打开表单时的快照（如 updateItemOrigin）；与 formData 比对时在 label 旁显示橙色变更点
+      showFieldChange Boolean  是否显示字段变更指示，默认 true（需 originData）
       cols        Number | Object  表单列数，默认 3
                           · 数字：固定列数，如 cols: 3
                           · 对象：响应式，断点与 Vuetify 2 一致（xs/sm/md/lg/xl）
@@ -231,6 +233,21 @@
 </style>
 
 <!-- ══════════════════════════════════════════════════════════════
+  jh-field-change-dot  字段已修改指示（对齐 jh-mobile-page-v4 formItem label）
+══════════════════════════════════════════════════════════════════ -->
+<script type="text/html" id="jh-field-change-dot-template">
+  <span class="relative right-0 top-0 inline-flex size-2 ml-0.5" aria-label="已修改">
+    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-500 opacity-90"></span>
+    <span class="relative inline-flex size-2 rounded-full bg-orange-500"></span>
+  </span>
+</script>
+<script>
+Vue.component('jh-field-change-dot', {
+  template: '#jh-field-change-dot-template',
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
   jh-input-label
 ══════════════════════════════════════════════════════════════════ -->
 <script type="text/html" id="jh-input-label-template">
@@ -300,6 +317,7 @@ Vue.component('jh-input-label', {
             :label="field.label"
             :required="field.required"
           >
+            <jh-field-change-dot v-if="isFieldChanged(field.key)"></jh-field-change-dot>
             <slot :name="'label-' + field.key" :field="field"></slot>
           </jh-input-label>
 
@@ -309,6 +327,7 @@ Vue.component('jh-input-label', {
             class="jh-input-label jh-form-inline-label"
           >
             <span v-if="field.required" class="red--text text--accent-2 mr-1">*</span>{{ field.label }}
+            <jh-field-change-dot v-if="isFieldChanged(field.key)"></jh-field-change-dot>
             <slot :name="'label-' + field.key" :field="field"></slot>
           </span>
 
@@ -343,7 +362,11 @@ Vue.component('jh-input-label', {
             dense single-line filled
             :class="fieldInputClass(field)"
             @change="handleChange(field.key, formData[field.key])"
-          ></v-select>
+          >
+            <template v-if="labelMode === 'float' && isFieldChanged(field.key)" v-slot:append-outer>
+              <jh-field-change-dot></jh-field-change-dot>
+            </template>
+          </v-select>
 
           <!-- ── textarea ── -->
           <v-textarea
@@ -362,7 +385,11 @@ Vue.component('jh-input-label', {
             dense filled
             :class="fieldInputClass(field, true)"
             @input="handleChange(field.key, formData[field.key])"
-          ></v-textarea>
+          >
+            <template v-if="labelMode === 'float' && isFieldChanged(field.key)" v-slot:append-outer>
+              <jh-field-change-dot></jh-field-change-dot>
+            </template>
+          </v-textarea>
 
           <!-- ── date picker ── -->
           <v-menu
@@ -388,7 +415,11 @@ Vue.component('jh-input-label', {
                 dense single-line filled readonly clearable
                 :class="fieldInputClass(field)"
                 v-bind="attrs" v-on="on"
-              ></v-text-field>
+              >
+                <template v-if="labelMode === 'float' && isFieldChanged(field.key)" v-slot:append-outer>
+                  <jh-field-change-dot></jh-field-change-dot>
+                </template>
+              </v-text-field>
             </template>
             <v-date-picker
               v-model="formData[field.key]"
@@ -415,7 +446,11 @@ Vue.component('jh-input-label', {
             dense single-line filled
             :class="fieldInputClass(field)"
             @input="handleChange(field.key, formData[field.key])"
-          ></v-text-field>
+          >
+            <template v-if="labelMode === 'float' && isFieldChanged(field.key)" v-slot:append-outer>
+              <jh-field-change-dot></jh-field-change-dot>
+            </template>
+          </v-text-field>
 
           <!-- ── custom ── -->
           <component
@@ -441,7 +476,11 @@ Vue.component('jh-input-label', {
             dense single-line filled
             :class="fieldInputClass(field)"
             @input="handleChange(field.key, formData[field.key])"
-          ></v-text-field>
+          >
+            <template v-if="labelMode === 'float' && isFieldChanged(field.key)" v-slot:append-outer>
+              <jh-field-change-dot></jh-field-change-dot>
+            </template>
+          </v-text-field>
 
           </template><!-- end 内置 type -->
 
@@ -481,6 +520,9 @@ Vue.component('jh-form', {
   props: {
     fields:      { type: Array,  default: () => [] },
     initialData: { type: Object, default: () => ({}) },
+    /** 打开表单时的快照；与 formData 字段值不一致时在 label 旁显示橙色变更点（对齐 v4 mobile 抽屉） */
+    originData:  { type: Object, default: null },
+    showFieldChange: { type: Boolean, default: true },
     // cols：数字 → 固定列数；对象 → 响应式，如 { xs: 1, sm: 2, md: 3, lg: 4 }
     cols:        { default: 3 },
     gap:         { type: String, default: '12px 16px' },
@@ -615,6 +657,13 @@ Vue.component('jh-form', {
     fieldInputLabel(field) {
       if (this.isInlineLayout || this.labelMode === 'above') return '';
       return field.label || '';
+    },
+    isFieldChanged(fieldKey) {
+      if (!this.showFieldChange || !this.originData || !fieldKey) return false;
+      if (String(fieldKey).includes('.')) return false;
+      const cur = this.formData[fieldKey];
+      const orig = this.originData[fieldKey];
+      return JSON.stringify(cur) !== JSON.stringify(orig);
     },
     fieldInputClass(field, fullWidth) {
       const cls = [ 'jh-v-input' ];
