@@ -30,7 +30,7 @@ lib/json/v7/
 | **`mode`** | `'crud'` | CRUD 语义展开；省略则为 **UI 模式**（`pageContent` 直连） |
 | **`pageType`** | string | `jh-page` / `jh-mobile-page` / `jh-component`；省略则按端推断 |
 | **`targetPlatform`** | `'pc' \| 'mobile'` | 单次编译强制端；优先于 pageType 推断 |
-| **`page`** | object | `id`、`name`、`menu`、`hook`、`vuetify`、`targets`、`template`、`helpDoc` |
+| **`page`** | object | `id`、`name`、`menu`（`false` \| `true` \| kebab-case 组件名）、`hook`、`vuetify`、`targets`、`template`、`helpDoc` |
 | **`component`** | object | 子组件：`path`、`name`、`targets`；`props` 为兼容别名，合并进 `common.props` |
 | **`fields`** | object | 字段字典（CRUD） |
 | **`views`** | object | `list` / `create` / `update`（CRUD） |

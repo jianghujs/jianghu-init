@@ -4,12 +4,20 @@ const v = require('../../index');
 const { expandCrudPage } = require('../../compiler/semantic/expandCrudPage');
 const { fieldKeyToFormField } = require('../../fieldFormProps');
 const { resolvePageSyncEntries } = require('../../mobilePageId');
+const { resolvePageMenu } = require('../../../shared/resolvePageMenu');
 
 const desk = require('./projectManagement.v7.sample');
+
+console.assert(resolvePageMenu(undefined, 'jh-page', false) === 'jh-menu', 'page menu default jh-menu');
+console.assert(resolvePageMenu(false, 'jh-page', true) === false, 'page menu false');
+console.assert(resolvePageMenu(true, 'jh-page', true) === 'jh-menu', 'page menu true');
+console.assert(resolvePageMenu('jh-finance-menu', 'jh-page', true) === 'jh-finance-menu', 'page menu custom tag');
+console.assert(resolvePageMenu(undefined, 'jh-component', false) === false, 'component menu default off');
 
 // ─── 基础 PC 编译 ─────────────────────────────────────────────────────────────
 const { standardConfig: pc } = v.buildPage(desk);
 console.assert(pc.v7Meta.target === 'pc', 'pc target');
+console.assert(pc.page && pc.page.menu === 'jh-menu', 'baked page.menu is jh-menu tag');
 console.assert(pc.v7Meta.filterMode === 'inline', 'pc inline filter');
 console.assert(!JSON.stringify(pc.pageContent).includes('MobileSearch'), 'no MobileSearch on pc inline');
 

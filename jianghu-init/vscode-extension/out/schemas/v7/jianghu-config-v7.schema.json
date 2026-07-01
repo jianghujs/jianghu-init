@@ -148,7 +148,13 @@
                 "id": { "type": "string", "minLength": 1 },
                 "name": { "type": "string" },
                 "hook": {},
-                "menu": { "type": "boolean" },
+                "menu": {
+                    "description": "false=无顶栏；true/省略→jh-menu；字符串=自定义 kebab-case 组件名",
+                    "oneOf": [
+                        { "type": "boolean" },
+                        { "type": "string", "minLength": 1, "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
+                    ]
+                },
                 "targets": { "type": "string", "enum": ["pc", "mobile", "both"], "description": "UI 模式默认 pc；mode:crud 固定双端" },
                 "vuetify": { "type": "object" },
                 "template": { "type": "string" }

@@ -13,6 +13,7 @@
  */
 
 const _ = require('lodash');
+const { resolvePageMenu } = require('../../../shared/resolvePageMenu');
 const { normalizeDataSource } = require('../semantic/normalizeDataSource');
 const { normalizePageContentToArray } = require('../semantic/pageContentShape');
 const { resolveSchemaComponentName } = require('../../../shared/schemaComponentAlias');
@@ -1182,9 +1183,11 @@ function parseSchema(schema) {
       // 以及决定 Vue.component 的组件名（取最后一段）
       type: page.type || 'list',
       hook: page.hook || null,
-      menu: page.hasOwnProperty('menu')
-        ? page.menu
-        : (pageType === 'jh-component' ? false : true),
+      menu: resolvePageMenu(
+        page.menu,
+        pageType,
+        Object.prototype.hasOwnProperty.call(page, 'menu'),
+      ),
       vuetify: page.vuetify || '',
       template: page.template || defaultTemplate,
       componentPath: page.componentPath,

@@ -62,7 +62,9 @@ const V7_PATH_DOCS = {
     'page|id': { type: 'string', description: 'pageId / 路由', example: '"projectManagement"' },
     'page|name': { type: 'string', description: '显示名称', example: '"项目管理"' },
     'page|title': { type: 'string', description: '页面标题（可选，覆盖 name）' },
-    'page|menu': { type: 'boolean', description: '是否显示在导航菜单' },
+    'page|menu': {
+        description: '顶栏菜单壳：`false` 不渲染；`true` 或省略（jh-page 默认）→ `jh-menu`；字符串 → 自定义 Vue 组件标签（kebab-case，如 `"jh-finance-menu"`）。jh-component 省略默认为 `false`。',
+    },
     'page|targets': { type: 'string', description: 'UI 模式：`pc`（默认）| `mobile` | `both`；`mode:"crud"` 固定双端' },
     'page|hook': { description: '页面钩子' },
     'page|vuetify': { type: 'object', description: 'Vuetify 主题配置' },
