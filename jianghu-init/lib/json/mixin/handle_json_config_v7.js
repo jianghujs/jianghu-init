@@ -1,6 +1,12 @@
 'use strict';
 const { buildPage } = require('../v7');
 const { isJhComponent } = require('../v7/authoringMode');
+const { normalizeBakedPageMenu } = require('../shared/resolvePageMenu');
+
+const bakePageMenuOnStandardConfig = standardConfig => {
+  if (!standardConfig || !standardConfig.page) return;
+  standardConfig.page.menu = normalizeBakedPageMenu(standardConfig.page.menu);
+};
 
 /**
  * 决定 V7 编译几端产物。
@@ -82,6 +88,9 @@ module.exports = function handleJsonConfigV7(jsonConfig) {
   }
 
   const semanticPageId = jsonConfig.page && jsonConfig.page.id;
+
+  bakePageMenuOnStandardConfig(pcStandardConfig);
+  bakePageMenuOnStandardConfig(mobileStandardConfig);
 
   Object.assign(jsonConfig, pcLegacyConfig, {
     standardConfig: pcStandardConfig,

@@ -27,7 +27,7 @@
 <div>
   <v-app mobile-breakpoint="sm">
     <=%- if standardConfig.page.menu %=>
-    <<=$ standardConfig.page.menu $=> />
+    <<=$ standardConfig.page.menu | pageMenuTag $=> />
     <=%- endif %=>
     <v-main <=%- if standardConfig.page.menu %=> class="mt-13"<=%- endif %=>>
 

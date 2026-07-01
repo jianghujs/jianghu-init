@@ -1,6 +1,7 @@
 'use strict';
 const nunjucks = require('nunjucks');
 const _ = require('lodash');
+const { normalizeBakedPageMenu } = require('../shared/resolvePageMenu');
 
 
 class CleanLoader extends nunjucks.FileSystemLoader {
@@ -234,7 +235,13 @@ const nunjucksMixin = {
     });
 
     nunjucksEnv.addFilter('camelToKebab', function(obj) {
-      return obj.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '\$1-\$2').toLowerCase();
+      return _.kebabCase(String(obj || ''));
+    });
+
+    /** standardConfig.page.menu → Vue 组件标签名（true → jh-menu，避免输出 <true />） */
+    nunjucksEnv.addFilter('pageMenuTag', function(menu) {
+      const tag = normalizeBakedPageMenu(menu);
+      return tag === false ? '' : tag;
     });
 
     nunjucksEnv.addFilter('typeof', function(str) {

@@ -44,7 +44,27 @@ function resolvePageMenu(rawMenu, pageType, hasOwnMenu) {
   throw new Error('page.menu 须为 false | true | kebab-case 组件名字符串');
 }
 
+/**
+ * 将已 bake 的 page.menu 规范为 false | kebab-case 标签名（模板层不得再出现 boolean true）
+ * @param {*} menu
+ * @returns {false|string}
+ */
+function normalizeBakedPageMenu(menu) {
+  if (menu === false || menu === null || menu === undefined || menu === '') {
+    return false;
+  }
+  if (menu === true) {
+    return DEFAULT_PAGE_MENU_COMPONENT;
+  }
+  if (typeof menu === 'string') {
+    const tag = menu.trim();
+    return tag || false;
+  }
+  throw new Error(`standardConfig.page.menu 无效: ${JSON.stringify(menu)}`);
+}
+
 module.exports = {
   DEFAULT_PAGE_MENU_COMPONENT,
   resolvePageMenu,
+  normalizeBakedPageMenu,
 };

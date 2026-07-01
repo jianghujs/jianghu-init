@@ -1,5 +1,6 @@
 'use strict';
 const { parseSchema } = require('../v6/parse_schema');
+const { normalizeBakedPageMenu } = require('../shared/resolvePageMenu');
 
 /**
  * v6 配置标准化：parseSchema + minimal defaults（并 early return）
@@ -20,6 +21,9 @@ module.exports = function handleJsonConfigV6(jsonConfig) {
   if (!shouldParseV6) return false;
 
   const { standardConfig, legacyConfig } = parseSchema(jsonConfig);
+  if (standardConfig && standardConfig.page) {
+    standardConfig.page.menu = normalizeBakedPageMenu(standardConfig.page.menu);
+  }
   Object.assign(jsonConfig, legacyConfig, { standardConfig });
 
   // v6：仅补齐 render/下游 mixin 依赖的最小字段，不做旧版 tag 扫描
