@@ -67,7 +67,7 @@ const VIEWS_LIST_TO_PROPS = {
   'views.list.columns': 'props.headers',
   'views.list.mobileColumns': 'props.headers (mobile only)',
   'views.list.serverPagination': 'props.serverPagination',
-  'views.list.pageSize': 'props.pageSize',
+  'views.list.pageSize': 'blocks.table.pageSize',
   'views.list.selectable': 'props.selectable',
   'views.list.orderBy': 'blocks.table.orderBy → prepareTableParams（API 请求，非 jh-table prop）',
   'views.list.toolbarActions': 'props.headActionList (PC) | MobileActions.actionList (mobile)',

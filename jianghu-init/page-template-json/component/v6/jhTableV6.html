@@ -24,7 +24,7 @@
                         exact,   ← Boolean，text 类型精确匹配，默认 false（子串）
                         options, placeholder, clearable, width }
     serverPagination  服务端分页，默认 false
-    pageSize          每页条数，默认 50
+    pageSize          已废弃：请用父级 tableOptions.itemsPerPage（:options.sync）。仅手写页未初始化 options 时作兜底，默认 50
     selectable        复选框，默认 false
     primaryKey        主键字段，默认 'id'
 
@@ -59,9 +59,9 @@
   根节点 v-bind="$attrs"：支持 v6 Table 节点 attrs（class、:class、v-if、data-* 等）
 ───────────────────────────────────────────────────────────────────── -->
 <script type="text/html" id="jh-table-v6-template">
-  <div v-bind="$attrs" v-on="$listeners">
+  <div v-bind="$attrs" v-on="$listeners" class="jh-table-v6-root">
     <!-- 工具栏 -->
-    <div v-if="hasToolbar" class="d-flex align-center mb-3" style="gap:8px; flex-wrap:wrap">
+    <div v-if="hasToolbar" class="jh-table-v6-toolbar d-flex align-center mb-3 flex-shrink-0" style="gap:8px; flex-wrap:wrap">
 
       <!-- 左侧最前插槽（未在 toolbarActionList 声明 type:slot 时） -->
       <slot v-if="showFixedToolbarPrepend" name="toolbar-prepend"></slot>
@@ -123,6 +123,7 @@
 
     <!-- 表格主体 -->
     <v-data-table
+      class="jh-table-v6-data-table"
       :headers="internalHeaders"
       :items="filteredItems"
       :loading="loading"
@@ -131,8 +132,7 @@
       v-model="localTableSelected"
       :options.sync="syncedOptions"
       :server-items-length="serverPagination ? syncedOptions.totalCount : -1"
-      :items-per-page="serverPagination ? (pageSize || 50) : -1"
-      :footer-props="{ itemsPerPageOptions: [20, 50, 200, -1], itemsPerPageText: '每页', itemsPerPageAllText: '所有' }"
+      :footer-props="footerProps"
       mobile-breakpoint="0"
       checkbox-color="success"
       :class="{ zebraLine: true }"
@@ -185,6 +185,30 @@
   </div>
 </script>
 
+<style>
+.jh-table-v6-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.jh-table-v6-data-table {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.jh-table-v6-data-table.jh-fixed-table-height > .v-data-table__wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+.jh-table-v6-data-table.jh-fixed-table-height > .v-data-footer {
+  flex-shrink: 0;
+}
+</style>
+
 <script>
 Vue.component('jh-table', {
   inheritAttrs: false,
@@ -223,6 +247,14 @@ Vue.component('jh-table', {
         setValue:  (key, val) => this.$set(this.inlineFilterValues, key, val),
       },
     };
+  },
+  mounted() {
+    this.ensureValidItemsPerPage();
+  },
+  watch: {
+    items() {
+      this.$nextTick(() => this.fixSpuriousAllItemsPerPage());
+    },
   },
   computed: {
     isMobile() {
@@ -331,7 +363,32 @@ Vue.component('jh-table', {
     },
     syncedOptions: {
       get() { return this.options; },
-      set(val) { this.$emit('update:options', val); },
+      set(val) {
+        const next = Object.assign({}, val);
+        const ipp = next.itemsPerPage;
+        const allowed = this.footerItemsPerPageOptions;
+        // Vuetify 2：itemsPerPage 不在 footer 选项里时会在数据更新后回落为 -1，导致「显示全部」与底栏消失
+        if (ipp != null && ipp !== -1 && !allowed.includes(ipp)) {
+          next.itemsPerPage = this.resolveCurrentItemsPerPage();
+        }
+        this.$emit('update:options', next);
+      },
+    },
+    /** 底栏可选每页条数（须包含当前 itemsPerPage，否则 Vuetify 会重置为 -1） */
+    footerItemsPerPageOptions() {
+      const base = [20, 50, 200];
+      const ps = this.resolveCurrentItemsPerPage();
+      if (ps > 0 && !base.includes(ps)) base.push(ps);
+      base.sort((a, b) => a - b);
+      base.push(-1);
+      return base;
+    },
+    footerProps() {
+      return {
+        itemsPerPageOptions: this.footerItemsPerPageOptions,
+        itemsPerPageText: '每页',
+        itemsPerPageAllText: '所有',
+      };
     },
     localTableSelected: {
       get() { return this.tableSelected; },
@@ -359,6 +416,37 @@ Vue.component('jh-table', {
     },
   },
   methods: {
+    /** 当前每页条数：options.itemsPerPage 优先；未初始化时回退废弃 prop pageSize */
+    resolveCurrentItemsPerPage() {
+      const ipp = (this.options || {}).itemsPerPage;
+      if (ipp === -1 || (typeof ipp === 'number' && ipp > 0)) return ipp;
+      if (this.pageSize === -1) return -1;
+      if (typeof this.pageSize === 'number' && this.pageSize > 0) return this.pageSize;
+      return 50;
+    },
+    /** 挂载时补全未初始化的 itemsPerPage */
+    ensureValidItemsPerPage() {
+      const o = this.options || {};
+      const ipp = o.itemsPerPage;
+      if (ipp == null || ipp === '') {
+        const desired = this.resolveCurrentItemsPerPage();
+        this.$emit('update:options', Object.assign({}, o, { itemsPerPage: desired }));
+      }
+    },
+    /** 客户端分页：数据量大于每页条数却被置为 -1，多为 Vuetify 非法值回落 */
+    fixSpuriousAllItemsPerPage() {
+      const o = this.options || {};
+      const ipp = o.itemsPerPage;
+      const limit = this.resolveCurrentItemsPerPage();
+      if (
+        !this.serverPagination
+        && limit > 0
+        && ipp === -1
+        && (this.items || []).length > limit
+      ) {
+        this.$emit('update:options', Object.assign({}, o, { itemsPerPage: limit }));
+      }
+    },
     hasToolbarSlotContent(name) {
       const slots = this.$slots || {};
       const scoped = this.$scopedSlots || {};

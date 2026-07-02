@@ -39,7 +39,7 @@ const buildTableLayout = ir => attachCollectionSlotChildren({
   component: 'Table',
   key: ir.collection.key || 'mainTable',
   props: ir.collection.props,
-  attrs: { class: 'flex-1 min-w-0' },
+  attrs: { class: 'flex-1 min-h-0 min-w-0 flex flex-col' },
 }, ir);
 
 const buildCardLayout = ir => attachCollectionSlotChildren({
@@ -62,7 +62,7 @@ const buildTreeTableLayout = ir => {
         key: ir.collection.key || r.id,
         props: ir.collection.props,
         attrs: {
-          class: isList ? 'flex-1 min-h-0 min-w-0 flex flex-col' : 'flex-1 min-w-0',
+          class: isList ? 'flex-1 min-h-0 min-w-0 flex flex-col' : 'flex-1 min-h-0 min-w-0 flex flex-col',
         },
       }, ir));
     } else {

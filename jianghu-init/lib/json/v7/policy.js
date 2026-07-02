@@ -206,6 +206,9 @@ const adaptCrudPagePc = payload => {
     const fixedHeight = hasMenu ? 'h-[calc(100vh-52px)]' : 'h-screen';
     mergeNodeClass(rootVStack, `px-[12px] md:px-8 flex flex-col min-h-0 overflow-hidden ${fixedHeight}`);
   }
+  if (containsCollectionComponent(getPageContentRoot(payload.pageContent))) {
+    applyPageContentFlexLayout(payload, { rootHeightClass: '' });
+  }
   return payload;
 };
 
@@ -254,7 +257,7 @@ const applyPageContentFlexLayout = (payload, { rootHeightClass = 'h-full' } = {}
       if (node.component === 'List') {
         mergeNodeClass(node, 'flex-1 min-h-0 flex flex-col');
       } else if (node.component === 'Table') {
-        mergeNodeClass(node, 'flex-1 min-h-0 min-w-0');
+        mergeNodeClass(node, 'flex-1 min-h-0 min-w-0 flex flex-col');
       } else if (node.component === 'HStack' && node !== root) {
         // 顶栏 composeToolbar / pageHeader 已有 flex-none：仅 flex-shrink-0，禁止 flex-1
         if (hasFlexNoneOrShrink(node) || !containsListDescendant(node)) {

@@ -69,7 +69,7 @@ fields / views / platform / layout / dataSource  (authoring)
 | 语义配置 | 组件 props | 备注 |
 |----------|------------|------|
 | `views.list.serverPagination` | `serverPagination` | |
-| `views.list.pageSize` | `pageSize` | 同步到页面 `tableOptions.itemsPerPage` |
+| `views.list.pageSize` | `blocks.table.pageSize` → 页面 `tableOptions.itemsPerPage`（非 jh-table prop） | |
 | `views.list.selectable` | `selectable` | |
 | `views.list.orderBy` | `blocks.table.orderBy` → `prepareTableParams`（API 请求参数，非 jh-table prop） | |
 | `views.list.toolbarActions[]` | PC:`headActionList`；移动:顶栏 `MobileActions`（`jh-mobile-actions`） | 见 builders |

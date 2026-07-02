@@ -429,13 +429,22 @@
     .jh-fixed-table-height {
         display: flex;
         flex-direction: column;
+        min-height: 0;
     }
 
+    .jh-fixed-table-height > .v-data-table__wrapper,
     .v-data-table__wrapper,
     .fixed-table-wrapper-height .v-data-table__wrapper {
-        flex: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
         border: 1px solid #E6E6E6;
         border-bottom: none;
+    }
+
+    .jh-fixed-table-height > .v-data-footer {
+        flex-shrink: 0;
     }
 
     /* table 页脚 */

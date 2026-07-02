@@ -79,7 +79,7 @@
 //===// const deleteResource     = '<=$ standardConfig.dataSource.deleteResource $=>';
 //===// <=%- if hasTable %=>
 //===// const serverPagination   = <=$ standardConfig.blocks.table.serverPagination | dump $=>;
-//===// const defaultPageSize    = <=$ standardConfig.blocks.table.pageSize | dump $=>;
+//===// const defaultPageSize    = <=$ standardConfig.blocks.table.pageSize | default(50) $=>;
 //===// <=%- endif %=>
 
 
@@ -164,7 +164,9 @@ new Vue({
     // ================================ common ================================
     //===// <=%- if common and common.data %=>
     //===// <=%- for key, value in common.data %=>
+    //===// <=%- if key != 'tableOptions' %=>
     //===// <=$ value | variableToVar(key, 4) $=>,
+    //===// <=%- endif %=>
     //===// <=%- endfor %=>
     //===// <=%- endif %=>
     //===// <=%- if common and common.dataExpression %=>
@@ -187,12 +189,14 @@ new Vue({
 
   watch: {
     //===// <=%- if hasTable %=>
+    //===// <=%- if standardConfig.blocks.table.serverPagination %=>
     'tableOptions.page'()         { this.doUiAction('getTableData'); },
     'tableOptions.itemsPerPage'() { this.tableOptions.page = 1; this.doUiAction('getTableData'); },
     'tableOptions.sortDesc'(val, oldVal) {
       if (oldVal.length === 0 && val.length === 0) return;
       this.doUiAction('getTableData');
     },
+    //===// <=%- endif %=>
     //===// <=%- endif %=>
 
 

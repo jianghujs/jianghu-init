@@ -843,6 +843,14 @@ const expandCrudPage = semantic => {
   // 过滤 actionContent 中的 null/undefined（覆盖函数可能引用了未生成的 blocks）
   actionContent = actionContent.filter(Boolean);
 
+  const listTableMeta = hasListView
+    ? {
+      pageSize: collectionProps.pageSize,
+      orderBy: collectionProps.orderBy != null ? collectionProps.orderBy : null,
+      tableKey,
+    }
+    : null;
+
   return {
     pageType,
     page: resolvePageMeta(semantic),
@@ -853,6 +861,11 @@ const expandCrudPage = semantic => {
     resourceList: pageType === 'jh-component'
       ? []
       : (Array.isArray(semantic.resourceList) ? semantic.resourceList : []),
+    list: listTableMeta
+      ? Object.assign({}, semantic.list || {}, {
+        table: Object.assign({}, (semantic.list && semantic.list.table) || {}, listTableMeta),
+      })
+      : (semantic.list || {}),
     pageContent,
     actionContent,
     _v7: {

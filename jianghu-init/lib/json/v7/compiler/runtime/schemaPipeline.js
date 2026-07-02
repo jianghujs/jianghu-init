@@ -15,6 +15,10 @@
 const _ = require('lodash');
 const { resolvePageMenu } = require('../../../shared/resolvePageMenu');
 const { normalizeDataSource } = require('../semantic/normalizeDataSource');
+const {
+  resolveBlocksTablePageSize,
+  resolveBlocksTableOrderBy,
+} = require('../../../shared/resolveTablePageSize');
 const { normalizePageContentToArray } = require('../semantic/pageContentShape');
 const { resolveSchemaComponentName } = require('../../../shared/schemaComponentAlias');
 // ─────────────────────────────────────────────
@@ -332,8 +336,10 @@ function resolveNode(schema, node) {
     delete resolvedProps.columns;
   }
   // orderBy 仅用于页面 prepareTableParams → API，不作为 jh-table / jh-list 组件 prop
+  // pageSize 仅用于页面 tableOptions.itemsPerPage 初值（standardConfig.blocks.table），不作为组件 prop
   if (component === 'Table' || component === 'List') {
     delete resolvedProps.orderBy;
+    delete resolvedProps.pageSize;
   }
 
   // 字符串 options / rules → { __expr__: '...' }，序列化时不加引号，Vue 当作表达式变量引用。
@@ -590,6 +596,22 @@ function findComponent(nodeOrList, component) {
     if (!found && node.component === component) found = node;
   });
   return found;
+}
+
+/** 按 tableKey 优先查找 Table / List */
+function findCollectionNode(nodeOrList, { component, preferredKey } = {}) {
+  const matches = [];
+  walkTree(nodeOrList, node => {
+    if (!node || typeof node !== 'object') return;
+    if (node.component === 'Table' || node.component === 'List') matches.push(node);
+  });
+  if (preferredKey) {
+    const byKey = matches.find(n => n.key === preferredKey);
+    if (byKey) return byKey;
+  }
+  if (component === 'List') return matches.find(n => n.component === 'List') || null;
+  if (component === 'Table') return matches.find(n => n.component === 'Table') || null;
+  return matches[0] || null;
 }
 
 /** 按 component + key 查找表单节点（CreateSheet / UpdateSheet → FormSheet） */
@@ -1095,8 +1117,10 @@ function parseSchema(schema) {
   const mobileSearchNode = findComponent(rawPageContent, 'MobileSearch');
   const explicitSearchSheetNode = findComponent(rawActionContent, 'SearchSheet');
   const pageHeaderNode   = findComponent(rawPageContent, 'PageHeader');
-  const tableBlockNode   = findComponent(rawPageContent, 'Table');
-  const listBlockNode    = findComponent(rawPageContent, 'List');
+  const listTableMeta    = (list.table && typeof list.table === 'object') ? list.table : {};
+  const preferredTableKey = listTableMeta.tableKey;
+  const tableBlockNode   = findCollectionNode(rawPageContent, { component: 'Table', preferredKey: preferredTableKey });
+  const listBlockNode    = findCollectionNode(rawPageContent, { component: 'List', preferredKey: preferredTableKey });
   const createFormNode   = findFormNodeByKey(rawActionContent, 'create') || findFormNodeByKey(rawPageContent, 'create');
   const updateFormNode   = findFormNodeByKey(rawActionContent, 'update') || findFormNodeByKey(rawPageContent, 'update');
 
@@ -1223,9 +1247,9 @@ function parseSchema(schema) {
         filterList:    (tableProps).filterList    || [],
         selectable:      !!(tableProps).selectable,
         serverPagination: !!(tableProps).serverPagination,
-        pageSize:        (tableProps).pageSize        || 50,
+        pageSize: resolveBlocksTablePageSize(listTableMeta, tableProps, (listBlockNode || {}).props),
         primaryKey:      ds.primaryKey || 'id',
-        orderBy:         (tableProps).orderBy         || null,
+        orderBy:         resolveBlocksTableOrderBy(listTableMeta, tableProps),
       } : null,
       forms: {
         create: createFormConfig,
