@@ -279,6 +279,10 @@ function resolveNode(schema, node) {
     }
     delete resolvedProps.columns;
   }
+  // orderBy 仅用于页面 prepareTableParams → API，不作为 jh-table / jh-list 组件 prop
+  if (component === 'Table' || component === 'List') {
+    delete resolvedProps.orderBy;
+  }
 
   // 字符串 options / rules → { __expr__: '...' }，序列化时不加引号，Vue 当作表达式变量引用。
   const markFieldItemExpr = f => {

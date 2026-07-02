@@ -69,7 +69,7 @@ const VIEWS_LIST_TO_PROPS = {
   'views.list.serverPagination': 'props.serverPagination',
   'views.list.pageSize': 'props.pageSize',
   'views.list.selectable': 'props.selectable',
-  'views.list.orderBy': 'props.orderBy',
+  'views.list.orderBy': 'blocks.table.orderBy → prepareTableParams（API 请求，非 jh-table prop）',
   'views.list.toolbarActions': 'props.headActionList (PC) | MobileActions.actionList (mobile)',
   'views.list.rowActions': 'props.rowActionList',
   'views.list.search': 'Search / SearchSheet via searchFieldList + keywordConfig',

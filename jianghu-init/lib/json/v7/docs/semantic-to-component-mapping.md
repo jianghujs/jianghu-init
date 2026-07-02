@@ -71,7 +71,7 @@ fields / views / platform / layout / dataSource  (authoring)
 | `views.list.serverPagination` | `serverPagination` | |
 | `views.list.pageSize` | `pageSize` | 同步到页面 `tableOptions.itemsPerPage` |
 | `views.list.selectable` | `selectable` | |
-| `views.list.orderBy` | `orderBy` | |
+| `views.list.orderBy` | `blocks.table.orderBy` → `prepareTableParams`（API 请求参数，非 jh-table prop） | |
 | `views.list.toolbarActions[]` | PC:`headActionList`；移动:顶栏 `MobileActions`（`jh-mobile-actions`） | 见 builders |
 | `views.list.rowActions[]` | `rowActionList` | intent→id 映射 |
 | `views.list.rowSlot` | `slotTemplates` | 列/行插槽 |
