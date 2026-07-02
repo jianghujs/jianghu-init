@@ -123,7 +123,7 @@
 
     <!-- 表格主体 -->
     <v-data-table
-      class="jh-table-v6-data-table"
+      class="jh-table-v6-data-table jh-fixed-table-height elevation-0 mt-0 mx-0 mb-xs-4"
       :headers="internalHeaders"
       :items="filteredItems"
       :loading="loading"
@@ -137,7 +137,6 @@
       checkbox-color="success"
       :class="{ zebraLine: true }"
       fixed-header
-      class="jh-fixed-table-height elevation-0 mt-0 mx-0 mb-xs-4"
     >
       <!-- 父级 → v-data-table：除 toolbar-* 外的作用域插槽全部转发（含 item.xxx、header.xxx、loading 等） -->
       <template
@@ -184,30 +183,6 @@
     </v-data-table>
   </div>
 </script>
-
-<style>
-.jh-table-v6-root {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex: 1 1 auto;
-}
-.jh-table-v6-data-table {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-}
-.jh-table-v6-data-table.jh-fixed-table-height > .v-data-table__wrapper {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-}
-.jh-table-v6-data-table.jh-fixed-table-height > .v-data-footer {
-  flex-shrink: 0;
-}
-</style>
 
 <script>
 Vue.component('jh-table', {
