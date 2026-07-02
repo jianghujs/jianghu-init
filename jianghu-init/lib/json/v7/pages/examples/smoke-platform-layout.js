@@ -565,7 +565,7 @@ console.assert(moComposeToolbar && moComposeToolbar.component === 'HStack', 'com
 const moComposeToolbarProps = (moComposeToolbar && (moComposeToolbar.props || moComposeToolbar.resolvedProps)) || {};
 console.assert(moComposeToolbarProps.wrap === true, 'composeToolbar default wrap:true for flex-wrap');
 console.assert(!/\bflex-1\b/.test(moToolbarCls), 'toolbar HStack must not have flex-1');
-console.assert(/\bflex-shrink-0\b/.test(moToolbarCls), 'toolbar HStack flex-shrink-0');
+console.assert(/\bflex-none\b/.test(moToolbarCls), 'toolbar HStack flex-none');
 console.assert(/\bflex-1\b/.test(moListCls), 'List body keeps flex-1');
 
 const moHeaders = moListProps.headers || [];

@@ -91,6 +91,9 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
   //===// <=%- elif compProps | isObject and (compProps | length) > 0 %=>
   //===// <=$ compProps | variableToVar('props') $=>,
   //===// <=%- endif %=>
+  //===// <=%- if common and common.mixins %=>
+  //===// mixins: <=$ common.mixins $=>,
+  //===// <=%- endif %=>
   data: () => ({
     //===// <=%- if hasTable %=>
     // ── 表格 ──

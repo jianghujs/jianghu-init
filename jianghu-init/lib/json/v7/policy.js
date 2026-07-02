@@ -259,12 +259,12 @@ const applyPageContentFlexLayout = (payload, { rootHeightClass = 'h-full' } = {}
       } else if (node.component === 'Table') {
         mergeNodeClass(node, 'flex-1 min-h-0 min-w-0 flex flex-col');
       } else if (node.component === 'HStack' && node !== root) {
-        // 顶栏 composeToolbar / pageHeader 已有 flex-none：仅 flex-shrink-0，禁止 flex-1
+        // 顶栏 pageHeader / composeToolbar：flex-none，禁止与 Table 平分高度（勿加 Tailwind `flex`，其为 flex:1 1 0%）
         if (hasFlexNoneOrShrink(node) || !containsListDescendant(node)) {
-          mergeNodeClass(node, 'flex-shrink-0 flex flex-row min-w-0');
+          mergeNodeClass(node, 'flex-none min-w-0');
         } else {
           // 树表等：HStack 行容器包住 List，需占满剩余高度
-          mergeNodeClass(node, 'flex-1 min-h-0 flex flex-row min-w-0');
+          mergeNodeClass(node, 'flex-1 min-h-0 min-w-0');
         }
       } else if (node.component === 'Box') {
         mergeNodeClass(node, 'flex-shrink-0');

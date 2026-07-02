@@ -118,6 +118,7 @@ const buildInlineFilter = ir => {
   const pageHeaderNode = headerChildren.length
     ? {
         component: 'HStack',
+        attrs: { class: 'flex-none' },
         props: { gap: 0, align: 'center', justify: 'space-between' },
         children: headerChildren,
       }
