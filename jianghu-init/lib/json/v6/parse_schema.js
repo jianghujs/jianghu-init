@@ -342,6 +342,13 @@ function resolveNode(schema, node) {
     }
   }
 
+  // Table / List：toolbarActionList（由 headActionList 映射）同样支持 visibleWhen / disabledWhen
+  if (component === 'Table' || component === 'List') {
+    if (Array.isArray(resolvedProps.toolbarActionList)) {
+      resolvedProps.toolbarActionList = markExprActions(resolvedProps.toolbarActionList);
+    }
+  }
+
   // 搜索类：searchFieldList / fields（含 SearchSheet 内 select.options 变量路径）
   if (['PageHeader', 'Search', 'SearchSheet'].includes(component)) {
     if (Array.isArray(resolvedProps.searchFieldList)) {

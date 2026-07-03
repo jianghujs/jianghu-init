@@ -38,9 +38,10 @@
           :action="action"
         ></slot>
         <v-btn
-          v-else
+          v-else-if="isActionVisible(action)"
           :key="action.id || action.intent || idx"
           :color="action.color || 'success'"
+          :disabled="isActionDisabled(action)"
           small
           @click="handleToolbarAction(action)"
         >{{ action.label }}</v-btn>
@@ -207,6 +208,7 @@
 Vue.component('jh-list', {
   inheritAttrs: false,
   template: '#jh-list-v6-template',
+  mixins: [window.jhActionWhenMixin],
   props: {
     headers:          { type: Array,   default: () => [] },
     rowActionList:    { type: Array,   default: () => [] },
@@ -409,7 +411,8 @@ Vue.component('jh-list', {
       this.$emit('action', actionId, this.activeItem);
     },
     handleToolbarAction(action) {
-      const actionId = action && (action.id || action.intent);
+      if (!action || this.isActionDisabled(action)) return;
+      const actionId = action.id || action.intent;
       if (!actionId) return;
       this.$emit('action', actionId);
     },

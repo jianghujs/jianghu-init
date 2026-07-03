@@ -93,11 +93,12 @@
           :name="action.slotName || ('toolbar-slot-' + idx)"
           :action="action"
         ></slot>
-        <!-- 标准按钮（默认） -->
+        <!-- 标准按钮（默认）；visibleWhen / disabledWhen 与 Drawer / MobileActions 同口径 -->
         <v-btn
-          v-else
+          v-else-if="isActionVisible(action)"
           :key="action.id || action.intent || idx"
           :color="action.color || 'success'"
+          :disabled="isActionDisabled(action)"
           small
           @click="handleToolbarAction(action)"
         >{{ action.label }}</v-btn>
@@ -188,6 +189,7 @@
 Vue.component('jh-table', {
   inheritAttrs: false,
   template: '#jh-table-v6-template',
+  mixins: [window.jhActionWhenMixin],
   props: {
     headers:          { type: Array,   default: () => [] },
     rowActionList:    { type: Array,   default: () => [] },
@@ -473,6 +475,7 @@ Vue.component('jh-table', {
       return !!action.disabled;
     },
     handleToolbarAction(action) {
+      if (this.isActionDisabled(action)) return;
       const actionId = action.intent === 'create' ? 'startCreateItem' : (action.id || action.intent);
       this.$emit('action', actionId);
     },

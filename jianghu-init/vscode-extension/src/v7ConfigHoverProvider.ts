@@ -201,6 +201,8 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'toolbarActions|intent': { type: 'string', description: '语义：`create` 等 → doUiAction id' },
   'toolbarActions|id': { type: 'string', description: '自定义 actionId（覆盖 intent 映射）' },
   'toolbarActions|color': { type: 'string', description: '按钮颜色' },
+  'toolbarActions|visibleWhen': { type: 'string | object', description: '隐藏条件 → __expr__（与 actionList 同口径）' },
+  'toolbarActions|disabledWhen': { type: 'string | object', description: '禁用条件 → __expr__（可引用页面 $data，如 tableSelected.length === 0）' },
   'toolbarActions|type': { type: 'string', description: 'PC：`spacer` | `filter` | `slot`' },
 
   rowActions: { description: '行操作按钮项' },
