@@ -6,6 +6,7 @@ const {
   resolveBlocksTablePageSize,
   resolveBlocksTableOrderBy,
 } = require('../shared/resolveTablePageSize');
+const { detectHasDelete } = require('../shared/detectCrudActionFeatures');
 const { normalizeDataSource } = require('../v7/compiler/semantic/normalizeDataSource');
 const { resolveSchemaComponentName } = require('../shared/schemaComponentAlias');
 // ─────────────────────────────────────────────
@@ -1070,10 +1071,12 @@ function parseSchema(schema) {
   const features = {
     hasMobileSearch,
     hasTable: hasTable || hasList,
+    hasList: !!hasList,
     hasPageHeader,
     hasSearch:     !!(searchFieldList || []).length || hasMobileSearch,
     hasCreate:     !!createFormConfig,
     hasUpdate:     !!updateFormConfig,
+    hasDelete:     detectHasDelete(tableProps),
     hasPagination: !!(tableProps.serverPagination),
     autoId,
   };

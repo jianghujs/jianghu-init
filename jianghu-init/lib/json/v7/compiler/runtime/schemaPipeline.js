@@ -19,6 +19,7 @@ const {
   resolveBlocksTablePageSize,
   resolveBlocksTableOrderBy,
 } = require('../../../shared/resolveTablePageSize');
+const { detectHasDelete } = require('../../../shared/detectCrudActionFeatures');
 const { normalizePageContentToArray } = require('../semantic/pageContentShape');
 const { resolveSchemaComponentName } = require('../../../shared/schemaComponentAlias');
 // ─────────────────────────────────────────────
@@ -1183,10 +1184,12 @@ function parseSchema(schema) {
   const features = {
     hasMobileSearch,
     hasTable: hasTable || hasList,
+    hasList: !!hasList,
     hasPageHeader,
     hasSearch:     !!(searchFieldList || []).length || hasMobileSearch || !!hasSearchComponent,
     hasCreate:     !!createFormConfig,
     hasUpdate:     !!updateFormConfig,
+    hasDelete:     detectHasDelete(tableProps),
     hasPagination: !!(tableProps.serverPagination),
     autoId,
     /** views.list.search.keyword.fields → 页面 keywordFieldList 初值（与 PC jh-search 一致，固定列） */
