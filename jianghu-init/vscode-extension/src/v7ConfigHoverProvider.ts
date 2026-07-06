@@ -316,12 +316,11 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   },
   'slots|list': { description: '列表相关插槽' },
   'slots|create': {
-    description:
-      '新增表单插槽。`pc/mobile.children` 与 list 同形；legacy：`fields: { fieldKey: \"插槽\" }` → fieldList 项 slot:true',
+    description: '新增表单插槽。使用 `pc/mobile.children`，每项为完整 `<template v-slot:field-…>` 字符串。',
   },
   'slots|update': {
     description:
-      '编辑表单插槽。`pc/mobile.children`；单表单 legacy：`fields: { fieldKey }`；多 Tab：`{tabKey}.fields` 或 `{tabKey}.pc.children`',
+      '编辑表单插槽。使用 `pc/mobile.children`；多 Tab 时使用 `{tabKey}.pc.children` 追加 template。',
   },
   'slots|create|pc': {
     description:
@@ -333,17 +332,12 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
       'PC UpdateDrawer 子节点：`children: string[]`（field-/label-/after- 插槽，经 jh-form 转发）',
   },
   'slots|update|mobile': { description: 'Mobile FormSheet update 插槽 children' },
-  'slots|update|fields': {
-    description: 'views.update 单表单（无 tabs）时：字段 key → slot:true 占位；或改用 update.pc.children 写完整 template',
-  },
   'slots|list|pc': {
     description:
       '**PC `<jh-table>` 子节点**：`children: string[]`，每项为完整 `<template v-slot:…>…</template>`。\n' +
       '例：`toolbar-append` 列设置、`item.xxx` 列插槽。不要写在顶层 `pc.children`。',
   },
   'slots|list|mobile': { description: 'Mobile List children' },
-  'slots|list|columns': { description: '列插槽键（逐步废弃）' },
-  'slots|list|rowActions': { description: '行操作插槽键（逐步废弃）' },
 
   blocks: { description: 'pc/mobile 覆盖函数第二参数：细粒度 UI 块' },
 

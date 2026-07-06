@@ -80,9 +80,6 @@ fields / views / platform / layout / dataSource  (authoring)
 | `slots.create.pc` / `slots.create.mobile` | `createFormChildren` | `CreateDrawer` / `FormSheet` 节点 `children` |
 | `slots.update.pc` / `slots.update.mobile` | `updateFormChildren` | `UpdateDrawer` / `FormSheet` 节点 `children` |
 | `slots.update.{tabKey}.pc/mobile` | 合并进 `updateFormChildren` | 多 Tab 按 tab 追加 template |
-| `slots.create.fields` | `createFields[]` 项 `slot: true` | legacy 占位 |
-| `slots.update.fields` | `fieldList[]` 项 `slot: true` | 单表单 fields 模式 |
-| `slots.list.columns` / `rowActions` | `slotTemplates` 键（占位，逐步废弃） | |
 
 ### 3.3 搜索（list 区）
 
@@ -169,9 +166,6 @@ mobile: (views, blocks) => ({
 | `slots.create.pc/mobile.children` | `createFormChildren` → 节点 `children` | | |
 | `slots.update.pc/mobile.children` | `updateFormChildren` → 节点 `children` | | |
 | `slots.update.{tabKey}.pc/mobile.children` | 合并进 `updateFormChildren` | | |
-| `slots.create.fields` | fieldList 项 `slot: true` | | |
-| `slots.update.fields` | 单表单 fieldList 项 `slot: true` | | |
-| `slots.update.{tabKey}.fields` | fieldList 项 `slot: true` | | |
 | platform UpdateSheet | `updateFormComponent=FormSheet` | `rounded: true` | `isUpdateDrawerShown` / `updateItem` |
 
 ---

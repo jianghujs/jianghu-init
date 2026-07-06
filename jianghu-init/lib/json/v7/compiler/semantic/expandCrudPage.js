@@ -213,7 +213,6 @@ const normalizeColumnEntry = col => {
     if (!key || typeof key !== 'string') throw new Error('v7 expandCrudPage: column 对象须含 field/key/value');
     return {
       key: key.trim(),
-      slot: col.slot && typeof col.slot === 'object' ? col.slot : null,
       width: col.width != null ? col.width : null,
       class: col.class != null ? col.class : null,
       cellClass: col.cellClass != null ? col.cellClass : null,
@@ -237,7 +236,6 @@ const pickColumnHeaderProp = (entry, f, prop) => {
 const columnEntryToHeader = (fieldsDict, entry, opts = {}) => {
   const f = pickFieldDef(fieldsDict, entry.key);
   const h = { text: (f && f.label) || entry.key, value: entry.key };
-  if (entry.slot) h.slot = entry.slot;
   // columns 对象 > fields 字典
   for (const prop of ['width', 'align', 'class', 'cellClass']) {
     const v = pickColumnHeaderProp(entry, f, prop);
@@ -401,26 +399,8 @@ const applyListDetailVariants = (headers, layout, target) => {
 
 // ─── slots 声明（Req 7）──────────────────────────────────────────────────────
 
-/** slots.list.columns | rowActions：支持 string[]、对象项数组，或 { slotName: ... } 映射（取其键） */
-const collectSlotTemplateKeys = decl => {
-  if (decl == null) return [];
-  if (Array.isArray(decl)) {
-    const keys = [];
-    for (const item of decl) {
-      if (typeof item === 'string' && item.trim()) keys.push(item.trim());
-      else if (item && typeof item === 'object') {
-        const key = item.field || item.key || item.value;
-        if (key && typeof key === 'string') keys.push(key.trim());
-      }
-    }
-    return keys;
-  }
-  if (typeof decl === 'object') return Object.keys(decl);
-  return [];
-};
-
 /**
- * 将 slots 声明映射到 collectionProps.slotTemplates、collectionChildren 与 updatePayload
+ * 将 slots 声明映射到 collectionChildren（list 由 resolveListSlotChildren 处理）
  */
 const normalizeSlotHtmlChildren = raw => {
   if (raw == null) return [];
@@ -440,7 +420,7 @@ const resolvePlatformSlotChildren = (sliceRoot, target) => {
   return normalizeSlotHtmlChildren(slice.children);
 };
 
-const FORM_SLOT_PLATFORM_KEYS = new Set(['pc', 'mobile', 'mobild', 'fields']);
+const FORM_SLOT_PLATFORM_KEYS = new Set(['pc', 'mobile', 'mobild']);
 
 /**
  * slots.create | slots.update → FormDrawer/FormSheet 的 children（与 list 同形：pc/mobile.children）
@@ -456,14 +436,6 @@ const resolveFormSlotChildren = (semantic, target, role) => {
     out.push(...resolvePlatformSlotChildren(val, target));
   }
   return out;
-};
-
-const applyFieldSlotMarkers = (fieldList, fieldDecl) => {
-  if (!Array.isArray(fieldList) || fieldDecl == null) return fieldList;
-  const slotKeys = Array.isArray(fieldDecl) ? fieldDecl : Object.keys(fieldDecl);
-  const slotSet = new Set(slotKeys.filter(k => typeof k === 'string' && k.trim()));
-  if (!slotSet.size) return fieldList;
-  return fieldList.map(f => (slotSet.has(f.key) ? { ...f, slot: true } : f));
 };
 
 /** slots.list.pc | slots.list.mobile（兼容误写 mobild）→ 当前端 List/Table 的 template 子节点 */
@@ -509,76 +481,6 @@ const applyColumnSettingWiring = (semantic, ctx) => {
     list.push({ type: 'html', path: 'component/tableColumnSettingBtn.html' });
     semantic.includeList = list;
   }
-};
-
-const appendListSlotTemplateChild = (collectionChildren, htmlOrTemplate) => {
-  if (!Array.isArray(collectionChildren)) return;
-  const s = typeof htmlOrTemplate === 'string' ? htmlOrTemplate.trim() : '';
-  if (!s) return;
-  const wrapped = /^\s*<template[\s>]/i.test(s)
-    ? s
-    : `<template v-slot:action="{ item }">${s}</template>`;
-  collectionChildren.push(wrapped);
-};
-
-const applySlots = (semantic, collectionProps, updatePayload, collectionChildren, collectionComponent, slotCtx) => {
-  const slots = semantic.slots;
-  if (!slots || typeof slots !== 'object') return slotCtx;
-
-  const listSlots = slots.list;
-  if (listSlots) {
-    if (collectionComponent === 'Table') {
-      const slotTemplates = collectionProps.slotTemplates || {};
-      for (const key of collectSlotTemplateKeys(listSlots.columns)) slotTemplates[key] = '';
-      for (const key of collectSlotTemplateKeys(listSlots.rowActions)) slotTemplates[key] = '';
-      if (Object.keys(slotTemplates).length) collectionProps.slotTemplates = slotTemplates;
-    } else if (collectionComponent === 'List') {
-      const actionDecl =
-        listSlots.action != null
-          ? listSlots.action
-          : (listSlots.mobile && listSlots.mobile.action != null ? listSlots.mobile.action : null);
-      if (typeof actionDecl === 'string') {
-        appendListSlotTemplateChild(collectionChildren, actionDecl);
-      } else if (actionDecl && typeof actionDecl === 'object' && typeof actionDecl.html === 'string') {
-        appendListSlotTemplateChild(collectionChildren, actionDecl.html);
-      }
-      if (listSlots.rowActions && typeof listSlots.rowActions === 'object' && !Array.isArray(listSlots.rowActions)) {
-        const rowActionHtml = listSlots.rowActions.action;
-        if (typeof rowActionHtml === 'string' && rowActionHtml.includes('<')) {
-          appendListSlotTemplateChild(collectionChildren, rowActionHtml);
-        }
-      }
-      const slotTemplates = collectionProps.slotTemplates || {};
-      if (listSlots.columns && typeof listSlots.columns === 'object' && !Array.isArray(listSlots.columns)) {
-        for (const [key, val] of Object.entries(listSlots.columns)) {
-          if (typeof val === 'string' && val.includes('<')) slotTemplates[`cell-${key}`] = val;
-        }
-      }
-      if (Object.keys(slotTemplates).length) collectionProps.slotTemplates = slotTemplates;
-    }
-  }
-
-  // create.fields → fieldList 项 slot: true（legacy，与 children 可并存）
-  const createSlots = slots.create;
-  if (createSlots && slotCtx && Array.isArray(slotCtx.createFields)) {
-    slotCtx.createFields = applyFieldSlotMarkers(slotCtx.createFields, createSlots.fields);
-  }
-
-  // update.{tabKey}.fields | update.fields（单表单）→ fieldList 项 slot: true
-  const updateSlots = slots.update;
-  if (updateSlots && updatePayload) {
-    if (updatePayload.mode === 'tabs' && Array.isArray(updatePayload.tabList)) {
-      for (const tab of updatePayload.tabList) {
-        const tabSlotFields = updateSlots[tab.key] && updateSlots[tab.key].fields;
-        if (!tabSlotFields) continue;
-        tab.fieldList = applyFieldSlotMarkers(tab.fieldList, tabSlotFields);
-      }
-    } else if (updatePayload.mode === 'fields' && Array.isArray(updatePayload.fieldList)) {
-      updatePayload.fieldList = applyFieldSlotMarkers(updatePayload.fieldList, updateSlots.fields);
-    }
-  }
-
-  return slotCtx;
 };
 
 // ─── 主函数 ────────────────────────────────────────────────────────────────────
@@ -707,20 +609,9 @@ const expandCrudPage = semantic => {
     updatePayload.fieldList = applyVariants(updatePayload.fieldList, layout, target, 'update');
   }
 
-  // 应用 slots 声明
+  // 表单插槽：slots.create|update.{pc|mobile}.children
   const createFormChildren = resolveFormSlotChildren(semantic, target, 'create');
   const updateFormChildren = resolveFormSlotChildren(semantic, target, 'update');
-  const slotCtx = applySlots(
-    semantic,
-    collectionProps,
-    updatePayload,
-    collectionChildren,
-    collectionComponent,
-    { createFields },
-  );
-  if (slotCtx && Array.isArray(slotCtx.createFields)) {
-    createFields = slotCtx.createFields;
-  }
   if (hasListView) {
     applyColumnSettingWiring(semantic, {
       collectionProps,

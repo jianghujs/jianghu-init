@@ -137,26 +137,23 @@ const content = {
   // slots（插槽）
   // =========================
   slots: {
-    
     list: {
-      columns: {
-        projectName: '插槽'
+      pc: {
+        children: [
+          '<template v-slot:item.projectName="{ item }"><span>{{ item.projectName }}</span></template>',
+        ],
       },
-  
-      rowActions: {
-        update: '插槽',
-        delete: '插槽'
-      }
     },
-  
     update: {
       basicInfo: {
-        fields: {
-          projectName: '插槽',
-          status: '插槽'
-        }
-      }
-    }
+        pc: {
+          children: [
+            '<template v-slot:field-projectName="{ field, value, onChange }"><v-text-field :value="value" @input="onChange" /></template>',
+            '<template v-slot:field-status="{ field, value, onChange }"><v-select :value="value" @input="onChange" /></template>',
+          ],
+        },
+      },
+    },
   },
   // layout / platform 可省略，见 lib/json/v7/defaults.js、policy.DEFAULT_PLATFORM_TOKENS
   // 覆盖示例：layout.list.variants.mobile.status = { span: 2 }；platform.pc.create = 'CreateDrawer'

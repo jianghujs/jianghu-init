@@ -197,15 +197,13 @@ console.assert(rawTableNode, 'raw Table/List node exists');
 console.assert(rawTableNode.props && rawTableNode.props.filterList, 'PC Table has filterList');
 console.assert(rawTableNode.props.filterList.some(f => f.type === 'keyword' && f.keys && f.keys.includes('projectName')), 'filter keyword keys');
 console.assert(rawTableNode.props.filterList.some(f => f.key === 'status'), 'filter field status');
-console.assert(rawTableNode.props && rawTableNode.props.slotTemplates, 'raw Table has slotTemplates');
-console.assert('projectName' in rawTableNode.props.slotTemplates, 'projectName in slotTemplates');
-console.assert('update' in rawTableNode.props.slotTemplates, 'update rowAction in slotTemplates');
+console.assert(Array.isArray(rawTableNode.children) && rawTableNode.children.length > 0, 'list.pc.children on Table');
+console.assert(String(rawTableNode.children[0]).includes('item.projectName'), 'list slot template name');
 
-// update.basicInfo.fields → projectName slot: true
+// slots.update.basicInfo.pc.children → UpdateDrawer children
 const rawUpdatePayload = rawIr.actionContent.find(n => n && n.component === 'UpdateDrawer');
-const rawBasicTab = rawUpdatePayload && rawUpdatePayload.props.tabList.find(t => t.key === 'basicInfo');
-const rawProjectName = rawBasicTab && rawBasicTab.fieldList.find(f => f.key === 'projectName');
-console.assert(rawProjectName && rawProjectName.slot === true, 'projectName in basicInfo tab has slot:true');
+console.assert(rawUpdatePayload && rawUpdatePayload.children && rawUpdatePayload.children.length >= 2, 'update tab pc.children on UpdateDrawer');
+console.assert(String(rawUpdatePayload.children[0]).includes('field-projectName'), 'update basicInfo slot template');
 
 // slots.update.pc.children → UpdateDrawer children（与 list 同形）
 const formSlotDesk = Object.assign({}, desk, {
@@ -222,19 +220,17 @@ const formSlotDesk = Object.assign({}, desk, {
       pc: {
         children: [
           '<template v-slot:field-projectName="{ field, value, onChange }"><span class="text-red">custom</span></template>',
+          '<template v-slot:field-status="{ field, value, onChange }"><span class="text-blue">status</span></template>',
         ],
       },
-      fields: { status: '插槽' },
     }),
   }),
 });
 const formSlotIr = expandCrudPage(formSlotDesk);
 const formSlotUpdate = formSlotIr.actionContent.find(n => n && n.key === 'update');
-console.assert(formSlotUpdate && formSlotUpdate.children && formSlotUpdate.children.length === 1, 'update.pc.children on UpdateDrawer');
+console.assert(formSlotUpdate && formSlotUpdate.children && formSlotUpdate.children.length >= 2, 'update.pc.children on UpdateDrawer');
 console.assert(String(formSlotUpdate.children[0]).includes('field-projectName'), 'update slot template name');
 const formSlotFieldList = formSlotUpdate.props && formSlotUpdate.props.fieldList;
-const formSlotStatus = formSlotFieldList && formSlotFieldList.find(f => f.key === 'status');
-console.assert(formSlotStatus && formSlotStatus.slot === true, 'update.fields slot marker on fields mode');
 const formSlotProjectId = formSlotFieldList && formSlotFieldList.find(f => f.key === 'projectId');
 console.assert(formSlotProjectId && formSlotProjectId.visibleWhen === false, 'update.fields mode interaction');
 
