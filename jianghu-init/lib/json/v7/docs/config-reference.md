@@ -66,7 +66,7 @@ lib/json/v7/
 | **`options`** | select 选项；常为 `'constantObj.xxx'` 表达式 |
 | **`required` / `readonly`** | 表单 |
 | **`op`** | 搜索操作符 `like`、`eq`… |
-| **`width` / `class` / `cellClass`** | 列宽 / 固定列 class |
+| **`width` / `align` / `class` / `cellClass`** | 列宽 / 对齐 / 固定列 class |
 | **`attrs`** | 透传 Vuetify（双端默认） |
 | **`pc` / `mobile`** | attrs 分端覆写（merge 进 attrs） |
 | **`placeholder` / `hint` / `quickAttrs`** | 表单项 |
@@ -75,7 +75,7 @@ lib/json/v7/
 
 | 字段 | 说明 |
 |------|------|
-| **`columns`** | **必填**（有 list 时）；`string[]` 或 `{ field, width, class, cellClass, slot }[]` |
+| **`columns`** | **必填**（有 list 时）；`string[]` 或 `{ field, width, align, class, cellClass, slot }[]` |
 | **`mobileColumns`** | 移动 List 列；首列可作标题 |
 | **`search`** | `string[]` 或 `{ keyword: { fields, placeholder }, fields: [] }` → PageHeader / SearchSheet |
 | **`filter`** | 对象 → 客户端 `filterList`；字符串 `'inline'|'sheet'` → 仅布局 |

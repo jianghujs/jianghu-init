@@ -589,6 +589,7 @@ const pcListHeaders = (() => {
 })();
 console.assert(pcListHeaders && pcListHeaders[0].value === 'projectId', 'pc columns unchanged');
 console.assert(pcListHeaders[0].width === 200, 'fields.width → pc headers.width');
+console.assert(pcListHeaders[0].align === 'center', 'fields.align → pc headers.align');
 console.assert(pcListHeaders[0].class === 'fixed', 'fields.class → pc headers.class');
 console.assert(pcListHeaders[0].cellClass === 'fixed', 'fields.cellClass → pc headers.cellClass');
 console.assert(mo.features.hasMobileSearch === true, 'explicit SearchSheet → feature flag');

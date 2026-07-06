@@ -117,6 +117,7 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'fields|readonly': { type: 'boolean', description: '表单只读' },
   'fields|op': { type: 'string', description: '搜索操作符：`like` / `eq` 等 → searchFieldList' },
   'fields|width': { type: 'number', description: 'PC Table 列宽 → headers[].width' },
+  'fields|align': { type: 'string', description: 'PC Table 列对齐 start | center | end → headers[].align' },
   'fields|class': { type: 'string', description: 'PC Table 表头 class → headers[].class' },
   'fields|cellClass': { type: 'string', description: 'PC Table 单元格 class → headers[].cellClass' },
   'fields|autoId': { type: 'object', description: 
@@ -159,7 +160,7 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'views|update': { description: '编辑表单；支持 tabs 或单 fields' },
 
   list: { description: 'views.list 列表视图（可选）' },
-  'list|columns': { type: 'string[] | object[]', description: '列：字段 key 或 `{ field, width?, class?, cellClass?, slot?, span? }`' },
+  'list|columns': { type: 'string[] | object[]', description: '列：字段 key 或 `{ field, width?, align?, class?, cellClass?, slot?, span? }`' },
   'list|mobileColumns': { type: 'string[] | object[]', description: 'Mobile List 卡片列；省略则用 columns' },
   'list|search': { description: '服务端搜索 → PC: Search；Mobile: SearchSheet' },
   'list|filter': { description: 'PC 客户端二次筛选 → Table.filterList；Mobile 与 search 合并进 SearchSheet' },
@@ -191,6 +192,7 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'columns|key': { type: 'string', description: '列 value' },
   'columns|value': { type: 'string', description: '列 value 别名' },
   'columns|width': { type: 'number', description: '列宽；优先于 fields.width' },
+  'columns|align': { type: 'string', description: '列对齐 start | center | end；优先于 fields.align' },
   'columns|class': { type: 'string', description: '表头 class；优先于 fields.class' },
   'columns|cellClass': { type: 'string', description: '单元格 class' },
   'columns|slot': { type: 'object', description: '列插槽配置' },
@@ -647,7 +649,7 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'Sheet|minCardHeight': { type: 'string', description: '卡片 min-h，默认 100px' },
 
   // ── pageContent：Table / List（blocks.list 常用）──────────────────────────
-  'Table|headers': { description: 'Vuetify 列 `{ text, value, width?, class?, cellClass?, ... }[]`；来自 views.list.columns + fields' },
+  'Table|headers': { description: 'Vuetify 列 `{ text, value, width?, align?, class?, cellClass?, ... }[]`；来自 views.list.columns + fields' },
   'Table|headersBinding': { type: 'string', description: '动态列变量名 → `:headers="headers"`（如列设置按钮场景）' },
   'Table|columnsBinding': { type: 'string', description: 'headersBinding 别名' },
   'Table|serverPagination': { type: 'boolean', description: '服务端分页' },

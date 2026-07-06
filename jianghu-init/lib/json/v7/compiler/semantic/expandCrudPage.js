@@ -217,6 +217,7 @@ const normalizeColumnEntry = col => {
       width: col.width != null ? col.width : null,
       class: col.class != null ? col.class : null,
       cellClass: col.cellClass != null ? col.cellClass : null,
+      align: col.align != null ? col.align : null,
       span: col.span != null ? col.span : null,
     };
   }
@@ -225,7 +226,7 @@ const normalizeColumnEntry = col => {
 
 /**
  * views.list.columns | mobileColumns 每项
- *   → Table|List.props.headers[]：{ text, value, width?, class?, cellClass?, isTitle?, isSimpleMode? }
+ *   → Table|List.props.headers[]：{ text, value, width?, align?, class?, cellClass?, isTitle?, isSimpleMode? }
  */
 const pickColumnHeaderProp = (entry, f, prop) => {
   if (entry[prop] != null) return entry[prop];
@@ -238,7 +239,7 @@ const columnEntryToHeader = (fieldsDict, entry, opts = {}) => {
   const h = { text: (f && f.label) || entry.key, value: entry.key };
   if (entry.slot) h.slot = entry.slot;
   // columns 对象 > fields 字典
-  for (const prop of ['width', 'class', 'cellClass']) {
+  for (const prop of ['width', 'align', 'class', 'cellClass']) {
     const v = pickColumnHeaderProp(entry, f, prop);
     if (v != null) h[prop] = v;
   }

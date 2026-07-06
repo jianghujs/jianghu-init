@@ -44,6 +44,7 @@ fields / views / platform / layout / dataSource  (authoring)
 | `required` / `readonly` | fieldKeyToFormField | boolean | 表单 |
 | `autoId` | fieldKeyToFormField | object | 自动生成 ID |
 | `width` | columnEntryToHeader | number | 列宽（可被 columns 覆盖） |
+| `align` | columnEntryToHeader | string | 列对齐 `start` / `center` / `end`（可被 columns 覆盖）→ `headers[].align` |
 | `class` | columnEntryToHeader | string | 表头 th class（固定列等；可被 columns 覆盖） |
 | `cellClass` | columnEntryToHeader | string | 单元格 td class（可被 columns 覆盖） |
 

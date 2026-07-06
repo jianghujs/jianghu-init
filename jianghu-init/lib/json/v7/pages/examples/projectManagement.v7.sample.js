@@ -19,6 +19,7 @@ const content = {
       label: '项目ID',
       type: 'text',
       width: 200,
+      align: 'center',
       class: 'fixed',
       cellClass: 'fixed',
     },
