@@ -1,106 +1,67 @@
-<!-- actionList / headActionList 项 visibleWhen / disabledWhen（与 jh-form field interaction 同口径） -->
+<!-- actionList / headActionList / rowActionList：visibleWhen / disabledWhen / loadingWhen（与 jh-form interaction 同口径） -->
 <script>
 (function () {
   const jhActionWhenMixin = {
     methods: {
-      _vmWhenContext(vm) {
-        if (!vm) return {};
-        const ctx = Object.assign({}, vm.$data || {});
-        const computed = vm.$options && vm.$options.computed;
-        if (computed && typeof computed === 'object') {
-          for (const k of Object.keys(computed)) {
-            try {
-              const v = vm[k];
-              if (v !== undefined) ctx[k] = v;
-            } catch (e) { /* skip */ }
-          }
-        }
-        return ctx;
-      },
       _findPageVm() {
-        let p = this.$parent;
-        while (p) {
-          if (typeof p.doUiAction === 'function' && p.pageId != null) return p;
-          p = p.$parent;
-        }
-        return null;
+        return window.jhWhenUtil.findPageVm(this);
       },
-      _actionWhenContext() {
-        const ctx = Object.assign({}, this.initialData || {});
-        if (this.scope && typeof this.scope === 'object') {
-          Object.assign(ctx, this.scope);
-        }
-        const pageVm = this._findPageVm();
-        if (pageVm) Object.assign(ctx, this._vmWhenContext(pageVm));
-        return ctx;
+      _actionWhenContext(item) {
+        return window.jhWhenUtil.buildActionContext(this, {
+          item,
+          initialData: this.initialData,
+          scope: this.scope,
+        });
       },
-      _resolveActionWhenRef(name) {
-        if (!name) return undefined;
-        const ctx = this._actionWhenContext();
-        if (Object.prototype.hasOwnProperty.call(ctx, name)) {
-          return ctx[name];
-        }
-        let p = this.$parent;
-        while (p) {
-          if (typeof p[name] !== 'undefined') return p[name];
-          p = p.$parent;
-        }
-        return undefined;
+      actionUiToken(action) {
+        if (!action) return '';
+        return action.uiAction || action.intent || '';
       },
-      _evalActionWhenExpr(expr) {
-        if (!expr || typeof expr !== 'string') return false;
-        const ctx = this._actionWhenContext();
-        try {
-          const keys = Object.keys(ctx);
-          const vals = keys.map(k => ctx[k]);
-          // eslint-disable-next-line no-new-func
-          return !!new Function(...keys, 'return (' + expr + ');').apply(null, vals);
-        } catch (e) {
-          return false;
-        }
+      resolveDoUiActionId(action, item) {
+        if (!action) return '';
+        if (action.id) return action.id;
+        if (action.actionId) return action.actionId;
+        const token = this.actionUiToken(action);
+        if (token === 'create') return 'startCreateItem';
+        if (token === 'update') return 'startUpdateItem';
+        if (token === 'delete') return item != null ? 'deleteItem' : 'batchDeleteItem';
+        return token || '';
       },
-      evaluateActionWhen(cond, defaultVal) {
-        if (cond === undefined || cond === null) return defaultVal;
-        if (typeof cond === 'boolean') return cond;
-        if (cond && typeof cond === 'object' && cond.__expr__ != null) {
-          return this._evalActionWhenExpr(String(cond.__expr__));
-        }
-        if (typeof cond === 'string') {
-          const trimmed = cond.trim();
-          if (!trimmed) return defaultVal;
-          const fromRef = this._resolveActionWhenRef(trimmed);
-          if (fromRef !== undefined) return !!fromRef;
-          if (/[=<>!]|&&|\|\||\./.test(trimmed)) {
-            return this._evalActionWhenExpr(trimmed);
-          }
-          return false;
-        }
-        if (typeof cond === 'object') {
-          if (Array.isArray(cond.and)) return cond.and.every(c => this.evaluateActionWhen(c, true));
-          if (Array.isArray(cond.or)) return cond.or.some(c => this.evaluateActionWhen(c, false));
-          if (cond.field != null) {
-            const actual = (this.initialData || {})[cond.field];
-            const value = cond.value;
-            switch (cond.op) {
-              case 'eq': return actual == value;
-              case 'ne': return actual != value;
-              case 'in': return Array.isArray(value) && value.includes(actual);
-              default: return actual == value;
-            }
-          }
-        }
-        return defaultVal;
+      evaluateActionWhen(cond, defaultVal, item) {
+        return window.jhWhenUtil.evaluateWhen(
+          cond,
+          defaultVal,
+          this._actionWhenContext(item),
+          this,
+        );
       },
-      isActionVisible(action) {
+      isActionVisible(action, item) {
         if (!action) return false;
-        return this.evaluateActionWhen(action.visibleWhen, true);
+        if (item != null && typeof action.visible === 'function') {
+          return !!action.visible(item);
+        }
+        if (typeof action.visible === 'boolean') return action.visible;
+        return this.evaluateActionWhen(action.visibleWhen, true, item);
       },
-      isActionDisabled(action) {
+      isActionDisabled(action, item) {
         if (!action) return false;
-        return this.evaluateActionWhen(action.disabledWhen, false);
+        if (this.isActionLoading(action, item)) return true;
+        if (item != null && typeof action.disabled === 'function') {
+          return !!action.disabled(item);
+        }
+        if (typeof action.disabled === 'boolean') return !!action.disabled;
+        return this.evaluateActionWhen(action.disabledWhen, false, item);
       },
-      filterVisibleActions(list) {
-        return (list || []).filter(a => this.isActionVisible(a));
+      isActionLoading(action, item) {
+        if (!action) return false;
+        if (item != null && typeof action.loading === 'function') {
+          return !!action.loading(item);
+        }
+        if (typeof action.loading === 'boolean') return action.loading;
+        return this.evaluateActionWhen(action.loadingWhen, false, item);
+      },
+      filterVisibleActions(list, item) {
+        return (list || []).filter(a => this.isActionVisible(a, item));
       },
     },
   };

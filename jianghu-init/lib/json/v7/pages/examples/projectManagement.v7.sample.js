@@ -51,8 +51,8 @@ const content = {
       columns: [ 'projectId', 'projectName', 'status' ],
       // 移动端 List：第一项为卡片标题，其余为详情；省略则仍用 columns
       mobileColumns: [ 'projectName', 'status' ],
-      toolbarActions: [{intent: 'create', label: '新增'}],
-      rowActions: [{intent: 'update', label: '编辑', key: 'update'}, {intent: 'delete', label: '删除', key: 'update'}],
+      toolbarActions: [{uiAction: 'create', label: '新增'}],
+      rowActions: [{uiAction: 'update', label: '编辑', key: 'update'}, {uiAction: 'delete', label: '删除', key: 'update'}],
       search: {
         keyword: { fields: ['projectName', 'projectType'], placeholder: '搜索项目' },
         fields: ['status'],
@@ -91,7 +91,7 @@ const content = {
         }
       },
       saveTipBeforeClose: true,
-      actions: [{ label: '保存', intent: 'create', color: 'primary' }],
+      actions: [{ label: '保存', uiAction: 'create', color: 'primary' }],
     },
 
     // =========================
@@ -121,7 +121,7 @@ const content = {
               disabledWhen: "status === '已归档'"
             }
           },
-          actions: [{ label: '保存', intent: 'update', color: 'primary' }],
+          actions: [{ label: '保存', uiAction: 'update', color: 'primary' }],
         },
 
 

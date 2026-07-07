@@ -94,10 +94,11 @@ Vue.component('jh-drawer', {
     <template v-slot:actions>
       <v-btn
         v-for="(action, idx) in currentTabActions"
-        :key="'create-action-' + (action.actionId || action.id || action.intent || idx)"
+        :key="'create-action-' + (action.actionId || action.id || actionUiToken(action) || idx)"
         :class="['elevation-0', action.color ? '' : '']"
         :color="action.color || undefined"
         :disabled="isActionDisabled(action)"
+        :loading="isActionLoading(action)"
         small
         @click="handleTabAction(action)"
       >{{ action.label }}</v-btn>
@@ -308,8 +309,8 @@ Vue.component('jh-create-drawer', {
       }
     },
     handleTabAction(action) {
-      if (this.isActionDisabled(action)) return;
-      const actionId = action && (action.actionId || action.id || action.intent);
+      if (this.isActionDisabled(action) || this.isActionLoading(action)) return;
+      const actionId = action && (action.actionId || action.id || this.actionUiToken(action));
       if (!actionId || actionId === 'cancel') {
         this.close();
         return;
@@ -348,10 +349,11 @@ Vue.component('jh-create-drawer', {
     <template v-slot:actions>
       <v-btn
         v-for="(action, idx) in currentTabActions"
-        :key="'update-action-' + (action.actionId || action.id || action.intent || idx)"
+        :key="'update-action-' + (action.actionId || action.id || actionUiToken(action) || idx)"
         :class="['elevation-0', action.color ? '' : '']"
         :color="action.color || undefined"
         :disabled="isActionDisabled(action)"
+        :loading="isActionLoading(action)"
         small
         @click="handleTabAction(action)"
       >{{ action.label }}</v-btn>
@@ -561,8 +563,8 @@ Vue.component('jh-update-drawer', {
       }
     },
     handleTabAction(action) {
-      if (this.isActionDisabled(action)) return;
-      const actionId = action && (action.actionId || action.id || action.intent);
+      if (this.isActionDisabled(action) || this.isActionLoading(action)) return;
+      const actionId = action && (action.actionId || action.id || this.actionUiToken(action));
       if (!actionId || actionId === 'cancel') {
         this.close();
         return;
@@ -618,10 +620,11 @@ Vue.component('jh-update-drawer', {
     <template v-slot:actions>
       <v-btn
         v-for="(action, idx) in currentTabActions"
-        :key="'form-action-' + (action.actionId || action.id || action.intent || idx)"
+        :key="'form-action-' + (action.actionId || action.id || actionUiToken(action) || idx)"
         :class="['elevation-0']"
         :color="action.color || undefined"
         :disabled="isActionDisabled(action)"
+        :loading="isActionLoading(action)"
         small
         @click="handleTabAction(action)"
       >{{ action.label }}</v-btn>
@@ -828,8 +831,8 @@ Vue.component('jh-form-drawer', {
       }
     },
     handleTabAction(action) {
-      if (this.isActionDisabled(action)) return;
-      const actionId = action && (action.actionId || action.id || action.intent);
+      if (this.isActionDisabled(action) || this.isActionLoading(action)) return;
+      const actionId = action && (action.actionId || action.id || this.actionUiToken(action));
       if (!actionId || actionId === 'cancel') {
         this.close();
         return;

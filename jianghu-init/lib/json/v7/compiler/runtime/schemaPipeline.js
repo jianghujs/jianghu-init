@@ -22,6 +22,7 @@ const {
 const { detectHasDelete } = require('../../../shared/detectCrudActionFeatures');
 const { normalizePageContentToArray } = require('../semantic/pageContentShape');
 const { resolveSchemaComponentName } = require('../../../shared/schemaComponentAlias');
+const { markActionListConditions } = require('../../whenExpr');
 // ─────────────────────────────────────────────
 // Component 注册表：schema component 名 → Vue 组件标签名
 // 命名规则：Schema 名 = Vue tag 去掉 jh- 前缀后做 PascalCase 转换，无额外后缀
@@ -354,19 +355,7 @@ function resolveNode(schema, node) {
   const markExprFields = fields =>
     Array.isArray(fields) ? fields.map(markFieldItemExpr) : fields;
 
-  const markActionItemExpr = action => {
-    if (!action || typeof action !== 'object') return action;
-    const out = { ...action };
-    for (const k of ['visibleWhen', 'disabledWhen']) {
-      const v = out[k];
-      if (typeof v === 'string' && v && /[=<>!]|&&|\|\||'|"|\./.test(v)) {
-        out[k] = { __expr__: v };
-      }
-    }
-    return out;
-  };
-  const markExprActions = list =>
-    Array.isArray(list) ? list.map(markActionItemExpr) : list;
+  const markExprActions = markActionListConditions;
 
   // drawer 类：fieldList / tabList / actionList / headActionList
   if (['CreateDrawer', 'UpdateDrawer', 'FormDrawer', 'FormSheet', 'Sheet'].includes(component)) {
@@ -395,10 +384,13 @@ function resolveNode(schema, node) {
     }
   }
 
-  // Table / List：toolbarActionList（由 headActionList 映射）同样支持 visibleWhen / disabledWhen
+  // Table / List：toolbarActionList / rowActionList 支持 visibleWhen / disabledWhen
   if (component === 'Table' || component === 'List') {
     if (Array.isArray(resolvedProps.toolbarActionList)) {
       resolvedProps.toolbarActionList = markExprActions(resolvedProps.toolbarActionList);
+    }
+    if (Array.isArray(resolvedProps.rowActionList)) {
+      resolvedProps.rowActionList = markExprActions(resolvedProps.rowActionList);
     }
   }
 
@@ -984,26 +976,32 @@ function buildTableNode(tableProps) {
       ...columns.map(col => Object.assign({}, col)),
       { text: '操作', value: 'action', width: 120, align: 'center' },
     ],
-    rowActionList: rowActionList.map(action => ({
+    rowActionList: rowActionList.map(action => {
+      const token = action.uiAction || action.intent;
+      return {
       text:  action.label,
-      color: action.intent === 'delete' ? 'error' : 'success',
-      click: action.intent === 'update'
+      color: token === 'delete' ? 'error' : 'success',
+      click: token === 'update'
         ? 'doUiAction("startUpdateItem", item)'
-        : action.intent === 'delete'
+        : token === 'delete'
           ? 'doUiAction("deleteItem", item)'
-          : `doUiAction("${action.id}", item)`,
-    })),
+          : `doUiAction("${action.id || token}", item)`,
+    };
+    }),
     headActionList: [
-      ...headActionList.map(action => ({
+      ...headActionList.map(action => {
+        const token = action.uiAction || action.intent;
+        return {
         tag: 'v-btn',
         value: action.label,
         attrs: {
           color: 'success', small: true, class: 'mr-2',
-          '@click': action.intent === 'create'
+          '@click': token === 'create'
             ? "doUiAction('startCreateItem')"
-            : `doUiAction('${action.id}')`,
+            : `doUiAction('${action.id || token}')`,
         },
-      })),
+      };
+      }),
       { tag: 'v-spacer' },
     ],
     ...(selectable ? { attrs: { ':show-select': 'true', 'v-model': 'tableSelected' } } : {}),

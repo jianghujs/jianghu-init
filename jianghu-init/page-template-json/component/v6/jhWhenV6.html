@@ -1,0 +1,120 @@
+<!-- 统一 visibleWhen / readonlyWhen / disabledWhen / loadingWhen 求值（jh-form / jh-table / Drawer / MobileActions 共用） -->
+<script>
+(function () {
+  const EXPR_LIKE = /[=<>!]|&&|\|\||\./;
+
+  const vmWhenContext = vm => {
+    if (!vm) return {};
+    const ctx = Object.assign({}, vm.$data || {});
+    const computed = vm.$options && vm.$options.computed;
+    if (computed && typeof computed === 'object') {
+      for (const k of Object.keys(computed)) {
+        try {
+          const v = vm[k];
+          if (v !== undefined) ctx[k] = v;
+        } catch (e) { /* skip */ }
+      }
+    }
+    return ctx;
+  };
+
+  const findPageVm = vm => {
+    let p = vm;
+    while (p) {
+      if (typeof p.doUiAction === 'function' && p.pageId != null) return p;
+      p = p.$parent;
+    }
+    return null;
+  };
+
+  const resolveRef = (name, ctx, vm) => {
+    if (!name) return undefined;
+    if (ctx && Object.prototype.hasOwnProperty.call(ctx, name)) return ctx[name];
+    let p = vm;
+    while (p) {
+      if (typeof p[name] !== 'undefined') {
+        const val = p[name];
+        return typeof val === 'function' ? val.call(p) : val;
+      }
+      p = p.$parent;
+    }
+    return undefined;
+  };
+
+  const evalExpr = (expr, ctx) => {
+    if (!expr || typeof expr !== 'string') return false;
+    try {
+      const keys = Object.keys(ctx);
+      const vals = keys.map(k => ctx[k]);
+      // eslint-disable-next-line no-new-func
+      return !!new Function(...keys, 'return (' + expr + ');').apply(null, vals);
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const evalFieldOp = (cond, ctx) => {
+    if (!cond || cond.field == null) return false;
+    const actual = ctx[cond.field];
+    const value = cond.value;
+    switch (cond.op) {
+      case 'eq': return actual == value;
+      case 'ne': return actual != value;
+      case 'in': return Array.isArray(value) && value.includes(actual);
+      default: return actual == value;
+    }
+  };
+
+  /**
+   * @param {*} cond  boolean | string | { __expr__ } | { and/or/field }
+   * @param {*} defaultVal
+   * @param {object} ctx  求值上下文（formData / item / page $data 已 merge）
+   * @param {Vue} [vm]  变量回退解析
+   */
+  const evaluateWhen = (cond, defaultVal, ctx, vm) => {
+    if (cond === undefined || cond === null) return defaultVal;
+    if (typeof cond === 'boolean') return cond;
+    const bag = ctx && typeof ctx === 'object' ? ctx : {};
+    if (cond && typeof cond === 'object' && cond.__expr__ != null) {
+      return evalExpr(String(cond.__expr__), bag);
+    }
+    if (typeof cond === 'string') {
+      const trimmed = cond.trim();
+      if (!trimmed) return defaultVal;
+      const fromRef = resolveRef(trimmed, bag, vm);
+      if (fromRef !== undefined) return !!fromRef;
+      if (EXPR_LIKE.test(trimmed)) return evalExpr(trimmed, bag);
+      return false;
+    }
+    if (typeof cond === 'object') {
+      if (Array.isArray(cond.and)) return cond.and.every(c => evaluateWhen(c, true, bag, vm));
+      if (Array.isArray(cond.or)) return cond.or.some(c => evaluateWhen(c, false, bag, vm));
+      if (cond.field != null) return evalFieldOp(cond, bag);
+    }
+    return defaultVal;
+  };
+
+  const buildFormContext = (formData, scope) => {
+    const ctx = Object.assign({}, formData || {});
+    if (scope && typeof scope === 'object') Object.assign(ctx, scope);
+    return ctx;
+  };
+
+  const buildActionContext = (vm, extras) => {
+    const ex = extras && typeof extras === 'object' ? extras : {};
+    const ctx = Object.assign({}, ex.initialData || {});
+    if (ex.scope && typeof ex.scope === 'object') Object.assign(ctx, ex.scope);
+    const pageVm = findPageVm(vm);
+    if (pageVm) Object.assign(ctx, vmWhenContext(pageVm));
+    if (ex.item && typeof ex.item === 'object') ctx.item = ex.item;
+    return ctx;
+  };
+
+  window.jhWhenUtil = {
+    evaluateWhen,
+    buildFormContext,
+    buildActionContext,
+    findPageVm,
+  };
+})();
+</script>

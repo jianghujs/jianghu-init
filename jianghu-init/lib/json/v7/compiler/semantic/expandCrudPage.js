@@ -25,6 +25,8 @@ const {
   resolveViewFormComponent,
 } = require('../../policy');
 const { getEffectiveLayout } = require('../../defaults');
+const { applyFieldInteraction } = require('../../whenExpr');
+const { normalizeActionList } = require('../../actionIntent');
 const { buildListRegionsPlan } = require('./buildListRegionsPlan');
 const {
   buildCollectionBlock,
@@ -279,44 +281,28 @@ const mapToolbarToken = t => {
   // 对象写法直接透传（与 v6 headActionList 格式一致）
   if (t && typeof t === 'object') return t;
   // 字符串 token 映射
-  if (t === 'add') return { label: '新增', intent: 'create' };
+  if (t === 'add') return { label: '新增', uiAction: 'create' };
   if (t === 'delete') return { label: '删除', id: 'batchDeleteItem' };
-  return { label: String(t), id: String(t) };
+  return { label: String(t), uiAction: String(t) };
 };
 
 const mapRowToken = t => {
   // 对象写法直接透传（与 v6 rowActionList 格式一致）
   if (t && typeof t === 'object') return t;
   // 字符串 token 映射
-  if (t === 'edit') return { label: '编辑', intent: 'update' };
-  if (t === 'delete') return { label: '删除', intent: 'delete' };
-  return { label: String(t), id: String(t) };
+  if (t === 'edit') return { label: '编辑', uiAction: 'update' };
+  if (t === 'delete') return { label: '删除', uiAction: 'delete' };
+  return { label: String(t), uiAction: String(t) };
 };
 
-// ─── interaction 条件表达式（Req 5）──────────────────────────────────────────
-
-const CONDITION_KEYS = ['readonlyWhen', 'visibleWhen', 'disabledWhen'];
-
-const wrapExpr = val => (typeof val === 'string' ? { __expr__: val } : val);
+// ─── interaction 条件表达式 ───────────────────────────────────────────────────
 
 /**
- * 将 interaction 条件合并到 fieldList 项
- * 字符串值 → { __expr__: value }；对象值原样透传；不存在于 fieldList 的 key 静默跳过
+ * 将 interaction 条件合并到 fieldList 项（见 whenExpr.applyFieldInteraction）
  */
-const applyInteraction = (fieldList, interaction) => {
-  if (!interaction || typeof interaction !== 'object') return fieldList;
-  return fieldList.map(item => {
-    const cond = interaction[item.key];
-    if (!cond || typeof cond !== 'object') return item;
-    const patch = {};
-    for (const k of CONDITION_KEYS) {
-      if (cond[k] !== undefined) patch[k] = wrapExpr(cond[k]);
-    }
-    return Object.keys(patch).length ? { ...item, ...patch } : item;
-  });
-};
+const applyInteraction = applyFieldInteraction;
 
-// ─── update payload（Req 4）──────────────────────────────────────────────────
+// ─── update payload ───────────────────────────────────────────────────────────
 
 /**
  * views.update → pushUpdateForm 的 props 来源
@@ -331,7 +317,13 @@ const buildUpdatePayload = (updateView, fieldsDict, target = 'pc') => {
   if (Array.isArray(updateView.tabs) && updateView.tabs.length) {
     const tabList = updateView.tabs.map(tab => {
       const out = { key: tab.key, title: tab.title };
-      if (tab.actions) out.actions = tab.actions;
+      if (tab.actions) {
+        out.actions = normalizeActionList(
+          tab.actions,
+          'formUpdate',
+          `views.update.tabs.${tab.key}.actions`,
+        );
+      }
       if (Array.isArray(tab.fields)) {
         out.fieldList = tab.fields.map(k => fieldKeyToFormField(fieldsDict, k, target));
       } else {
@@ -358,7 +350,9 @@ const buildUpdatePayload = (updateView, fieldsDict, target = 'pc') => {
   if (updateView.fieldAttrs) {
     payload.fieldList = applyFieldAttrs(payload.fieldList, updateView.fieldAttrs);
   }
-  if (Array.isArray(updateView.actions)) payload.actions = updateView.actions;
+  if (Array.isArray(updateView.actions)) {
+    payload.actions = normalizeActionList(updateView.actions, 'formUpdate', 'views.update.actions');
+  }
   return payload;
 };
 
@@ -550,7 +544,11 @@ const expandCrudPage = semantic => {
     tableKey = (typeof listView.tableKey === 'string' && listView.tableKey.trim()) || 'mainTable';
 
     toolbarActions = Array.isArray(listView.toolbarActions)
-      ? listView.toolbarActions.map(mapToolbarToken)
+      ? normalizeActionList(
+        listView.toolbarActions.map(mapToolbarToken),
+        'toolbar',
+        'views.list.toolbarActions',
+      )
       : [];
     mobileCardList = target === 'mobile' && listLayout === 'card';
 
@@ -565,7 +563,11 @@ const expandCrudPage = semantic => {
       collectionProps.headActionList = toolbarActions;
     }
     if (Array.isArray(listView.rowActions) && listView.rowActions.length) {
-      collectionProps.rowActionList = listView.rowActions.map(mapRowToken);
+      collectionProps.rowActionList = normalizeActionList(
+        listView.rowActions.map(mapRowToken),
+        'row',
+        'views.list.rowActions',
+      );
     }
     if (listView.orderBy != null) collectionProps.orderBy = listView.orderBy;
     if (listView.rowSlot && typeof listView.rowSlot === 'object') collectionProps.rowSlot = listView.rowSlot;
@@ -655,7 +657,9 @@ const expandCrudPage = semantic => {
     createSaveTipBeforeClose,
     createCols,
     updateCols,
-    createActions: Array.isArray(createView.actions) ? createView.actions : null,
+    createActions: Array.isArray(createView.actions)
+      ? normalizeActionList(createView.actions, 'formCreate', 'views.create.actions')
+      : null,
     createSheet: createView.sheet,
     updateSheet: updateView.sheet,
     updatePayload,

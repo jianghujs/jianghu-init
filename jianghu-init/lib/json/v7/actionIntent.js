@@ -1,0 +1,207 @@
+'use strict';
+
+const { wrapActionConditions } = require('./whenExpr');
+
+/** 各 role 的标准 uiAction → doUiAction id */
+const RESOLVE_BY_ROLE = {
+  toolbar: {
+    create: 'startCreateItem',
+    delete: 'batchDeleteItem',
+    batchDelete: 'batchDeleteItem',
+  },
+  row: {
+    update: 'startUpdateItem',
+    delete: 'deleteItem',
+    detail: 'startDetailItem',
+  },
+  formCreate: {
+    save: 'createItem',
+    submit: 'createItem',
+    create: 'createItem',
+    cancel: 'cancel',
+  },
+  formUpdate: {
+    save: 'updateItem',
+    submit: 'updateItem',
+    update: 'updateItem',
+    cancel: 'cancel',
+  },
+};
+
+/** 旧配置：uiAction / intent 直接写 doUiAction 方法名 */
+const LEGACY_DO_UI_ACTION = {
+  startCreateItem: { role: 'toolbar', uiAction: 'create', id: 'startCreateItem' },
+  batchDeleteItem: { role: 'toolbar', uiAction: 'batchDelete', id: 'batchDeleteItem' },
+  startUpdateItem: { role: 'row', uiAction: 'update', id: 'startUpdateItem' },
+  deleteItem: { role: 'row', uiAction: 'delete', id: 'deleteItem' },
+  createItem: { role: 'formCreate', uiAction: 'save', id: 'createItem' },
+  updateItem: { role: 'formUpdate', uiAction: 'save', id: 'updateItem' },
+};
+
+/** 标准 uiAction 归属 role（跨 role 误用校验） */
+const UI_ACTION_OWNER = {};
+for (const [role, map] of Object.entries(RESOLVE_BY_ROLE)) {
+  for (const uiAction of Object.keys(map)) {
+    if (uiAction === 'cancel') continue;
+    UI_ACTION_OWNER[uiAction] = role;
+  }
+}
+
+const STRUCTURAL_TYPES = new Set(['spacer', 'slot', 'filter']);
+
+const roleMatchesLegacy = (role, legacyRole) => {
+  if (legacyRole === role) return true;
+  if (legacyRole.startsWith('form') && role.startsWith('form')) return true;
+  return false;
+};
+
+/**
+ * 读取 uiAction 值（生成兼容：uiAction > intent > id > actionId）
+ */
+const readUiActionValue = raw => {
+  if (!raw || typeof raw !== 'object') return '';
+  if (raw.uiAction != null && raw.uiAction !== '') return String(raw.uiAction).trim();
+  if (raw.intent != null && raw.intent !== '') return String(raw.intent).trim();
+  if (raw.id != null && raw.id !== '') return String(raw.id).trim();
+  if (raw.actionId != null && raw.actionId !== '') return String(raw.actionId).trim();
+  return '';
+};
+
+const isStructuralAction = raw =>
+  !!(raw && raw.type && STRUCTURAL_TYPES.has(raw.type));
+
+/**
+ * 规范化并校验单个 action（生成路径；兼容 intent）
+ */
+const normalizeAction = (raw, role, loc) => {
+  if (raw == null) return raw;
+  if (typeof raw === 'string') {
+    throw new Error(`v7 ${loc}: action 须为对象，字符串 token 请先经 mapToolbarToken/mapRowToken 转换`);
+  }
+  if (typeof raw !== 'object') {
+    throw new Error(`v7 ${loc}: action 须为对象`);
+  }
+  if (isStructuralAction(raw)) return raw;
+
+  const resolveMap = RESOLVE_BY_ROLE[role] || {};
+  const uiActionRaw = readUiActionValue(raw);
+  const explicitId = raw.id != null && raw.id !== '' ? String(raw.id).trim()
+    : (raw.actionId != null && raw.actionId !== '' ? String(raw.actionId).trim() : '');
+
+  if (!uiActionRaw) {
+    throw new Error(`v7 ${loc}: action 缺少 uiAction（标准 token 或 doUiAction 方法名；旧 intent 仍可读）`);
+  }
+
+  const out = { ...raw };
+
+  if (LEGACY_DO_UI_ACTION[uiActionRaw]) {
+    const leg = LEGACY_DO_UI_ACTION[uiActionRaw];
+    if (!roleMatchesLegacy(role, leg.role)) {
+      throw new Error(
+        `v7 ${loc}: uiAction "${uiActionRaw}" 属于 ${leg.role}，不能用在 ${role}`,
+      );
+    }
+    out.uiAction = leg.uiAction;
+    if (leg.uiAction !== 'cancel') out.id = explicitId || leg.id;
+    delete out.intent;
+    delete out.actionId;
+    return wrapActionConditions(out);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(resolveMap, uiActionRaw)) {
+    out.uiAction = uiActionRaw;
+    if (uiActionRaw === 'cancel') {
+      delete out.id;
+    } else {
+      out.id = explicitId || resolveMap[uiActionRaw];
+    }
+    delete out.intent;
+    delete out.actionId;
+    return wrapActionConditions(out);
+  }
+
+  if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(uiActionRaw)) {
+    throw new Error(`v7 ${loc}: 未知 uiAction "${uiActionRaw}"，请使用标准 token 或 camelCase doUiAction 名`);
+  }
+  const owner = UI_ACTION_OWNER[uiActionRaw];
+  if (owner && owner !== role && !roleMatchesLegacy(role, owner)) {
+    throw new Error(
+      `v7 ${loc}: "${uiActionRaw}" 是 ${owner} 的标准 uiAction，不能用在 ${role}`,
+    );
+  }
+  out.uiAction = uiActionRaw;
+  out.id = explicitId || uiActionRaw;
+  delete out.intent;
+  delete out.actionId;
+  return wrapActionConditions(out);
+};
+
+const normalizeActionList = (list, role, loc) => {
+  if (!Array.isArray(list)) return list;
+  return list.map((item, i) => normalizeAction(item, role, `${loc}[${i}]`));
+};
+
+/** 收集 CRUD 语义里所有 action 项 */
+const collectSemanticActions = semantic => {
+  const out = [];
+  const views = semantic && semantic.views;
+  if (!views || typeof views !== 'object') return out;
+
+  const pushList = (list, role, loc) => {
+    if (!Array.isArray(list)) return;
+    list.forEach((item, i) => {
+      if (isStructuralAction(item)) return;
+      out.push({ action: item, role, loc: `${loc}[${i}]` });
+    });
+  };
+
+  if (views.list && typeof views.list === 'object') {
+    pushList(views.list.toolbarActions, 'toolbar', 'views.list.toolbarActions');
+    pushList(views.list.rowActions, 'row', 'views.list.rowActions');
+  }
+  if (views.create && typeof views.create === 'object') {
+    pushList(views.create.actions, 'formCreate', 'views.create.actions');
+  }
+  if (views.update && typeof views.update === 'object') {
+    pushList(views.update.actions, 'formUpdate', 'views.update.actions');
+    if (Array.isArray(views.update.tabs)) {
+      views.update.tabs.forEach(tab => {
+        if (!tab || typeof tab !== 'object') return;
+        const tabKey = tab.key || 'tab';
+        pushList(tab.actions, 'formUpdate', `views.update.tabs.${tabKey}.actions`);
+      });
+    }
+  }
+  return out;
+};
+
+/**
+ * 语法校验：action 必须使用 uiAction 键（禁止仅写 intent）
+ * 生成仍可通过 normalizeAction 读 intent 兼容旧页
+ */
+const validateActionUiActionSyntax = semantic => {
+  for (const { action, loc } of collectSemanticActions(semantic)) {
+    if (!action || typeof action !== 'object') continue;
+    const hasUiAction = Object.prototype.hasOwnProperty.call(action, 'uiAction')
+      && action.uiAction != null && String(action.uiAction).trim() !== '';
+    const hasIntent = Object.prototype.hasOwnProperty.call(action, 'intent');
+    if (!hasUiAction && hasIntent) {
+      throw new Error(
+        `v7 ${loc}: 请改用 uiAction 替代 intent（intent 仅作生成兼容，语法校验不再接受）`,
+      );
+    }
+    if (!hasUiAction) {
+      throw new Error(`v7 ${loc}: action 缺少 uiAction（对应 doUiAction 的标准 token 或方法名）`);
+    }
+  }
+};
+
+module.exports = {
+  RESOLVE_BY_ROLE,
+  LEGACY_DO_UI_ACTION,
+  readUiActionValue,
+  normalizeAction,
+  normalizeActionList,
+  collectSemanticActions,
+  validateActionUiActionSyntax,
+};

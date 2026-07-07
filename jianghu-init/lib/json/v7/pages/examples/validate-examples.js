@@ -42,6 +42,15 @@ for (const file of files) {
     continue;
   }
 
+  try {
+    const { validateActionUiActionSyntax } = require('../../actionIntent');
+    validateActionUiActionSyntax(semantic);
+  } catch (e) {
+    console.error(`[FAIL] ${file} action syntax: ${e.message}`);
+    failed += 1;
+    continue;
+  }
+
   const targets = platformsFor(semantic);
   for (const targetPlatform of targets) {
     try {

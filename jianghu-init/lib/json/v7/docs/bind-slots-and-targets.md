@@ -121,4 +121,19 @@ interaction: {
 
 写入 **`fieldList[]`** 的 `visibleWhen` / `readonlyWhen` / `disabledWhen`（表达式包装为 `__expr__` 供 NJK 输出）。
 
-按钮 **`actions[]`** 同样支持 **`visibleWhen` / `disabledWhen`**（Drawer/FormSheet 底部、`headActionList` 等）。
+按钮 **`actions[]` / `toolbarActions[]` / `rowActions[]`** 均支持 **`visibleWhen` / `disabledWhen` / `loadingWhen`**。
+
+- **`loadingWhen`** 为 true 时按钮显示 loading（`v-btn` 转圈 / 行文字按钮 spinner），并阻止重复点击
+- 表单 / 工具栏：上下文为 page `$data` + `initialData`
+- **行操作**：上下文额外包含 **`item`**（当前行），例如 `visibleWhen: 'item.id !== -1'`
+
+**标准 uiAction**（编译期校验并解析为 `id` → `doUiAction(id)`）：
+
+| 位置 | uiAction |
+|------|----------|
+| `toolbarActions` | `create` / `delete` / `batchDelete` |
+| `rowActions` | `update` / `delete` / `detail` |
+| `create.actions` | `save` / `create` / `cancel` |
+| `update.actions` | `save` / `update` / `cancel` |
+
+自定义：uiAction 写 camelCase doUiAction 名。旧 **`intent`** 键仍可读（生成兼容）；**语法校验**（`validate-examples`）强制 **`uiAction`**。

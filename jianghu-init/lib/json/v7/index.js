@@ -19,6 +19,7 @@ const {
   resolveAuthoringMode,
   validateCrudSemantic,
 } = require('./authoringMode');
+const { validateActionUiActionSyntax } = require('./actionIntent');
 const {
   resolveTargetPlatform, resolvePageType,
   getEffectivePlatformPolicy, resolveListLayoutFilter,
@@ -106,6 +107,7 @@ module.exports = {
   normalizeDataSource,
   resolveIncludeList,
   resolveAuthoringMode,
+  validateActionUiActionSyntax,
   resolveTargetPlatform,
   resolvePageType,
   getEffectivePlatformPolicy,

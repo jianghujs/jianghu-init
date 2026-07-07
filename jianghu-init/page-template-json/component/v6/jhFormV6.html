@@ -711,73 +711,16 @@ Vue.component('jh-form', {
       const root = (this.scope && typeof this.scope === 'object') ? this.scope : (this.$parent || {});
       return raw.split('.').reduce((o, k) => (o != null ? o[k] : undefined), root);
     },
-    _resolveInteractionRef(name) {
-      if (!name) return undefined;
-      if (this.formData && Object.prototype.hasOwnProperty.call(this.formData, name)) {
-        return this.formData[name];
-      }
-      if (this.scope && Object.prototype.hasOwnProperty.call(this.scope, name)) {
-        return this.scope[name];
-      }
-      const parent = this.$parent;
-      if (parent && Object.prototype.hasOwnProperty.call(parent, name)) {
-        const val = parent[name];
-        return typeof val === 'function' ? val.call(parent) : val;
-      }
-      return undefined;
-    },
     _interactionContext() {
-      const ctx = Object.assign({}, this.formData || {});
-      if (this.scope && typeof this.scope === 'object') {
-        Object.assign(ctx, this.scope);
-      }
-      return ctx;
-    },
-    _evalInteractionExpr(expr) {
-      if (!expr || typeof expr !== 'string') return false;
-      const ctx = this._interactionContext();
-      try {
-        const keys = Object.keys(ctx);
-        const vals = keys.map(k => ctx[k]);
-        // eslint-disable-next-line no-new-func
-        return !!new Function(...keys, 'return (' + expr + ');').apply(null, vals);
-      } catch (e) {
-        return false;
-      }
-    },
-    _evalFieldOp(cond) {
-      if (!cond || cond.field == null) return false;
-      const actual = this.formData[cond.field];
-      const value = cond.value;
-      switch (cond.op) {
-        case 'eq': return actual == value;
-        case 'ne': return actual != value;
-        case 'in': return Array.isArray(value) && value.includes(actual);
-        default: return actual == value;
-      }
+      return window.jhWhenUtil.buildFormContext(this.formData, this.scope);
     },
     evaluateWhen(cond, defaultVal) {
-      if (cond === undefined || cond === null) return defaultVal;
-      if (typeof cond === 'boolean') return cond;
-      if (cond && typeof cond === 'object' && cond.__expr__ != null) {
-        return this._evalInteractionExpr(String(cond.__expr__));
-      }
-      if (typeof cond === 'string') {
-        const trimmed = cond.trim();
-        if (!trimmed) return defaultVal;
-        const fromRef = this._resolveInteractionRef(trimmed);
-        if (fromRef !== undefined) return !!fromRef;
-        if (/[=<>!]|&&|\|\||\./.test(trimmed)) {
-          return this._evalInteractionExpr(trimmed);
-        }
-        return false;
-      }
-      if (typeof cond === 'object') {
-        if (Array.isArray(cond.and)) return cond.and.every(c => this.evaluateWhen(c, true));
-        if (Array.isArray(cond.or)) return cond.or.some(c => this.evaluateWhen(c, false));
-        if (cond.field != null) return this._evalFieldOp(cond);
-      }
-      return defaultVal;
+      return window.jhWhenUtil.evaluateWhen(
+        cond,
+        defaultVal,
+        this._interactionContext(),
+        this,
+      );
     },
     resolveInlinePlaceholder(field, type, disabled, readonly) {
       if (!field || !field.label || disabled || readonly) return '';

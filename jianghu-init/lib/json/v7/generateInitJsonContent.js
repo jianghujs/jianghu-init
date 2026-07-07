@@ -100,10 +100,10 @@ const buildCrudViews = (fieldKeys, searchTextFields) => {
   const views = {
     list: {
       columns: listColumns.length ? listColumns : fieldKeys,
-      toolbarActions: [{ intent: 'startCreateItem', label: '新增' }],
+      toolbarActions: [{ uiAction: 'startCreateItem', label: '新增' }],
       rowActions: [
-        { intent: 'startUpdateItem', label: '编辑' },
-        { intent: 'deleteItem', label: '删除' },
+        { uiAction: 'startUpdateItem', label: '编辑' },
+        { uiAction: 'deleteItem', label: '删除' },
       ],
       serverPagination: true,
       pageSize: 50,
@@ -112,12 +112,12 @@ const buildCrudViews = (fieldKeys, searchTextFields) => {
       type: 'form',
       title: '新增',
       fields: formFields.length ? formFields : fieldKeys,
-      actions: [{ label: '保存', intent: 'createItem', color: 'primary' }],
+      actions: [{ label: '保存', uiAction: 'createItem', color: 'primary' }],
     },
     update: {
       title: '编辑',
       fields: formFields.length ? formFields : fieldKeys,
-      actions: [{ label: '保存', intent: 'updateItem', color: 'primary' }],
+      actions: [{ label: '保存', uiAction: 'updateItem', color: 'primary' }],
     },
   };
 

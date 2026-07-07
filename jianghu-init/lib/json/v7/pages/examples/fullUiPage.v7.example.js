@@ -59,8 +59,8 @@ const content = {
             component: 'MobileActions',
             props: {
               actionList: [
-                { label: '刷新', intent: 'refresh', color: 'primary' },
-                { label: '导出', intent: 'export', visibleWhen: 'canExport' },
+                { label: '刷新', uiAction: 'refresh', color: 'primary' },
+                { label: '导出', uiAction: 'export', visibleWhen: 'canExport' },
               ],
             },
           },
@@ -97,7 +97,7 @@ const content = {
         title: '选择组织',
         rounded: true,
         actionList: [
-          { label: '确定', intent: 'confirmOrg', color: 'primary' },
+          { label: '确定', uiAction: 'confirmOrg', color: 'primary' },
         ],
         cols: 1,
       },

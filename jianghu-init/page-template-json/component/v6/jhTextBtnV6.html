@@ -6,9 +6,18 @@
     role="button"
     :class="btnClass"
     :style="btnStyle"
+    :aria-busy="loading ? 'true' : 'false'"
     @click="onClick"
   >
-    <template v-if="!iconRight">
+    <v-progress-circular
+      v-if="loading"
+      indeterminate
+      :size="iconSize"
+      :width="2"
+      class="jh-text-btn__icon mr-1"
+      :color="colorMap[color] || color"
+    ></v-progress-circular>
+    <template v-if="!iconRight && !loading">
       <jh-icon
         v-if="iconName"
         :name="iconName"
@@ -45,6 +54,7 @@ Vue.component('jh-text-btn', {
     fontSize: { type: [String, Number], default: '12px' },
     dashed: { type: Boolean, default: true },
     disabled: { type: Boolean, default: false },
+    loading: { type: Boolean, default: false },
     alignSub: { type: Boolean, default: true },
     iconRight: { type: Boolean, default: false }, // 新增
   },
@@ -66,7 +76,8 @@ Vue.component('jh-text-btn', {
     btnClass() {
       return {
         'jh-text-btn': true,
-        'jh-text-btn--disabled': this.disabled,
+        'jh-text-btn--disabled': this.disabled || this.loading,
+        'jh-text-btn--loading': this.loading,
         'jh-text-btn--align-sub': this.alignSub
       };
     },
@@ -82,7 +93,7 @@ Vue.component('jh-text-btn', {
   },
   methods: {
     onClick(event) {
-      if (this.disabled) {
+      if (this.disabled || this.loading) {
         return;
       }
       this.$emit('click', event);

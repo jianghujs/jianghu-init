@@ -93,12 +93,13 @@
           :name="action.slotName || ('toolbar-slot-' + idx)"
           :action="action"
         ></slot>
-        <!-- 标准按钮（默认）；visibleWhen / disabledWhen 与 Drawer / MobileActions 同口径 -->
+        <!-- 标准按钮（默认）；visibleWhen / disabledWhen / loadingWhen 与 Drawer / MobileActions 同口径 -->
         <v-btn
           v-else-if="isActionVisible(action)"
-          :key="action.id || action.intent || idx"
+          :key="action.id || actionUiToken(action) || idx"
           :color="action.color || 'success'"
           :disabled="isActionDisabled(action)"
+          :loading="isActionLoading(action)"
           small
           @click="handleToolbarAction(action)"
         >{{ action.label }}</v-btn>
@@ -153,11 +154,12 @@
         <div class="d-inline-flex flex-nowrap flex-shrink-0 align-center text-no-wrap" style="gap:8px">
           <jh-text-btn
             v-for="action in visibleRowActions(item)"
-            :key="action.id || action.intent"
+            :key="action.id || actionUiToken(action)"
             :text="action.label"
             :color="resolveActionColor(action)"
-            :disabled="resolveActionDisabled(action, item)"
-            :icon-name="action.icon || iconMap[action.intent] || ''"
+            :disabled="isActionDisabled(action, item)"
+            :loading="isActionLoading(action, item)"
+            :icon-name="action.icon || iconMap[actionUiToken(action)] || ''"
             :dashed="true"
             class="flex-shrink-0"
             @click="handleRowAction(action, item)"
@@ -439,7 +441,7 @@ Vue.component('jh-table', {
       const ICON_TEXT_GAP = 2; // 0.2em @ 12px font
       const label = String((action && action.label) || '');
       const textWidth = [...label].length * CHAR_WIDTH;
-      const iconName = (action && (action.icon || this.iconMap[action.intent])) || '';
+      const iconName = (action && (action.icon || this.iconMap[this.actionUiToken(action)])) || '';
       if (iconName) return ICON_SIZE + ICON_TEXT_GAP + textWidth;
       return textWidth;
     },
@@ -457,37 +459,33 @@ Vue.component('jh-table', {
     isReservedToolbarSlotName(name) {
       return name === 'toolbar-prepend' || name === 'toolbar-append';
     },
-    // 过滤出对当前 item 可见的行操作（支持 visible(item) 条件）
+    // 过滤出对当前 item 可见的行操作（visibleWhen / disabledWhen 与 toolbar 同口径）
     visibleRowActions(item) {
-      return (this.rowActionList || []).filter(action => {
-        if (typeof action.visible === 'function') return action.visible(item);
-        return true;
-      });
+      return (this.rowActionList || []).filter(action => this.isActionVisible(action, item));
     },
-    // resolveActionColor：action.color 优先；无配置时 delete→error，其余→success
-    resolveActionColor(action) {
-      if (action.color) return action.color;
-      return action.intent === 'delete' ? 'error' : 'success';
-    },
-    // resolveActionDisabled：支持 Boolean 或 function(item) => Boolean
-    resolveActionDisabled(action, item) {
-      if (typeof action.disabled === 'function') return action.disabled(item);
-      return !!action.disabled;
+    resolveRuntimeActionId(action, item) {
+      return this.resolveDoUiActionId(action, item);
     },
     handleToolbarAction(action) {
-      if (this.isActionDisabled(action)) return;
-      const actionId = action.intent === 'create' ? 'startCreateItem' : (action.id || action.intent);
+      if (this.isActionDisabled(action) || this.isActionLoading(action)) return;
+      const actionId = this.resolveRuntimeActionId(action);
+      if (!actionId) return;
       this.$emit('action', actionId);
     },
     async handleRowAction(action, item) {
+      if (this.isActionDisabled(action, item) || this.isActionLoading(action, item)) return;
       if (action.confirm) {
         const ok = await window.confirmDialog({ title: action.label, content: `确定${action.label}吗？` });
         if (!ok) return;
       }
-      const actionId = action.intent === 'update' ? 'startUpdateItem'
-                     : action.intent === 'delete' ? 'deleteItem'
-                     : (action.id || action.intent);
+      const actionId = this.resolveRuntimeActionId(action, item);
+      if (!actionId) return;
       this.$emit('action', actionId, item);
+    },
+    // resolveActionColor：action.color 优先；无配置时 delete→error，其余→success
+    resolveActionColor(action) {
+      if (action.color) return action.color;
+      return this.actionUiToken(action) === 'delete' ? 'error' : 'success';
     },
   },
 });

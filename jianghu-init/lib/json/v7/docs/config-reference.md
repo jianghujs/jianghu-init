@@ -80,8 +80,8 @@ lib/json/v7/
 | **`search`** | `string[]` 或 `{ keyword: { fields, placeholder }, fields: [] }` → PageHeader / SearchSheet |
 | **`filter`** | 对象 → 客户端 `filterList`；字符串 `'inline'|'sheet'` → 仅布局 |
 | **`filters`** | 声明型筛选项数组 |
-| **`toolbarActions`** | `[{ intent, label, visibleWhen?, disabledWhen? }]` 或协议字符串 |
-| **`rowActions`** | 行操作；`intent`: `update` / `delete` 等 |
+| **`toolbarActions`** | `[{ uiAction, label, visibleWhen?, disabledWhen?, loadingWhen? }]` 或协议字符串；标准 uiAction：`create` / `delete` / `batchDelete`；自定义 uiAction 即 doUiAction 方法名 |
+| **`rowActions`** | 行操作；标准 uiAction：`update` / `delete` / `detail`；支持 **`visibleWhen` / `disabledWhen` / `loadingWhen`**（上下文含 **`item`**） |
 | **`orderBy` / `serverPagination` / `pageSize` / `selectable`** | 列表行为 |
 | **`layout.type` / `filter`** | 参与 platform 解析（优先级见 §6） |
 | **`mobileSearchKey` / `mobileSearchBtnText` / `mobileSearchTitle` / `mobileSearchIcon`** | SearchSheet + 触发按钮 |
@@ -96,7 +96,7 @@ lib/json/v7/
 | **`type`** | `'form'`（tabs 内） |
 | **`tabs`** | `[{ key, title, fields, interaction, actions }]` |
 | **`interaction`** | `{ fieldKey: { visibleWhen, readonlyWhen, disabledWhen } }` |
-| **`actions`** | `[{ label, intent, color, visibleWhen?, disabledWhen? }]` |
+| **`actions`** | `[{ label, uiAction, color, visibleWhen?, disabledWhen?, loadingWhen? }]`；create：`save`/`create`/`cancel`；update：`save`/`update`/`cancel`；**`intent` 已废弃**（生成仍兼容） |
 | **`saveTipBeforeClose`** | create 脏检查 |
 | **`fieldAttrs`** | 按 key 覆写 `fieldList[].attrs` |
 | **`sheet`** | **仅 FormSheet**：`persistent`、`autoHeight`、`viewportOffset`、`maxBodyHeight`… |

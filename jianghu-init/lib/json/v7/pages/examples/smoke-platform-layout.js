@@ -200,6 +200,25 @@ console.assert(rawTableNode.props.filterList.some(f => f.key === 'status'), 'fil
 console.assert(Array.isArray(rawTableNode.children) && rawTableNode.children.length > 0, 'list.pc.children on Table');
 console.assert(String(rawTableNode.children[0]).includes('item.projectName'), 'list slot template name');
 
+const rawRowActions = rawTableNode.props.rowActionList || [];
+console.assert(rawRowActions[0] && rawRowActions[0].uiAction === 'update', 'row update uiAction');
+console.assert(rawRowActions[0] && rawRowActions[0].id === 'startUpdateItem', 'row update → id');
+console.assert(rawRowActions[1] && rawRowActions[1].uiAction === 'delete', 'row delete uiAction');
+console.assert(rawRowActions[1] && rawRowActions[1].id === 'deleteItem', 'row delete → id');
+
+try {
+  expandCrudPage(Object.assign({}, deskNoOverride, {
+    views: Object.assign({}, desk.views, {
+      list: Object.assign({}, desk.views.list, {
+        toolbarActions: [{ uiAction: 'update', label: '错' }],
+      }),
+    }),
+  }));
+  console.assert(false, 'invalid toolbar uiAction should throw');
+} catch (e) {
+  console.assert(/不能用在 toolbar/.test(e.message), 'toolbar uiAction validation');
+}
+
 // slots.update.basicInfo.pc.children → UpdateDrawer children
 const rawUpdatePayload = rawIr.actionContent.find(n => n && n.component === 'UpdateDrawer');
 console.assert(rawUpdatePayload && rawUpdatePayload.children && rawUpdatePayload.children.length >= 2, 'update tab pc.children on UpdateDrawer');
@@ -424,7 +443,7 @@ const moUpdateNode = mo.actionContent.find(n => n && n.key === 'update');
 console.assert(moCreateNode && moCreateNode.component === 'FormSheet', 'mobile actionContent create is FormSheet');
 const moCreateProps = (moCreateNode && (moCreateNode.resolvedProps || moCreateNode.props)) || {};
 console.assert(
-  moCreateProps.headActionList && moCreateProps.headActionList[0] && moCreateProps.headActionList[0].intent === 'create',
+  moCreateProps.headActionList && moCreateProps.headActionList[0] && moCreateProps.headActionList[0].uiAction === 'create',
   'mobile FormSheet create.actions → headActionList',
 );
 console.assert(!moCreateProps.actionList, 'mobile FormSheet create has no bottom actionList');
@@ -459,7 +478,7 @@ console.assert(pcCreateNode && pcCreateNode.component === 'CreateDrawer', 'pc ac
 const pcCreateProps = (pcCreateNode && (pcCreateNode.resolvedProps || pcCreateNode.props)) || {};
 console.assert(!pcCreateProps.autoHeight, 'pc CreateDrawer has no sheet overlay props');
 console.assert(
-  pcCreateProps.actionList && pcCreateProps.actionList[0] && pcCreateProps.actionList[0].intent === 'create',
+  pcCreateProps.actionList && pcCreateProps.actionList[0] && pcCreateProps.actionList[0].uiAction === 'create',
   'pc CreateDrawer create.actions → actionList',
 );
 console.assert(!pcCreateProps.headActionList, 'pc CreateDrawer create has no headActionList');
@@ -467,14 +486,14 @@ const moUpdateProps = (moUpdateNode && (moUpdateNode.resolvedProps || moUpdateNo
 console.assert(moUpdateProps.viewportOffset === 152, 'mobile FormSheet update tabs viewportOffset 152');
 const moBasicTab = moUpdateProps.tabList && moUpdateProps.tabList.find(t => t.key === 'basicInfo');
 console.assert(
-  moBasicTab && moBasicTab.headActionList && moBasicTab.headActionList[0] && moBasicTab.headActionList[0].intent === 'update',
+  moBasicTab && moBasicTab.headActionList && moBasicTab.headActionList[0] && moBasicTab.headActionList[0].uiAction === 'update',
   'mobile FormSheet update tab.actions → headActionList',
 );
 console.assert(!moBasicTab || !moBasicTab.actionList, 'mobile FormSheet update tab has no actionList');
 const pcUpdateProps = updateDrawerProps;
 const pcBasicTab = pcUpdateProps.tabList && pcUpdateProps.tabList.find(t => t.key === 'basicInfo');
 console.assert(
-  pcBasicTab && pcBasicTab.actionList && pcBasicTab.actionList[0] && pcBasicTab.actionList[0].intent === 'update',
+  pcBasicTab && pcBasicTab.actionList && pcBasicTab.actionList[0] && pcBasicTab.actionList[0].uiAction === 'update',
   'pc UpdateDrawer update tab.actions → actionList',
 );
 console.assert(!pcBasicTab || !pcBasicTab.headActionList, 'pc UpdateDrawer update tab has no headActionList');
@@ -503,7 +522,7 @@ const moToolbarNode = moHeaderHStack.children && moHeaderHStack.children.find(
 console.assert(moToolbarNode, 'toolbarActions in header HStack');
 const moToolbarProps = (moToolbarNode && (moToolbarNode.props || moToolbarNode.resolvedProps)) || {};
 console.assert(
-  moToolbarProps.actionList && moToolbarProps.actionList[0] && moToolbarProps.actionList[0].intent === 'create',
+  moToolbarProps.actionList && moToolbarProps.actionList[0] && moToolbarProps.actionList[0].uiAction === 'create',
   'first toolbar action mapped',
 );
 const moFilterIdx = moHeaderHStack.children.findIndex(c => c && c.component === 'MobileFilterBtn');

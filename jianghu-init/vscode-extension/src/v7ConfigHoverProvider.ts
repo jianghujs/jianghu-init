@@ -200,8 +200,9 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
 
   toolbarActions: { description: '工具栏按钮项' },
   'toolbarActions|label': { type: 'string', description: '按钮文案' },
-  'toolbarActions|intent': { type: 'string', description: '语义：`create` 等 → doUiAction id' },
-  'toolbarActions|id': { type: 'string', description: '自定义 actionId（覆盖 intent 映射）' },
+  'toolbarActions|uiAction': { type: 'string', description: '**必填**。标准 token（`create` 等）或 doUiAction 方法名；编译为 `id` → doUiAction(id)' },
+  'toolbarActions|intent': { type: 'string', description: '**已废弃**。请用 uiAction；生成仍兼容' },
+  'toolbarActions|id': { type: 'string', description: '可选：覆盖 uiAction 解析后的 doUiAction id' },
   'toolbarActions|color': { type: 'string', description: '按钮颜色' },
   'toolbarActions|visibleWhen': { type: 'string | object', description: '隐藏条件 → __expr__（与 actionList 同口径）' },
   'toolbarActions|disabledWhen': { type: 'string | object', description: '禁用条件 → __expr__（可引用页面 $data，如 tableSelected.length === 0）' },
@@ -209,11 +210,12 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
 
   rowActions: { description: '行操作按钮项' },
   'rowActions|label': { type: 'string', description: '按钮文案' },
-  'rowActions|intent': { type: 'string', description: '`update` | `delete` 或自定义' },
+  'rowActions|uiAction': { type: 'string', description: '**必填**。`update` | `delete` | `detail` 或自定义 doUiAction 名' },
+  'rowActions|intent': { type: 'string', description: '**已废弃**。请用 uiAction' },
   'rowActions|id': { type: 'string', description: '自定义 actionId' },
   'rowActions|key': { type: 'string', description: '行内唯一 key' },
   'rowActions|color': { type: 'string', description: '语义色或 hex' },
-  'rowActions|icon': { type: 'string', description: 'jh-icon 名；省略时用 intent 默认 icon' },
+  'rowActions|icon': { type: 'string', description: 'jh-icon 名；省略时用 uiAction 默认 icon' },
   'rowActions|confirm': { type: 'boolean', description: '点击前 confirmDialog' },
   'rowActions|visible': { description: '`(item) => boolean` 条件显示' },
   'rowActions|disabled': { description: 'boolean 或 `(item) => boolean`' },
@@ -223,7 +225,7 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'create|title': { type: 'string', description: '抽屉/Sheet 标题' },
   'create|fields': { type: 'string[]', description: '表单字段 key 列表' },
   'create|interaction': { type: 'object', description: '字段 key → { visibleWhen, readonlyWhen, disabledWhen }' },
-  'create|actions': { type: 'array', description: '底部/头部操作 `[{ label, intent, color?, visibleWhen?, disabledWhen? }]`' },
+  'create|actions': { type: 'array', description: '底部/头部操作 `[{ label, uiAction, color?, visibleWhen?, disabledWhen?, loadingWhen? }]`' },
   'create|saveTipBeforeClose': { type: 'boolean', description: '关闭前脏检测 → beforeCloseConfirm' },
   'create|fieldAttrs': {
     description: '按 field key 覆写 `fieldList[].attrs`（合并于 **fields.{key}.attrs** 之上）',
@@ -624,7 +626,7 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'Sheet|headActionList': {
     description:
       '**标题栏**按钮（`jh-mobile-actions`）；与 orderList 模式标题栏「重置/确认」互斥（有 orderList 时优先后者）。\n'
-      + '点击 `@head-action` → `doUiAction(actionId)`；项格式同 **`actionList|*`**（label / intent / visibleWhen 等）。',
+      + '点击 `@head-action` → `doUiAction(actionId)`；项格式同 **`actionList|*`**（label / uiAction / visibleWhen 等）。',
   },
   'Sheet|actionList|value': { type: 'string', description: '网格项展示文字（jh-sheet 用 value，不是 label）', example: '"解绑"' },
   'Sheet|actionList|icon': { type: 'string', description: 'mdi 图标名', example: '"mdi-link-off"' },
@@ -682,7 +684,8 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'tabList|headActionList': { description: 'FormSheet Tab 标题栏按钮' },
   'tabList|cols': { type: 'number', description: '覆盖根级 cols' },
   'actionList|label': { type: 'string', description: '按钮文字', example: '"保存"' },
-  'actionList|intent': { type: 'string', description: '内置：cancel | create | update | delete 等 → doUiAction' },
+  'actionList|uiAction': { type: 'string', description: '**推荐**。标准 token 或 doUiAction 方法名' },
+  'actionList|intent': { type: 'string', description: '**已废弃**。请用 uiAction' },
   'actionList|actionId': { type: 'string', description: '自定义 doUiAction ID' },
   'actionList|id': { type: 'string', description: 'actionId 别名' },
   'actionList|color': { type: 'string', description: 'Vuetify color' },
@@ -765,7 +768,7 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'MobileActions|actionList': {
     type: 'array',
     description:
-      '顶栏按钮数组。项 `{ label, intent, id?, color?, visibleWhen?, disabledWhen? }` → `@action` → `doUiAction`。',
+      '顶栏按钮数组。项 `{ label, uiAction, id?, color?, visibleWhen?, disabledWhen?, loadingWhen? }` → `@action` → `doUiAction`。',
   },
 
   // ── Box / Grid（布局容器）──────────────────────────────────────────────────

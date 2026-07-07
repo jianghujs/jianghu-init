@@ -45,11 +45,11 @@ module.exports = {
   views: {
     list: {
       columns: ['id', 'name'],
-      toolbarActions: [{ intent: 'create', label: '新增' }],
-      rowActions: [{ intent: 'update', label: '编辑' }, { intent: 'delete', label: '删除' }],
+      toolbarActions: [{ uiAction: 'create', label: '新增' }],
+      rowActions: [{ uiAction: 'update', label: '编辑' }, { uiAction: 'delete', label: '删除' }],
     },
-    create: { fields: ['id', 'name'], actions: [{ label: '保存', intent: 'create', color: 'primary' }] },
-    update: { fields: ['id', 'name'], actions: [{ label: '保存', intent: 'update', color: 'primary' }] },
+    create: { fields: ['id', 'name'], actions: [{ label: '保存', uiAction: 'save', color: 'primary' }] },
+    update: { fields: ['id', 'name'], actions: [{ label: '保存', uiAction: 'save', color: 'primary' }] },
   },
   common: { data: {}, methods: {}, doUiAction: {} },
 };

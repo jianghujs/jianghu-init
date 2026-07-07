@@ -39,9 +39,10 @@
         ></slot>
         <v-btn
           v-else-if="isActionVisible(action)"
-          :key="action.id || action.intent || idx"
+          :key="action.id || actionUiToken(action) || idx"
           :color="action.color || 'success'"
           :disabled="isActionDisabled(action)"
+          :loading="isActionLoading(action)"
           small
           @click="handleToolbarAction(action)"
         >{{ action.label }}</v-btn>
@@ -351,16 +352,13 @@ Vue.component('jh-list', {
     resolvedSheetActions() {
       const item = this.activeItem;
       return (this.rowActionList || [])
-        .filter(action => {
-          if (!action) return false;
-          if (typeof action.visible === 'function') return !!action.visible(item);
-          if (typeof action.visible === 'boolean') return action.visible;
-          return true;
-        })
+        .filter(action => this.isActionVisible(action, item))
         .map(action => ({
           value: action.label || action.text || '',
-          icon: action.icon || this.iconMap[action.intent] || 'mdi-circle-small',
-          color: action.color || (action.intent === 'delete' ? 'error' : 'primary'),
+          icon: action.icon || this.iconMap[this.actionUiToken(action)] || 'mdi-circle-small',
+          color: action.color || (this.actionUiToken(action) === 'delete' ? 'error' : 'primary'),
+          disabled: this.isActionDisabled(action, item),
+          loading: this.isActionLoading(action, item),
           _action: action,
         }));
     },
@@ -404,15 +402,15 @@ Vue.component('jh-list', {
     },
     handleSheetAction(sheetAction) {
       const original = sheetAction && sheetAction._action;
-      if (!original) return;
-      const actionId = original.id || original.intent;
+      if (!original || sheetAction.disabled || sheetAction.loading) return;
+      const actionId = original.id || this.actionUiToken(original);
       if (!actionId) return;
       this.isActionSheetShown = false;
       this.$emit('action', actionId, this.activeItem);
     },
     handleToolbarAction(action) {
-      if (!action || this.isActionDisabled(action)) return;
-      const actionId = action.id || action.intent;
+      if (!action || this.isActionDisabled(action) || this.isActionLoading(action)) return;
+      const actionId = this.resolveDoUiActionId(action);
       if (!actionId) return;
       this.$emit('action', actionId);
     },

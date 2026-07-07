@@ -45,10 +45,10 @@ const content = {
     list: {
       columns: ['taskId', 'taskName', 'status', 'assignee'],
       mobileColumns: ['taskName', 'status'],
-      toolbarActions: [{ intent: 'create', label: '新增任务' }],
+      toolbarActions: [{ uiAction: 'create', label: '新增任务' }],
       rowActions: [
-        { intent: 'update', label: '编辑' },
-        { intent: 'delete', label: '删除', disabledWhen: "status === '已关闭'" },
+        { uiAction: 'update', label: '编辑' },
+        { uiAction: 'delete', label: '删除', disabledWhen: "status === '已关闭'" },
       ],
       serverPagination: false,
       pageSize: 20,
@@ -59,7 +59,7 @@ const content = {
       interaction: {
         assignee: { visibleWhen: 'showAssigneeField' },
       },
-      actions: [{ label: '保存', intent: 'create', color: 'primary' }],
+      actions: [{ label: '保存', uiAction: 'create', color: 'primary' }],
     },
     update: {
       title: '编辑任务',
@@ -67,7 +67,7 @@ const content = {
       interaction: {
         taskId: { readonlyWhen: true },
       },
-      actions: [{ label: '保存', intent: 'update', color: 'primary' }],
+      actions: [{ label: '保存', uiAction: 'update', color: 'primary' }],
     },
   },
 

@@ -30,16 +30,16 @@ const content = {
   views: {
     list: {
       columns: ['taskName', 'status'],
-      toolbarActions: [{ intent: 'create', label: '新增' }],
-      rowActions: [{ intent: 'update', label: '编辑' }, { intent: 'delete', label: '删除' }],
+      toolbarActions: [{ uiAction: 'create', label: '新增' }],
+      rowActions: [{ uiAction: 'update', label: '编辑' }, { uiAction: 'delete', label: '删除' }],
     },
     create: {
       fields: ['taskName', 'status'],
-      actions: [{ label: '保存', intent: 'create', color: 'primary' }],
+      actions: [{ label: '保存', uiAction: 'create', color: 'primary' }],
     },
     update: {
       fields: ['taskName', 'status'],
-      actions: [{ label: '保存', intent: 'update', color: 'primary' }],
+      actions: [{ label: '保存', uiAction: 'update', color: 'primary' }],
     },
   },
 

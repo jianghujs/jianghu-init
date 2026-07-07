@@ -74,7 +74,7 @@ fields / views / platform / layout / dataSource  (authoring)
 | `views.list.selectable` | `selectable` | |
 | `views.list.orderBy` | `blocks.table.orderBy` → `prepareTableParams`（API 请求参数，非 jh-table prop） | |
 | `views.list.toolbarActions[]` | PC:`headActionList`；移动:顶栏 `MobileActions`（`jh-mobile-actions`） | 见 builders |
-| `views.list.rowActions[]` | `rowActionList` | intent→id 映射 |
+| `views.list.rowActions[]` | `rowActionList` | uiAction→id 映射 |
 | `views.list.rowSlot` | `slotTemplates` | 列/行插槽 |
 | `slots.list.pc` / `slots.list.mobile` | `collectionChildren` | `Table` / `List` 节点 `children`（`<template v-slot>` HTML 字符串） |
 | `slots.create.pc` / `slots.create.mobile` | `createFormChildren` | `CreateDrawer` / `FormSheet` 节点 `children` |

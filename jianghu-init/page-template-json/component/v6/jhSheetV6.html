@@ -85,9 +85,20 @@
             <div class="grid" :class="'grid-cols-' + cols" style="gap:12px">
               <template v-for="(action, idx) in actionList">
                 <div v-if="action && !action.tag" :key="'a-' + idx" class="flex flex-col gap-2 mx-auto">
-                  <div class="text-center" @click="$emit('action', action); $emit('update:shown', false)">
-                    <div class="bg-[#EDFAF5] mb-2 mx-auto w-[48px] flex items-center justify-center aspect-square !rounded-md">
-                      <v-icon :color="action.color || 'primary'" size="24">{{ action.icon || 'mdi-account-multiple-plus' }}</v-icon>
+                  <div
+                    class="text-center"
+                    :class="{ 'opacity-60 pointer-events-none': action.loading }"
+                    @click="!action.loading && $emit('action', action); !action.loading && $emit('update:shown', false)"
+                  >
+                    <div class="bg-[#EDFAF5] mb-2 mx-auto w-[48px] flex items-center justify-center aspect-square !rounded-md relative">
+                      <v-progress-circular
+                        v-if="action.loading"
+                        indeterminate
+                        size="20"
+                        width="2"
+                        color="primary"
+                      ></v-progress-circular>
+                      <v-icon v-else :color="action.color || 'primary'" size="24">{{ action.icon || 'mdi-account-multiple-plus' }}</v-icon>
                     </div>
                     <div class="w-full">{{ action.value }}</div>
                   </div>
@@ -168,7 +179,7 @@ Vue.component("jh-sheet", {
     // ── 操作模式 props ─────────────────────────────────────────────────────
     // actionList: [{ value: '新增', icon: 'mdi-plus', color: 'primary' }, ...]
     actionList:   { type: Array,   default: () => [] },
-    // headActionList: [{ label, intent, id, color, visibleWhen?, disabledWhen? }, ...]
+    // headActionList: [{ label, intent, id, color, visibleWhen?, disabledWhen?, loadingWhen? }, ...]
     headActionList: { type: Array,   default: () => [] },
     /** 供 headActionList 条件求值（与 jh-form-sheet initialData 一致） */
     initialData:  { type: Object,  default: () => ({}) },
@@ -280,7 +291,7 @@ Vue.component("jh-sheet", {
     handleHeadAction(actionId) {
       if (!actionId) return;
       const action = (this.headActionList || []).find(
-        a => a && (a.actionId || a.id || a.intent) === actionId,
+        a => a && (a.actionId || a.id || a.uiAction || a.intent) === actionId,
       );
       this.$emit('head-action', actionId);
       if (action) this.$emit('action', action);
@@ -312,10 +323,11 @@ Vue.component("jh-sheet", {
     <template v-slot:actions>
       <v-btn
         v-for="(action, idx) in actions"
-        :key="'fs-act-' + (action.actionId || action.id || action.intent || idx)"
+        :key="'fs-act-' + (action.actionId || action.id || actionUiToken(action) || idx)"
         :class="['elevation-0']"
         :color="action.color || undefined"
         :disabled="isActionDisabled(action)"
+        :loading="isActionLoading(action)"
         @click="handleTabAction(action)"
       >{{ action.label }}</v-btn>
     </template>
@@ -573,13 +585,13 @@ Vue.component("jh-form-sheet", {
     },
     handleMobileAction(actionId) {
       const action = (this.toolbarActions || []).find(
-        a => a && (a.actionId || a.id || a.intent) === actionId,
+        a => a && (a.actionId || a.id || a.uiAction || a.intent) === actionId,
       );
       this.handleTabAction(action || { intent: actionId });
     },
     async handleTabAction(action) {
-      if (this.isActionDisabled(action)) return;
-      const actionId = action && (action.actionId || action.id || action.intent);
+      if (this.isActionDisabled(action) || this.isActionLoading(action)) return;
+      const actionId = action && (action.actionId || action.id || this.actionUiToken(action));
       if (!actionId) {
         await this.tryClose();
         return;

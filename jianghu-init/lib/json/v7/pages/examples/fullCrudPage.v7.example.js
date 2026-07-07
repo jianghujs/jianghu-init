@@ -76,12 +76,12 @@ const content = {
       ],
       mobileColumns: ['projectName', 'status', 'projectType'],
       toolbarActions: [
-        { intent: 'create', label: '新增', color: 'primary' },
-        { intent: 'delete', label: '批量删除', visibleWhen: 'hasSelection' },
+        { uiAction: 'create', label: '新增', color: 'primary' },
+        { uiAction: 'delete', label: '批量删除', visibleWhen: 'hasSelection' },
       ],
       rowActions: [
-        { intent: 'update', label: '编辑', key: 'edit' },
-        { intent: 'delete', label: '删除', key: 'del' },
+        { uiAction: 'update', label: '编辑', key: 'edit' },
+        { uiAction: 'delete', label: '删除', key: 'del' },
       ],
       search: {
         keyword: { fields: ['projectName', 'projectId'], placeholder: '搜索项目' },
@@ -122,8 +122,8 @@ const content = {
       },
       saveTipBeforeClose: true,
       actions: [
-        { label: '保存', intent: 'create', color: 'primary' },
-        { label: '取消', intent: 'cancel', color: 'secondary', visibleWhen: 'false' },
+        { label: '保存', uiAction: 'create', color: 'primary' },
+        { label: '取消', uiAction: 'cancel', color: 'secondary', visibleWhen: 'false' },
       ],
       sheet: {
         persistent: true,
@@ -145,7 +145,7 @@ const content = {
             projectName: { readonlyWhen: 'isFinished' },
             status: { visibleWhen: 'isOutsource' },
           },
-          actions: [{ label: '保存', intent: 'update', color: 'primary' }],
+          actions: [{ label: '保存', uiAction: 'update', color: 'primary' }],
         },
         {
           key: 'extensionInfo',
