@@ -44,7 +44,13 @@ function vueColonPropInlineJs(val) {
   if (val && typeof val === 'object') {
     // __expr__ 哨兵：表示该值应作为 Vue 表达式输出，不加引号
     // 例：{ __expr__: 'memberList' } → memberList（Vue 解析为 this.memberList）
-    if (typeof val.__expr__ === 'string') return val.__expr__;
+    // 含 item 的行级条件须保留为字面量对象，由 jhWhenUtil 在 visibleRowActions 内延迟求值
+    if (typeof val.__expr__ === 'string') {
+      if (/\bitem\b/.test(val.__expr__)) {
+        return '{__expr__:' + vueColonPropInlineJs(val.__expr__) + '}';
+      }
+      return val.__expr__;
+    }
     const keys = Object.keys(val);
     return '{' + keys.map(k => {
       const keyPart = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? k : vueColonPropInlineJs(k);

@@ -9,6 +9,7 @@
     actionList   Array  label / uiAction / id / color / visibleWhen / disabledWhen / loadingWhen
     initialData  Object 条件求值上下文（与 jh-form-sheet initialData 一致）
     scope        Object 条件求值上下文（页面 $data）
+    resolveScope String 传给 resolveDoUiActionId 的 scope（FormSheet 标题栏用 'form'）
 
   events:
     @action(actionId)
@@ -65,6 +66,7 @@
       actionList: { type: Array, default: () => [] },
       initialData: { type: Object, default: () => ({}) },
       scope: { type: Object, default: null },
+      resolveScope: { type: String, default: '' },
     },
     computed: {
       normalizedActions() {
@@ -84,7 +86,8 @@
       },
       emitAction(action) {
         if (!action || this.isActionDisabled(action) || this.isActionLoading(action)) return;
-        const actionId = this.resolveDoUiActionId(action);
+        const opts = this.resolveScope ? { scope: this.resolveScope } : undefined;
+        const actionId = this.resolveDoUiActionId(action, null, opts);
         if (!actionId) return;
         this.$emit('action', actionId);
       },

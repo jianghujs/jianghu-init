@@ -2,6 +2,7 @@
 
 const v = require('../../index');
 const { expandCrudPage } = require('../../compiler/semantic/expandCrudPage');
+const { normalizeAction } = require('../../actionIntent');
 const { fieldKeyToFormField } = require('../../fieldFormProps');
 const { resolvePageSyncEntries } = require('../../mobilePageId');
 const { resolvePageMenu } = require('../../../shared/resolvePageMenu');
@@ -202,22 +203,13 @@ console.assert(String(rawTableNode.children[0]).includes('item.projectName'), 'l
 
 const rawRowActions = rawTableNode.props.rowActionList || [];
 console.assert(rawRowActions[0] && rawRowActions[0].uiAction === 'update', 'row update uiAction');
-console.assert(rawRowActions[0] && rawRowActions[0].id === 'startUpdateItem', 'row update → id');
+console.assert(rawRowActions[0] && rawRowActions[0].id === undefined, 'row action no id field');
 console.assert(rawRowActions[1] && rawRowActions[1].uiAction === 'delete', 'row delete uiAction');
-console.assert(rawRowActions[1] && rawRowActions[1].id === 'deleteItem', 'row delete → id');
+console.assert(rawRowActions[1] && rawRowActions[1].id === undefined, 'row delete no id field');
 
-try {
-  expandCrudPage(Object.assign({}, deskNoOverride, {
-    views: Object.assign({}, desk.views, {
-      list: Object.assign({}, desk.views.list, {
-        toolbarActions: [{ uiAction: 'update', label: '错' }],
-      }),
-    }),
-  }));
-  console.assert(false, 'invalid toolbar uiAction should throw');
-} catch (e) {
-  console.assert(/不能用在 toolbar/.test(e.message), 'toolbar uiAction validation');
-}
+// uiAction 1:1 替代 intent，编译期不再做 role 误用校验
+const crossRoleNorm = normalizeAction({ uiAction: 'createItem', label: '自定义' }, 'toolbar', 't');
+console.assert(crossRoleNorm.uiAction === 'createItem' && crossRoleNorm.id === undefined, 'uiAction passthrough no id');
 
 // slots.update.basicInfo.pc.children → UpdateDrawer children
 const rawUpdatePayload = rawIr.actionContent.find(n => n && n.component === 'UpdateDrawer');

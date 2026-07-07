@@ -17,14 +17,23 @@
         if (!action) return '';
         return action.uiAction || action.intent || '';
       },
-      resolveDoUiActionId(action, item) {
+      resolveDoUiActionId(action, item, options) {
         if (!action) return '';
         if (action.id) return action.id;
         if (action.actionId) return action.actionId;
         const token = this.actionUiToken(action);
+        const scope = options && options.scope;
+        // 表单 Drawer / Sheet：create|save → createItem，update → updateItem
+        if (scope === 'form') {
+          if (token === 'create' || token === 'save') return 'createItem';
+          if (token === 'update') return 'updateItem';
+          return token || '';
+        }
+        // 列表 / 工具栏 / 行操作：标准 token 别名
         if (token === 'create') return 'startCreateItem';
         if (token === 'update') return 'startUpdateItem';
         if (token === 'delete') return item != null ? 'deleteItem' : 'batchDeleteItem';
+        if (token === 'batchDelete') return 'batchDeleteItem';
         return token || '';
       },
       evaluateActionWhen(cond, defaultVal, item) {

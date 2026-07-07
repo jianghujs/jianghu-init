@@ -18,10 +18,11 @@
     return ctx;
   };
 
+  /** 最近一层带 doUiAction 的 VM（组件内 table → 组件 data；页面内 table → 页面 data） */
   const findPageVm = vm => {
     let p = vm;
     while (p) {
-      if (typeof p.doUiAction === 'function' && p.pageId != null) return p;
+      if (typeof p.doUiAction === 'function') return p;
       p = p.$parent;
     }
     return null;

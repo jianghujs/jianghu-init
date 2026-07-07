@@ -238,7 +238,7 @@ Vue.component('jh-create-drawer', {
     },
     currentTabActions() {
       const list = this.currentTabConfig.actionList || [];
-      return this.filterVisibleActions([{ label: '取消', intent: 'cancel' }, ...list]);
+      return this.filterVisibleActions([{ label: '取消', uiAction: 'cancel' }, ...list]);
     },
     formForwardedSlotNames() {
       const names = Object.keys(this.$scopedSlots || {});
@@ -310,7 +310,7 @@ Vue.component('jh-create-drawer', {
     },
     handleTabAction(action) {
       if (this.isActionDisabled(action) || this.isActionLoading(action)) return;
-      const actionId = action && (action.actionId || action.id || this.actionUiToken(action));
+      const actionId = this.resolveDoUiActionId(action, null, { scope: 'form' });
       if (!actionId || actionId === 'cancel') {
         this.close();
         return;
@@ -492,7 +492,7 @@ Vue.component('jh-update-drawer', {
     },
     currentTabActions() {
       const list = this.currentTabConfig.actionList || [];
-      return this.filterVisibleActions([{ label: '取消', intent: 'cancel' }, ...list]);
+      return this.filterVisibleActions([{ label: '取消', uiAction: 'cancel' }, ...list]);
     },
     formForwardedSlotNames() {
       const names = Object.keys(this.$scopedSlots || {});
@@ -564,7 +564,7 @@ Vue.component('jh-update-drawer', {
     },
     handleTabAction(action) {
       if (this.isActionDisabled(action) || this.isActionLoading(action)) return;
-      const actionId = action && (action.actionId || action.id || this.actionUiToken(action));
+      const actionId = this.resolveDoUiActionId(action, null, { scope: 'form' });
       if (!actionId || actionId === 'cancel') {
         this.close();
         return;
@@ -762,7 +762,7 @@ Vue.component('jh-form-drawer', {
     },
     currentTabActions() {
       const list = this.currentTabConfig.actionList || [];
-      return this.filterVisibleActions([{ label: '取消', intent: 'cancel' }, ...list]);
+      return this.filterVisibleActions([{ label: '取消', uiAction: 'cancel' }, ...list]);
     },
     formForwardedSlotNames() {
       const names = Object.keys(this.$scopedSlots || {});
@@ -832,7 +832,7 @@ Vue.component('jh-form-drawer', {
     },
     handleTabAction(action) {
       if (this.isActionDisabled(action) || this.isActionLoading(action)) return;
-      const actionId = action && (action.actionId || action.id || this.actionUiToken(action));
+      const actionId = this.resolveDoUiActionId(action, null, { scope: 'form' });
       if (!actionId || actionId === 'cancel') {
         this.close();
         return;

@@ -2,58 +2,7 @@
 
 const { wrapActionConditions } = require('./whenExpr');
 
-/** 各 role 的标准 uiAction → doUiAction id */
-const RESOLVE_BY_ROLE = {
-  toolbar: {
-    create: 'startCreateItem',
-    delete: 'batchDeleteItem',
-    batchDelete: 'batchDeleteItem',
-  },
-  row: {
-    update: 'startUpdateItem',
-    delete: 'deleteItem',
-    detail: 'startDetailItem',
-  },
-  formCreate: {
-    save: 'createItem',
-    submit: 'createItem',
-    create: 'createItem',
-    cancel: 'cancel',
-  },
-  formUpdate: {
-    save: 'updateItem',
-    submit: 'updateItem',
-    update: 'updateItem',
-    cancel: 'cancel',
-  },
-};
-
-/** 旧配置：uiAction / intent 直接写 doUiAction 方法名 */
-const LEGACY_DO_UI_ACTION = {
-  startCreateItem: { role: 'toolbar', uiAction: 'create', id: 'startCreateItem' },
-  batchDeleteItem: { role: 'toolbar', uiAction: 'batchDelete', id: 'batchDeleteItem' },
-  startUpdateItem: { role: 'row', uiAction: 'update', id: 'startUpdateItem' },
-  deleteItem: { role: 'row', uiAction: 'delete', id: 'deleteItem' },
-  createItem: { role: 'formCreate', uiAction: 'save', id: 'createItem' },
-  updateItem: { role: 'formUpdate', uiAction: 'save', id: 'updateItem' },
-};
-
-/** 标准 uiAction 归属 role（跨 role 误用校验） */
-const UI_ACTION_OWNER = {};
-for (const [role, map] of Object.entries(RESOLVE_BY_ROLE)) {
-  for (const uiAction of Object.keys(map)) {
-    if (uiAction === 'cancel') continue;
-    UI_ACTION_OWNER[uiAction] = role;
-  }
-}
-
 const STRUCTURAL_TYPES = new Set(['spacer', 'slot', 'filter']);
-
-const roleMatchesLegacy = (role, legacyRole) => {
-  if (legacyRole === role) return true;
-  if (legacyRole.startsWith('form') && role.startsWith('form')) return true;
-  return false;
-};
 
 /**
  * 读取 uiAction 值（生成兼容：uiAction > intent > id > actionId）
@@ -71,7 +20,8 @@ const isStructuralAction = raw =>
   !!(raw && raw.type && STRUCTURAL_TYPES.has(raw.type));
 
 /**
- * 规范化并校验单个 action（生成路径；兼容 intent）
+ * 规范化 action：uiAction 为 intent 的全局替代（1:1），不拆出 id 字段。
+ * 标准 token（create/delete/save…）与 doUiAction 方法名的映射在运行时 resolveDoUiActionId 完成。
  */
 const normalizeAction = (raw, role, loc) => {
   if (raw == null) return raw;
@@ -83,56 +33,16 @@ const normalizeAction = (raw, role, loc) => {
   }
   if (isStructuralAction(raw)) return raw;
 
-  const resolveMap = RESOLVE_BY_ROLE[role] || {};
   const uiActionRaw = readUiActionValue(raw);
-  const explicitId = raw.id != null && raw.id !== '' ? String(raw.id).trim()
-    : (raw.actionId != null && raw.actionId !== '' ? String(raw.actionId).trim() : '');
-
   if (!uiActionRaw) {
     throw new Error(`v7 ${loc}: action 缺少 uiAction（标准 token 或 doUiAction 方法名；旧 intent 仍可读）`);
   }
 
   const out = { ...raw };
-
-  if (LEGACY_DO_UI_ACTION[uiActionRaw]) {
-    const leg = LEGACY_DO_UI_ACTION[uiActionRaw];
-    if (!roleMatchesLegacy(role, leg.role)) {
-      throw new Error(
-        `v7 ${loc}: uiAction "${uiActionRaw}" 属于 ${leg.role}，不能用在 ${role}`,
-      );
-    }
-    out.uiAction = leg.uiAction;
-    if (leg.uiAction !== 'cancel') out.id = explicitId || leg.id;
-    delete out.intent;
-    delete out.actionId;
-    return wrapActionConditions(out);
-  }
-
-  if (Object.prototype.hasOwnProperty.call(resolveMap, uiActionRaw)) {
-    out.uiAction = uiActionRaw;
-    if (uiActionRaw === 'cancel') {
-      delete out.id;
-    } else {
-      out.id = explicitId || resolveMap[uiActionRaw];
-    }
-    delete out.intent;
-    delete out.actionId;
-    return wrapActionConditions(out);
-  }
-
-  if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(uiActionRaw)) {
-    throw new Error(`v7 ${loc}: 未知 uiAction "${uiActionRaw}"，请使用标准 token 或 camelCase doUiAction 名`);
-  }
-  const owner = UI_ACTION_OWNER[uiActionRaw];
-  if (owner && owner !== role && !roleMatchesLegacy(role, owner)) {
-    throw new Error(
-      `v7 ${loc}: "${uiActionRaw}" 是 ${owner} 的标准 uiAction，不能用在 ${role}`,
-    );
-  }
   out.uiAction = uiActionRaw;
-  out.id = explicitId || uiActionRaw;
   delete out.intent;
   delete out.actionId;
+  delete out.id;
   return wrapActionConditions(out);
 };
 
@@ -197,8 +107,6 @@ const validateActionUiActionSyntax = semantic => {
 };
 
 module.exports = {
-  RESOLVE_BY_ROLE,
-  LEGACY_DO_UI_ACTION,
   readUiActionValue,
   normalizeAction,
   normalizeActionList,

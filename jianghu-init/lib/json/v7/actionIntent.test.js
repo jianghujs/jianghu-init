@@ -14,13 +14,13 @@ const assert = (cond, msg) => {
   }
 };
 
-assert(normalizeAction({ uiAction: 'create', label: '新增' }, 'toolbar', 't').id === 'startCreateItem', 'toolbar create → id');
-assert(normalizeAction({ uiAction: 'update', label: '编辑' }, 'row', 'r').id === 'startUpdateItem', 'row update → id');
-assert(normalizeAction({ intent: 'create', label: '新增' }, 'toolbar', 't').uiAction === 'create', 'legacy intent read');
-assert(normalizeAction({ intent: 'create', label: '新增' }, 'toolbar', 't').id === 'startCreateItem', 'legacy intent → id');
-assert(normalizeAction({ uiAction: 'create', label: '保存' }, 'formCreate', 'c').id === 'createItem', 'form create → id');
-assert(normalizeAction({ uiAction: 'startCreateItem', label: '新增' }, 'toolbar', 'l').uiAction === 'create', 'legacy doUiAction name');
-assert(normalizeAction({ uiAction: 'doBatchX', label: '批' }, 'toolbar', 'l').id === 'doBatchX', 'custom id');
+assert(normalizeAction({ uiAction: 'create', label: '新增' }, 'toolbar', 't').uiAction === 'create', 'toolbar create uiAction');
+assert(normalizeAction({ uiAction: 'create', label: '新增' }, 'toolbar', 't').id === undefined, 'no id field');
+assert(normalizeAction({ uiAction: 'update', label: '编辑' }, 'row', 'r').uiAction === 'update', 'row update uiAction');
+assert(normalizeAction({ intent: 'create', label: '新增' }, 'toolbar', 't').uiAction === 'create', 'legacy intent → uiAction');
+assert(normalizeAction({ intent: 'createItem', label: '保存' }, 'formCreate', 'c').uiAction === 'createItem', 'createItem stays createItem');
+assert(normalizeAction({ intent: 'createItem', label: '保存' }, 'formCreate', 'c').id === undefined, 'createItem not split to save+id');
+assert(normalizeAction({ uiAction: 'doBatchX', label: '批' }, 'toolbar', 'l').uiAction === 'doBatchX', 'custom uiAction');
 assert(!normalizeAction({ intent: 'create', label: 'x' }, 'toolbar', 't').intent, 'intent stripped from output');
 
 const rowVis = normalizeAction(
@@ -29,25 +29,6 @@ const rowVis = normalizeAction(
   'row',
 );
 assert(rowVis.visibleWhen && rowVis.visibleWhen.__expr__ === 'item.id !== -1', 'row visibleWhen __expr__');
-
-try {
-  normalizeAction({ uiAction: 'update', label: 'x' }, 'toolbar', 'bad');
-  assert(false, 'toolbar update should throw');
-} catch (e) {
-  assert(/不能用在 toolbar/.test(e.message), 'toolbar update error msg');
-}
-
-try {
-  validateActionUiActionSyntax({
-    mode: 'crud',
-    views: {
-      list: { toolbarActions: [{ intent: 'create', label: '新增' }] },
-    },
-  });
-  assert(false, 'validate should reject intent-only');
-} catch (e) {
-  assert(/uiAction/.test(e.message), 'validate intent-only msg');
-}
 
 validateActionUiActionSyntax({
   mode: 'crud',

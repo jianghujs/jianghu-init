@@ -47,6 +47,7 @@
                 :action-list="headActionList"
                 :initial-data="initialData"
                 :scope="scope"
+                :resolve-scope="headActionResolveScope"
                 @action="handleHeadAction"
               />
             </template>
@@ -181,6 +182,8 @@ Vue.component("jh-sheet", {
     actionList:   { type: Array,   default: () => [] },
     // headActionList: [{ label, intent, id, color, visibleWhen?, disabledWhen?, loadingWhen? }, ...]
     headActionList: { type: Array,   default: () => [] },
+    /** FormSheet 标题栏：create/save → createItem（传给 jh-mobile-actions.resolveScope） */
+    headActionResolveScope: { type: String, default: '' },
     /** 供 headActionList 条件求值（与 jh-form-sheet initialData 一致） */
     initialData:  { type: Object,  default: () => ({}) },
     scope:        { type: Object,  default: null },
@@ -290,10 +293,19 @@ Vue.component("jh-sheet", {
     },
     handleHeadAction(actionId) {
       if (!actionId) return;
-      const action = (this.headActionList || []).find(
-        a => a && (a.actionId || a.id || a.uiAction || a.intent) === actionId,
-      );
-      this.$emit('head-action', actionId);
+      const scopeOpts = this.headActionResolveScope ? { scope: this.headActionResolveScope } : undefined;
+      const action = (this.headActionList || []).find(a => {
+        if (!a) return false;
+        const resolved = this.resolveDoUiActionId(a, null, scopeOpts);
+        return resolved === actionId
+          || a.actionId === actionId
+          || a.uiAction === actionId
+          || a.intent === actionId;
+      });
+      const resolved = action
+        ? this.resolveDoUiActionId(action, null, scopeOpts)
+        : actionId;
+      this.$emit('head-action', resolved);
       if (action) this.$emit('action', action);
     },
   },
@@ -315,6 +327,7 @@ Vue.component("jh-sheet", {
     :title="sheetTitle"
     :body-class="sheetBodyClass"
     :head-action-list="toolbarActions"
+    head-action-resolve-scope="form"
     :initial-data="initialData"
     :scope="scope"
     @update:shown="onSheetUpdateShown"
@@ -584,14 +597,20 @@ Vue.component("jh-form-sheet", {
       }
     },
     handleMobileAction(actionId) {
-      const action = (this.toolbarActions || []).find(
-        a => a && (a.actionId || a.id || a.uiAction || a.intent) === actionId,
-      );
-      this.handleTabAction(action || { intent: actionId });
+      const scopeOpts = { scope: 'form' };
+      const action = (this.toolbarActions || []).find(a => {
+        if (!a) return false;
+        const resolved = this.resolveDoUiActionId(a, null, scopeOpts);
+        return resolved === actionId
+          || a.actionId === actionId
+          || a.uiAction === actionId
+          || a.intent === actionId;
+      });
+      this.handleTabAction(action || { uiAction: actionId });
     },
     async handleTabAction(action) {
       if (this.isActionDisabled(action) || this.isActionLoading(action)) return;
-      const actionId = action && (action.actionId || action.id || this.actionUiToken(action));
+      const actionId = this.resolveDoUiActionId(action, null, { scope: 'form' });
       if (!actionId) {
         await this.tryClose();
         return;
