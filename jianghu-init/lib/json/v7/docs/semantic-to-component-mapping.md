@@ -17,7 +17,7 @@ fields / views / platform / layout / dataSource  (authoring)
 
 ## 1. platform：选「哪种容器组件」
 
-配置键：`platform.pc` 或 `platform.pc`（同义）、`platform.mobile`。
+配置键：`platform.pc`、`platform.mobile`；`platform.desktop` 仅作 PC 端兼容别名。
 
 | platform token | 语义块 | Schema 组件 | Vue 标签 | 默认 layout 副作用 |
 |----------------|--------|-------------|----------|-------------------|
@@ -74,7 +74,7 @@ fields / views / platform / layout / dataSource  (authoring)
 | `views.list.selectable` | `selectable` | |
 | `views.list.orderBy` | `blocks.table.orderBy` → `prepareTableParams`（API 请求参数，非 jh-table prop） | |
 | `views.list.toolbarActions[]` | PC:`headActionList`；移动:顶栏 `MobileActions`（`jh-mobile-actions`） | 见 builders |
-| `views.list.rowActions[]` | `rowActionList` | uiAction→id 映射 |
+| `views.list.rowActions[]` | `rowActionList` | `uiAction` 1:1 输出；运行时解析 doUiAction |
 | `views.list.rowSlot` | `slotTemplates` | 列/行插槽 |
 | `slots.list.pc` / `slots.list.mobile` | `collectionChildren` | `Table` / `List` 节点 `children`（`<template v-slot>` HTML 字符串） |
 | `slots.create.pc` / `slots.create.mobile` | `createFormChildren` | `CreateDrawer` / `FormSheet` 节点 `children` |

@@ -3,15 +3,16 @@
 const cursor = require('./cursor');
 const claude = require('./claude');
 const kiro = require('./kiro');
+const codex = require('./codex');
 const agentsMd = require('./agents-md');
 
-const ADAPTERS = [cursor, claude, kiro, agentsMd];
+const ADAPTERS = [codex, cursor, claude, kiro, agentsMd];
 
 const getAdapter = id => ADAPTERS.find(a => a.id === id);
 
 const listAdapters = () => ADAPTERS.map(a => ({ id: a.id, label: a.label }));
 
-const syncTargets = ({ cwd, targets, modules, moduleDefs, sourceDir, manifest, force }) => {
+const syncTargets = ({ cwd, targets, modules, ruleIds, moduleDefs, sourceDir, manifest, force }) => {
   const results = {};
   for (const target of targets) {
     const adapter = getAdapter(target);
@@ -22,6 +23,7 @@ const syncTargets = ({ cwd, targets, modules, moduleDefs, sourceDir, manifest, f
     results[target] = adapter.sync({
       cwd,
       modules,
+      ruleIds,
       moduleDefs,
       sourceDir,
       manifest,

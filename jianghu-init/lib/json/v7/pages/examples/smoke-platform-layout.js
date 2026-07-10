@@ -28,6 +28,15 @@ console.assert(pc.v7Meta.filterMode === 'inline', 'platform token Table → filt
 console.assert(pc.v7Meta.collectionComponent === 'Table', 'platform.pc.list → Table');
 console.assert(pc.v7Meta.createFormComponent === 'CreateDrawer', 'platform.pc.create → CreateDrawer');
 console.assert(pc.v7Meta.updateFormComponent === 'UpdateDrawer', 'platform.pc.update → UpdateDrawer');
+const desktopAlias = expandCrudPage({
+  ...desk,
+  targetPlatform: 'pc',
+  platform: {
+    desktop: { list: 'List', create: 'CreateSheet', update: 'UpdateSheet' },
+  },
+});
+console.assert(desktopAlias._v7.collectionComponent === 'List', 'platform.desktop.list → List alias');
+console.assert(desktopAlias._v7.createFormComponent === 'FormSheet', 'platform.desktop.create → FormSheet alias');
 
 // ─── Req 2: *Resource 命名规范 ────────────────────────────────────────────────
 console.assert(pc.dataSource.listResource === 'getProjectList', '*Resource → listResource');

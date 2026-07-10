@@ -59,6 +59,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "pc": { "$ref": "#/definitions/platformSlice" },
         "desktop": { "$ref": "#/definitions/platformSlice" },
         "mobile": { "$ref": "#/definitions/platformSlice" }
       }
@@ -300,8 +301,19 @@
         "mobileColumns": { "type": "array" },
         "search": { "$ref": "#/definitions/searchOrFilterConfig" },
         "filter": {},
-        "toolbarActions": { "type": "array" },
-        "rowActions": { "type": "array" },
+        "toolbarActions": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "$ref": "#/definitions/actionItem" },
+              { "$ref": "#/definitions/structuralActionItem" }
+            ]
+          }
+        },
+        "rowActions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/actionItem" }
+        },
         "orderBy": { "type": "array" },
         "serverPagination": { "type": "boolean" },
         "pageSize": { "type": "number", "minimum": 1 },
@@ -359,7 +371,10 @@
         "title": { "type": "string" },
         "fields": { "type": "array", "items": { "type": "string" } },
         "interaction": { "type": "object" },
-        "actions": { "type": "array" },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/actionItem" }
+        },
         "saveTipBeforeClose": { "type": "boolean" },
         "sheet": { "$ref": "#/definitions/sheetOverlay", "description": "FormSheet 叠层行为（mobile create 默认满高）" },
         "fieldAttrs": { "$ref": "#/definitions/fieldAttrsMap", "description": "覆写 create 表单 fieldList[].attrs" }
@@ -369,7 +384,10 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "tabs": { "type": "array" },
+        "tabs": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/updateTab" }
+        },
         "fields": { "type": "array", "items": { "type": "string" } },
         "sheet": { "$ref": "#/definitions/sheetOverlay", "description": "FormSheet 叠层行为（mobile update 默认满高）" },
         "fieldAttrs": { "$ref": "#/definitions/fieldAttrsMap", "description": "单表单模式覆写 fieldList[].attrs" }
@@ -383,6 +401,53 @@
         "create": { "type": "string" },
         "update": { "type": "string" },
         "filter": { "type": "string", "enum": ["inline", "sheet"] }
+      }
+    },
+    "actionItem": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["label", "uiAction"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "uiAction": { "type": "string", "minLength": 1 },
+        "color": { "type": "string" },
+        "key": { "type": "string" },
+        "icon": { "type": "string" },
+        "confirm": { "type": "boolean" },
+        "visibleWhen": {},
+        "disabledWhen": {},
+        "loadingWhen": {}
+      },
+      "not": {
+        "anyOf": [
+          { "required": ["intent"] },
+          { "required": ["actionId"] },
+          { "required": ["id"] }
+        ]
+      }
+    },
+    "structuralActionItem": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "enum": ["spacer", "slot", "filter"] }
+      }
+    },
+    "updateTab": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "key": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string" },
+        "fields": { "type": "array", "items": { "type": "string" } },
+        "interaction": { "type": "object" },
+        "fieldAttrs": { "$ref": "#/definitions/fieldAttrsMap" },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/actionItem" }
+        }
       }
     }
   }

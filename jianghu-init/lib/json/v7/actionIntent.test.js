@@ -39,6 +39,25 @@ validateActionUiActionSyntax({
 
 assert(normalizeActionList([{ uiAction: 'delete', label: '删' }], 'row', 'rows').length === 1, 'list normalize');
 
+try {
+  normalizeAction({ uiAction: 'delete' }, 'row', 'row');
+  assert(false, 'missing label should throw');
+} catch (err) {
+  assert(/缺少 label/.test(err.message), 'missing label error');
+}
+
+try {
+  validateActionUiActionSyntax({
+    mode: 'crud',
+    views: {
+      list: { rowActions: [{ uiAction: 'delete' }] },
+    },
+  });
+  assert(false, 'syntax missing label should throw');
+} catch (err) {
+  assert(/缺少 label/.test(err.message), 'syntax missing label error');
+}
+
 if (failed) {
   process.exit(1);
 }

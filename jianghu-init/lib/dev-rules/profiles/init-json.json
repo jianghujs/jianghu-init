@@ -1,0 +1,10 @@
+{
+  "id": "init-json",
+  "label": "init-json 规则/编译器开发",
+  "modules": [
+    "overview",
+    "v7-crud-authoring",
+    "jh-component",
+    "v7-compiler"
+  ]
+}

@@ -44,6 +44,7 @@ const buildPage = semanticInput => {
 
   if (mode === 'crud') {
     validateCrudSemantic(semantic);
+    validateActionUiActionSyntax(semantic);
     payload = expandCrudPage(semantic);
     v7Meta = payload._v7;
     const target = v7Meta && v7Meta.target === 'mobile' ? 'mobile' : 'pc';

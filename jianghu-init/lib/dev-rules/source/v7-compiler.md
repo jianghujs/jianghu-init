@@ -5,7 +5,7 @@ title: V7 Compiler
 
 # V7 编译器（jianghu-init 工具仓）
 
-> 仅 **init-tool** profile。以下路径在全局 `jianghu-init` 包或工具仓内，**不在业务 App 项目**。
+> 仅 **init-json** profile。以下路径在全局 `jianghu-init` 包或工具仓内，**不在业务 App 项目**。
 
 ## 流水线
 

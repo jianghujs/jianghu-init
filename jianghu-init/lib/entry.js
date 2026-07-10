@@ -36,7 +36,7 @@ const initTypes = [
   },
   {
     value: 'dev-rules',
-    name: 'dev-rules - Initialize AI dev rules (Cursor / Claude / Kiro).',
+    name: 'dev-rules - Initialize AI dev rules (Codex / Cursor / Claude / Kiro).',
   },
   {
     value: 'lint',
@@ -51,8 +51,9 @@ const initTypes = [
 // 检查是否安装了VSCode扩展
 function checkVscodeExtension() {
   try {
+    execSync('command -v code', { stdio: 'ignore' });
     // 检查是否安装了扩展
-    const result = execSync('code --list-extensions').toString();
+    const result = execSync('code --list-extensions', { stdio: [ 'ignore', 'pipe', 'ignore' ] }).toString();
     return result.includes('jianghu-init-vscode');
   } catch (error) {
     // 如果执行命令失败，说明可能没有安装VSCode或VSCode没有添加到PATH
@@ -107,6 +108,7 @@ module.exports = class Entry {
   async run() {
     let passArgv = process.argv.slice(2);
     let initType = passArgv[0];
+    let selectedFromMenu = false;
 
     // 添加版本号检查
     if (initType === '-v' || initType === '--version') {
@@ -129,6 +131,7 @@ module.exports = class Entry {
         pageSize: initTypes.length + 1,
       });
       initType = answer.initType;
+      selectedFromMenu = true;
     } else {
       passArgv = passArgv.slice(1);
     }
@@ -159,7 +162,10 @@ module.exports = class Entry {
         break;
       case 'dev-rules':
       case 'rules':
-        await new CommandInitDevRules().run(process.cwd(), passArgv);
+        await new CommandInitDevRules().run(
+          process.cwd(),
+          selectedFromMenu ? [ '--interactive', ...passArgv ] : passArgv,
+        );
         break;
       case 'vscode':
         await new CommandInitVSCode().run(process.cwd(), passArgv);
@@ -194,7 +200,7 @@ module.exports = class Entry {
   component [选项]             添加一些组件来管理你的应用
   json [选项]                  通过 JSON 文本初始化
   script [选项]                添加一些脚本来管理你的应用
-  dev-rules [选项]             初始化 AI 开发规范（Cursor / Claude / Kiro）
+  dev-rules [选项]             初始化 AI 开发规范（Codex / Cursor / Claude / Kiro）
   lint [选项]                  初始化 lint 配置 (ESLint, Prettier, Husky)
   vscode                       安装VSCode扩展，辅助使用jianghu-init
 
@@ -202,4 +208,3 @@ module.exports = class Entry {
   `);
   }
 };
-

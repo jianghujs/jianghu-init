@@ -11,13 +11,12 @@ title: JianghuJS 总览
 
 > 编译器在全局 `jianghu-init` 包内，**不在本 App 仓库**。日常只改 `app/view/init-json/`。
 
-## 项目内文档
+## 项目内文档与规则
 
-- V7 配置指南：`.jianghu/ai-rules/docs/v7-app-authoring.md`
-- AI 短规范：`.jianghu/ai-rules/source/*.md`
+- AI 规则入口：`AGENTS.md` / `.cursor/rules/` / `.kiro/steering/` / `.claude/rules/`
 - 页面说明：`app/view/pageDoc/*.md`
 
-更新：`jianghu-init dev-rules --sync --force`
+更新：`jianghu-init dev-rules --force`
 
 ## 路径速查
 
@@ -29,13 +28,14 @@ title: JianghuJS 总览
 
 ## 修改原则
 
-- V7 CRUD：只写 `fields` / `views` / `platform` / `slots` / `pc()` / `mobile()`，不要手写 `Table`/`List`/`Drawer`（UI mode 除外）
+- V7 CRUD：显式 `mode: 'crud'`，只写 `fields` / `views` / `dataSource` / `platform` / `layout` / `slots` / `pc()` / `mobile()`
+- UI 模式：省略 `mode`，只写单根 `pageContent`（或 `{}` + `actionContent`）；不要混写 `fields` / `views` / `pc()` / `mobile()`
 - 改配置后执行 `jianghu-init json` 重新编译
 - 不要长期手改 `.html` 生成物
 
 ## 工具
 
 - `jianghu-init json` — 编译 init-json
-- `jianghu-init dev-rules --sync` — 更新 AI 规则
+- `jianghu-init dev-rules --force` — 更新 AI 规则
 - `jianghu-init vscode` — init-json Hover / Schema
 - https://openjianghu.org/

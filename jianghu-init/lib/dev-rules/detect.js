@@ -12,7 +12,7 @@ const isJianghuApp = cwd =>
 
 const detectProfile = cwd => {
   if (isJianghuApp(cwd) && !isJianghuInitTool(cwd)) return 'app';
-  if (isJianghuInitTool(cwd)) return 'init-tool';
+  if (isJianghuInitTool(cwd)) return 'init-json';
   return 'app';
 };
 

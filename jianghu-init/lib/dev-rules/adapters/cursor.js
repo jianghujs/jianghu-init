@@ -2,7 +2,8 @@
 
 const path = require('path');
 const fs = require('fs');
-const { parseFrontmatter, ensureDir } = require('../util');
+const { ensureDir } = require('../util');
+const { getRulePack } = require('../rulePacks');
 
 const splitScope = scope => {
   if (!scope) return [];
@@ -10,39 +11,52 @@ const splitScope = scope => {
   return String(scope).split(',').map(s => s.trim()).filter(Boolean);
 };
 
-const loadModuleBody = (sourceDir, mod) => {
-  const filePath = path.join(sourceDir, mod.file);
-  const raw = fs.readFileSync(filePath, 'utf8');
-  const { body } = parseFrontmatter(raw);
-  return body;
-};
-
-const syncCursor = ({ cwd, modules, moduleDefs, sourceDir, force }) => {
+const syncCursor = ({ cwd, ruleIds, manifest, force }) => {
   const outDir = path.join(cwd, '.cursor', 'rules');
   ensureDir(outDir);
   const written = [];
+  const packs = (ruleIds || []).map(getRulePack).filter(Boolean);
 
-  for (const modId of modules) {
-    const def = moduleDefs[modId];
-    if (!def) continue;
-    const body = loadModuleBody(sourceDir, def);
-    const outFile = path.join(outDir, `${modId}.mdc`);
+  for (const pack of packs) {
+    const outFile = path.join(outDir, `${pack.id}.mdc`);
     if (fs.existsSync(outFile) && !force) continue;
 
     const lines = ['---'];
-    lines.push(`description: ${JSON.stringify(def.description || def.title || modId)}`);
-    if (def.always) {
-      lines.push('alwaysApply: true');
-    } else {
-      lines.push('alwaysApply: false');
-      const globs = splitScope(def.scope);
-      if (globs.length) {
-        lines.push(`globs: ${JSON.stringify(globs.join(','))}`);
-      }
+    lines.push(`description: ${JSON.stringify(pack.description)}`);
+    lines.push('alwaysApply: false');
+    const globs = splitScope(pack.globs);
+    if (globs.length) {
+      lines.push(`globs: ${JSON.stringify(globs.join(','))}`);
     }
-    lines.push('---', '', body, '');
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${pack.label}`);
+    lines.push('');
+    lines.push(`Read \`.ai-rules/${pack.id}/README.md\` before editing matching files.`);
+    lines.push('');
+    lines.push('Also read `.ai-rules/index.md` for selected project rule packs.');
+    lines.push('');
     fs.writeFileSync(outFile, lines.join('\n'), 'utf8');
     written.push(path.relative(cwd, outFile));
+  }
+
+  const indexFile = path.join(outDir, 'ai-rules-index.mdc');
+  if (force || !fs.existsSync(indexFile)) {
+    const lines = [
+      '---',
+      'description: "JianghuJS AI rule pack index"',
+      'alwaysApply: true',
+      '---',
+      '',
+      '# JianghuJS AI Rule Packs',
+      '',
+      'Use `.ai-rules/index.md` as the shared rule-pack index. Load detailed rule packs only when relevant.',
+      '',
+      `Generated targets: ${(manifest.targets || []).join(', ')}`,
+      '',
+    ];
+    fs.writeFileSync(indexFile, lines.join('\n'), 'utf8');
+    written.push(path.relative(cwd, indexFile));
   }
   return written;
 };

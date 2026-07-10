@@ -127,7 +127,7 @@ interaction: {
 - 表单 / 工具栏：上下文为 page `$data` + `initialData`
 - **行操作**：上下文额外包含 **`item`**（当前行），例如 `visibleWhen: 'item.id !== -1'`
 
-**标准 uiAction**（编译期 **1:1 输出**（`intent` → `uiAction`），不拆 `id`；运行时 `resolveDoUiActionId` → `doUiAction(...)`）：
+**标准 uiAction**（编译期 **1:1 输出**；运行时 `resolveDoUiActionId` → `doUiAction(...)`）：
 
 | 位置 | 常用 uiAction |
 |------|---------------|
@@ -136,4 +136,4 @@ interaction: {
 | `create.actions` | `createItem` / `save` / `cancel` / 自定义 doUiAction 名 |
 | `update.actions` | `updateItem` / `save` / `cancel` / 自定义 doUiAction 名 |
 
-自定义：uiAction 直接写 camelCase doUiAction 方法名。旧 **`intent`** 键仍可读（生成时转为 `uiAction`）；**语法校验**（`validate-examples`）强制 **`uiAction`**。
+自定义：`uiAction` 直接写 camelCase doUiAction 方法名。旧 **`intent` / `id` / `actionId`** 仅作生成兼容读取；**语法校验**（`validate-examples` / VSCode schema）强制 **`label` + `uiAction`**。

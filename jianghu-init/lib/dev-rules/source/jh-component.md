@@ -20,7 +20,8 @@ title: jh-component
 
 - `pageType: 'jh-component'` + `component.path`
 - **禁止** `page.id`、`resourceList`（编译器会报错）
-- Vue props → **`common.props`**
+- Vue props → **`common.props`**；`component.props` 仅兼容旧写法
+- CRUD 组件同样显式 `mode: 'crud'`；UI 组件省略 `mode` 并写单根 `pageContent`
 
 ## V7 pageId 运行时
 

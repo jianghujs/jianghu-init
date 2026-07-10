@@ -8,7 +8,7 @@ const { getPageContentRoot } = require('./compiler/semantic/pageContentShape');
  * 语义 → 组件「选型」层（不填 fieldList/headers 等业务参数，那在 expandCrudPage）。
  * 映射表：docs/semantic-to-component-mapping.md §1；常量：semantic-mapping.js PLATFORM_COMPONENT
  *
- * platform.pc ≡ platform.pc；platform.mobile 独立。
+ * platform.pc 为 PC 端主键；platform.desktop 为兼容别名；platform.mobile 独立。
  *
  * | 配置 | 语义块 | → Schema 组件 |
  * | platform.pc.list: 'Table' | views.list | Table |
@@ -22,13 +22,13 @@ const { getPageContentRoot } = require('./compiler/semantic/pageContentShape');
 
 const platformKeyForTarget = target => (target === 'mobile' ? 'mobile' : 'pc');
 
-/** 读取 platform 分端配置：支持 platform.pc 与 platform.pc（同义） */
+/** 读取 platform 分端配置：支持 platform.pc 与 platform.desktop（兼容别名） */
 const resolvePlatformSlice = (semantic, target) => {
   const plat = semantic.platform && typeof semantic.platform === 'object' ? semantic.platform : null;
   if (!plat) return null;
   if (target === 'mobile') return plat.mobile && typeof plat.mobile === 'object' ? plat.mobile : null;
   return (plat.pc && typeof plat.pc === 'object' ? plat.pc : null)
-    || (plat.pc && typeof plat.pc === 'object' ? plat.pc : null);
+    || (plat.desktop && typeof plat.desktop === 'object' ? plat.desktop : null);
 };
 
 /**

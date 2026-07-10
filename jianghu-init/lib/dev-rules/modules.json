@@ -20,8 +20,8 @@
   "v7-compiler": {
     "file": "v7-compiler.md",
     "title": "V7 编译器",
-    "description": "jianghu-init 编译器维护（仅 init-tool profile）",
+    "description": "init-json 编译器维护（仅 init-json profile）",
     "scope": "lib/json/v7/**/*.js",
-    "profiles": ["init-tool"]
+    "profiles": ["init-json"]
   }
 }

@@ -13,7 +13,7 @@
 | 组件 init-json | `app/view/init-json/component/**/*.js` |
 | 编译生成 HTML | `app/view/page/*.html`、`app/view/component/**/*.html` |
 | 页面文档 | `app/view/pageDoc/*.md` |
-| AI 规范 | `.jianghu/ai-rules/source/`、`.jianghu/ai-rules/docs/` |
+| AI 规范 | `AGENTS.md`、`.cursor/rules/`、`.kiro/steering/`、`.claude/rules/` |
 
 **工作流**：编辑 `app/view/init-json/**/*.js` → 运行 `jianghu-init json` → 生成/更新 `app/view/**/*.html`
 
@@ -44,7 +44,7 @@ V7 CRUD 须显式 `mode: 'crud'`（或由生成器写入）。
 | `page` | page 时 | `id`、`name`、`menu` 等 |
 | `component` | component 时 | V7：`path`、`name`；旧版常见 `componentPath` + `pageId` |
 | `fields` | CRUD | 字段字典 |
-| `dataSource` | CRUD | 表名、主键、list/create/update/delete Resource |
+| `dataSource` | CRUD | `table` 或 `model`、主键、list/create/update/delete Resource |
 | `views` | 否 | `list` 可选；`create` / `update` 按需 |
 | `platform` | 否 | `pc` / `mobile` 组件 token |
 | `layout` | 否 | 列宽、regions、variants |
@@ -57,12 +57,19 @@ V7 CRUD 须显式 `mode: 'crud'`（或由生成器写入）。
 
 ## 4. fields 与 views
 
-- `fields`：字段字典 `{ label, type, options, required, readonly, op }`
+- `fields`：字段字典 `{ label, type, options, required, readonly, op, attrs, pc, mobile }`
 - `views.list.columns` / `mobileColumns`：列定义；**list 整块可省略**
 - `views.list.search` / `filter`：搜索与筛选
 - `views.create.fields` / `views.update.fields` 或 `tabs`
 - `views.list.serverPagination: true`：移动端列表区内滚动
 - **Sheet 叠层**（仅 Sheet）：`views.create.sheet` / `views.update.sheet` 默认满高；`views.list.searchSheet` 默认 `maxBodyHeight: 70vh`；共用 `persistent`、`maxBodyHeight`、`bodyHeight`、`minCardHeight`
+
+### actions
+
+- 业务 action 必须写对象，且必填 `label` + `uiAction`
+- 覆盖位置：`views.list.toolbarActions` / `rowActions`、`views.create.actions`、`views.update.actions`、`views.update.tabs[].actions`
+- `uiAction` 写标准 token（如 `create` / `update` / `delete`）或自定义 `doUiAction` 方法名
+- 不要用 `intent` / `id` / `actionId`；结构项 `{ type: 'spacer' | 'slot' | 'filter' }` 例外
 
 ---
 
@@ -73,7 +80,7 @@ V7 CRUD 须显式 `mode: 'crud'`（或由生成器写入）。
 | pc | Table | CreateDrawer | UpdateDrawer | inline Search |
 | mobile | List | FormSheet | FormSheet | SearchSheet |
 
-配置键：`platform.pc`、`platform.mobile`（`platform.desktop` 同义 pc）。
+配置键：优先写 `platform.pc`、`platform.mobile`；`platform.desktop` 仅兼容旧配置。
 
 ---
 
@@ -90,7 +97,7 @@ V7 CRUD 须显式 `mode: 'crud'`（或由生成器写入）。
 
 - `version: 'v7'` + `pageType: 'jh-component'` + `component.path`
 - **不要** `page.id` / `resourceList`（与 v6/v4 旧组件不同）
-- Vue props → **`common.props`**
+- Vue props → **`common.props`**；`component.props` 仅兼容旧写法
 - 宿主设高：`<my-comp class="h-[400px]" />`；列表滚动需 `serverPagination`
 - 运行时 `pageId` 来自宿主 Page（`inject jhPage`）
 
@@ -102,7 +109,7 @@ V7 CRUD 须显式 `mode: 'crud'`（或由生成器写入）。
 
 ```bash
 jianghu-init json          # 编译 init-json → html
-jianghu-init dev-rules --sync --force   # 更新 AI 规则
+jianghu-init dev-rules --force          # 更新 AI 规则
 jianghu-init vscode        # 安装 Hover / Schema 扩展
 ```
 

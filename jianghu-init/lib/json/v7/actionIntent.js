@@ -37,6 +37,9 @@ const normalizeAction = (raw, role, loc) => {
   if (!uiActionRaw) {
     throw new Error(`v7 ${loc}: action 缺少 uiAction（标准 token 或 doUiAction 方法名；旧 intent 仍可读）`);
   }
+  if (raw.label == null || String(raw.label).trim() === '') {
+    throw new Error(`v7 ${loc}: action 缺少 label`);
+  }
 
   const out = { ...raw };
   out.uiAction = uiActionRaw;
@@ -102,6 +105,9 @@ const validateActionUiActionSyntax = semantic => {
     }
     if (!hasUiAction) {
       throw new Error(`v7 ${loc}: action 缺少 uiAction（对应 doUiAction 的标准 token 或方法名）`);
+    }
+    if (!Object.prototype.hasOwnProperty.call(action, 'label') || action.label == null || String(action.label).trim() === '') {
+      throw new Error(`v7 ${loc}: action 缺少 label`);
     }
   }
 };

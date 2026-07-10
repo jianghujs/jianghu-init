@@ -2,7 +2,8 @@
 
 const path = require('path');
 const fs = require('fs');
-const { parseFrontmatter, ensureDir } = require('../util');
+const { ensureDir } = require('../util');
+const { getRulePack } = require('../rulePacks');
 
 const splitScope = scope => {
   if (!scope) return [];
@@ -10,45 +11,28 @@ const splitScope = scope => {
   return String(scope).split(',').map(s => s.trim()).filter(Boolean);
 };
 
-const loadModuleBody = (sourceDir, mod) => {
-  const filePath = path.join(sourceDir, mod.file);
-  const raw = fs.readFileSync(filePath, 'utf8');
-  const { body } = parseFrontmatter(raw);
-  return body;
-};
-
-const syncKiro = ({ cwd, modules, moduleDefs, sourceDir, force }) => {
+const syncKiro = ({ cwd, ruleIds, force }) => {
   const outDir = path.join(cwd, '.kiro', 'steering');
   ensureDir(outDir);
   const written = [];
+  const packs = (ruleIds || []).map(getRulePack).filter(Boolean);
 
-  for (const modId of modules) {
-    const def = moduleDefs[modId];
-    if (!def) continue;
-    const body = loadModuleBody(sourceDir, def);
-    const outFile = path.join(outDir, `${modId}.md`);
+  for (const pack of packs) {
+    const outFile = path.join(outDir, `${pack.id}.md`);
     if (fs.existsSync(outFile) && !force) continue;
 
     const lines = ['---'];
-    if (def.always) {
-      lines.push('inclusion: always');
-    } else {
-      const patterns = splitScope(def.scope);
-      if (patterns.length) {
-        lines.push('inclusion: fileMatch');
-        lines.push('fileMatchPattern:');
-        for (const p of patterns) {
-          lines.push(`  - ${JSON.stringify(p)}`);
-        }
-      } else if (def.description) {
-        lines.push('inclusion: auto');
-        lines.push(`name: ${modId}`);
-        lines.push(`description: ${JSON.stringify(def.description)}`);
-      } else {
-        lines.push('inclusion: manual');
+    const patterns = splitScope(pack.globs);
+    if (patterns.length) {
+      lines.push('inclusion: fileMatch');
+      lines.push('fileMatchPattern:');
+      for (const p of patterns) {
+        lines.push(`  - ${JSON.stringify(p)}`);
       }
+    } else {
+      lines.push('inclusion: auto');
     }
-    lines.push('---', '', body, '');
+    lines.push('---', '', `# ${pack.label}`, '', `Read \`.ai-rules/${pack.id}/README.md\` before editing matching files.`, '');
     fs.writeFileSync(outFile, lines.join('\n'), 'utf8');
     written.push(path.relative(cwd, outFile));
   }
