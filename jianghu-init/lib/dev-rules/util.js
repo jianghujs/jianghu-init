@@ -35,41 +35,42 @@ const ensureDir = dir => {
   }
 };
 
-const copyFileIfNeeded = (src, dest, force) => {
-  if (force || !fs.existsSync(dest)) {
-    ensureDir(path.dirname(dest));
-    fs.copyFileSync(src, dest);
-    return true;
-  }
-  return false;
-};
-
-const copyDirContents = (srcDir, destDir, force) => {
-  ensureDir(destDir);
-  const copied = [];
-  for (const name of fs.readdirSync(srcDir)) {
-    const src = path.join(srcDir, name);
-    if (!fs.statSync(src).isFile()) continue;
-    const dest = path.join(destDir, name);
-    if (copyFileIfNeeded(src, dest, force)) {
-      copied.push(name);
-    }
-  }
-  return copied;
-};
-
-const readJson = filePath => JSON.parse(fs.readFileSync(filePath, 'utf8'));
-
 const writeJson = (filePath, data) => {
   ensureDir(path.dirname(filePath));
   fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
 };
 
+const createSyncResult = () => ({ desired: [], written: [], unchanged: [], skipped: [], removed: [] });
+
+const mergeSyncResult = (target, source) => {
+  for (const key of [ 'desired', 'written', 'unchanged', 'skipped', 'removed' ]) {
+    target[key].push(...(source[key] || []));
+  }
+  return target;
+};
+
+const syncTextFile = ({ cwd, filePath, content, force, result }) => {
+  const relativePath = path.relative(cwd, filePath);
+  result.desired.push(relativePath);
+  if (!force && fs.existsSync(filePath)) {
+    if (fs.readFileSync(filePath, 'utf8') === content) {
+      result.unchanged.push(relativePath);
+      return true;
+    }
+    result.skipped.push(relativePath);
+    return false;
+  }
+  ensureDir(path.dirname(filePath));
+  fs.writeFileSync(filePath, content, 'utf8');
+  result.written.push(relativePath);
+  return true;
+};
+
 module.exports = {
   parseFrontmatter,
   ensureDir,
-  copyFileIfNeeded,
-  copyDirContents,
-  readJson,
   writeJson,
+  createSyncResult,
+  mergeSyncResult,
+  syncTextFile,
 };

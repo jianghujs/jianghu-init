@@ -1,10 +1,11 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs');
 const { getRulePack } = require('../rulePacks');
+const { getSkillsForRuleIds, syncSkillsToDirectory } = require('../skills');
+const { createSyncResult, mergeSyncResult, syncTextFile } = require('../util');
 
-const buildAgentsMd = ({ manifest }) => {
+const buildAgentsMd = ({ manifest, skills = [] }) => {
   const packs = (manifest.ruleIds || []).map(getRulePack).filter(Boolean);
   const lines = [
     '# JianghuJS Codex Instructions',
@@ -32,6 +33,17 @@ const buildAgentsMd = ({ manifest }) => {
     lines.push(`- ${pack.label}: \`.ai-rules/${pack.id}/README.md\``);
   }
 
+  if (skills.length) {
+    lines.push('');
+    lines.push('## Task Skills');
+    lines.push('');
+    lines.push('Use the matching skill for the task. Read its `SKILL.md` before making changes:');
+    lines.push('');
+    for (const skill of skills) {
+      lines.push(`- ${skill.label}: \`.agents/skills/${skill.id}/SKILL.md\``);
+    }
+  }
+
   lines.push('');
   lines.push('## Update');
   lines.push('');
@@ -43,11 +55,26 @@ const buildAgentsMd = ({ manifest }) => {
   return lines.join('\n');
 };
 
-const syncCodex = ({ cwd, manifest, force }) => {
+const syncCodex = ({ cwd, manifest, templateRoot, force }) => {
+  const skills = getSkillsForRuleIds(templateRoot, manifest.ruleIds);
+  const result = createSyncResult();
+  const skillResult = syncSkillsToDirectory({
+    cwd,
+    templateRoot,
+    skills,
+    targetRoot: path.join(cwd, '.agents', 'skills'),
+    force,
+  });
+  mergeSyncResult(result, skillResult);
   const outFile = path.join(cwd, 'AGENTS.md');
-  if (fs.existsSync(outFile) && !force) return { skipped: ['AGENTS.md'] };
-  fs.writeFileSync(outFile, buildAgentsMd({ manifest }), 'utf8');
-  return ['AGENTS.md'];
+  syncTextFile({
+    cwd,
+    filePath: outFile,
+    content: buildAgentsMd({ manifest, skills }),
+    force,
+    result,
+  });
+  return result;
 };
 
 module.exports = {

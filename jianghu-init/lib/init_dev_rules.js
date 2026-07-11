@@ -4,16 +4,56 @@ const path = require('path');
 const fs = require('fs');
 const inquirer = require('inquirer');
 const CommandBase = require('./command_base');
-const { readJson } = require('./dev-rules/util');
 const { getRulePack, listRulePacks, parseRuleIds, syncRulePacks } = require('./dev-rules/rulePacks');
+const { getSkillsForRuleIds, listSkillIds, listSkillFiles } = require('./dev-rules/skills');
+const { writeJson } = require('./dev-rules/util');
+const { MANIFEST_PATH, readManifest, cleanupGeneratedFiles } = require('./dev-rules/state');
 
-const { listAdapters, syncTargets } = require('./dev-rules/adapters');
+const { getAdapter, listAdapters, syncTargets } = require('./dev-rules/adapters');
 
 const PACKAGE_JSON = path.join(__dirname, '..', 'package.json');
 const TEMPLATE_ROOT = path.join(__dirname, 'dev-rules');
-const TEMPLATE_SOURCE = path.join(TEMPLATE_ROOT, 'source');
-const PROFILES_DIR = path.join(__dirname, 'dev-rules', 'profiles');
-const MODULES_FILE = path.join(__dirname, 'dev-rules', 'modules.json');
+
+const buildLegacyGeneratedFiles = manifest => {
+  const files = [ '.ai-rules/index.md' ];
+  const ruleIds = (manifest.ruleIds || []).filter(getRulePack);
+  const skillIds = (manifest.skills || []).filter(id => listSkillIds().includes(id));
+  for (const ruleId of ruleIds) {
+    const pack = getRulePack(ruleId);
+    for (const file of pack.files) files.push(`.ai-rules/${ruleId}/${file.dest}`);
+  }
+  for (const skillId of skillIds) {
+    for (const file of listSkillFiles(TEMPLATE_ROOT, skillId)) {
+      files.push(`.ai-rules/skills/${skillId}/${file}`);
+      files.push(`.agents/skills/${skillId}/${file}`);
+      files.push(`.claude/skills/${skillId}/${file}`);
+    }
+  }
+  files.push(
+    '.ai-rules/skills/jianghu-init-json-authoring/references/v7-authoring.md',
+    '.agents/skills/jianghu-init-json-authoring/references/v7-authoring.md',
+    '.claude/skills/jianghu-init-json-authoring/references/v7-authoring.md',
+    '.ai-rules/skills/jianghu-init-json-migration/references/migration-guide.md',
+    '.agents/skills/jianghu-init-json-migration/references/migration-guide.md',
+    '.claude/skills/jianghu-init-json-migration/references/migration-guide.md',
+  );
+  for (const target of manifest.targets || []) {
+    if (target === 'codex' || target === 'agents-md') {
+      files.push('AGENTS.md');
+    } else if (target === 'cursor') {
+      files.push('.cursor/rules/ai-rules-index.mdc');
+      for (const ruleId of ruleIds) files.push(`.cursor/rules/${ruleId}.mdc`);
+      for (const skillId of skillIds) files.push(`.cursor/rules/${skillId}.mdc`);
+    } else if (target === 'claude') {
+      files.push('CLAUDE.md');
+      for (const ruleId of ruleIds) files.push(`.claude/rules/${ruleId}.md`);
+    } else if (target === 'kiro') {
+      for (const ruleId of ruleIds) files.push(`.kiro/steering/${ruleId}.md`);
+      for (const skillId of skillIds) files.push(`.kiro/steering/${skillId}.md`);
+    }
+  }
+  return Array.from(new Set(files));
+};
 
 const parseArgs = argv => {
   const out = {
@@ -24,9 +64,10 @@ const parseArgs = argv => {
     listRules: false,
     listTargets: false,
     help: false,
-    profile: null,
     ruleIds: null,
     targets: null,
+    removedProfile: null,
+    unknown: [],
   };
   for (const arg of argv || []) {
     if (arg === '--help' || arg === '-h') out.help = true;
@@ -36,21 +77,15 @@ const parseArgs = argv => {
     else if (arg === '--interactive') out.interactive = true;
     else if (arg === '--list-rules') out.listRules = true;
     else if (arg === '--list-targets') out.listTargets = true;
-    else if (arg.startsWith('--profile=')) out.profile = arg.slice('--profile='.length);
+    else if (arg.startsWith('--profile=')) out.removedProfile = arg;
     else if (arg.startsWith('--rule=')) out.ruleIds = parseRuleIds(arg.slice('--rule='.length));
     else if (arg.startsWith('--rules=')) out.ruleIds = parseRuleIds(arg.slice('--rules='.length));
     else if (arg.startsWith('--target=')) {
       out.targets = arg.slice('--target='.length).split(',').map(s => s.trim()).filter(Boolean);
-    }
+    } else out.unknown.push(arg);
   }
   return out;
 };
-
-const normalizeProfileId = profileId => profileId === 'init-tool' ? 'init-json' : profileId;
-
-const loadProfile = profileId => readJson(path.join(PROFILES_DIR, `${normalizeProfileId(profileId)}.json`));
-
-const loadModuleDefs = () => readJson(MODULES_FILE);
 
 const showHelp = () => {
   console.log(`
@@ -65,7 +100,7 @@ const showHelp = () => {
                          指定项目规则包；默认 jianghu-init-json-app
   --target=codex,cursor  指定生成目标（codex | cursor | claude | kiro | agents-md）
   --interactive          交互选择规则包 / 生成目标（裸 jianghu-init 菜单会自动启用）
-  --force, -f            覆盖已有生成物
+  --force, -f            按所选 rule/target 同步最终状态，并覆盖已有生成物
   --yes, -y              兼容旧参数；当前无交互
   --list-rules           列出支持的规则包
   --list-targets         列出支持的 adapter
@@ -74,19 +109,34 @@ const showHelp = () => {
 生成结构:
   .ai-rules/index.md              通用规则索引
   .ai-rules/<rule-pack>/          通用规则包
-  AGENTS.md                       Codex
+  .ai-rules/skills/               通用任务 Skill
+  AGENTS.md + .agents/skills/     Codex
   .cursor/rules/*.mdc             Cursor
-  .claude/rules/*.md + CLAUDE.md  Claude Code
+  CLAUDE.md + .claude/skills/     Claude Code
   .kiro/steering/*.md             Kiro
 
 规则模板来源:
   jianghu-init/lib/dev-rules/
+
+说明:
+  --force 只清理 manifest 记录的旧生成文件；不会删除未被 dev-rules 管理的自定义文件。
 `);
 };
 
 module.exports = class InitDevRulesCommand extends CommandBase {
   async run(cwd, args) {
     const opts = parseArgs(args);
+
+    if (opts.removedProfile) {
+      this.error(`${opts.removedProfile} 已移除；dev-rules 现在只面向业务 App，请使用 --rule 选择规则包。`);
+      process.exitCode = 1;
+      return;
+    }
+    if (opts.unknown.length) {
+      this.error(`未知参数: ${opts.unknown.join(', ')}`);
+      process.exitCode = 1;
+      return;
+    }
 
     if (opts.help) {
       showHelp();
@@ -114,9 +164,10 @@ module.exports = class InitDevRulesCommand extends CommandBase {
     }
 
     const jianghuInitVersion = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')).version;
-    const manifest = await this.resolveManifest(cwd, opts, jianghuInitVersion);
+    const manifest = await this.resolveManifest(opts, jianghuInitVersion);
+    if (!manifest) return;
+    const previousManifest = readManifest(cwd);
 
-    const moduleDefs = loadModuleDefs();
     const rulePackFiles = syncRulePacks({
       cwd,
       ruleIds: manifest.ruleIds,
@@ -126,22 +177,81 @@ module.exports = class InitDevRulesCommand extends CommandBase {
     const results = syncTargets({
       cwd,
       targets: manifest.targets,
-      modules: manifest.modules,
       ruleIds: manifest.ruleIds,
-      moduleDefs,
-      sourceDir: TEMPLATE_SOURCE,
+      templateRoot: TEMPLATE_ROOT,
       manifest,
       force: opts.force,
     });
     results['.ai-rules'] = rulePackFiles;
 
-    this.printResults(cwd, manifest, results);
+    const allResults = Object.values(results);
+    const collectFiles = key => Array.from(new Set(allResults.reduce(
+      (files, result) => files.concat(result[key] || []),
+      [],
+    ))).sort();
+    const desiredFiles = collectFiles('desired');
+    const writtenFiles = collectFiles('written');
+    const unchangedFiles = collectFiles('unchanged');
+    const skippedFiles = collectFiles('skipped');
+    const knownRuleIds = listRulePacks().map(rule => rule.id);
+    const knownSkillIds = listSkillIds();
+    const cleanupManifest = previousManifest && !Array.isArray(previousManifest.generatedFiles)
+      ? Object.assign({}, previousManifest, { generatedFiles: buildLegacyGeneratedFiles(previousManifest) })
+      : previousManifest;
+    const removedFiles = opts.force ? cleanupGeneratedFiles({
+      cwd,
+      previousManifest: cleanupManifest,
+      desiredFiles,
+      knownRuleIds,
+      knownSkillIds,
+    }) : [];
+    if (removedFiles.length) {
+      results.cleanup = { desired: [], written: [], unchanged: [], skipped: [], removed: removedFiles };
+    }
+
+    const canUpgradeLegacyManifest = !previousManifest
+      || previousManifest.schemaVersion >= 5
+      || opts.force
+      || !skippedFiles.length;
+    if (canUpgradeLegacyManifest) {
+      const previousGenerated = previousManifest && Array.isArray(previousManifest.generatedFiles)
+        ? previousManifest.generatedFiles
+        : [];
+      const generatedFiles = opts.force || !skippedFiles.length
+        ? desiredFiles
+        : Array.from(new Set([ ...previousGenerated, ...writtenFiles, ...unchangedFiles ])).sort();
+      const skills = getSkillsForRuleIds(TEMPLATE_ROOT, manifest.ruleIds).map(skill => skill.id);
+      Object.assign(manifest, {
+        skills,
+        syncComplete: skippedFiles.length === 0,
+        generatedFiles,
+        skippedFiles,
+      });
+      writeJson(path.join(cwd, MANIFEST_PATH), manifest);
+      results.manifest = {
+        desired: [ MANIFEST_PATH ],
+        written: [ MANIFEST_PATH ],
+        unchanged: [],
+        skipped: [],
+        removed: [],
+      };
+    } else {
+      manifest.syncComplete = false;
+      results.manifest = {
+        desired: [],
+        written: [],
+        unchanged: [],
+        removed: [],
+        skipped: [ `${MANIFEST_PATH} (legacy manifest kept until --force)` ],
+      };
+    }
+
+    this.printResults(manifest, results);
   }
 
-  async resolveManifest(cwd, opts, jianghuInitVersion) {
+  async resolveManifest(opts, jianghuInitVersion) {
     this.notice('Generating JianghuJS AI dev-rules...');
 
-    const profileId = opts.profile || 'app';
     let ruleIds = opts.ruleIds && opts.ruleIds.length ? opts.ruleIds : ['jianghu-init-json-app'];
     let targets = opts.targets && opts.targets.length ? opts.targets : ['codex'];
 
@@ -180,46 +290,49 @@ module.exports = class InitDevRulesCommand extends CommandBase {
     const unknownRules = ruleIds.filter(id => !getRulePack(id));
     if (unknownRules.length) {
       this.error(`未知规则包: ${unknownRules.join(', ')}。可运行 jianghu-init dev-rules --list-rules 查看支持项。`);
-      process.exit(1);
+      process.exitCode = 1;
+      return null;
+    }
+    const unknownTargets = targets.filter(id => !getAdapter(id));
+    if (unknownTargets.length) {
+      this.error(`未知生成目标: ${unknownTargets.join(', ')}。可运行 jianghu-init dev-rules --list-targets 查看支持项。`);
+      process.exitCode = 1;
+      return null;
     }
 
-    const profile = loadProfile(profileId);
-
     return {
-      schemaVersion: 2,
+      schemaVersion: 5,
       jianghuInitVersion,
-      profile: profile.id,
       ruleIds,
       targets,
-      modules: profile.modules,
       lastSyncAt: new Date().toISOString(),
     };
   }
 
-  printResults(cwd, manifest, results) {
+  printResults(manifest, results) {
     this.notice('\nSync complete.');
-    console.log(`Profile: ${manifest.profile}`);
     console.log(`Rule packs: ${manifest.ruleIds.join(', ')}`);
     console.log(`Targets: ${manifest.targets.join(', ')}`);
     console.log('');
 
-    for (const [target, files] of Object.entries(results)) {
-      if (files && files.error) {
-        this.warning(`${target}: ${files.error}`);
-        continue;
+    for (const [target, result] of Object.entries(results)) {
+      if (result.written && result.written.length) {
+        this.success(`${target}:`);
+        for (const file of result.written) console.log(`  · ${file}`);
       }
-      if (files && files.skipped) {
-        console.log(`- ${target}: skipped existing ${files.skipped.join(', ')} (use --force to overwrite)`);
-        continue;
+      if (result.removed && result.removed.length) {
+        console.log(`- ${target}: removed stale ${result.removed.join(', ')}`);
       }
-      if (!files || !files.length) {
-        console.log(`- ${target}: (skipped, files exist — use --force)`);
-        continue;
+      if (result.skipped && result.skipped.length) {
+        console.log(`- ${target}: skipped existing ${result.skipped.join(', ')} (use --force to overwrite)`);
       }
-      this.success(`${target}:`);
-      for (const f of files) {
-        console.log(`  · ${f}`);
+      if (!result.written.length && !result.removed.length && !result.skipped.length) {
+        console.log(`- ${target}: up to date`);
       }
+    }
+
+    if (manifest.syncComplete === false) {
+      this.warning('规则同步未完全应用；manifest 已记录 skippedFiles，请使用 --force 完成更新。');
     }
 
     this.notice('\n规则模板来源: jianghu-init/lib/dev-rules/');

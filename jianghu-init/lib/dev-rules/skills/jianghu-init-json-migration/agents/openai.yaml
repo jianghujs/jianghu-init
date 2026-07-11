@@ -1,0 +1,4 @@
+interface:
+  display_name: "JianghuJS init-json 迁移"
+  short_description: "将旧版 JianghuJS 页面或组件迁移到 init-json v7"
+  default_prompt: "分析当前旧版页面或 init-json，制定并执行到 v7 的兼容迁移。"

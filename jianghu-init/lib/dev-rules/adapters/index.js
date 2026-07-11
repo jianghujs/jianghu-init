@@ -12,20 +12,17 @@ const getAdapter = id => ADAPTERS.find(a => a.id === id);
 
 const listAdapters = () => ADAPTERS.map(a => ({ id: a.id, label: a.label }));
 
-const syncTargets = ({ cwd, targets, modules, ruleIds, moduleDefs, sourceDir, manifest, force }) => {
+const syncTargets = ({ cwd, targets, ruleIds, templateRoot, manifest, force }) => {
   const results = {};
   for (const target of targets) {
     const adapter = getAdapter(target);
     if (!adapter) {
-      results[target] = { error: `Unknown target: ${target}` };
-      continue;
+      throw new Error(`Unknown target: ${target}`);
     }
     results[target] = adapter.sync({
       cwd,
-      modules,
       ruleIds,
-      moduleDefs,
-      sourceDir,
+      templateRoot,
       manifest,
       force,
     });

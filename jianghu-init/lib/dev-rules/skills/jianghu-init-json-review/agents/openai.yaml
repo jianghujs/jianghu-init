@@ -1,0 +1,4 @@
+interface:
+  display_name: "JianghuJS init-json 审查"
+  short_description: "审查 init-json 结构、生成链路和跨端一致性"
+  default_prompt: "按 JianghuJS init-json v7 规范审查当前改动，优先报告可定位问题。"

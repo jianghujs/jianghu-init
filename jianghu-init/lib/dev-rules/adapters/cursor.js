@@ -1,9 +1,9 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs');
-const { ensureDir } = require('../util');
+const { ensureDir, createSyncResult, syncTextFile } = require('../util');
 const { getRulePack } = require('../rulePacks');
+const { getSkillsForRuleIds } = require('../skills');
 
 const splitScope = scope => {
   if (!scope) return [];
@@ -11,16 +11,15 @@ const splitScope = scope => {
   return String(scope).split(',').map(s => s.trim()).filter(Boolean);
 };
 
-const syncCursor = ({ cwd, ruleIds, manifest, force }) => {
+const syncCursor = ({ cwd, ruleIds, manifest, templateRoot, force }) => {
   const outDir = path.join(cwd, '.cursor', 'rules');
   ensureDir(outDir);
-  const written = [];
+  const result = createSyncResult();
   const packs = (ruleIds || []).map(getRulePack).filter(Boolean);
+  const skills = getSkillsForRuleIds(templateRoot, ruleIds);
 
   for (const pack of packs) {
     const outFile = path.join(outDir, `${pack.id}.mdc`);
-    if (fs.existsSync(outFile) && !force) continue;
-
     const lines = ['---'];
     lines.push(`description: ${JSON.stringify(pack.description)}`);
     lines.push('alwaysApply: false');
@@ -36,13 +35,30 @@ const syncCursor = ({ cwd, ruleIds, manifest, force }) => {
     lines.push('');
     lines.push('Also read `.ai-rules/index.md` for selected project rule packs.');
     lines.push('');
-    fs.writeFileSync(outFile, lines.join('\n'), 'utf8');
-    written.push(path.relative(cwd, outFile));
+    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, result });
+  }
+
+  for (const skill of skills) {
+    const outFile = path.join(outDir, `${skill.id}.mdc`);
+    const lines = [
+      '---',
+      `description: ${JSON.stringify(skill.description)}`,
+      'alwaysApply: false',
+    ];
+    if (skill.globs.length) lines.push(`globs: ${JSON.stringify(skill.globs.join(','))}`);
+    lines.push(
+      '---',
+      '',
+      `# ${skill.label}`,
+      '',
+      `For matching tasks, read and follow \`.ai-rules/skills/${skill.id}/SKILL.md\`.`,
+      '',
+    );
+    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, result });
   }
 
   const indexFile = path.join(outDir, 'ai-rules-index.mdc');
-  if (force || !fs.existsSync(indexFile)) {
-    const lines = [
+  const indexLines = [
       '---',
       'description: "JianghuJS AI rule pack index"',
       'alwaysApply: true',
@@ -52,13 +68,13 @@ const syncCursor = ({ cwd, ruleIds, manifest, force }) => {
       '',
       'Use `.ai-rules/index.md` as the shared rule-pack index. Load detailed rule packs only when relevant.',
       '',
+      'Task workflows live under `.ai-rules/skills/`; select the matching generated Cursor rule.',
+      '',
       `Generated targets: ${(manifest.targets || []).join(', ')}`,
       '',
     ];
-    fs.writeFileSync(indexFile, lines.join('\n'), 'utf8');
-    written.push(path.relative(cwd, indexFile));
-  }
-  return written;
+  syncTextFile({ cwd, filePath: indexFile, content: indexLines.join('\n'), force, result });
+  return result;
 };
 
 module.exports = {
