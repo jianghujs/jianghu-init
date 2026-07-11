@@ -8,9 +8,9 @@
     "vscode:build": "cd vscode-extension && npm install && npm run compile",
     "vscode:package": "cd vscode-extension && npm install -g vsce && vsce package",
     "vscode:install": "node vscode-extension/install.js",
-    "vscode:install-local": "code --install-extension vscode-extension/prebuilt/jianghu-init-vscode-0.0.1.vsix --force",
+    "vscode:install-local": "code --install-extension vscode-extension/prebuilt/jianghu-init-vscode-0.0.9.vsix --force",
     "vscode:install-market": "code --install-extension jianghu-init-vscode",
-    "install-vscode-extension": "code --install-extension vscode-extension/prebuilt/jianghu-init-vscode-0.0.1.vsix --force"
+    "install-vscode-extension": "code --install-extension vscode-extension/prebuilt/jianghu-init-vscode-0.0.9.vsix --force"
   },
   "preferGlobal": true,
   "bin": {
@@ -19,6 +19,11 @@
   "files": [
     "bin",
     "lib",
+    "!lib/**/*.test.js",
+    "!lib/json/v6/*.md",
+    "!lib/json/v7/README.md",
+    "!lib/json/v7/docs",
+    "!lib/json/v7/pages/examples",
     "page-template",
     "page-template-json",
     "page-template-component",

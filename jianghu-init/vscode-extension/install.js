@@ -4,6 +4,9 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const extensionPackage = require('./package.json');
+
+const vsixFilename = `${extensionPackage.name}-${extensionPackage.version}.vsix`;
 
 /**
  * 检查VSCode是否已安装
@@ -84,13 +87,13 @@ async function installExtension() {
     }
     
     // 打包扩展到prebuilt目录
-    exec('npx vsce package -o prebuilt/jianghu-init-vscode-0.0.1.vsix', { cwd: __dirname }, (error) => {
+    exec(`npx vsce package -o prebuilt/${vsixFilename}`, { cwd: __dirname }, (error) => {
       if (error) {
         console.error('打包VSCode扩展失败:', error);
         return;
       }
       
-      const vsixFile = path.join(prebuiltDir, 'jianghu-init-vscode-0.0.1.vsix');
+      const vsixFile = path.join(prebuiltDir, vsixFilename);
       
       if (!fs.existsSync(vsixFile)) {
         console.error('未找到生成的.vsix文件');

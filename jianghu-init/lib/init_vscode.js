@@ -100,7 +100,7 @@ module.exports = class CommandInitVSCode {
       // console.log(chalk.yellow('2. 安装依赖: npm install'));
       // console.log(chalk.yellow('3. 编译扩展: npm run compile'));
       // console.log(chalk.yellow('4. 打包扩展: npx vsce package'));
-      // console.log(chalk.yellow('5. 安装扩展: code --install-extension jianghu-init-vscode-0.0.1.vsix'));
+      // console.log(chalk.yellow('5. 安装扩展: code --install-extension jianghu-init-vscode-0.0.9.vsix'));
     }
   }
 

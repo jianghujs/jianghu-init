@@ -4,4 +4,6 @@
 
 当用户首次使用简易安装模式时，如果此目录中没有预编译的扩展包，系统会自动创建一个并保存在这里。
 
-预编译的扩展包文件名为：`jianghu-init-vscode-0.0.1.vsix` 
+预编译目录只保留与 `vscode-extension/package.json` 当前版本一致的扩展包。
+
+当前扩展包文件名为：`jianghu-init-vscode-0.0.9.vsix`

@@ -55,7 +55,7 @@ const buildAgentsMd = ({ manifest, skills = [] }) => {
   return lines.join('\n');
 };
 
-const syncCodex = ({ cwd, manifest, templateRoot, force }) => {
+const syncCodex = ({ cwd, manifest, templateRoot, force, managedFiles }) => {
   const skills = getSkillsForRuleIds(templateRoot, manifest.ruleIds);
   const result = createSyncResult();
   const skillResult = syncSkillsToDirectory({
@@ -64,6 +64,7 @@ const syncCodex = ({ cwd, manifest, templateRoot, force }) => {
     skills,
     targetRoot: path.join(cwd, '.agents', 'skills'),
     force,
+    managedFiles,
   });
   mergeSyncResult(result, skillResult);
   const outFile = path.join(cwd, 'AGENTS.md');
@@ -72,6 +73,7 @@ const syncCodex = ({ cwd, manifest, templateRoot, force }) => {
     filePath: outFile,
     content: buildAgentsMd({ manifest, skills }),
     force,
+    managedFiles,
     result,
   });
   return result;

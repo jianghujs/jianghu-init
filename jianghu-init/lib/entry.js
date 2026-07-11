@@ -88,7 +88,7 @@ ${chalk.cyan('jianghu-init vscode')}
    ${chalk.cyan('npm run vscode:install-market')}
 
 3. 手动安装：
-   ${chalk.cyan('code --install-extension vscode-extension/prebuilt/jianghu-init-vscode-0.0.1.vsix')}
+   ${chalk.cyan('code --install-extension vscode-extension/prebuilt/jianghu-init-vscode-0.0.9.vsix')}
    */
 
   console.log(boxen(message, {

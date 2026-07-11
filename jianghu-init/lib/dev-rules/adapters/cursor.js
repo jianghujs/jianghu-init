@@ -11,7 +11,7 @@ const splitScope = scope => {
   return String(scope).split(',').map(s => s.trim()).filter(Boolean);
 };
 
-const syncCursor = ({ cwd, ruleIds, manifest, templateRoot, force }) => {
+const syncCursor = ({ cwd, ruleIds, manifest, templateRoot, force, managedFiles }) => {
   const outDir = path.join(cwd, '.cursor', 'rules');
   ensureDir(outDir);
   const result = createSyncResult();
@@ -35,7 +35,7 @@ const syncCursor = ({ cwd, ruleIds, manifest, templateRoot, force }) => {
     lines.push('');
     lines.push('Also read `.ai-rules/index.md` for selected project rule packs.');
     lines.push('');
-    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, result });
+    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, managedFiles, result });
   }
 
   for (const skill of skills) {
@@ -54,7 +54,7 @@ const syncCursor = ({ cwd, ruleIds, manifest, templateRoot, force }) => {
       `For matching tasks, read and follow \`.ai-rules/skills/${skill.id}/SKILL.md\`.`,
       '',
     );
-    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, result });
+    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, managedFiles, result });
   }
 
   const indexFile = path.join(outDir, 'ai-rules-index.mdc');
@@ -73,7 +73,7 @@ const syncCursor = ({ cwd, ruleIds, manifest, templateRoot, force }) => {
       `Generated targets: ${(manifest.targets || []).join(', ')}`,
       '',
     ];
-  syncTextFile({ cwd, filePath: indexFile, content: indexLines.join('\n'), force, result });
+  syncTextFile({ cwd, filePath: indexFile, content: indexLines.join('\n'), force, managedFiles, result });
   return result;
 };
 

@@ -100,7 +100,7 @@ const showHelp = () => {
                          指定项目规则包；默认 jianghu-init-json-app
   --target=codex,cursor  指定生成目标（codex | cursor | claude | kiro | agents-md）
   --interactive          交互选择规则包 / 生成目标（裸 jianghu-init 菜单会自动启用）
-  --force, -f            按所选 rule/target 同步最终状态，并覆盖已有生成物
+  --force, -f            接管并覆盖尚未由 dev-rules 管理的同名文件
   --yes, -y              兼容旧参数；当前无交互
   --list-rules           列出支持的规则包
   --list-targets         列出支持的 adapter
@@ -119,7 +119,9 @@ const showHelp = () => {
   jianghu-init/lib/dev-rules/
 
 说明:
-  --force 只清理 manifest 记录的旧生成文件；不会删除未被 dev-rules 管理的自定义文件。
+  已存在 manifest 时，未传 --rule/--target 会沿用上次选择；首次运行默认 init-json + Codex。
+  默认自动更新和清理 manifest 记录的生成文件；不会覆盖未受管的同名文件。
+  --force 用于首次接管这些同名文件，仍不会删除未被 dev-rules 管理的其他自定义文件。
 `);
 };
 
@@ -164,15 +166,21 @@ module.exports = class InitDevRulesCommand extends CommandBase {
     }
 
     const jianghuInitVersion = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')).version;
-    const manifest = await this.resolveManifest(opts, jianghuInitVersion);
-    if (!manifest) return;
     const previousManifest = readManifest(cwd);
+    const manifest = await this.resolveManifest(opts, jianghuInitVersion, previousManifest);
+    if (!manifest) return;
+    const managedFiles = new Set(
+      previousManifest && Array.isArray(previousManifest.generatedFiles)
+        ? previousManifest.generatedFiles.map(file => String(file).replace(/\\/g, '/'))
+        : [],
+    );
 
     const rulePackFiles = syncRulePacks({
       cwd,
       ruleIds: manifest.ruleIds,
       templateRoot: TEMPLATE_ROOT,
       force: opts.force,
+      managedFiles,
     });
     const results = syncTargets({
       cwd,
@@ -181,6 +189,7 @@ module.exports = class InitDevRulesCommand extends CommandBase {
       templateRoot: TEMPLATE_ROOT,
       manifest,
       force: opts.force,
+      managedFiles,
     });
     results['.ai-rules'] = rulePackFiles;
 
@@ -198,7 +207,8 @@ module.exports = class InitDevRulesCommand extends CommandBase {
     const cleanupManifest = previousManifest && !Array.isArray(previousManifest.generatedFiles)
       ? Object.assign({}, previousManifest, { generatedFiles: buildLegacyGeneratedFiles(previousManifest) })
       : previousManifest;
-    const removedFiles = opts.force ? cleanupGeneratedFiles({
+    const canCleanup = opts.force || (previousManifest && Array.isArray(previousManifest.generatedFiles));
+    const removedFiles = canCleanup ? cleanupGeneratedFiles({
       cwd,
       previousManifest: cleanupManifest,
       desiredFiles,
@@ -249,11 +259,21 @@ module.exports = class InitDevRulesCommand extends CommandBase {
     this.printResults(manifest, results);
   }
 
-  async resolveManifest(opts, jianghuInitVersion) {
+  async resolveManifest(opts, jianghuInitVersion, previousManifest) {
     this.notice('Generating JianghuJS AI dev-rules...');
 
-    let ruleIds = opts.ruleIds && opts.ruleIds.length ? opts.ruleIds : ['jianghu-init-json-app'];
-    let targets = opts.targets && opts.targets.length ? opts.targets : ['codex'];
+    const previousRuleIds = previousManifest && Array.isArray(previousManifest.ruleIds)
+      ? previousManifest.ruleIds.filter(getRulePack)
+      : [];
+    const previousTargets = previousManifest && Array.isArray(previousManifest.targets)
+      ? previousManifest.targets.filter(getAdapter)
+      : [];
+    let ruleIds = opts.ruleIds && opts.ruleIds.length
+      ? opts.ruleIds
+      : (previousRuleIds.length ? previousRuleIds : ['jianghu-init-json-app']);
+    let targets = opts.targets && opts.targets.length
+      ? opts.targets
+      : (previousTargets.length ? previousTargets : ['codex']);
 
     if (opts.interactive && !opts.yes) {
       if (!opts.ruleIds) {
@@ -264,10 +284,10 @@ module.exports = class InitDevRulesCommand extends CommandBase {
           choices: listRulePacks().map(pack => ({
             name: `${pack.label} - ${pack.description}`,
             value: pack.id,
-            checked: pack.id === 'jianghu-init-json-app',
+            checked: ruleIds.includes(pack.id),
           })),
         });
-        ruleIds = answer.ruleIds.length ? answer.ruleIds : ['jianghu-init-json-app'];
+        ruleIds = answer.ruleIds.length ? answer.ruleIds : ruleIds;
       }
 
       if (!opts.targets) {
@@ -280,10 +300,10 @@ module.exports = class InitDevRulesCommand extends CommandBase {
             .map(a => ({
               name: a.label,
               value: a.id,
-              checked: a.id === 'codex',
+              checked: targets.includes(a.id),
             })),
         });
-        targets = answer.targets.length ? answer.targets : ['codex'];
+        targets = answer.targets.length ? answer.targets : targets;
       }
     }
 

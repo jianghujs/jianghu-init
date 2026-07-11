@@ -2,7 +2,9 @@
 
 const path = require('path');
 const fs = require('fs');
-const { ensureDir, parseFrontmatter, createSyncResult, mergeSyncResult } = require('./util');
+const {
+  ensureDir, parseFrontmatter, createSyncResult, mergeSyncResult, toRelativePath,
+} = require('./util');
 
 const SKILLS = {
   'jianghu-init-json-authoring': {
@@ -22,6 +24,20 @@ const SKILLS = {
     label: 'JianghuJS init-json review',
     rulePacks: ['jianghu-init-json-app'],
     globs: [],
+  },
+  'jianghu-seo-development': {
+    id: 'jianghu-seo-development',
+    label: 'OpenJianghu SEO development',
+    rulePacks: ['jianghu-seo-app'],
+    globs: [
+      'app/view/page/**/*.html',
+      'app/view/xfpageTemplate/**/*.html',
+      'app/view/template/**/*.html',
+      'app/service/**/*.js',
+      'app/controller/**/*.js',
+      'config/**/*.js',
+      'meilisearchScript/**/*',
+    ],
   },
 };
 
@@ -61,7 +77,7 @@ const listSkillFiles = (templateRoot, skillId) => {
   return fs.existsSync(sourceDir) ? listRelativeFiles(sourceDir, sourceDir) : [];
 };
 
-const copyDirectory = (sourceDir, targetDir, force, cwd) => {
+const copyDirectory = (sourceDir, targetDir, force, managedFiles, cwd) => {
   const result = createSyncResult();
   ensureDir(targetDir);
   for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
@@ -69,12 +85,13 @@ const copyDirectory = (sourceDir, targetDir, force, cwd) => {
     const source = path.join(sourceDir, entry.name);
     const target = path.join(targetDir, entry.name);
     if (entry.isDirectory()) {
-      const nested = copyDirectory(source, target, force, cwd);
+      const nested = copyDirectory(source, target, force, managedFiles, cwd);
       mergeSyncResult(result, nested);
     } else if (entry.isFile()) {
-      const relativePath = path.relative(cwd, target);
+      const relativePath = toRelativePath(cwd, target);
       result.desired.push(relativePath);
-      if (!force && fs.existsSync(target)) {
+      const canOverwrite = force || (managedFiles && managedFiles.has(relativePath));
+      if (!canOverwrite && fs.existsSync(target)) {
         if (fs.readFileSync(source).equals(fs.readFileSync(target))) result.unchanged.push(relativePath);
         else result.skipped.push(relativePath);
       } else {
@@ -87,7 +104,7 @@ const copyDirectory = (sourceDir, targetDir, force, cwd) => {
   return result;
 };
 
-const syncSkillsToDirectory = ({ cwd, templateRoot, skills, targetRoot, force }) => {
+const syncSkillsToDirectory = ({ cwd, templateRoot, skills, targetRoot, force, managedFiles }) => {
   const result = createSyncResult();
   for (const skill of skills || []) {
     const targetDir = path.join(targetRoot, skill.id);
@@ -95,6 +112,7 @@ const syncSkillsToDirectory = ({ cwd, templateRoot, skills, targetRoot, force })
       getSkillSourceDir(templateRoot, skill.id),
       targetDir,
       force,
+      managedFiles,
       cwd,
     );
     mergeSyncResult(result, copied);

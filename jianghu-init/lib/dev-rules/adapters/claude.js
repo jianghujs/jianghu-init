@@ -11,7 +11,7 @@ const splitScope = scope => {
   return String(scope).split(',').map(s => s.trim()).filter(Boolean);
 };
 
-const syncClaude = ({ cwd, ruleIds, manifest, templateRoot, force }) => {
+const syncClaude = ({ cwd, ruleIds, manifest, templateRoot, force, managedFiles }) => {
   const rulesDir = path.join(cwd, '.claude', 'rules');
   ensureDir(rulesDir);
   const result = createSyncResult();
@@ -24,6 +24,7 @@ const syncClaude = ({ cwd, ruleIds, manifest, templateRoot, force }) => {
     skills,
     targetRoot: path.join(cwd, '.claude', 'skills'),
     force,
+    managedFiles,
   });
   mergeSyncResult(result, skillResult);
 
@@ -38,7 +39,7 @@ const syncClaude = ({ cwd, ruleIds, manifest, templateRoot, force }) => {
       }
     }
     lines.push('---', '', `# ${pack.label}`, '', `Read \`.ai-rules/${pack.id}/README.md\` before editing matching files.`, '');
-    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, result });
+    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, managedFiles, result });
   }
 
   const claudeMd = path.join(cwd, 'CLAUDE.md');
@@ -60,7 +61,7 @@ const syncClaude = ({ cwd, ruleIds, manifest, templateRoot, force }) => {
       `- Update AI rules: \`jianghu-init dev-rules --rule=${(manifest.ruleIds || []).join(',')} --target=claude --force\``,
       '',
     ].join('\n');
-  syncTextFile({ cwd, filePath: claudeMd, content, force, result });
+  syncTextFile({ cwd, filePath: claudeMd, content, force, managedFiles, result });
 
   return result;
 };

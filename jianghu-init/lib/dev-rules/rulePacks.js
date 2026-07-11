@@ -82,7 +82,7 @@ const buildPackReadme = (pack, body) => [
   '',
 ].join('\n');
 
-const syncRulePacks = ({ cwd, ruleIds, templateRoot, force }) => {
+const syncRulePacks = ({ cwd, ruleIds, templateRoot, force, managedFiles }) => {
   const baseDir = path.join(cwd, '.ai-rules');
   ensureDir(baseDir);
   const result = createSyncResult();
@@ -116,7 +116,7 @@ const syncRulePacks = ({ cwd, ruleIds, templateRoot, force }) => {
     }
   }
   lines.push('');
-  syncTextFile({ cwd, filePath: indexFile, content: lines.join('\n'), force, result });
+  syncTextFile({ cwd, filePath: indexFile, content: lines.join('\n'), force, managedFiles, result });
 
   for (const pack of selected) {
     const packDir = path.join(baseDir, pack.id);
@@ -125,7 +125,7 @@ const syncRulePacks = ({ cwd, ruleIds, templateRoot, force }) => {
       const outFile = path.join(packDir, file.dest);
       const body = readSourceBody(templateRoot, file.source);
       const content = file.dest === 'README.md' ? buildPackReadme(pack, body) : `${body}\n`;
-      syncTextFile({ cwd, filePath: outFile, content, force, result });
+      syncTextFile({ cwd, filePath: outFile, content, force, managedFiles, result });
     }
   }
 
@@ -135,6 +135,7 @@ const syncRulePacks = ({ cwd, ruleIds, templateRoot, force }) => {
     skills,
     targetRoot: path.join(baseDir, 'skills'),
     force,
+    managedFiles,
   });
   mergeSyncResult(result, skillResult);
   return result;

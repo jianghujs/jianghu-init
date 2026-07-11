@@ -12,7 +12,7 @@ const getAdapter = id => ADAPTERS.find(a => a.id === id);
 
 const listAdapters = () => ADAPTERS.map(a => ({ id: a.id, label: a.label }));
 
-const syncTargets = ({ cwd, targets, ruleIds, templateRoot, manifest, force }) => {
+const syncTargets = ({ cwd, targets, ruleIds, templateRoot, manifest, force, managedFiles }) => {
   const results = {};
   for (const target of targets) {
     const adapter = getAdapter(target);
@@ -25,6 +25,7 @@ const syncTargets = ({ cwd, targets, ruleIds, templateRoot, manifest, force }) =
       templateRoot,
       manifest,
       force,
+      managedFiles,
     });
   }
   return results;

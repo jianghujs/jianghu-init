@@ -42,6 +42,8 @@ const writeJson = (filePath, data) => {
 
 const createSyncResult = () => ({ desired: [], written: [], unchanged: [], skipped: [], removed: [] });
 
+const toRelativePath = (cwd, filePath) => path.relative(cwd, filePath).replace(/\\/g, '/');
+
 const mergeSyncResult = (target, source) => {
   for (const key of [ 'desired', 'written', 'unchanged', 'skipped', 'removed' ]) {
     target[key].push(...(source[key] || []));
@@ -49,10 +51,11 @@ const mergeSyncResult = (target, source) => {
   return target;
 };
 
-const syncTextFile = ({ cwd, filePath, content, force, result }) => {
-  const relativePath = path.relative(cwd, filePath);
+const syncTextFile = ({ cwd, filePath, content, force, managedFiles, result }) => {
+  const relativePath = toRelativePath(cwd, filePath);
   result.desired.push(relativePath);
-  if (!force && fs.existsSync(filePath)) {
+  const canOverwrite = force || (managedFiles && managedFiles.has(relativePath));
+  if (!canOverwrite && fs.existsSync(filePath)) {
     if (fs.readFileSync(filePath, 'utf8') === content) {
       result.unchanged.push(relativePath);
       return true;
@@ -71,6 +74,7 @@ module.exports = {
   ensureDir,
   writeJson,
   createSyncResult,
+  toRelativePath,
   mergeSyncResult,
   syncTextFile,
 };

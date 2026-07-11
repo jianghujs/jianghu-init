@@ -16,7 +16,13 @@ const collectFiles = (results, key) => Array.from(new Set(Object.values(results)
   [],
 ))).sort();
 
-const generate = (cwd, ruleIds, targets = ['codex', 'cursor', 'claude', 'kiro'], force = true) => {
+const generate = (
+  cwd,
+  ruleIds,
+  targets = ['codex', 'cursor', 'claude', 'kiro'],
+  force = true,
+  managedFiles = new Set(),
+) => {
   const manifest = {
     schemaVersion: 5,
     jianghuInitVersion: 'test',
@@ -31,8 +37,9 @@ const generate = (cwd, ruleIds, targets = ['codex', 'cursor', 'claude', 'kiro'],
     templateRoot,
     manifest,
     force,
+    managedFiles,
   });
-  results['.ai-rules'] = syncRulePacks({ cwd, ruleIds, templateRoot, force });
+  results['.ai-rules'] = syncRulePacks({ cwd, ruleIds, templateRoot, force, managedFiles });
   return { manifest, results, desiredFiles: collectFiles(results, 'desired') };
 };
 
@@ -48,6 +55,27 @@ const unchangedRun = generate(
 );
 assert.strictEqual(collectFiles(unchangedRun.results, 'skipped').length, 0);
 assert(collectFiles(unchangedRun.results, 'unchanged').length > 0);
+
+const managedFiles = new Set(generate(appDir, ['jianghu-init-json-app']).desiredFiles);
+fs.appendFileSync(path.join(appDir, 'AGENTS.md'), '\nmanaged local edit\n', 'utf8');
+const managedUpdate = generate(
+  appDir,
+  ['jianghu-init-json-app'],
+  ['codex', 'cursor', 'claude', 'kiro'],
+  false,
+  managedFiles,
+);
+assert(collectFiles(managedUpdate.results, 'written').includes('AGENTS.md'));
+assert(!fs.readFileSync(path.join(appDir, 'AGENTS.md'), 'utf8').includes('managed local edit'));
+
+const unmanagedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jianghu-dev-rules-unmanaged-'));
+fs.writeFileSync(path.join(unmanagedDir, 'AGENTS.md'), 'custom unmanaged instructions\n', 'utf8');
+const unmanagedUpdate = generate(unmanagedDir, ['jianghu-init-json-app'], ['codex'], false);
+assert(collectFiles(unmanagedUpdate.results, 'skipped').includes('AGENTS.md'));
+assert.strictEqual(
+  fs.readFileSync(path.join(unmanagedDir, 'AGENTS.md'), 'utf8'),
+  'custom unmanaged instructions\n',
+);
 
 const skillIds = [
   'jianghu-init-json-authoring',
@@ -115,6 +143,19 @@ for (const skillId of skillIds) {
 const seoDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jianghu-dev-rules-seo-'));
 generate(seoDir, ['jianghu-seo-app']);
 assert(!exists(seoDir, '.agents/skills/jianghu-init-json-authoring/SKILL.md'));
+assert(exists(seoDir, '.ai-rules/skills/jianghu-seo-development/SKILL.md'));
+assert(exists(seoDir, '.agents/skills/jianghu-seo-development/SKILL.md'));
+assert(exists(seoDir, '.claude/skills/jianghu-seo-development/SKILL.md'));
+assert(exists(seoDir, '.cursor/rules/jianghu-seo-development.mdc'));
+assert(exists(seoDir, '.kiro/steering/jianghu-seo-development.md'));
+for (const reference of [
+  'render-pipeline.md',
+  'article-and-tags.md',
+  'search-and-index.md',
+  'review-checklist.md',
+]) {
+  assert(exists(seoDir, `.ai-rules/skills/jianghu-seo-development/references/${reference}`));
+}
 
 const switchDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jianghu-dev-rules-switch-'));
 const beforeSwitch = generate(
@@ -140,6 +181,7 @@ for (const staleFile of [
   assert(!exists(switchDir, staleFile), `stale generated file: ${staleFile}`);
 }
 assert(exists(switchDir, '.ai-rules/jianghu-seo-app/README.md'));
+assert(exists(switchDir, '.agents/skills/jianghu-seo-development/SKILL.md'));
 assert(exists(switchDir, 'AGENTS.md'));
 
 console.log('dev-rules skill generation tests passed');

@@ -11,7 +11,7 @@ const splitScope = scope => {
   return String(scope).split(',').map(s => s.trim()).filter(Boolean);
 };
 
-const syncKiro = ({ cwd, ruleIds, templateRoot, force }) => {
+const syncKiro = ({ cwd, ruleIds, templateRoot, force, managedFiles }) => {
   const outDir = path.join(cwd, '.kiro', 'steering');
   ensureDir(outDir);
   const result = createSyncResult();
@@ -32,7 +32,7 @@ const syncKiro = ({ cwd, ruleIds, templateRoot, force }) => {
       lines.push('inclusion: auto');
     }
     lines.push('---', '', `# ${pack.label}`, '', `Read \`.ai-rules/${pack.id}/README.md\` before editing matching files.`, '');
-    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, result });
+    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, managedFiles, result });
   }
 
   for (const skill of skills) {
@@ -54,7 +54,7 @@ const syncKiro = ({ cwd, ruleIds, templateRoot, force }) => {
       `For matching tasks, read and follow \`.ai-rules/skills/${skill.id}/SKILL.md\`.`,
       '',
     );
-    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, result });
+    syncTextFile({ cwd, filePath: outFile, content: lines.join('\n'), force, managedFiles, result });
   }
 
   return result;
