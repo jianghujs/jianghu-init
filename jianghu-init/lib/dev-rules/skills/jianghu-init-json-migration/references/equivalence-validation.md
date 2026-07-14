@@ -10,6 +10,9 @@ Do not define success as “the file compiles.” Validate the layers affected b
 - Every business action has non-empty `label + uiAction`.
 - Includes, components, methods, service functions, tables/models, and field keys resolve.
 - V7 components do not own `page.id` or `resourceList`; host resources are present.
+- The replacement lives under `app/view/init-json/**`; a converted configuration left only at a nonstandard input path does not satisfy the active-source gate unless that path is explicitly established as the project's active source tree.
+- The active host includes/imports the replacement and preserves its ref/event entry path.
+- Host attrs/props, listeners/emits, refs, and slots are preserved or their replacement is verified. For each prop used by the replacement, inspect every active host binding; an omitted binding that silently uses the default is a failure unless that default is proven equivalent.
 - Unrelated legacy files remain unchanged.
 
 Failure blocks generation.
@@ -24,8 +27,12 @@ For each requested target, compare:
 - Create/update/detail forms, tabs, validation, readonly/default behavior.
 - Toolbar, row, form, tab, and custom actions.
 - Includes, child components, methods, computed state, watchers, and lifecycle hooks.
+- Generated action switch cases, methods, state, and refs contain no duplicate names from structural/custom collisions.
+- Outer Drawer/Sheet/Dialog ownership, initial hidden state, open/close behavior, and host mount behavior remain equivalent.
 
-Use a dry or isolated environment when available. Explain before running `jianghu-init json` because generation may update HTML and synchronize `_page` or `_resource`.
+Recheck scoped version-control status after writing the source. A running watcher may regenerate HTML even when no generation command was invoked; such output is part of the migration diff and must be reviewed.
+
+Use a dry or isolated environment when available. Explain before running `jianghu-init json` because generation may update HTML and synchronize `_page` or `_resource`. Do not skip rendered-output validation merely to avoid generated diffs: either run the safe available generation path and review the output, or classify the result as a structural conversion with the compiler gate incomplete.
 
 ## 3. Data and permission gate
 
@@ -47,6 +54,7 @@ Validate PC and mobile independently when both are targets:
 - Create, update, delete, custom actions, confirmations, and validation failures.
 - Permission-denied behavior.
 - Slots, dialogs, drawers/sheets, fixed height, overflow, and touch interaction.
+- Source-only and generated-HTML-only behavior remains present or has an explicitly accepted replacement/removal decision.
 - Navigation into and out of the page and embedded component behavior.
 
 Record any runtime check not performed.
@@ -66,6 +74,10 @@ Use a compact matrix in the migration report:
 
 Unknown is not pass.
 
+A config that only passes `require()` or `buildPage()` is a structural conversion, not a completed migration, when its active source path, host integration, generated output, or runtime behavior remains unverified.
+
+Fail the compiler gate when an unconditionally mounted legacy Drawer/Sheet/Dialog component becomes always-visible page content, even if the inner markup and methods compile.
+
 ## 6. Cleanup gate
 
 Delete or stop maintaining old source/output only when:
@@ -77,4 +89,3 @@ Delete or stop maintaining old source/output only when:
 - The user authorizes deletion and any database synchronization.
 
 If cleanup is deferred, document which legacy files remain authoritative to prevent dual maintenance.
-

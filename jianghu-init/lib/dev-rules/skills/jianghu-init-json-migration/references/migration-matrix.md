@@ -104,6 +104,15 @@ Structural action entries such as spacer, slot, and filter remain structural ent
 
 Avoid copying a full generated HTML page into a string field. Preserve semantic ownership whenever possible.
 
+For an embedded component, compare the migration input, active generated HTML, and active host together. A Drawer/Sheet/Dialog present only in generated HTML is still active behavior. If the host mounts the component directly, keep that structural container in v7 `actionContent`; moving only its body into `pageContent` changes initial visibility and is not equivalent.
+
+V7 structural keys generate action/state/method names. When a legacy public action such as `viewX` also needs extra requests:
+
+1. Prefer a structural key whose generated names do not collide with the public action, then let the public custom action call the generated open method plus its extra business steps; or
+2. Rename the host action and verify every caller.
+
+Inspect generated output to prove there is exactly one switch case and one method definition for each action/method name.
+
 ## 9. Stop conditions
 
 Pause migration and report the blocker when:
@@ -114,4 +123,3 @@ Pause migration and report the blocker when:
 - Generated HTML contains maintained behavior absent from init-json and its origin is unclear.
 - Compilation requires a production database or destructive synchronization without authorization.
 - Existing runtime behavior cannot be expressed by the current v7 compiler without a compiler change.
-

@@ -5,7 +5,10 @@ Complete the relevant sections before editing. Mark missing evidence as unknown 
 ## Source ownership
 
 - Identify the init-json source, generated HTML, manually maintained HTML, and shared includes.
+- Classify every source path as active, generated, migration input, or unknown. An init-json configuration outside `app/view/init-json/**` is migration input rather than the default write target, regardless of its directory name.
+- Derive the corresponding active replacement path under `app/view/init-json/**` and check for conflicts before editing.
 - Compare init-json and generated HTML to find behavior that exists only in output.
+- Capture a scoped status/diff baseline for both proposed source and generated targets; account for automatic rebuilds after source writes.
 - Check version control history when it can explain whether HTML changes are intentional.
 - Identify the command and compiler version that currently produce the page.
 - Determine whether another generator or script owns any target file.
@@ -16,6 +19,7 @@ Complete the relevant sections before editing. Mark missing evidence as unknown 
 - Search for links, redirects, menu records, includes, and host components that reference those identities.
 - Determine whether PC and mobile variants share one logical route or are intentionally independent.
 - Record runtime page ID behavior for embedded components.
+- For components, compare the full active host contract: include/import, attrs/props, listeners/emits, refs, slots, and the exact changes required for the host to preserve them. Build a prop-to-host table for every prop used by rendering or methods; record the host expression, or prove why the default is equivalent.
 
 ## Data and permissions
 
@@ -31,7 +35,10 @@ Complete the relevant sections before editing. Mark missing evidence as unknown 
 - Record create/update/detail forms, tabs, validation, readonly rules, and conditional visibility.
 - Record toolbar, row, form, tab, and custom actions with their method names and confirmation behavior.
 - Record slots, custom HTML, includes, child components, dialogs, drawers, sheets, and fixed-height/scroll behavior.
+- Record who owns the outer visibility container, whether the host mounts the component unconditionally, its initial hidden state, open/close actions, and close-confirm behavior.
 - Record `data`, `computed`, `watch`, lifecycle hooks, mixins, and injected/provided state.
+- Record structural component keys and the action/state/method names the v7 compiler will generate; flag collisions with custom `doUiAction` and methods.
+- For every collision, choose and record a resolution: non-colliding structural key, verified host action rename, or supported extension point. "Drop one side" is not an implicit resolution.
 
 ## Target differences
 
@@ -53,7 +60,8 @@ Before migration, state:
 
 1. The current source of truth.
 2. The proposed v7 source file and identity.
-3. Behaviors that map directly.
-4. Behaviors requiring slots, overrides, UI mode, or supporting source changes.
-5. Unknowns blocking safe deletion or database synchronization.
-
+3. Whether the requested source has a PC/mobile counterpart and the chosen target scope.
+4. The active host and required include/ref/event/resource changes.
+5. Behaviors that map directly.
+6. Behaviors requiring slots, overrides, UI mode, or supporting source changes.
+7. Unknowns blocking active integration, safe deletion, or database synchronization.

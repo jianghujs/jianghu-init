@@ -109,6 +109,51 @@ for (const skillId of skillIds) {
   );
 }
 
+const generatedAuthoringSkill = fs.readFileSync(
+  path.join(appDir, '.agents/skills/jianghu-init-json-authoring/SKILL.md'),
+  'utf8',
+);
+const generatedAuthoringDecisionGuide = fs.readFileSync(
+  path.join(appDir, '.agents/skills/jianghu-init-json-authoring/references/decision-guide.md'),
+  'utf8',
+);
+const generatedMigrationSkill = fs.readFileSync(
+  path.join(appDir, '.agents/skills/jianghu-init-json-migration/SKILL.md'),
+  'utf8',
+);
+const generatedMigrationValidation = fs.readFileSync(
+  path.join(appDir, '.agents/skills/jianghu-init-json-migration/references/equivalence-validation.md'),
+  'utf8',
+);
+assert(generatedAuthoringSkill.includes('Treat the current project as the source of truth'));
+assert(generatedAuthoringSkill.includes('does not imply an image-generation task'));
+assert(generatedAuthoringSkill.includes('--generateType=json --pageType=jh-page --table=<table> --pageId=<pageId>'));
+assert(generatedAuthoringSkill.includes('Never regenerate over an existing source file'));
+assert(generatedAuthoringSkill.includes('do not duplicate its field query manually'));
+assert(generatedAuthoringSkill.includes('--generateType=page --pageType=page --file=<filename> -y'));
+assert(generatedAuthoringSkill.includes('include the project\'s tenant/app identity'));
+assert(generatedAuthoringDecisionGuide.includes('Stop once the required fact is confirmed'));
+assert(generatedAuthoringDecisionGuide.includes('do not perform writes while discovering schema'));
+assert(generatedAuthoringDecisionGuide.includes('cannot establish current fields or configuration'));
+assert(generatedAuthoringDecisionGuide.includes('The standard generator owns schema lookup'));
+assert(generatedAuthoringDecisionGuide.includes('do not query and reconstruct its schema work manually'));
+assert(generatedMigrationSkill.includes('outside `app/view/init-json/**` is a read-only migration input by default'));
+assert(generatedMigrationSkill.includes('create its v7 replacement under the corresponding path in `app/view/init-json/**`'));
+assert(generatedMigrationSkill.includes('the active host can reach it'));
+assert(generatedMigrationSkill.includes('matching only the include path is insufficient'));
+assert(generatedMigrationSkill.includes('duplicate action cases'));
+assert(generatedMigrationSkill.includes('watcher may regenerate HTML automatically'));
+assert(generatedMigrationSkill.includes('Do not migrate its inner body into always-visible'));
+assert(generatedMigrationValidation.includes('a structural conversion, not a completed migration'));
+assert(generatedMigrationValidation.includes('structural/custom collisions'));
+assert(generatedMigrationValidation.includes('becomes always-visible page content'));
+assert(
+  fs.readFileSync(
+    path.join(appDir, '.agents/skills/jianghu-init-json-authoring/references/common-recipes.md'),
+    'utf8',
+  ).includes('not the primary creation path'),
+);
+
 const obsoleteReference = path.join(
   appDir,
   '.agents/skills/jianghu-init-json-authoring/references/obsolete.md',

@@ -1,10 +1,10 @@
 # Common Authoring Recipes
 
-These are shape recipes, not a replacement for the canonical v7 field reference. Confirm exact keys against `.ai-rules/jianghu-init-json-app/` and nearby project examples.
+These are inspection and customization references, not the primary creation path and not a replacement for the canonical v7 field reference. For a new standard table CRUD, use the Jianghu Init table generator first. Use these recipes to review generated output, make business-specific changes, repair a verified generator defect, or work when generation is unavailable.
 
 ## Standard CRUD page
 
-Use when one page owns a table/model workflow:
+Expected shape when one page owns a table/model workflow. Do not copy it by hand when the table generator is available:
 
 ```js
 module.exports = {
@@ -12,6 +12,12 @@ module.exports = {
   pageType: 'jh-page',
   mode: 'crud',
   page: { id: 'itemManagement', name: '条目管理', targets: 'pc' },
+  resourceList: [
+    { actionId: 'selectItemList', resourceType: 'sql', resourceData: { table: 'item', operation: 'select' } },
+    { actionId: 'insertItem', resourceType: 'sql', resourceData: { table: 'item', operation: 'jhInsert' } },
+    { actionId: 'updateItem', resourceType: 'sql', resourceData: { table: 'item', operation: 'jhUpdate' } },
+    { actionId: 'deleteItem', resourceType: 'sql', resourceData: { table: 'item', operation: 'jhDelete' } },
+  ],
   dataSource: { table: 'item' },
   fields: {
     itemId: { label: '条目ID' },
@@ -25,7 +31,7 @@ module.exports = {
 };
 ```
 
-Confirm the table fields, primary key, generated resource behavior, and current dataSource syntax from the project before using the shape.
+Confirm the table fields, primary key, required operations, generated resource behavior, and current dataSource syntax from the project before using the shape. Remove resource entries for operations the requested page does not expose.
 
 ## Dual-target CRUD page
 
@@ -103,4 +109,3 @@ Do not use `intent`, `id`, or `actionId` as the semantic key. Structural entries
 Keep the page in CRUD mode when only a local region is custom. Use the supported slot location from the canonical rule. Verify that slot names match the generated component and that PC/mobile variants are assigned to the correct target.
 
 Escalate to `pc()`/`mobile()` overrides only when target composition differs. Escalate to UI mode only when custom composition is the page's dominant structure.
-
