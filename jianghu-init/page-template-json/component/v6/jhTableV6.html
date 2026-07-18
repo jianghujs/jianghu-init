@@ -125,6 +125,7 @@
 
     <!-- 表格主体 -->
     <v-data-table
+      v-bind="dataTableProps"
       class="jh-table-v6-data-table jh-fixed-table-height elevation-0 mt-0 mx-0 mb-xs-4"
       :headers="internalHeaders"
       :items="filteredItems"
@@ -201,6 +202,8 @@ Vue.component('jh-table', {
     pageSize:         { type: Number,  default: 50 },
     selectable:       { type: Boolean, default: false },
     primaryKey:       { type: String,  default: 'id' },
+    // 透传 Vuetify v-data-table 的非托管 props；headers/items/loading/options 等由 jh-table 保持控制。
+    dataTableProps:   { type: Object,  default: () => ({}) },
     // 响应式 props（由父实例通过 resolvedBindings 绑定）
     items:         { type: Array,   default: () => [] },
     loading:       { type: Boolean, default: false },

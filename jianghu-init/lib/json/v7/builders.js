@@ -162,22 +162,23 @@ const buildSheetFilter = ir => {
   }
 
   if (ir.searchFieldList && ir.searchFieldList.length) {
-    const listView = ir.listView || {};
-    const sheetKey = (typeof listView.mobileSearchKey === 'string' && listView.mobileSearchKey.trim()) || 'mobileSearch';
+    const mobileSearch = ir.mobileSearch || {};
+    const sheetKey = mobileSearch.key || 'mobileSearch';
     const ku = upperFirst(sheetKey);
-    const text = listView.mobileSearchBtnText || '搜索';
-    const btnClass = listView.mobileSearchBtnClass || '!rounded-xl px-2 border border-solid border-gray-300';
-    const icon = listView.mobileSearchIcon || 'filter-2';
 
     toolbarParts.searchBtn = {
       component: 'MobileFilterBtn',
-      props: { label: text, btnClass, icon },
+      props: {
+        label: mobileSearch.buttonLabel || '搜索',
+        btnClass: mobileSearch.buttonClass || '!rounded-xl px-2 border border-solid border-gray-300',
+        icon: mobileSearch.icon || 'filter-2',
+      },
       attrs: { '@click': `is${ku}DrawerShown = true` },
     };
     hstackChildren.push(toolbarParts.searchBtn);
 
     const searchSheetProps = {
-      title: listView.mobileSearchTitle || '搜索',
+      title: mobileSearch.title || '搜索',
       rounded: true,
       searchFieldList: ir.searchFieldList,
     };
@@ -189,7 +190,7 @@ const buildSheetFilter = ir => {
     }
     Object.assign(
       searchSheetProps,
-      mergeSheetOverlayProps(listView.searchSheet, { preset: 'search' }),
+      mergeSheetOverlayProps(mobileSearch.sheet, { preset: 'search' }),
     );
     extraActionNodes.push({
       component: 'SearchSheet', key: sheetKey,

@@ -19,12 +19,12 @@ rowActionList: [
 
 ## 简写方式
 
-支持简写配置，自动适配 PC 和移动端：
+支持简写配置，自动适配 PC 和移动端。**icon 使用 tabler 图标名（`jh-icon` 组件）**，不使用 `mdi-xxx`：
 
 ```javascript
 rowActionList: [
-  { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: 'doUiAction("startUpdateItem", item)' },
-  { text: '删除', icon: 'mdi-delete', color: 'error', click: 'doUiAction("startDeleteItem", item)' }
+  { text: '编辑', icon: 'pencil', color: 'success', click: 'doUiAction("startUpdateItem", item)' },
+  { text: '删除', icon: 'trash', color: 'error', click: 'doUiAction("deleteItem", item)' }
 ]
 ```
 
@@ -34,7 +34,7 @@ rowActionList: [
 rowActionList: [
   {
     text: '编辑',
-    icon: 'mdi-note-edit-outline',
+    icon: 'pencil',
     color: 'success',
     click: 'doUiAction("startUpdateItem", item)',
     attrs: {
@@ -50,8 +50,8 @@ rowActionList: [
 
 1. **基础属性**
    - `text`: 按钮显示的文本
-   - `icon`: 按钮图标名称（Material Design Icons）
-   - `color`: 按钮颜色主题
+   - `icon`: 按钮图标名称（使用 **tabler** 图标名如 `pencil`、`trash`、`eye`；向下兼容 `mdi-xxx` 但不推荐）
+   - `color`: 按钮颜色主题（`success` / `error` / `primary` 等）
    - `click`: 点击事件处理函数
 
 2. **扩展属性**
@@ -70,8 +70,8 @@ rowActionList: [
 1. **基础操作按钮**
    ```javascript
    rowActionList: [
-     { text: '编辑', icon: 'mdi-note-edit-outline', color: 'success', click: 'doUiAction("startUpdateItem", item)' },
-     { text: '删除', icon: 'mdi-delete', color: 'error', click: 'doUiAction("startDeleteItem", item)' }
+     { text: '编辑', icon: 'pencil', color: 'success', click: 'doUiAction("startUpdateItem", item)' },
+     { text: '删除', icon: 'trash', color: 'error', click: 'doUiAction("deleteItem", item)' }
    ]
    ```
 
@@ -80,9 +80,9 @@ rowActionList: [
    rowActionList: [
      {
        text: '删除',
-       icon: 'mdi-delete',
+       icon: 'trash',
        color: 'error',
-       click: 'doUiAction("startDeleteItem", item)',
+       click: 'doUiAction("deleteItem", item)',
        confirm: {
          title: '确认删除',
          content: '确定要删除这条记录吗？'
@@ -96,7 +96,7 @@ rowActionList: [
    rowActionList: [
      {
        text: '编辑',
-       icon: 'mdi-note-edit-outline',
+       icon: 'pencil',
        color: 'success',
        click: 'doUiAction("startUpdateItem", item)',
        show: 'item.statusType === "active" && item.canEdit'
@@ -109,7 +109,7 @@ rowActionList: [
    rowActionList: [
      {
        text: '查看',
-       icon: 'mdi-eye',
+       icon: 'eye',
        color: 'info',
        click: 'doUiAction("viewItem", item)',
        tooltip: '查看详细信息'

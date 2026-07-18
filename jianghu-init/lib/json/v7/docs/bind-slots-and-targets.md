@@ -14,7 +14,7 @@
 
 - 值是 **一整段 Vue 表达式**，不是模板字符串（不要写 `{{ }}`）。
 - 同时写 `*Bind` 与 plain 时，**丢弃 plain**。
-- **不**适用于：`**Binding`（如 `headersBinding`）、`REACTIVE_BINDINGS_MAP`（如 FormSheet `:shown.sync`）、PageHeader/SearchSheet 的 plain 变量名 props（`keyword: 'keyword'`）。
+- **不**适用于：`**Binding`（如 `headersBinding`）、component descriptor 固定绑定（如 FormSheet `:shown.sync`）、PageHeader/SearchSheet 的 plain 变量名 props（`keyword: 'keyword'`）。
 
 ```js
 props: {

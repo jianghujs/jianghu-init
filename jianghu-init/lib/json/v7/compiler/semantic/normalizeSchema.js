@@ -2,6 +2,7 @@
 
 const { getEffectiveLayout } = require('../../defaults');
 const { isJhComponent } = require('../../authoringMode');
+const { normalizeSemanticViewKeys } = require('./views/semanticKeyAliases');
 
 /**
  * jh-component：Vue props 统一写入 common.props（NJK 优先读 common.props）。
@@ -25,7 +26,7 @@ const normalizeComponentVueProps = out => {
 };
 
 /**
- * V7 semantic authoring 入口规范化（初版）
+ * V7 semantic authoring 入口规范化：兼容 key → canonical semantic → defaults
  */
 const normalizeSchema = input => {
   if (!input || typeof input !== 'object') {
@@ -33,6 +34,7 @@ const normalizeSchema = input => {
   }
   let out = { ...input };
   if (!out.version) out.version = 'v7';
+  out = normalizeSemanticViewKeys(out);
   out.layout = getEffectiveLayout(out);
   out = normalizeComponentVueProps(out);
   return out;

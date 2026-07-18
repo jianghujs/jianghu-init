@@ -83,6 +83,7 @@ lib/json/v7/
 | **`toolbarActions`** | `[{ label, uiAction, visibleWhen?, disabledWhen?, loadingWhen? }]`；标准 uiAction：`create` / `delete` / `batchDelete`；自定义 uiAction 即 doUiAction 方法名 |
 | **`rowActions`** | 行操作；标准 uiAction：`update` / `delete` / `detail`；支持 **`visibleWhen` / `disabledWhen` / `loadingWhen`**（上下文含 **`item`**） |
 | **`orderBy` / `serverPagination` / `pageSize` / `selectable`** | 列表行为 |
+| **`dataTableProps`** | 仅 PC `Table`：透传给内部 Vuetify `v-data-table` 的非托管 props；例如 `{ groupBy: ['coursewareId'] }`。`headers`、`items`、`loading`、`options` 等由 `jh-table` 托管并覆盖。 |
 | **`layout.type` / `filter`** | 参与 platform 解析（优先级见 §6） |
 | **`mobileSearchKey` / `mobileSearchBtnText` / `mobileSearchTitle` / `mobileSearchIcon`** | SearchSheet + 触发按钮 |
 | **`searchSheet`** | SearchSheet overlay：`persistent`、`autoHeight`、`viewportOffset`… |

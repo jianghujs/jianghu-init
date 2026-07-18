@@ -1,10 +1,13 @@
 'use strict';
 
+const { COMPONENT_TAG_MAP } = require('./compiler/runtime/componentDescriptors');
+
 /**
  * V7 语义 → 组件参数映射（文档常量，供 IDE 跳转与注释引用）
  *
  * 完整说明见：docs/semantic-to-component-mapping.md
- * 实际转换逻辑分布在：policy.js / expandCrudPage.js / builders.js / schemaPipeline.js
+ * views.* 转换入口：compiler/semantic/views/compileListView.js、compileCreateView.js、compileUpdateView.js
+ * 后续节点组装与渲染转换：builders.js → compiler/runtime/schemaPipeline.js
  */
 
 /** platform token → Schema 组件名（views 容器选型） */
@@ -23,27 +26,12 @@ const PLATFORM_COMPONENT = {
   },
 };
 
-/** Schema 组件名 → Vue 标签（parseSchema COMPONENT_MAP） */
-const SCHEMA_TO_VUE_TAG = {
-  Table: 'jh-table',
-  List: 'jh-list',
-  Search: 'jh-search',
-  PageTitle: 'jh-page-title',
-  CreateDrawer: 'jh-create-drawer',
-  UpdateDrawer: 'jh-update-drawer',
-  FormSheet: 'jh-form-sheet',
-  CreateSheet: 'jh-form-sheet',
-  UpdateSheet: 'jh-form-sheet',
-  SearchSheet: 'jh-mobile-search-sheet',
-  MobileFilterBtn: 'jh-mobile-filter-btn',
-  MobileActions: 'jh-mobile-actions',
-  HeadToolbarActions: 'jh-mobile-actions',
-  MobileToolbarActions: 'jh-mobile-actions',
-};
+/** Schema 组件名 → Vue 标签；唯一来源为 runtime component descriptors。 */
+const SCHEMA_TO_VUE_TAG = { ...COMPONENT_TAG_MAP };
 
 /**
- * views.create 语义键 → 节点 props 键（expandCrudPage + pushCreateForm）
- * 运行时绑定见 schemaPipeline REACTIVE_BINDINGS_MAP.CreateDrawer / FormSheet
+ * views.create 语义键 → 节点 props 键（compileCreateView + pushCreateForm）
+ * 运行时绑定见 componentDescriptors 中 CreateDrawer / FormSheet 的 bindings 规则
  */
 const VIEWS_CREATE_TO_PROPS = {
   'views.create.title': 'props.title',
@@ -61,7 +49,7 @@ const VIEWS_CREATE_TO_PROPS = {
 };
 
 /**
- * views.list 语义键 → 集合组件 props（expandCrudPage → collection.props）
+ * views.list 语义键 → 集合组件 props（compileListView → collection.props）
  */
 const VIEWS_LIST_TO_PROPS = {
   'views.list.columns': 'props.headers',
@@ -75,6 +63,7 @@ const VIEWS_LIST_TO_PROPS = {
   'views.list.search': 'Search / SearchSheet via searchFieldList + keywordConfig',
   'views.list.filter|filters': 'Table.filterList → jh-table-filter (PC only)',
   'views.list.searchSheet': 'SearchSheet props.persistent|maxBodyHeight|bodyHeight|minCardHeight',
+  'views.list.mobileItemAction': 'props.mobileItemAction (mobile List only)：\'sheet\'|false|\'none\'|doUiAction 名',
 };
 
 /**

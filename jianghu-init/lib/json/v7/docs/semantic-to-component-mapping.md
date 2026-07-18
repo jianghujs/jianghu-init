@@ -1,13 +1,16 @@
 # V7 语义配置 → 组件参数映射表
 
-> 实现位置：`expandCrudPage.js` → `builders.js` → `schemaPipeline.parseSchema` → NJK 页面模板。  
+> 实现位置：`views/compile*View.js` → `expandCrudPage.js` → `builders.js` → `schemaPipeline.parseSchema` → NJK 页面模板。
 > 维护原则：**改映射逻辑时同步改本文档与对应文件头注释**。
 
 ## 流水线
 
 ```text
 fields / views / platform / layout / dataSource  (authoring)
-  → expandCrudPage (语义展开 + 选组件 + IR)
+  → normalizeSemanticViewKeys (兼容 key → canonical key)
+  → validateCrudSemantic / validateActionUiActionSyntax
+  → compileListView / compileCreateView / compileUpdateView (语义 key → view IR)
+  → expandCrudPage (选组件 + 汇总 IR)
   → builders (组装 pageContent / actionContent 节点)
   → parseSchema (resolvedComponent / resolvedProps / resolvedBindings)
   → jh-page-v7.njk / jh-mobile-page-v7.njk (Vue 页面 data + 模板)
@@ -53,6 +56,7 @@ fields / views / platform / layout / dataSource  (authoring)
 ## 3. views.list → Table / List
 
 节点位置：`pageContent` → `VStack` → `Table`|`List`（`key` 默认 `mainTable`）。
+映射入口：`compiler/semantic/views/compileListView.js`。该文件负责解释所有 `views.list` key，并输出 `collection`、搜索及移动顶栏 IR；`builders.js` 不读取原始 `views.list`。
 
 ### 3.1 列
 
@@ -129,6 +133,7 @@ mobile: (views, blocks) => ({
 ## 4. views.create → CreateDrawer / FormSheet
 
 节点位置：`actionContent`，`key: 'create'`（固定，供绑定变量名）。
+映射入口：`compiler/semantic/views/compileCreateView.js`。
 
 | 语义配置 | IR 字段 | 节点 props | Vue 运行时绑定（parseSchema） |
 |----------|---------|------------|-------------------------------|
@@ -152,6 +157,7 @@ mobile: (views, blocks) => ({
 ## 5. views.update → UpdateDrawer / FormSheet
 
 节点位置：`actionContent`，`key: 'update'`。
+映射入口：`compiler/semantic/views/compileUpdateView.js`。
 
 | 语义配置 | 中间结构 | 节点 props | 绑定（key=update） |
 |----------|----------|------------|-------------------|

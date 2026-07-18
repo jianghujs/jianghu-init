@@ -57,7 +57,7 @@
         <v-spacer></v-spacer>
 
         <div class="absolute right-3 primary--text text-xs text-center" @click="$emit('update:shown', false)">
-          <v-icon size="22" class="primary--text">mdi-window-close</v-icon>
+          <jh-icon name="x" :size="22" style="color: var(--v-primary-base, #1976D2)"></jh-icon>
           <div class="primary--text mt-[-2px]">关闭</div>
         </div>
       </v-card-title>
@@ -99,7 +99,11 @@
                         width="2"
                         color="primary"
                       ></v-progress-circular>
-                      <v-icon v-else :color="action.color || 'primary'" size="24">{{ action.icon || 'mdi-account-multiple-plus' }}</v-icon>
+                      <template v-else>
+                        <!-- mdi-xxx 走 v-icon；tabler 名（不含冒号且不以 mdi- 开头）走 jh-icon -->
+                        <v-icon v-if="isMdiIcon(action.icon)" :color="action.color || 'primary'" size="24">{{ action.icon || 'mdi-cog' }}</v-icon>
+                        <jh-icon v-else :name="action.icon || 'settings'" :size="24" :style="{ color: resolveActionColor(action) }"></jh-icon>
+                      </template>
                     </div>
                     <div class="w-full">{{ action.value }}</div>
                   </div>
@@ -159,6 +163,7 @@ function resolveSheetBodyAreaStyle({ bodyHeight, maxBodyHeight, autoHeight, view
 
 Vue.component("jh-sheet", {
   template: "#jh-sheet-v6-template",
+  mixins: [window.jhActionWhenMixin],
   inheritAttrs: false,
   props: {
     // ── 显隐控制 ──────────────────────────────────────────────────────────
@@ -281,6 +286,23 @@ Vue.component("jh-sheet", {
     };
   },
   methods: {
+    isMdiIcon(icon) {
+      if (!icon) return false;
+      // mdi-xxx 格式 或 包含冒号（如 material-symbols:xxx）走 v-icon
+      return icon.startsWith('mdi-') || icon.includes(':');
+    },
+    resolveActionColor(action) {
+      // Vuetify 颜色名（success/error/primary 等）需转换为 CSS 变量，不然 jh-icon 不识别
+      const colorMap = {
+        primary: 'var(--v-primary-base, #1976D2)',
+        success: 'var(--v-success-base, #4CAF50)',
+        error:   'var(--v-error-base,   #F44336)',
+        warning: 'var(--v-warning-base, #FB8C00)',
+        info:    'var(--v-info-base,    #2196F3)',
+      };
+      const c = action.color || 'primary';
+      return colorMap[c] || c;
+    },
     isOrderActive(val) {
       try { return JSON.stringify(this.localOrder) === JSON.stringify(val); } catch (e) { return this.localOrder === val; }
     },

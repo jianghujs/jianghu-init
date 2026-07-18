@@ -47,6 +47,26 @@ title: V7 CRUD Authoring
 - `views.list.serverPagination: true` → `jh-list` 列表区 `overflow-y: auto`
 - 组件高度：宿主设高 + mobile 覆写保留 `blocks.list`
 
+## mobileItemAction（mobile List 专用）
+
+控制移动端 `jh-list` item 行的点击行为，**仅 mobile List 生效，PC Table 忽略**。
+
+| 值 | 行为 |
+|---|---|
+| `'sheet'`（默认） | 点击 item 弹出中继 ActionSheet，展示 rowActions |
+| `false` 或 `'none'` | item 整行点击不响应；不影响 `action` slot / 右侧操作区渲染 |
+| 其他字符串 | 跳过中继弹窗，直接 `doUiAction(mobileItemAction, item)` |
+
+```js
+views: {
+  list: {
+    rowActions: [{ uiAction: 'update', label: '编辑' }, { uiAction: 'delete', label: '删除' }],
+    mobileItemAction: false,          // 关闭 item 整行点击；自定义 action slot 仍可独立触发
+    // mobileItemAction: 'viewDetail', // 点击直接触发 doUiAction('viewDetail', item)
+  },
+}
+```
+
 ## Sheet 叠层行为（仅 Sheet，不含 Drawer）
 
 - `views.create.sheet` / `views.update.sheet`：mobile FormSheet 默认 `autoHeight: true` + 满高（单 tab `viewportOffset: 102`，多 tab `152`）

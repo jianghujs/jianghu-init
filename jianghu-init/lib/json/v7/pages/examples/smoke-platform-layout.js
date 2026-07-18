@@ -1,5 +1,6 @@
 'use strict';
 
+const assert = require('assert');
 const v = require('../../index');
 const { expandCrudPage } = require('../../compiler/semantic/expandCrudPage');
 const { normalizeAction } = require('../../actionIntent');
@@ -9,25 +10,40 @@ const { resolvePageMenu } = require('../../../shared/resolvePageMenu');
 
 const desk = require('./projectManagement.v7.sample');
 
-console.assert(resolvePageMenu(undefined, 'jh-page', false) === 'jh-menu', 'page menu default jh-menu');
-console.assert(resolvePageMenu(false, 'jh-page', true) === false, 'page menu false');
-console.assert(resolvePageMenu(true, 'jh-page', true) === 'jh-menu', 'page menu true');
-console.assert(resolvePageMenu('jh-finance-menu', 'jh-page', true) === 'jh-finance-menu', 'page menu custom tag');
-console.assert(resolvePageMenu(undefined, 'jh-component', false) === false, 'component menu default off');
+assert.ok(resolvePageMenu(undefined, 'jh-page', false) === 'jh-menu', 'page menu default jh-menu');
+assert.ok(resolvePageMenu(false, 'jh-page', true) === false, 'page menu false');
+assert.ok(resolvePageMenu(true, 'jh-page', true) === 'jh-menu', 'page menu true');
+assert.ok(resolvePageMenu('jh-finance-menu', 'jh-page', true) === 'jh-finance-menu', 'page menu custom tag');
+assert.ok(resolvePageMenu(undefined, 'jh-component', false) === false, 'component menu default off');
 
 // ─── 基础 PC 编译 ─────────────────────────────────────────────────────────────
 const { standardConfig: pc } = v.buildPage(desk);
-console.assert(pc.v7Meta.target === 'pc', 'pc target');
-console.assert(pc.page && pc.page.menu === 'jh-menu', 'baked page.menu is jh-menu tag');
-console.assert(pc.v7Meta.filterMode === 'inline', 'pc inline filter');
-console.assert(!JSON.stringify(pc.pageContent).includes('MobileSearch'), 'no MobileSearch on pc inline');
+assert.ok(pc.v7Meta.target === 'pc', 'pc target');
+assert.ok(pc.page && pc.page.menu === 'jh-menu', 'baked page.menu is jh-menu tag');
+assert.ok(pc.v7Meta.filterMode === 'inline', 'pc inline filter');
+assert.ok(!JSON.stringify(pc.pageContent).includes('MobileSearch'), 'no MobileSearch on pc inline');
 
 // ─── Req 1: platform token 字符串写法 ─────────────────────────────────────────
-console.assert(pc.v7Meta.listLayout === 'table', 'platform token Table → layout table');
-console.assert(pc.v7Meta.filterMode === 'inline', 'platform token Table → filter inline');
-console.assert(pc.v7Meta.collectionComponent === 'Table', 'platform.pc.list → Table');
-console.assert(pc.v7Meta.createFormComponent === 'CreateDrawer', 'platform.pc.create → CreateDrawer');
-console.assert(pc.v7Meta.updateFormComponent === 'UpdateDrawer', 'platform.pc.update → UpdateDrawer');
+assert.ok(pc.v7Meta.listLayout === 'table', 'platform token Table → layout table');
+assert.ok(pc.v7Meta.filterMode === 'inline', 'platform token Table → filter inline');
+assert.ok(pc.v7Meta.collectionComponent === 'Table', 'platform.pc.list → Table');
+assert.ok(pc.v7Meta.createFormComponent === 'CreateDrawer', 'platform.pc.create → CreateDrawer');
+assert.ok(pc.v7Meta.updateFormComponent === 'UpdateDrawer', 'platform.pc.update → UpdateDrawer');
+const dataTablePropsIr = expandCrudPage(Object.assign({}, desk, {
+  pc: undefined,
+  views: Object.assign({}, desk.views, {
+    list: Object.assign({}, desk.views.list, {
+      dataTableProps: { groupBy: ['projectType'] },
+    }),
+  }),
+}));
+const dataTablePropsNode = dataTablePropsIr.pageContent.children.find(
+  node => node && node.component === 'Table',
+);
+assert.ok(
+  dataTablePropsNode && dataTablePropsNode.props.dataTableProps.groupBy[0] === 'projectType',
+  'views.list.dataTableProps → Table.props.dataTableProps',
+);
 const desktopAlias = expandCrudPage({
   ...desk,
   targetPlatform: 'pc',
@@ -35,14 +51,14 @@ const desktopAlias = expandCrudPage({
     desktop: { list: 'List', create: 'CreateSheet', update: 'UpdateSheet' },
   },
 });
-console.assert(desktopAlias._v7.collectionComponent === 'List', 'platform.desktop.list → List alias');
-console.assert(desktopAlias._v7.createFormComponent === 'FormSheet', 'platform.desktop.create → FormSheet alias');
+assert.ok(desktopAlias._v7.collectionComponent === 'List', 'platform.desktop.list → List alias');
+assert.ok(desktopAlias._v7.createFormComponent === 'FormSheet', 'platform.desktop.create → FormSheet alias');
 
 // ─── Req 2: *Resource 命名规范 ────────────────────────────────────────────────
-console.assert(pc.dataSource.listResource === 'getProjectList', '*Resource → listResource');
-console.assert(pc.dataSource.createResource === 'createProject', '*Resource → createResource');
-console.assert(pc.dataSource.updateResource === 'updateProject', '*Resource → updateResource');
-console.assert(pc.dataSource.deleteResource === 'deleteProject', '*Resource → deleteActionId');
+assert.ok(pc.dataSource.listResource === 'getProjectList', '*Resource → listResource');
+assert.ok(pc.dataSource.createResource === 'createProject', '*Resource → createResource');
+assert.ok(pc.dataSource.updateResource === 'updateProject', '*Resource → updateResource');
+assert.ok(pc.dataSource.deleteResource === 'deleteProject', '*Resource → deleteActionId');
 
 // resource.* 旧写法经 parseSchema 也应落到 standardConfig.dataSource（→ NJK bake listResource 等）
 const { parseSchema } = require('../../compiler/runtime/schemaPipeline');
@@ -62,46 +78,46 @@ const { standardConfig: legacyDs } = parseSchema({
   pageContent: [],
   actionContent: [],
 });
-console.assert(legacyDs.dataSource.listResource === 'getProjectList', 'resource.list → standardConfig.dataSource.listResource');
+assert.ok(legacyDs.dataSource.listResource === 'getProjectList', 'resource.list → standardConfig.dataSource.listResource');
 
 // ─── Req 3: keyword 搜索类型 ──────────────────────────────────────────────────
 const pcPageStr = JSON.stringify(pc.pageContent);
 // Search 组件应有 keyword prop（含 fields 和 placeholder）
-console.assert(pcPageStr.includes('"keyword"') || pcPageStr.includes('keyword'), 'keyword config in Search component');
-console.assert(pcPageStr.includes('projectName') || pcPageStr.includes('projectType'), 'keyword fields present');
+assert.ok(pcPageStr.includes('"keyword"') || pcPageStr.includes('keyword'), 'keyword config in Search component');
+assert.ok(pcPageStr.includes('projectName') || pcPageStr.includes('projectType'), 'keyword fields present');
 // status 应在 Search 的 fields 中
-console.assert(pcPageStr.includes('"key":"status"') || pcPageStr.includes('"key": "status"'), 'status in searchFieldList');
+assert.ok(pcPageStr.includes('"key":"status"') || pcPageStr.includes('"key": "status"'), 'status in searchFieldList');
 
 // ─── Req 4: views.update.tabs ─────────────────────────────────────────────────
 const pcActionStr = JSON.stringify(pc.actionContent);
-console.assert(pcActionStr.includes('tabList'), 'UpdateDrawer has tabList');
-console.assert(pcActionStr.includes('basicInfo') || pcActionStr.includes('"basicInfo"'), 'tab basicInfo exists');
-console.assert(pcActionStr.includes('extensionInfo') || pcActionStr.includes('"extensionInfo"'), 'tab extensionInfo exists');
+assert.ok(pcActionStr.includes('tabList'), 'UpdateDrawer has tabList');
+assert.ok(pcActionStr.includes('basicInfo') || pcActionStr.includes('"basicInfo"'), 'tab basicInfo exists');
+assert.ok(pcActionStr.includes('extensionInfo') || pcActionStr.includes('"extensionInfo"'), 'tab extensionInfo exists');
 
 const updateDrawerNode = pc.actionContent.find(n => n && n.component === 'UpdateDrawer');
-console.assert(updateDrawerNode, 'UpdateDrawer exists');
+assert.ok(updateDrawerNode, 'UpdateDrawer exists');
 const updateDrawerProps = updateDrawerNode.resolvedProps || updateDrawerNode.props || {};
-console.assert(updateDrawerProps.tabList, 'UpdateDrawer has tabList');
-console.assert(!updateDrawerProps.fieldList, 'UpdateDrawer.fieldList not present in tabs mode');
+assert.ok(updateDrawerProps.tabList, 'UpdateDrawer has tabList');
+assert.ok(!updateDrawerProps.fieldList, 'UpdateDrawer.fieldList not present in tabs mode');
 
 // ─── Req 5: interaction 条件表达式 ────────────────────────────────────────────
 const createDrawerNode = pc.actionContent.find(n => n && n.component === 'CreateDrawer');
-console.assert(createDrawerNode, 'CreateDrawer exists');
+assert.ok(createDrawerNode, 'CreateDrawer exists');
 const createDrawerProps = createDrawerNode.resolvedProps || createDrawerNode.props || {};
 
 // status 有 visibleWhen（字符串 → __expr__）
 const statusField = createDrawerProps.fieldList && createDrawerProps.fieldList.find(f => f.key === 'status');
-console.assert(statusField && statusField.visibleWhen, 'status has visibleWhen');
-console.assert(statusField.visibleWhen.__expr__ === 'isOutsource', 'visibleWhen is __expr__ wrapped');
+assert.ok(statusField && statusField.visibleWhen, 'status has visibleWhen');
+assert.ok(statusField.visibleWhen.__expr__ === 'isOutsource', 'visibleWhen is __expr__ wrapped');
 
 // tab interaction
 const basicTab = updateDrawerProps.tabList && updateDrawerProps.tabList.find(t => t.key === 'basicInfo');
-console.assert(basicTab, 'basicInfo tab exists');
+assert.ok(basicTab, 'basicInfo tab exists');
 const projectNameInTab = basicTab && basicTab.fieldList.find(f => f.key === 'projectName');
-console.assert(projectNameInTab && projectNameInTab.readonlyWhen, 'projectName in basicInfo tab has readonlyWhen');
-console.assert(projectNameInTab.readonlyWhen.__expr__ === 'isFinished', 'readonlyWhen is __expr__ wrapped');
-console.assert(projectNameInTab.span === 1, 'default pc update tab field span=1');
-console.assert(updateDrawerProps.cols === 3, 'default update cols=3');
+assert.ok(projectNameInTab && projectNameInTab.readonlyWhen, 'projectName in basicInfo tab has readonlyWhen');
+assert.ok(projectNameInTab.readonlyWhen.__expr__ === 'isFinished', 'readonlyWhen is __expr__ wrapped');
+assert.ok(projectNameInTab.span === 1, 'default pc update tab field span=1');
+assert.ok(updateDrawerProps.cols === 3, 'default update cols=3');
 
 const fieldsModeIr = expandCrudPage(Object.assign({}, desk, {
   pc: undefined,
@@ -114,12 +130,12 @@ const fieldsModeIr = expandCrudPage(Object.assign({}, desk, {
   }),
 }));
 const fieldsModeUpdate = fieldsModeIr.actionContent.find(n => n && n.key === 'update');
-console.assert(fieldsModeUpdate && fieldsModeUpdate.props && fieldsModeUpdate.props.fieldList, 'update fields mode node');
+assert.ok(fieldsModeUpdate && fieldsModeUpdate.props && fieldsModeUpdate.props.fieldList, 'update fields mode node');
 const hiddenProjectId = fieldsModeUpdate.props.fieldList.find(f => f.key === 'projectId');
-console.assert(hiddenProjectId && hiddenProjectId.visibleWhen === false, 'update.fields interaction merges visibleWhen:false');
+assert.ok(hiddenProjectId && hiddenProjectId.visibleWhen === false, 'update.fields interaction merges visibleWhen:false');
 
 // ─── Req 6: saveTipBeforeClose ────────────────────────────────────────────────
-console.assert(createDrawerProps.beforeCloseConfirm === true, 'CreateDrawer has beforeCloseConfirm');
+assert.ok(createDrawerProps.beforeCloseConfirm === true, 'CreateDrawer has beforeCloseConfirm');
 
 const attrsIr = expandCrudPage(Object.assign({}, desk, {
   pc: undefined,
@@ -136,7 +152,7 @@ const attrsIr = expandCrudPage(Object.assign({}, desk, {
 const attrsCreateNode = attrsIr.actionContent.find(n => n && n.key === 'create');
 const descField = attrsCreateNode && attrsCreateNode.props.fieldList
   && attrsCreateNode.props.fieldList.find(f => f && f.key === 'projectDesc');
-console.assert(descField && descField.attrs && descField.attrs.rows === 8, 'fieldAttrs overrides fields.attrs.rows');
+assert.ok(descField && descField.attrs && descField.attrs.rows === 8, 'fieldAttrs overrides fields.attrs.rows');
 
 const platformAttrsDesk = {
   mode: 'crud',
@@ -157,8 +173,8 @@ const pcAttrsIr = expandCrudPage(Object.assign({}, platformAttrsDesk, { targetPl
 const moAttrsIr = expandCrudPage(Object.assign({}, platformAttrsDesk, { targetPlatform: 'mobile' }));
 const pcRemark = pcAttrsIr.actionContent.find(n => n && n.key === 'create').props.fieldList.find(f => f.key === 'remark');
 const moRemark = moAttrsIr.actionContent.find(n => n && n.key === 'create').props.fieldList.find(f => f.key === 'remark');
-console.assert(pcRemark.attrs.rows === 8, 'fields.pc rows merge into attrs on pc target');
-console.assert(moRemark.attrs.rows === 5, 'fields.mobile rows merge into attrs on mobile target');
+assert.ok(pcRemark.attrs.rows === 8, 'fields.pc rows merge into attrs on pc target');
+assert.ok(moRemark.attrs.rows === 5, 'fields.mobile rows merge into attrs on mobile target');
 
 const customField = fieldKeyToFormField({
   goal: {
@@ -169,15 +185,15 @@ const customField = fieldKeyToFormField({
     attrs: { mode: 'single' },
   },
 }, 'goal', 'pc');
-console.assert(customField.type === 'custom', 'fields custom type preserved');
-console.assert(customField.component === 'jh-goal-picker', 'fields custom component forwarded');
-console.assert(customField.rules === 'validationRules.requireRules', 'fields custom rules forwarded');
-console.assert(customField.attrs && customField.attrs.mode === 'single', 'fields custom attrs forwarded');
+assert.ok(customField.type === 'custom', 'fields custom type preserved');
+assert.ok(customField.component === 'jh-goal-picker', 'fields custom component forwarded');
+assert.ok(customField.rules === 'validationRules.requireRules', 'fields custom rules forwarded');
+assert.ok(customField.attrs && customField.attrs.mode === 'single', 'fields custom attrs forwarded');
 
 const moCustomField = fieldKeyToFormField({
   goal: { type: 'custom', component: 'jh-goal-pc', mobile: { component: 'jh-goal-mobile' } },
 }, 'goal', 'mobile');
-console.assert(moCustomField.component === 'jh-goal-mobile', 'fields.mobile component override');
+assert.ok(moCustomField.component === 'jh-goal-mobile', 'fields.mobile component override');
 
 const customCrudDesk = {
   mode: 'crud',
@@ -196,34 +212,34 @@ const customCrudDesk = {
 const customCrudIr = expandCrudPage(Object.assign({}, customCrudDesk, { targetPlatform: 'pc' }));
 const customGoalField = customCrudIr.actionContent
   .find(n => n && n.key === 'create').props.fieldList.find(f => f.key === 'goal');
-console.assert(customGoalField.type === 'custom' && customGoalField.component === 'jh-goal-picker', 'expandCrudPage create fieldList custom component');
+assert.ok(customGoalField.type === 'custom' && customGoalField.component === 'jh-goal-picker', 'expandCrudPage create fieldList custom component');
 
 // ─── Req 7: slots 声明 ────────────────────────────────────────────────────────
 // 直接检查 expandCrudPage 原始输出（schemaPipeline 会把 slotTemplates 转为 children）
 const deskNoOverride = Object.assign({}, desk, { pc: undefined });
 const rawIr = expandCrudPage(deskNoOverride);
 const rawTableNode = rawIr.pageContent.children.find(n => n && (n.component === 'Table' || n.component === 'List'));
-console.assert(rawTableNode, 'raw Table/List node exists');
-console.assert(rawTableNode.props && rawTableNode.props.filterList, 'PC Table has filterList');
-console.assert(rawTableNode.props.filterList.some(f => f.type === 'keyword' && f.keys && f.keys.includes('projectName')), 'filter keyword keys');
-console.assert(rawTableNode.props.filterList.some(f => f.key === 'status'), 'filter field status');
-console.assert(Array.isArray(rawTableNode.children) && rawTableNode.children.length > 0, 'list.pc.children on Table');
-console.assert(String(rawTableNode.children[0]).includes('item.projectName'), 'list slot template name');
+assert.ok(rawTableNode, 'raw Table/List node exists');
+assert.ok(rawTableNode.props && rawTableNode.props.filterList, 'PC Table has filterList');
+assert.ok(rawTableNode.props.filterList.some(f => f.type === 'keyword' && f.keys && f.keys.includes('projectName')), 'filter keyword keys');
+assert.ok(rawTableNode.props.filterList.some(f => f.key === 'status'), 'filter field status');
+assert.ok(Array.isArray(rawTableNode.children) && rawTableNode.children.length > 0, 'list.pc.children on Table');
+assert.ok(String(rawTableNode.children[0]).includes('item.projectName'), 'list slot template name');
 
 const rawRowActions = rawTableNode.props.rowActionList || [];
-console.assert(rawRowActions[0] && rawRowActions[0].uiAction === 'update', 'row update uiAction');
-console.assert(rawRowActions[0] && rawRowActions[0].id === undefined, 'row action no id field');
-console.assert(rawRowActions[1] && rawRowActions[1].uiAction === 'delete', 'row delete uiAction');
-console.assert(rawRowActions[1] && rawRowActions[1].id === undefined, 'row delete no id field');
+assert.ok(rawRowActions[0] && rawRowActions[0].uiAction === 'update', 'row update uiAction');
+assert.ok(rawRowActions[0] && rawRowActions[0].id === undefined, 'row action no id field');
+assert.ok(rawRowActions[1] && rawRowActions[1].uiAction === 'delete', 'row delete uiAction');
+assert.ok(rawRowActions[1] && rawRowActions[1].id === undefined, 'row delete no id field');
 
 // uiAction 1:1 替代 intent，编译期不再做 role 误用校验
 const crossRoleNorm = normalizeAction({ uiAction: 'createItem', label: '自定义' }, 'toolbar', 't');
-console.assert(crossRoleNorm.uiAction === 'createItem' && crossRoleNorm.id === undefined, 'uiAction passthrough no id');
+assert.ok(crossRoleNorm.uiAction === 'createItem' && crossRoleNorm.id === undefined, 'uiAction passthrough no id');
 
 // slots.update.basicInfo.pc.children → UpdateDrawer children
 const rawUpdatePayload = rawIr.actionContent.find(n => n && n.component === 'UpdateDrawer');
-console.assert(rawUpdatePayload && rawUpdatePayload.children && rawUpdatePayload.children.length >= 2, 'update tab pc.children on UpdateDrawer');
-console.assert(String(rawUpdatePayload.children[0]).includes('field-projectName'), 'update basicInfo slot template');
+assert.ok(rawUpdatePayload && rawUpdatePayload.children && rawUpdatePayload.children.length >= 2, 'update tab pc.children on UpdateDrawer');
+assert.ok(String(rawUpdatePayload.children[0]).includes('field-projectName'), 'update basicInfo slot template');
 
 // slots.update.pc.children → UpdateDrawer children（与 list 同形）
 const formSlotDesk = Object.assign({}, desk, {
@@ -248,11 +264,11 @@ const formSlotDesk = Object.assign({}, desk, {
 });
 const formSlotIr = expandCrudPage(formSlotDesk);
 const formSlotUpdate = formSlotIr.actionContent.find(n => n && n.key === 'update');
-console.assert(formSlotUpdate && formSlotUpdate.children && formSlotUpdate.children.length >= 2, 'update.pc.children on UpdateDrawer');
-console.assert(String(formSlotUpdate.children[0]).includes('field-projectName'), 'update slot template name');
+assert.ok(formSlotUpdate && formSlotUpdate.children && formSlotUpdate.children.length >= 2, 'update.pc.children on UpdateDrawer');
+assert.ok(String(formSlotUpdate.children[0]).includes('field-projectName'), 'update slot template name');
 const formSlotFieldList = formSlotUpdate.props && formSlotUpdate.props.fieldList;
 const formSlotProjectId = formSlotFieldList && formSlotFieldList.find(f => f.key === 'projectId');
-console.assert(formSlotProjectId && formSlotProjectId.visibleWhen === false, 'update.fields mode interaction');
+assert.ok(formSlotProjectId && formSlotProjectId.visibleWhen === false, 'update.fields mode interaction');
 
 // slots.create.pc.children
 const createSlotIr = expandCrudPage(Object.assign({}, desk, {
@@ -266,25 +282,25 @@ const createSlotIr = expandCrudPage(Object.assign({}, desk, {
   }),
 }));
 const createSlotNode = createSlotIr.actionContent.find(n => n && n.key === 'create');
-console.assert(createSlotNode && createSlotNode.children && createSlotNode.children.length === 1, 'create.pc.children');
+assert.ok(createSlotNode && createSlotNode.children && createSlotNode.children.length === 1, 'create.pc.children');
 
 // ─── Req 8: layout.create 默认 cols=3，PC 字段 span=1 ─────────────────────────
 const projectNameField = createDrawerProps.fieldList && createDrawerProps.fieldList.find(f => f.key === 'projectName');
-console.assert(projectNameField && projectNameField.span === 1, 'default pc create: projectName span=1');
-console.assert(createDrawerProps.cols === 3, 'default create cols=3');
-console.assert(pc.v7Meta.componentTokens.list === 'Table', 'default platform pc list Table');
-console.assert(pc.v7Meta.componentTokens.create === 'CreateDrawer', 'default platform pc create');
+assert.ok(projectNameField && projectNameField.span === 1, 'default pc create: projectName span=1');
+assert.ok(createDrawerProps.cols === 3, 'default create cols=3');
+assert.ok(pc.v7Meta.componentTokens.list === 'Table', 'default platform pc list Table');
+assert.ok(pc.v7Meta.componentTokens.create === 'CreateDrawer', 'default platform pc create');
 
 // ─── Req 9: pc 覆盖函数 + blocks ─────────────────────────────────────────────
-console.assert(rawIr.pageContent && rawIr.pageContent.component === 'VStack', 'expandCrudPage pageContent is single root object');
-console.assert(Array.isArray(pc.pageContent), 'standardConfig.pageContent is array for NJK');
-console.assert(pc.pageContent[0].component === 'VStack', 'standardConfig.pageContent[0] is VStack after override');
+assert.ok(rawIr.pageContent && rawIr.pageContent.component === 'VStack', 'expandCrudPage pageContent is single root object');
+assert.ok(Array.isArray(pc.pageContent), 'standardConfig.pageContent is array for NJK');
+assert.ok(pc.pageContent[0].component === 'VStack', 'standardConfig.pageContent[0] is VStack after override');
 
 // ─── Mobile 编译 ──────────────────────────────────────────────────────────────
 const mobileBase = Object.assign({}, desk, { pageType: 'jh-mobile-page', pc: undefined });
 const { standardConfig: mo } = v.buildPage(mobileBase);
-console.assert(mo.v7Meta.target === 'mobile', 'mobile target');
-console.assert(mo.page.id === 'mobile/projectManagement', 'mobile standardConfig.page.id has mobile/ prefix for NJK pageId');
+assert.ok(mo.v7Meta.target === 'mobile', 'mobile target');
+assert.ok(mo.page.id === 'mobile/projectManagement', 'mobile standardConfig.page.id has mobile/ prefix for NJK pageId');
 
 const titleBindNode = parseSchema({
   version: 'v7',
@@ -299,12 +315,12 @@ const titleBindNode = parseSchema({
     },
   }],
 }).standardConfig.actionContent[0];
-console.assert(
+assert.ok(
   titleBindNode.resolvedBindings && titleBindNode.resolvedBindings[':title']
     === "bindGroupItem.duoxingRoomId ? '已绑定' : '尚未绑定'",
   'FormSheet titleBind → resolvedBindings :title expression',
 );
-console.assert(
+assert.ok(
   titleBindNode.resolvedProps.title === undefined && titleBindNode.resolvedProps.titleBind === undefined,
   'FormSheet titleBind strips static title/titleBind from resolvedProps',
 );
@@ -322,15 +338,15 @@ const filterBtnNode = parseSchema({
   }],
   actionContent: [],
 }).standardConfig.pageContent[0];
-console.assert(
+assert.ok(
   filterBtnNode.resolvedBindings[':label'] === 'filterLabelText',
   'universal *Bind: MobileFilterBtn labelBind',
 );
-console.assert(
+assert.ok(
   filterBtnNode.resolvedBindings[':active-display'] === 'currentOrgInfo.orgName',
   'universal *Bind: activeDisplayBind → :active-display',
 );
-console.assert(filterBtnNode.resolvedProps.label === undefined, 'labelBind drops plain label');
+assert.ok(filterBtnNode.resolvedProps.label === undefined, 'labelBind drops plain label');
 
 const shownBindNode = parseSchema({
   version: 'v7',
@@ -342,11 +358,11 @@ const shownBindNode = parseSchema({
     props: { shownBind: 'true', title: '新建' },
   }],
 }).standardConfig.actionContent[0];
-console.assert(
+assert.ok(
   shownBindNode.resolvedBindings[':shown.sync'] === 'isCreateDrawerShown',
   'framework :shown.sync wins over shownBind',
 );
-console.assert(
+assert.ok(
   shownBindNode.resolvedBindings[':shown'] === undefined,
   'shownBind ignored when REACTIVE_BINDINGS_MAP owns shown',
 );
@@ -361,11 +377,11 @@ const createSheetByComponent = parseSchema({
     props: { title: '新建', fieldList: [{ key: 'name', label: '名称' }] },
   }],
 }).standardConfig.actionContent[0];
-console.assert(
+assert.ok(
   createSheetByComponent.resolvedComponent === 'jh-form-sheet',
   'CreateSheet token → jh-form-sheet',
 );
-console.assert(
+assert.ok(
   createSheetByComponent.resolvedBindings[':shown.sync'] === 'isCreateDrawerShown',
   'CreateSheet token → FormSheet bindings',
 );
@@ -380,7 +396,7 @@ const createSheetByTag = parseSchema({
     props: { title: '新建', fieldList: [] },
   }],
 }).standardConfig.actionContent[0];
-console.assert(
+assert.ok(
   createSheetByTag.resolvedComponent === 'jh-form-sheet',
   'tag: CreateSheet → jh-form-sheet',
 );
@@ -391,7 +407,7 @@ const bothSyncIds = resolvePageSyncEntries({
   pageId: 'projectManagement',
   pageName: '项目管理',
 }).map(e => e.pageId);
-console.assert(
+assert.ok(
   bothSyncIds.length === 2
   && bothSyncIds[0] === 'projectManagement'
   && bothSyncIds[1] === 'mobile/projectManagement',
@@ -403,7 +419,7 @@ const pcOnlySyncIds = resolvePageSyncEntries({
   v7BuildTargets: 'both',
   pageId: 'projectManagement',
 }).map(e => e.pageId);
-console.assert(
+assert.ok(
   pcOnlySyncIds.length === 1 && pcOnlySyncIds[0] === 'projectManagement',
   'v7 generated pc only: no mobile resource/page sync despite targets both in config',
 );
@@ -412,48 +428,48 @@ const mobileOnlySyncIds = resolvePageSyncEntries({
   v7GeneratedTargets: ['mobile'],
   pageId: 'projectManagement',
 }).map(e => e.pageId);
-console.assert(
+assert.ok(
   mobileOnlySyncIds.length === 1 && mobileOnlySyncIds[0] === 'mobile/projectManagement',
   'v7 generated mobile only: mobile/ pageId for resource sync',
 );
-console.assert(mo.v7Meta.filterMode === 'sheet', 'mobile sheet filter');
-console.assert(mo.v7Meta.collectionComponent === 'List', 'mobile platform.list List');
-console.assert(mo.v7Meta.createFormComponent === 'FormSheet', 'mobile platform.create CreateSheet→FormSheet');
-console.assert(mo.v7Meta.updateFormComponent === 'FormSheet', 'mobile platform.update UpdateSheet→FormSheet');
+assert.ok(mo.v7Meta.filterMode === 'sheet', 'mobile sheet filter');
+assert.ok(mo.v7Meta.collectionComponent === 'List', 'mobile platform.list List');
+assert.ok(mo.v7Meta.createFormComponent === 'FormSheet', 'mobile platform.create CreateSheet→FormSheet');
+assert.ok(mo.v7Meta.updateFormComponent === 'FormSheet', 'mobile platform.update UpdateSheet→FormSheet');
 
 // SearchSheet searchFieldList 内 select.options 字符串 → __expr__（NJK 序列化为 options:constantObj.xxx）
 const moSearchSheet = mo.actionContent.find(n => n && n.component === 'SearchSheet');
 const moKeywordMeta = moSearchSheet && (moSearchSheet.resolvedProps || moSearchSheet.props || {}).keywordMeta;
-console.assert(
+assert.ok(
   moKeywordMeta && moKeywordMeta.fields && moKeywordMeta.fields.includes('projectName'),
   'SearchSheet keywordMeta.fields from views.list.search.keyword',
 );
-console.assert(
+assert.ok(
   mo.features.keywordFieldList && mo.features.keywordFieldList.includes('projectName'),
   'features.keywordFieldList baked for mobile page data',
 );
 const moStatusField = moSearchSheet && (moSearchSheet.resolvedProps || moSearchSheet.props || {}).searchFieldList
   && moSearchSheet.resolvedProps.searchFieldList.find(f => f && f.key === 'status');
-console.assert(
+assert.ok(
   moStatusField && moStatusField.options && moStatusField.options.__expr__ === 'constantObj.projectStatus',
   'SearchSheet status.options → __expr__',
 );
 
 const moCreateNode = mo.actionContent.find(n => n && n.key === 'create');
 const moUpdateNode = mo.actionContent.find(n => n && n.key === 'update');
-console.assert(moCreateNode && moCreateNode.component === 'FormSheet', 'mobile actionContent create is FormSheet');
+assert.ok(moCreateNode && moCreateNode.component === 'FormSheet', 'mobile actionContent create is FormSheet');
 const moCreateProps = (moCreateNode && (moCreateNode.resolvedProps || moCreateNode.props)) || {};
-console.assert(
+assert.ok(
   moCreateProps.headActionList && moCreateProps.headActionList[0] && moCreateProps.headActionList[0].uiAction === 'create',
   'mobile FormSheet create.actions → headActionList',
 );
-console.assert(!moCreateProps.actionList, 'mobile FormSheet create has no bottom actionList');
-console.assert(moCreateProps.autoHeight === true, 'mobile FormSheet create default autoHeight');
-console.assert(moCreateProps.viewportOffset === 102, 'mobile FormSheet create default viewportOffset 102');
-console.assert(moCreateProps.beforeCloseConfirm === true, 'mobile FormSheet create beforeCloseConfirm');
-console.assert(moCreateProps.persistent === true, 'mobile FormSheet beforeCloseConfirm → persistent');
-console.assert(moSearchSheet, 'mobile SearchSheet exists');
-console.assert(
+assert.ok(!moCreateProps.actionList, 'mobile FormSheet create has no bottom actionList');
+assert.ok(moCreateProps.autoHeight === true, 'mobile FormSheet create default autoHeight');
+assert.ok(moCreateProps.viewportOffset === 102, 'mobile FormSheet create default viewportOffset 102');
+assert.ok(moCreateProps.beforeCloseConfirm === true, 'mobile FormSheet create beforeCloseConfirm');
+assert.ok(moCreateProps.persistent === true, 'mobile FormSheet beforeCloseConfirm → persistent');
+assert.ok(moSearchSheet, 'mobile SearchSheet exists');
+assert.ok(
   (moSearchSheet.resolvedProps || moSearchSheet.props || {}).maxBodyHeight === '70vh',
   'SearchSheet default maxBodyHeight 70vh',
 );
@@ -469,36 +485,36 @@ const sheetOverrideDesk = Object.assign({}, desk, {
 const { standardConfig: moSheetOverride } = v.buildPage(sheetOverrideDesk);
 const overrideSearchSheet = moSheetOverride.actionContent.find(n => n && n.component === 'SearchSheet');
 const overrideSheetProps = (overrideSearchSheet && (overrideSearchSheet.resolvedProps || overrideSearchSheet.props)) || {};
-console.assert(
+assert.ok(
   overrideSheetProps.maxBodyHeight === '50vh' && overrideSheetProps.persistent === true,
   'views.list.searchSheet merges overlay props',
 );
-console.assert(moUpdateNode && moUpdateNode.component === 'FormSheet', 'mobile actionContent update is FormSheet');
+assert.ok(moUpdateNode && moUpdateNode.component === 'FormSheet', 'mobile actionContent update is FormSheet');
 const pcCreateNode = pc.actionContent.find(n => n && n.key === 'create');
-console.assert(pcCreateNode && pcCreateNode.component === 'CreateDrawer', 'pc actionContent create is CreateDrawer');
+assert.ok(pcCreateNode && pcCreateNode.component === 'CreateDrawer', 'pc actionContent create is CreateDrawer');
 const pcCreateProps = (pcCreateNode && (pcCreateNode.resolvedProps || pcCreateNode.props)) || {};
-console.assert(!pcCreateProps.autoHeight, 'pc CreateDrawer has no sheet overlay props');
-console.assert(
+assert.ok(!pcCreateProps.autoHeight, 'pc CreateDrawer has no sheet overlay props');
+assert.ok(
   pcCreateProps.actionList && pcCreateProps.actionList[0] && pcCreateProps.actionList[0].uiAction === 'create',
   'pc CreateDrawer create.actions → actionList',
 );
-console.assert(!pcCreateProps.headActionList, 'pc CreateDrawer create has no headActionList');
+assert.ok(!pcCreateProps.headActionList, 'pc CreateDrawer create has no headActionList');
 const moUpdateProps = (moUpdateNode && (moUpdateNode.resolvedProps || moUpdateNode.props)) || {};
-console.assert(moUpdateProps.viewportOffset === 152, 'mobile FormSheet update tabs viewportOffset 152');
+assert.ok(moUpdateProps.viewportOffset === 152, 'mobile FormSheet update tabs viewportOffset 152');
 const moBasicTab = moUpdateProps.tabList && moUpdateProps.tabList.find(t => t.key === 'basicInfo');
-console.assert(
+assert.ok(
   moBasicTab && moBasicTab.headActionList && moBasicTab.headActionList[0] && moBasicTab.headActionList[0].uiAction === 'update',
   'mobile FormSheet update tab.actions → headActionList',
 );
-console.assert(!moBasicTab || !moBasicTab.actionList, 'mobile FormSheet update tab has no actionList');
+assert.ok(!moBasicTab || !moBasicTab.actionList, 'mobile FormSheet update tab has no actionList');
 const pcUpdateProps = updateDrawerProps;
 const pcBasicTab = pcUpdateProps.tabList && pcUpdateProps.tabList.find(t => t.key === 'basicInfo');
-console.assert(
+assert.ok(
   pcBasicTab && pcBasicTab.actionList && pcBasicTab.actionList[0] && pcBasicTab.actionList[0].uiAction === 'update',
   'pc UpdateDrawer update tab.actions → actionList',
 );
-console.assert(!pcBasicTab || !pcBasicTab.headActionList, 'pc UpdateDrawer update tab has no headActionList');
-console.assert(mo.v7Meta.listColumnsSource === 'mobileColumns', 'mobile uses mobileColumns when set');
+assert.ok(!pcBasicTab || !pcBasicTab.headActionList, 'pc UpdateDrawer update tab has no headActionList');
+assert.ok(mo.v7Meta.listColumnsSource === 'mobileColumns', 'mobile uses mobileColumns when set');
 const moListNode = (() => {
   const walk = nodes => {
     for (const n of nodes || []) {
@@ -512,17 +528,17 @@ const moListNode = (() => {
   };
   return walk(mo.pageContent);
 })();
-console.assert(moListNode, 'mobile List node exists');
+assert.ok(moListNode, 'mobile List node exists');
 const moListProps = moListNode.props || moListNode.resolvedProps || {};
-console.assert(!moListProps.headActionList && !moListProps.toolbarActionList, 'mobile List has no toolbar in list body');
+assert.ok(!moListProps.headActionList && !moListProps.toolbarActionList, 'mobile List has no toolbar in list body');
 const moHeaderHStack = mo.pageContent[0] && mo.pageContent[0].children && mo.pageContent[0].children[0];
-console.assert(moHeaderHStack && moHeaderHStack.component === 'HStack', 'mobile pageHeader is HStack');
+assert.ok(moHeaderHStack && moHeaderHStack.component === 'HStack', 'mobile pageHeader is HStack');
 const moToolbarNode = moHeaderHStack.children && moHeaderHStack.children.find(
   c => c && (c.component === 'MobileActions' || c.component === 'HeadToolbarActions' || c.component === 'MobileToolbarActions'),
 );
-console.assert(moToolbarNode, 'toolbarActions in header HStack');
+assert.ok(moToolbarNode, 'toolbarActions in header HStack');
 const moToolbarProps = (moToolbarNode && (moToolbarNode.props || moToolbarNode.resolvedProps)) || {};
-console.assert(
+assert.ok(
   moToolbarProps.actionList && moToolbarProps.actionList[0] && moToolbarProps.actionList[0].uiAction === 'create',
   'first toolbar action mapped',
 );
@@ -530,7 +546,7 @@ const moFilterIdx = moHeaderHStack.children.findIndex(c => c && c.component === 
 const moToolbarIdx = moHeaderHStack.children.findIndex(
   c => c && (c.component === 'MobileActions' || c.component === 'HeadToolbarActions' || c.component === 'MobileToolbarActions'),
 );
-console.assert(moToolbarIdx >= 0 && moFilterIdx >= 0 && moFilterIdx < moToolbarIdx, 'mobile override: searchBtn left of toolbarActions');
+assert.ok(moToolbarIdx >= 0 && moFilterIdx >= 0 && moFilterIdx < moToolbarIdx, 'mobile override: searchBtn left of toolbarActions');
 
 // blocks 细粒度：toolbarActions / searchBtn / composeToolbar
 let blockSnapshot = null;
@@ -545,12 +561,12 @@ expandCrudPage(Object.assign({}, desk, {
     };
   },
 }));
-console.assert(blockSnapshot && blockSnapshot.toolbarActions && blockSnapshot.toolbarActions.component === 'MobileActions', 'blocks.toolbarActions node');
-console.assert(blockSnapshot && blockSnapshot.searchBtn && blockSnapshot.searchBtn.component === 'MobileFilterBtn', 'blocks.searchBtn node');
-console.assert(blockSnapshot && typeof blockSnapshot.composeToolbar === 'function', 'blocks.composeToolbar helper');
-console.assert(blockSnapshot && blockSnapshot.filterBtn === blockSnapshot.searchBtn, 'filterBtn alias searchBtn');
-console.assert(blockSnapshot && blockSnapshot.spacer && blockSnapshot.spacer.component === 'VSpacer', 'blocks.spacer VSpacer');
-console.assert(blockSnapshot && blockSnapshot.toolbarSpacer === blockSnapshot.spacer, 'toolbarSpacer same as blocks.spacer');
+assert.ok(blockSnapshot && blockSnapshot.toolbarActions && blockSnapshot.toolbarActions.component === 'MobileActions', 'blocks.toolbarActions node');
+assert.ok(blockSnapshot && blockSnapshot.searchBtn && blockSnapshot.searchBtn.component === 'MobileFilterBtn', 'blocks.searchBtn node');
+assert.ok(blockSnapshot && typeof blockSnapshot.composeToolbar === 'function', 'blocks.composeToolbar helper');
+assert.ok(blockSnapshot && blockSnapshot.filterBtn === blockSnapshot.searchBtn, 'filterBtn alias searchBtn');
+assert.ok(blockSnapshot && blockSnapshot.spacer && blockSnapshot.spacer.component === 'VSpacer', 'blocks.spacer VSpacer');
+assert.ok(blockSnapshot && blockSnapshot.toolbarSpacer === blockSnapshot.spacer, 'toolbarSpacer same as blocks.spacer');
 
 const moComposeLayout = v.buildPage(Object.assign({}, desk, {
   targetPlatform: 'mobile',
@@ -577,19 +593,19 @@ const readNodeClass = n => {
 };
 const moToolbarCls = readNodeClass(moComposeToolbar);
 const moListCls = readNodeClass(moComposeList);
-console.assert(moComposeToolbar && moComposeToolbar.component === 'HStack', 'composeToolbar → HStack');
+assert.ok(moComposeToolbar && moComposeToolbar.component === 'HStack', 'composeToolbar → HStack');
 const moComposeToolbarProps = (moComposeToolbar && (moComposeToolbar.props || moComposeToolbar.resolvedProps)) || {};
-console.assert(moComposeToolbarProps.wrap === true, 'composeToolbar default wrap:true for flex-wrap');
-console.assert(!/\bflex-1\b/.test(moToolbarCls), 'toolbar HStack must not have flex-1');
-console.assert(/\bflex-none\b/.test(moToolbarCls), 'toolbar HStack flex-none');
-console.assert(/\bflex-1\b/.test(moListCls), 'List body keeps flex-1');
+assert.ok(moComposeToolbarProps.wrap === true, 'composeToolbar default wrap:true for flex-wrap');
+assert.ok(!/\bflex-1\b/.test(moToolbarCls), 'toolbar HStack must not have flex-1');
+assert.ok(/\bflex-none\b/.test(moToolbarCls), 'toolbar HStack flex-none');
+assert.ok(/\bflex-1\b/.test(moListCls), 'List body keeps flex-1');
 
 const moHeaders = moListProps.headers || [];
-console.assert(moHeaders[0] && moHeaders[0].value === 'projectName' && moHeaders[0].isTitle === true, 'mobileColumns[0] → title');
-console.assert(moHeaders.some(h => h.value === 'status'), 'mobileColumns includes status');
-console.assert(moListProps.cols === 2, 'default layout.list.cols → List.props.cols');
-console.assert(mo.v7Meta.componentTokens.list === 'List', 'default platform mobile list');
-console.assert(!moHeaders.some(h => h.value === 'projectId'), 'mobileColumns omits projectId');
+assert.ok(moHeaders[0] && moHeaders[0].value === 'projectName' && moHeaders[0].isTitle === true, 'mobileColumns[0] → title');
+assert.ok(moHeaders.some(h => h.value === 'status'), 'mobileColumns includes status');
+assert.ok(moListProps.cols === 2, 'default layout.list.cols → List.props.cols');
+assert.ok(mo.v7Meta.componentTokens.list === 'List', 'default platform mobile list');
+assert.ok(!moHeaders.some(h => h.value === 'projectId'), 'mobileColumns omits projectId');
 const pcListHeaders = (() => {
   const walk = nodes => {
     for (const n of nodes || []) {
@@ -603,33 +619,33 @@ const pcListHeaders = (() => {
   };
   return walk(pc.pageContent);
 })();
-console.assert(pcListHeaders && pcListHeaders[0].value === 'projectId', 'pc columns unchanged');
-console.assert(pcListHeaders[0].width === 200, 'fields.width → pc headers.width');
-console.assert(pcListHeaders[0].align === 'center', 'fields.align → pc headers.align');
-console.assert(pcListHeaders[0].class === 'fixed', 'fields.class → pc headers.class');
-console.assert(pcListHeaders[0].cellClass === 'fixed', 'fields.cellClass → pc headers.cellClass');
-console.assert(mo.features.hasMobileSearch === true, 'explicit SearchSheet → feature flag');
+assert.ok(pcListHeaders && pcListHeaders[0].value === 'projectId', 'pc columns unchanged');
+assert.ok(pcListHeaders[0].width === 200, 'fields.width → pc headers.width');
+assert.ok(pcListHeaders[0].align === 'center', 'fields.align → pc headers.align');
+assert.ok(pcListHeaders[0].class === 'fixed', 'fields.class → pc headers.class');
+assert.ok(pcListHeaders[0].cellClass === 'fixed', 'fields.cellClass → pc headers.cellClass');
+assert.ok(mo.features.hasMobileSearch === true, 'explicit SearchSheet → feature flag');
 const moPc = JSON.stringify(mo.pageContent);
-console.assert(!moPc.includes('"component": "MobileSearch"'), 'no MobileSearch relay node');
-console.assert(moPc.includes('jh-mobile-filter-btn'), 'mobile filter btn HTML');
-console.assert(mo.actionContent.some(n => n && n.component === 'SearchSheet'), 'SearchSheet in actionContent');
+assert.ok(!moPc.includes('"component": "MobileSearch"'), 'no MobileSearch relay node');
+assert.ok(moPc.includes('jh-mobile-filter-btn'), 'mobile filter btn HTML');
+assert.ok(mo.actionContent.some(n => n && n.component === 'SearchSheet'), 'SearchSheet in actionContent');
 
 // Req 8b: mobile 默认 create FormSheet，字段 span=cols（满行）
 const moCreateForm = mo.actionContent.find(n => n && n.component === 'FormSheet' && n.key === 'create');
-console.assert(moCreateForm, 'default mobile create FormSheet');
+assert.ok(moCreateForm, 'default mobile create FormSheet');
 const moCreateFormProps = moCreateForm.resolvedProps || moCreateForm.props || {};
 const moProjectName = moCreateFormProps.fieldList && moCreateFormProps.fieldList.find(f => f.key === 'projectName');
-console.assert(moProjectName && moProjectName.span === 3, 'default mobile create: projectName span=cols(3)');
-console.assert(moCreateFormProps.cols === 3, 'default mobile create cols=3');
-console.assert(moCreateFormProps.labelMode === 'inline', 'mobile FormSheet labelMode inline');
-console.assert(moCreateForm._meta && moCreateForm._meta.needsItemState === true, 'FormSheet needsItemState');
+assert.ok(moProjectName && moProjectName.span === 3, 'default mobile create: projectName span=cols(3)');
+assert.ok(moCreateFormProps.cols === 3, 'default mobile create cols=3');
+assert.ok(moCreateFormProps.labelMode === 'inline', 'mobile FormSheet labelMode inline');
+assert.ok(moCreateForm._meta && moCreateForm._meta.needsItemState === true, 'FormSheet needsItemState');
 const moCreateBindings = moCreateForm.resolvedBindings || {};
-console.assert(moCreateBindings[':initialData'] === 'createItem', 'FormSheet binds createItem');
+assert.ok(moCreateBindings[':initialData'] === 'createItem', 'FormSheet binds createItem');
 
 // Req 8c: Sheet / FormSheet 绑定 initialData 时，页面须生成 {key}Item
 const moMoreSheet = mo.actionContent.find(n => n && n.component === 'Sheet');
 if (moMoreSheet) {
-  console.assert(moMoreSheet._meta && moMoreSheet._meta.needsItemState === true, 'Sheet needsItemState when initialData bound');
+  assert.ok(moMoreSheet._meta && moMoreSheet._meta.needsItemState === true, 'Sheet needsItemState when initialData bound');
 }
 
 // slots.list.mobile.children → jh-list 开闭标签内含 body 插槽
@@ -645,8 +661,8 @@ const moRawIr = expandCrudPage(Object.assign({}, desk, {
   },
 }));
 const moRawList = moRawIr.pageContent.children.find(n => n && n.component === 'List');
-console.assert(moRawList && Array.isArray(moRawList.children) && moRawList.children.length, 'mobile List has slot children');
-console.assert(String(moRawList.children[0]).includes('slot-body-test'), 'mobile body slot html preserved');
+assert.ok(moRawList && Array.isArray(moRawList.children) && moRawList.children.length, 'mobile List has slot children');
+assert.ok(String(moRawList.children[0]).includes('slot-body-test'), 'mobile body slot html preserved');
 
 // MobileFilterBtn：children → v-slot:active-display（jh-mobile-filter-btn 具名插槽）
 const { standardConfig: filterBtnSlotCfg } = parseSchema({
@@ -664,10 +680,10 @@ const { standardConfig: filterBtnSlotCfg } = parseSchema({
   actionContent: [],
 });
 const filterBtnSlotNode = filterBtnSlotCfg.pageContent[0];
-console.assert(filterBtnSlotNode.resolvedComponent === 'jh-mobile-filter-btn', 'MobileFilterBtn resolvedComponent');
-console.assert(filterBtnSlotNode.children && filterBtnSlotNode.children.length === 1, 'MobileFilterBtn slot children');
-console.assert(String(filterBtnSlotNode.children[0]).includes('v-slot:active-display'), 'active-display slot name');
-console.assert(String(filterBtnSlotNode.children[0]).includes('badge-test'), 'active-display slot html');
+assert.ok(filterBtnSlotNode.resolvedComponent === 'jh-mobile-filter-btn', 'MobileFilterBtn resolvedComponent');
+assert.ok(filterBtnSlotNode.children && filterBtnSlotNode.children.length === 1, 'MobileFilterBtn slot children');
+assert.ok(String(filterBtnSlotNode.children[0]).includes('v-slot:active-display'), 'active-display slot name');
+assert.ok(String(filterBtnSlotNode.children[0]).includes('badge-test'), 'active-display slot html');
 
 // ─── layout regions ───────────────────────────────────────────────────────────
 const layoutSemantic = Object.assign({}, desk, {
@@ -683,8 +699,8 @@ const layoutSemantic = Object.assign({}, desk, {
   },
 });
 const { standardConfig: lx } = v.buildPage(layoutSemantic);
-console.assert(JSON.stringify(lx.pageContent).includes('jh-hstack'), 'layout uses HStack');
-console.assert(JSON.stringify(lx.pageContent).includes('treePanel'), 'tree region key');
+assert.ok(JSON.stringify(lx.pageContent).includes('jh-hstack'), 'layout uses HStack');
+assert.ok(JSON.stringify(lx.pageContent).includes('treePanel'), 'tree region key');
 
 // ─── includeList 分端（target）────────────────────────────────────────────────
 const includeSemantic = Object.assign({}, desk, {
@@ -697,28 +713,28 @@ const includeSemantic = Object.assign({}, desk, {
 });
 const pcInc = v.buildPage(Object.assign({}, includeSemantic, { targetPlatform: 'pc' })).standardConfig.includeList;
 const moInc = v.buildPage(Object.assign({}, includeSemantic, { targetPlatform: 'mobile' })).standardConfig.includeList;
-console.assert(pcInc.length === 3 && pcInc.every(i => !i.target), 'pc includeList: common+pc+both, no target field');
-console.assert(pcInc.some(i => i.path === 'pc-only/b.html'), 'pc gets pc-only item');
-console.assert(!pcInc.some(i => i.path === 'mobile-only/c.html'), 'pc excludes mobile-only');
-console.assert(moInc.length === 3 && moInc.every(i => !i.target), 'mobile includeList filtered');
-console.assert(moInc.some(i => i.path === 'mobile-only/c.html'), 'mobile gets mobile-only item');
-console.assert(!moInc.some(i => i.path === 'pc-only/b.html'), 'mobile excludes pc-only');
+assert.ok(pcInc.length === 3 && pcInc.every(i => !i.target), 'pc includeList: common+pc+both, no target field');
+assert.ok(pcInc.some(i => i.path === 'pc-only/b.html'), 'pc gets pc-only item');
+assert.ok(!pcInc.some(i => i.path === 'mobile-only/c.html'), 'pc excludes mobile-only');
+assert.ok(moInc.length === 3 && moInc.every(i => !i.target), 'mobile includeList filtered');
+assert.ok(moInc.some(i => i.path === 'mobile-only/c.html'), 'mobile gets mobile-only item');
+assert.ok(!moInc.some(i => i.path === 'pc-only/b.html'), 'mobile excludes pc-only');
 
 // ─── jh-component + mode ─────────────────────────────────────────────────────
 const taskSubTable = require('./taskSubTable.v7.component.crud.sample');
 const summaryCard = require('./projectSummaryCard.v7.component.ui.sample');
 const compCrud = v.buildPage(taskSubTable);
-console.assert(compCrud.standardConfig.v7Meta.mode === 'crud', 'component crud mode');
-console.assert(compCrud.standardConfig.pageType === undefined || compCrud.standardConfig.page.componentPath, 'component path in standardConfig');
-console.assert(compCrud.legacyConfig.pageType === 'jh-component', 'legacy pageType jh-component');
-console.assert(!compCrud.legacyConfig.pageId, 'component legacy no pageId');
-console.assert(compCrud.legacyConfig.resourceList.length === 0, 'component no resourceList');
+assert.ok(compCrud.standardConfig.v7Meta.mode === 'crud', 'component crud mode');
+assert.ok(compCrud.standardConfig.pageType === undefined || compCrud.standardConfig.page.componentPath, 'component path in standardConfig');
+assert.ok(compCrud.legacyConfig.pageType === 'jh-component', 'legacy pageType jh-component');
+assert.ok(!compCrud.legacyConfig.pageId, 'component legacy no pageId');
+assert.ok(compCrud.legacyConfig.resourceList.length === 0, 'component no resourceList');
 const compUi = v.buildPage(summaryCard);
-console.assert(compUi.standardConfig.v7Meta.mode === 'ui', 'component ui mode');
-console.assert(compUi.standardConfig.pageContent[0].component === 'VStack', 'ui component pageContent');
+assert.ok(compUi.standardConfig.v7Meta.mode === 'ui', 'component ui mode');
+assert.ok(compUi.standardConfig.pageContent[0].component === 'VStack', 'ui component pageContent');
 const uiRootClass = compUi.standardConfig.pageContent[0].resolvedAttrs && compUi.standardConfig.pageContent[0].resolvedAttrs.class;
-console.assert(!uiRootClass || !/\bh-full\b/.test(uiRootClass), 'ui jh-component VStack no h-full');
+assert.ok(!uiRootClass || !/\bh-full\b/.test(uiRootClass), 'ui jh-component VStack no h-full');
 const crudRootClass = compCrud.standardConfig.pageContent[0].resolvedAttrs && compCrud.standardConfig.pageContent[0].resolvedAttrs.class;
-console.assert(crudRootClass && /\bh-full\b/.test(crudRootClass), 'crud jh-component with Table keeps h-full on VStack');
+assert.ok(crudRootClass && /\bh-full\b/.test(crudRootClass), 'crud jh-component with Table keeps h-full on VStack');
 
 console.log('v7 platform/layout smoke ok');

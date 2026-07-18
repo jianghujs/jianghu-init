@@ -4,11 +4,13 @@
  * V7 runtime schema pipeline — fork of legacy `lib/json/v6/parse_schema.js`.
  *
  * 本文件职责（映射文档 § 流水线第 3 步）：
- *   - COMPONENT_MAP：节点 component → resolvedComponent（jh-* 标签）
- *   - 节点 props → resolvedProps（静态，写入模板）
- *   - REACTIVE_BINDINGS_MAP + BINDINGS_MAP：→ resolvedBindings（页面 Vue data，非 props）
+ *   - COMPONENT_DESCRIPTORS（componentDescriptors.js）：每种组件的完整转换规则
+ *   - resolveNode：通用驱动器，读描述符规则，不再包含组件名 if/else
+ *   - parseSchema：组装 standardConfig / legacyConfig
  *
- * 例 CreateDrawer：props.fieldList 来自 views.create；v-model→isCreateDrawerShown 由本文件注入。
+ * 组件规则修改、key 重命名、兼容处理：→ componentDescriptors.js
+ * 规则应用逻辑：→ descriptorRuleApplicators.js
+ *
  * 详见：lib/json/v7/docs/semantic-to-component-mapping.md
  */
 
@@ -22,143 +24,45 @@ const {
 const { detectHasDelete } = require('../../../shared/detectCrudActionFeatures');
 const { normalizePageContentToArray } = require('../semantic/pageContentShape');
 const { resolveSchemaComponentName } = require('../../../shared/schemaComponentAlias');
+const { applyPropBindOverrides } = require('../../../shared/applyPropBind');
 const { markActionListConditions } = require('../../whenExpr');
-// ─────────────────────────────────────────────
-// Component 注册表：schema component 名 → Vue 组件标签名
-// 命名规则：Schema 名 = Vue tag 去掉 jh- 前缀后做 PascalCase 转换，无额外后缀
-// 新增组件只需在此加一行，NJK 不需要修改
-// ─────────────────────────────────────────────
-/**
- * Schema component → Vue 标签（jh-*）。
- *
- * 下列名刻意不入表：仅在 parseSchema 前期由 liftMobileRelaysFromPageContent 消费，
- * 转换为「v-btn 字符串 + actionContent 里的 Sheet | FormSheet | SearchSheet」（Vue：`jh-sheet` | `jh-form-sheet` | `jh-mobile-search-sheet`），不会再走 resolveNode：
- *   MobileOrder、MobileFilter、MobileAction
- * MobileSearch → actionContent 中为 SearchSheet（走 resolveNode）
- */
-/** Schema 组件名 → Vue 标签（与 semantic-mapping.js SCHEMA_TO_VUE_TAG 同步） */
-const COMPONENT_MAP = {
-  // 布局 Primitive：VStack → jh-vstack，其余同理
-  VStack:          'jh-vstack',
-  HStack:          'jh-hstack',
-  Box:             'jh-box',
-  Grid:            'jh-grid',
-  // 业务组件（pageContent）
-  PageHeader:      'jh-page-header',
-  PageTitle:       'jh-page-title',
-  Search:          'jh-search',
-  Table:           'jh-table',
-  List:            'jh-list',
-  // 业务组件（actionContent）
-  CreateDrawer:    'jh-create-drawer',
-  UpdateDrawer:    'jh-update-drawer',
-  // Drawer      ：纯容器壳，用 children 写插槽内容（向下兼容原有用法）
-  // FormDrawer  ：tabList/fieldList 配置式通用表单抽屉（无 inject 依赖）
-  Drawer:          'jh-drawer',
-  FormDrawer:      'jh-form-drawer',
-  // Sheet 族（对标 Drawer 族）：jh-sheet ≈ jh-drawer；jh-form-sheet ≈ jh-form-drawer
-  Sheet:     'jh-sheet',
-  FormSheet: 'jh-form-sheet',
-  // platform token（手写 actionContent 时与 expandCrudPage 选型一致）
-  CreateSheet: 'jh-form-sheet',
-  UpdateSheet: 'jh-form-sheet',
-  SearchSheet: 'jh-mobile-search-sheet',
-  MobileFilterBtn: 'jh-mobile-filter-btn',
-  MobileActions: 'jh-mobile-actions',
-  HeadToolbarActions: 'jh-mobile-actions',
-  MobileToolbarActions: 'jh-mobile-actions',
-};
+const {
+  resolveDescriptor,
+  COMPONENT_DESCRIPTORS,
+  COMPONENT_TAG_MAP,
+} = require('./componentDescriptors');
+const {
+  applyPropPreprocess,
+  applyPropPostprocess,
+  applyExprMarking,
+  buildResolvedBindings,
+  buildChildren: buildChildrenFromDesc,
+} = require('./descriptorRuleApplicators');
 
 // ─────────────────────────────────────────────
-// 响应式绑定注册表：每种业务 Block 需要绑定的 Vue 响应式变量
-// key   = Vue prop/directive 名（含冒号或 v-xxx 前缀）
-// value = 父组件 Vue data/computed 变量名（字符串，原样输出到模板）
-// NJK 直接把这些当作 `:prop="varName"` 输出，不需要做任何判断
+// COMPONENT_MAP 保持原有公开导出；运行时映射、固定绑定和布局默认值均由 descriptors 派生。
 // ─────────────────────────────────────────────
-/**
- * 节点 props 之外的「页面级绑定」：由 NJK 生成到标签上，变量在 jh-page-v7.njk data 中定义
- *
- * | 组件 | 绑定 | 页面变量来源 |
- * | Table/List | :items, :options.sync | tableDataComputed, tableOptions |
- * | CreateDrawer | v-model, :initialData | isCreateDrawerShown, createItem（key=create） |
- * | UpdateDrawer | 同上 | isUpdateDrawerShown, updateItem |
- * | FormSheet key=create|update | :shown.sync, :initialData | 同上，按 key 前缀 |
- * | Search / SearchSheet | @search | handleSearch → tableParams |
- */
-const REACTIVE_BINDINGS_MAP = {
-  // 布局 Primitive：无需响应式绑定
-  VStack:  {},
-  HStack:  {},
-  Box:     {},
-  Grid:    {},
-  // PageHeader：@search 事件由 handleSearch 统一处理（更新搜索状态并触发 getTableData）
-  // PageHeader（向下兼容）
-  PageHeader: {
-    ':keyword.sync':          'keyword',
-    ':keywordFieldList.sync': 'keywordFieldList',
-    '@search':                'handleSearch',
-  },
-  // PageTitle：纯展示，无响应式绑定
-  PageTitle: {},
-  // Search：统一搜索组件
-  Search: {
-    '@search':                'handleSearch',
-  },
-  // Table：静态配置通过 resolvedProps，响应式数据单独绑定
-  Table: {
-    ':items':                'tableDataComputed',
-    ':loading':              'isTableLoading',
-    ':options.sync':         'tableOptions',
-    ':tableSelected.sync':   'tableSelected',
-    '@action':               'doUiAction',
-  },
-  // List：与 Table 复用同一套响应式数据与 action 分发
-  List: {
-    ':items':                'tableDataComputed',
-    ':loading':              'isTableLoading',
-    ':options.sync':         'tableOptions',
-    ':tableSelected.sync':   'tableSelected',
-    '@action':               'doUiAction',
-  },
-  // Sheet / FormSheet：由 BINDINGS_MAP 按 key 动态生成；SearchSheet 同 Sheet 的 shown + PageHeader 风格 keyword
-  Sheet:     {},
-  FormSheet: {},
-  SearchSheet: {
-    ':keyword.sync':          'keyword',
-    ':keywordFieldList.sync': 'keywordFieldList',
-    '@search':                'handleSearch',
-  },
-  MobileActions: {
-    '@action':                'doUiAction',
-  },
-  HeadToolbarActions: {
-    '@action':                'doUiAction',
-  },
-  MobileToolbarActions: {
-    '@action':                'doUiAction',
-  },
-  // 抽屉类：v-model 控制显隐，initialData 绑定当前编辑项，事件写回与触发
-  CreateDrawer: {
-    'v-model':              'isCreateDrawerShown',
-    ':initialData':         'createItem',
-    '@field-change':        '(val) => { createItem[val.key] = val.value }',
-    '@action':              'doUiAction',
-  },
-  UpdateDrawer: {
-    'v-model':              'isUpdateDrawerShown',
-    ':initialData':         'updateItem',
-    '@field-change':        '(val) => { updateItem[val.key] = val.value }',
-    '@action':              'doUiAction',
-  },
-};
 
-// 布局 Primitive 各自的默认 props
-const LAYOUT_DEFAULTS = {
-  VStack: { gap: 0, align: 'stretch', justify: 'start' },
-  HStack: { gap: 0, align: 'center',  justify: 'start', wrap: false },
-  Box:    { padding: '', margin: '', width: '100%' },
-  Grid:   { cols: 1, gap: 0 },
-};
+const COMPONENT_MAP = { ...COMPONENT_TAG_MAP };
+
+// REACTIVE_BINDINGS_MAP 仅保留固定绑定（无 key 依赖的），供外部兼容引用
+const REACTIVE_BINDINGS_MAP = (() => {
+  const map = {};
+  for (const [name, desc] of Object.entries(COMPONENT_DESCRIPTORS)) {
+    if (desc.aliasOf) continue;
+    map[name] = desc.bindings ? { ...desc.bindings } : {};
+  }
+  return map;
+})();
+
+// LAYOUT_DEFAULTS 仍从 descriptors 派生
+const LAYOUT_DEFAULTS = (() => {
+  const map = {};
+  for (const [name, desc] of Object.entries(COMPONENT_DESCRIPTORS)) {
+    if (desc.defaultProps) map[name] = desc.defaultProps;
+  }
+  return map;
+})();
 
 // ─────────────────────────────────────────────
 // 工具函数
@@ -217,14 +121,7 @@ function resolveAttrsObject(schema, raw) {
   return resolved;
 }
 
-/** 旧版 props.cls → 并入节点 attrs.class / :class（根组件已改为仅 v-bind="$attrs"） */
-const CLS_HOIST_FROM_PROPS_COMPONENTS = new Set([
-  'VStack',
-  'HStack',
-  'Box',
-  'Grid',
-  'Table',
-]);
+/** 旧版 props.cls → 并入节点 attrs.class / :class（由 desc.hoistCls 标记的组件触发） */
 
 function mergeHoistedClsIntoAttrs(resolvedAttrs, clsVal) {
   if (clsVal === undefined || clsVal === null || clsVal === '') return;
@@ -249,31 +146,10 @@ function mergeHoistedClsIntoAttrs(resolvedAttrs, clsVal) {
 }
 
 function hoistPropsClsIntoAttrs(component, resolvedProps, resolvedAttrs) {
-  if (!CLS_HOIST_FROM_PROPS_COMPONENTS.has(component)) return;
   if (!Object.prototype.hasOwnProperty.call(resolvedProps, 'cls')) return;
   mergeHoistedClsIntoAttrs(resolvedAttrs, resolvedProps.cls);
   delete resolvedProps.cls;
 }
-
-/**
- * 递归处理节点树：给每个节点补全 resolvedComponent / resolvedProps / resolvedBindings
- * - resolvedComponent：Vue 组件标签名（kebab-case，含 jh- 前缀）
- * - resolvedProps：静态配置 props（JSON 可序列化，绑定为 :prop="JSON"）
- * - resolvedBindings：响应式变量绑定（原样输出为 :prop="varName" 或 v-model="varName"）
- * - resolvedAttrs：根标签 HTML / Vue 属性（class、:class、v-if 等，见 jh-page-v6 renderAttrs）
- * - 兼容：布局 VStack/HStack/Box/Grid 与 Table 的 props.cls（旧约定）并入 resolvedAttrs 后从 props 移除
- *
- * Table.props.slotTemplates | List.props.slotTemplates：生成 <template v-slot:name>...</template> 子节点（见 TABLE_SLOT_NAME_RE）
- * Table.props.headersBinding（推荐）或 columnsBinding：生成 :headers="变量名"，并忽略静态列数组
- * Table.props.headers / columns（数组键名）：每项须为 Vuetify 2 headers 形状 { text, value, ... }
- */
-const TABLE_SLOT_NAME_RE = /^[A-Za-z0-9_-]+$/;
-
-const listSlotScopeAttr = slotName => {
-  if (slotName === 'action' || slotName === 'body') return '="{ item }"';
-  if (slotName.startsWith('cell-')) return '="{ item, header }"';
-  return '';
-};
 
 function tableNodeHasColumnConfig(props) {
   if (!props || typeof props !== 'object') return false;
@@ -286,227 +162,74 @@ function tableNodeHasColumnConfig(props) {
   return false;
 }
 
+// List 插槽 scope 属性（传给 descriptorRuleApplicators.buildChildren）
+const listSlotScopeAttr = slotName => {
+  if (slotName === 'action' || slotName === 'body') return '="{ item }"';
+  if (slotName.startsWith('cell-')) return '="{ item, header }"';
+  return '';
+};
+
+/**
+ * 递归处理节点树：给每个节点补全 resolvedComponent / resolvedProps / resolvedBindings
+ * resolveNode 现为通用描述符驱动器，不含组件名 if/else。
+ * 组件规则见 componentDescriptors.js；规则应用逻辑见 descriptorRuleApplicators.js。
+ */
+
+// 字符串 options / rules → { __expr__: '...' }，序列化时不加引号，Vue 当作表达式变量引用
+function markFieldItemExpr(f) {
+  if (!f || typeof f !== 'object') return f;
+  const out = { ...f };
+  if (typeof f.options === 'string' && f.options) out.options = { __expr__: f.options };
+  if (typeof f.rules === 'string' && f.rules)     out.rules   = { __expr__: f.rules };
+  return out;
+}
+
 function resolveNode(schema, node) {
   if (!node || typeof node !== 'object') return node;
 
   const component = resolveSchemaComponentName(node);
   const key = node.key || '';
-  const resolvedComponent = COMPONENT_MAP[component] || component;
 
-  const rawProps =
-    node.props && typeof node.props === 'object' ? { ...node.props } : {};
+  // ── 解析描述符（含 aliasOf）
+  const { desc, resolvedTag } = resolveDescriptor(component);
+  const resolvedComponent = resolvedTag || COMPONENT_MAP[component] || component;
+
+  // ── 准备 rawProps（浅拷贝，后续原地修改）
+  const rawProps = node.props && typeof node.props === 'object' ? { ...node.props } : {};
+
+  // ── 提前取出 slotTemplates（Table/List 专用），preprocess 会删掉它
   const componentSlotTemplates =
-    (component === 'Table' || component === 'List') && rawProps.slotTemplates
+    (desc && desc.slotTemplates && rawProps.slotTemplates)
       ? rawProps.slotTemplates
       : undefined;
-  let headersBinding = null;
 
-  if (component === 'Table' || component === 'List') {
-    if (rawProps.slotTemplates != null) {
-      delete rawProps.slotTemplates;
-    }
-    // v6 配置规范：headActionList → 组件实际 props：toolbarActionList
-    if (rawProps.headActionList != null) {
-      rawProps.toolbarActionList = rawProps.headActionList;
-      delete rawProps.headActionList;
-    }
-    const hb =
-      (typeof rawProps.headersBinding === 'string' && rawProps.headersBinding.trim())
-        ? rawProps.headersBinding.trim()
-        : (typeof rawProps.columnsBinding === 'string' && rawProps.columnsBinding.trim())
-          ? rawProps.columnsBinding.trim()
-          : null;
-    if (hb) {
-      headersBinding = hb;
-      delete rawProps.headersBinding;
-      delete rawProps.columnsBinding;
-      delete rawProps.headers;
-      delete rawProps.columns;
-    } else {
-      if (Array.isArray(rawProps.columns) && rawProps.headers == null) {
-        rawProps.headers = rawProps.columns;
-        delete rawProps.columns;
-      }
-    }
-  }
+  // ── 1. props 预处理（propRenames / stripProps 前置 / bindingExtractHeaders）
+  //       返回 headersBinding（Table/List 动态 headers 变量名，或 null）
+  const headersBinding = applyPropPreprocess(rawProps, desc);
 
+  // ── 2. resolveProps（xxxRef 路径展开 + 默认值注入）
   const resolvedProps = resolveProps(schema, component, rawProps);
-  if ((component === 'Table' || component === 'List') && resolvedProps.columns != null) {
-    if (resolvedProps.headers == null) {
-      resolvedProps.headers = resolvedProps.columns;
-    }
-    delete resolvedProps.columns;
-  }
-  // orderBy 仅用于页面 prepareTableParams → API，不作为 jh-table / jh-list 组件 prop
-  // pageSize 仅用于页面 tableOptions.itemsPerPage 初值（standardConfig.blocks.table），不作为组件 prop
-  if (component === 'Table' || component === 'List') {
-    delete resolvedProps.orderBy;
-    delete resolvedProps.pageSize;
-  }
 
-  // 字符串 options / rules → { __expr__: '...' }，序列化时不加引号，Vue 当作表达式变量引用。
-  const markFieldItemExpr = f => {
-    if (!f || typeof f !== 'object') return f;
-    const out = { ...f };
-    if (typeof f.options === 'string' && f.options) out.options = { __expr__: f.options };
-    if (typeof f.rules === 'string' && f.rules)     out.rules   = { __expr__: f.rules };
-    return out;
-  };
+  // ── 3. props 后处理（propRenames2 / stripProps）
+  applyPropPostprocess(resolvedProps, desc);
+
+  // ── 4. expr 标记（options/rules/visibleWhen 等加 __expr__）
   const markExprFields = fields =>
     Array.isArray(fields) ? fields.map(markFieldItemExpr) : fields;
-
   const markExprActions = markActionListConditions;
+  applyExprMarking(resolvedProps, desc, markExprFields, markExprActions);
 
-  // drawer 类：fieldList / tabList / actionList / headActionList
-  if (['CreateDrawer', 'UpdateDrawer', 'FormDrawer', 'FormSheet', 'Sheet'].includes(component)) {
-    if (Array.isArray(resolvedProps.fieldList)) {
-      resolvedProps.fieldList = markExprFields(resolvedProps.fieldList);
-    }
-    if (Array.isArray(resolvedProps.fields)) {
-      resolvedProps.fields = markExprFields(resolvedProps.fields);
-    }
-    if (Array.isArray(resolvedProps.actionList)) {
-      resolvedProps.actionList = markExprActions(resolvedProps.actionList);
-    }
-    if (Array.isArray(resolvedProps.headActionList)) {
-      resolvedProps.headActionList = markExprActions(resolvedProps.headActionList);
-    }
-    if (Array.isArray(resolvedProps.tabList)) {
-      resolvedProps.tabList = resolvedProps.tabList.map(tab => {
-        if (!tab || typeof tab !== 'object') return tab;
-        const t = { ...tab };
-        if (Array.isArray(t.fieldList)) t.fieldList = markExprFields(t.fieldList);
-        if (Array.isArray(t.fields))    t.fields    = markExprFields(t.fields);
-        if (Array.isArray(t.actionList)) t.actionList = markExprActions(t.actionList);
-        if (Array.isArray(t.headActionList)) t.headActionList = markExprActions(t.headActionList);
-        return t;
-      });
-    }
-  }
-
-  // Table / List：toolbarActionList / rowActionList 支持 visibleWhen / disabledWhen
-  if (component === 'Table' || component === 'List') {
-    if (Array.isArray(resolvedProps.toolbarActionList)) {
-      resolvedProps.toolbarActionList = markExprActions(resolvedProps.toolbarActionList);
-    }
-    if (Array.isArray(resolvedProps.rowActionList)) {
-      resolvedProps.rowActionList = markExprActions(resolvedProps.rowActionList);
-    }
-  }
-
-  // 搜索类：searchFieldList / fields（含 SearchSheet 内 select.options 变量路径）
-  if (['PageHeader', 'Search', 'SearchSheet'].includes(component)) {
-    if (Array.isArray(resolvedProps.searchFieldList)) {
-      resolvedProps.searchFieldList = markExprFields(resolvedProps.searchFieldList);
-    }
-    if (Array.isArray(resolvedProps.fields)) {
-      resolvedProps.fields = markExprFields(resolvedProps.fields);
-    }
-  }
-
-  const BINDINGS_MAP = ({component, key}) => {
-    if (component === 'FormDrawer') {
-      const stateKey = _.lowerFirst(key);
-      const stateKeyU = _.upperFirst(key);
-      return {
-        'v-model':          `is${stateKeyU}DrawerShown`,
-        ':initialData':     `${stateKey}Item`,
-        '@field-change':    `(val) => { ${stateKey}Item[val.key] = val.value }`,
-        '@action':          'doUiAction',
-      };
-    } else if (component === 'SearchSheet') {
-      const ku = _.upperFirst(key);
-      return Object.assign({}, REACTIVE_BINDINGS_MAP.SearchSheet || {}, {
-        ':shown.sync': `is${ku}DrawerShown`,
-      });
-    } else if (component === 'FormSheet') {
-      const ku = _.upperFirst(key);
-      const sk = _.lowerFirst(key);
-      return {
-        ':shown.sync':     `is${ku}DrawerShown`,
-        ':initialData':    `${sk}Item`,
-        '@field-change':   `(val) => { ${sk}Item[val.key] = val.value }`,
-        '@action':         'doUiAction',
-      };
-    } else if (component === 'Sheet') {
-      const ku = _.upperFirst(key);
-      const sk = _.lowerFirst(key);
-      return {
-        ':shown.sync':     `is${ku}DrawerShown`,
-        ':initialData':    `${sk}Item`,
-        '@confirm':        "doUiAction('getTableData')",
-        '@action':         'doUiAction',
-        '@head-action':    'doUiAction',
-      };
-    } else if (component === 'Drawer') {
-      return {
-        'v-model':          `is${_.upperFirst(key)}DrawerShown`,
-        ':initialData':     `${_.lowerFirst(key)}Item`,
-      };
-    } else {
-      return REACTIVE_BINDINGS_MAP[component] || {};
-    }
-  }
-
-  // PageHeader：props 里若声明了 keyword / keywordFieldList 字符串，视为绑定变量名，
-  // 提取为 .sync binding 并从 resolvedProps 移除，避免被序列化为静态字符串。
-  const pageHeaderBindingOverrides = {};
-  if (component === 'PageHeader') {
-    for (const [propKey, bindingKey] of [
-      ['keyword',          ':keyword.sync'],
-      ['keywordFieldList', ':keywordFieldList.sync'],
-    ]) {
-      if (typeof resolvedProps[propKey] === 'string' && resolvedProps[propKey].trim()) {
-        pageHeaderBindingOverrides[bindingKey] = resolvedProps[propKey].trim();
-        delete resolvedProps[propKey];
-      }
-    }
-  }
-
-  // SearchSheet：与 PageHeader 一致——keyword / keywordFieldList / keywordHeaders / searchFieldList
-  // 若为「非 JSON」的普通字符串，视为 Vue 变量名，生成绑定并从静态 props 剔除。
-  const searchSheetBindingOverrides = {};
-  if (component === 'SearchSheet') {
-    for (const [propKey, bindingKey] of [
-      ['keyword',          ':keyword.sync'],
-      ['keywordFieldList', ':keywordFieldList.sync'],
-      ['keywordHeaders',   ':keyword-headers'],
-      ['searchFieldList',  ':search-field-list'],
-    ]) {
-      const rawVal = resolvedProps[propKey];
-      if (typeof rawVal !== 'string' || !rawVal.trim()) continue;
-      const trimmed = rawVal.trim();
-      // 排除误把 JSON 数组字符串当变量名：以 [ 或 { 开头的不提取为绑定
-      if (trimmed.startsWith('[') || trimmed.startsWith('{')) continue;
-      searchSheetBindingOverrides[bindingKey] = trimmed;
-      delete resolvedProps[propKey];
-    }
-  }
-
-  /**
-   * 通用 *Bind（见 lib/json/shared/applyPropBind.js、docs/bind-slots-and-targets.md）
-   * - `<prop>Bind` → `:prop="Vue 表达式"`；plain `<prop>` 静态；同时存在时 *Bind 优先。
-   * - REACTIVE_BINDINGS_MAP / *Binding / PageHeader·SearchSheet 变量名协议 优先，不占 *Bind。
-   */
-  const { applyPropBindOverrides } = require('../../../shared/applyPropBind');
-  const frameworkBindingOverrides = Object.assign(
-    {},
-    BINDINGS_MAP({ component, key }),
-    headersBinding ? { ':headers': headersBinding } : {},
-    pageHeaderBindingOverrides,
-    searchSheetBindingOverrides,
-  );
-  const propBindOverrides = applyPropBindOverrides(resolvedProps, {
-    component,
-    bindingOverrides: frameworkBindingOverrides,
-  });
-
-  const resolvedBindings = Object.assign(
-    {},
-    frameworkBindingOverrides,
-    propBindOverrides,
+  // ── 5. 构建 resolvedBindings
+  const resolvedBindings = buildResolvedBindings(
+    resolvedProps,
+    desc,
+    key,
+    headersBinding,
+    applyPropBindOverrides,
+    component,           // ← 传入组件名，保护 PageHeader/SearchSheet reserved props
   );
 
+  // ── 6. resolvedAttrs（attrs + attrsRef）
   let rawAttrs = {};
   if (node.attrsRef && typeof node.attrsRef === 'string') {
     const ext = getByPath(schema, node.attrsRef);
@@ -518,16 +241,32 @@ function resolveNode(schema, node) {
     Object.assign(rawAttrs, node.attrs);
   }
   const resolvedAttrs = resolveAttrsObject(schema, rawAttrs);
-  hoistPropsClsIntoAttrs(component, resolvedProps, resolvedAttrs);
 
-  // _meta：供 NJK 模板消费的结构化标志，避免模板里出现 component 名字判断
-  const NEEDS_SHOWN_STATE = new Set(['Drawer', 'FormDrawer', 'Sheet', 'FormSheet', 'SearchSheet']);
-  const NEEDS_ITEM_STATE  = new Set(['Drawer', 'FormDrawer', 'Sheet', 'FormSheet']);
-  const _meta = {
-    needsShownState: NEEDS_SHOWN_STATE.has(component),  // 是否需要 is{Key}DrawerShown: false
-    needsItemState:  NEEDS_ITEM_STATE.has(component),   // 是否需要 {key}Item / {key}ItemOrigin
-  };
+  // hoistCls：props.cls → resolvedAttrs.class
+  if (desc && desc.hoistCls) {
+    hoistPropsClsIntoAttrs(component, resolvedProps, resolvedAttrs);
+  }
 
+  // ── 7. _meta（供 NJK 消费的结构化标志）
+  const _meta = (desc && desc.meta)
+    ? { ...desc.meta }
+    : {
+        needsShownState: false,
+        needsItemState: false,
+      };
+
+  // ── 8. children + slotTemplates
+  const children = buildChildrenFromDesc(
+    schema,
+    node,
+    desc,
+    componentSlotTemplates,
+    resolveNode,
+    listSlotScopeAttr,
+    component,
+  );
+
+  // ── 组装结果
   const result = {
     component,
     resolvedComponent,
@@ -535,40 +274,9 @@ function resolveNode(schema, node) {
     resolvedBindings,
     _meta,
   };
-
-  if (Object.keys(resolvedAttrs).length > 0) {
-    result.resolvedAttrs = resolvedAttrs;
-  }
-
-  if (node.key) {
-    result.key = node.key;
-  }
-
-  let childrenResolved = [];
-  if (Array.isArray(node.children) && node.children.length > 0) {
-    childrenResolved = node.children.map(child => resolveNode(schema, child));
-  }
-
-  if (
-    (component === 'Table' || component === 'List') &&
-    componentSlotTemplates &&
-    typeof componentSlotTemplates === 'object' &&
-    !Array.isArray(componentSlotTemplates)
-  ) {
-    for (const [slotName, html] of Object.entries(componentSlotTemplates)) {
-      if (typeof html !== 'string' || !html.trim()) continue;
-      const safeName = String(slotName).trim();
-      if (!safeName || !TABLE_SLOT_NAME_RE.test(safeName)) continue;
-      const scopeAttr = component === 'List' ? listSlotScopeAttr(safeName) : '';
-      childrenResolved.push(
-        `<template v-slot:${safeName}${scopeAttr}>${html}</template>`,
-      );
-    }
-  }
-
-  if (childrenResolved.length > 0) {
-    result.children = childrenResolved;
-  }
+  if (Object.keys(resolvedAttrs).length > 0) result.resolvedAttrs = resolvedAttrs;
+  if (key) result.key = key;
+  if (children.length > 0) result.children = children;
 
   return result;
 }

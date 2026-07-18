@@ -13,7 +13,7 @@
   约束：
   - 不做任何业务判断（不出现 "if tag == 'jh-table'" 类型的分支）
   - 结构性规则：由 renderTreeItem 递归处理「有 children 的容器 / 叶子 / 原始 HTML 字符串」
-  - 新增组件类型：只需修改 parse_schema.js 中的 COMPONENT_MAP / REACTIVE_BINDINGS_MAP，
+  - 新增组件类型：在 compiler/runtime/componentDescriptors.js 中声明转换规则，
     本文件仅保留与布局深度无关的通用递归渲染
   - 节点可选 attrs / attrsRef：根标签 class、:class、style、:style、v-if、@click 等（renderAttrs）
   ─────────────────────────────────────────────────────────

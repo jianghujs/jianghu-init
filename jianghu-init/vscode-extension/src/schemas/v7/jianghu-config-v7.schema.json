@@ -325,7 +325,14 @@
           }
         },
         "mobileSearchTitle": { "type": "string", "description": "SearchSheet 标题；默认「搜索」" },
-        "searchSheet": { "$ref": "#/definitions/sheetOverlay", "description": "SearchSheet 叠层行为（高度 / persistent 等）" }
+        "searchSheet": { "$ref": "#/definitions/sheetOverlay", "description": "SearchSheet 叠层行为（高度 / persistent 等）" },
+        "mobileItemAction": {
+          "description": "移动端 jh-list item 行点击行为（PC Table 忽略）：'sheet'（默认，弹中继 ActionSheet）| false | 'none'（不响应）| 其他字符串（直接触发对应 doUiAction，跳过中继弹窗）",
+          "oneOf": [
+            { "type": "boolean", "enum": [false] },
+            { "type": "string" }
+          ]
+        }
       }
     },
     "sheetOverlay": {

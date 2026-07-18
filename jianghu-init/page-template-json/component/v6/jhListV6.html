@@ -9,6 +9,7 @@
 
   列表 UI / 底部分页对齐 jh-mobile-page-v4.njk.html 内联 jh-list 行为。
   options 兼容 tableOptions：page / totalCount / limit(V4) / itemsPerPage(V7 页面模板)。
+  serverPagination=true 时 items 为后端当前页数据；false 时 items 为完整结果，由组件按 page / pageSize 前端分页。
 
   rowActions 交互：点击 item 块 → 弹出中继 ActionSheet → Sheet 内显示 rowActionList 操作列表
 
@@ -62,11 +63,11 @@
       :style="{ gap: gapStyle }"
     >
       <div
-        v-for="(item, idx) in filteredItems"
+        v-for="(item, idx) in paginatedItems"
         :key="itemKey(item, idx)"
         class="flex flex-none p-3 relative bg-white"
-        :role="hasActions ? 'button' : undefined"
-        @click="hasActions && openActionSheet(item)"
+        :role="mobileItemActionRole"
+        @click="handleItemClick(item)"
       >
         <v-checkbox
           v-if="selectable"
@@ -108,7 +109,7 @@
                 >
                   <span class="text-xs">{{ rightArrowText }}</span>
                 </div>
-                <v-icon v-else-if="hasActions" size="16" class="grey--text flex-shrink-0 ml-2">mdi-chevron-right</v-icon>
+                <jh-icon v-else-if="hasActions" name="chevron-right" :size="16" class="grey--text flex-shrink-0 ml-2"></jh-icon>
               </slot>
             </template>
           </div>
@@ -148,22 +149,28 @@
           <span v-if="showPageSizeHint">每页 {{ pageLimit }} 项，</span>{{ paginationRangeText }}
         </div>
         <div class="d-flex align-center">
-          <v-icon
+          <jh-icon
             v-if="canGoPrev"
+            name="chevron-left"
+            :size="20"
+            class="cursor-pointer"
             @click="goPrevPage"
-          >mdi-chevron-left</v-icon>
-          <v-icon v-else color="#eaeaea">mdi-chevron-left</v-icon>
+          ></jh-icon>
+          <jh-icon v-else name="chevron-left" :size="20" style="color:#eaeaea"></jh-icon>
 
           <span class="mx-1 text-caption">
             <span class="success--text font-weight-medium">{{ currentPage }}</span>
             / {{ totalPages }}
           </span>
 
-          <v-icon
+          <jh-icon
             v-if="canGoNext"
+            name="chevron-right"
+            :size="20"
+            class="cursor-pointer"
             @click="goNextPage"
-          >mdi-chevron-right</v-icon>
-          <v-icon v-else color="#eaeaea">mdi-chevron-right</v-icon>
+          ></jh-icon>
+          <jh-icon v-else name="chevron-right" :size="20" style="color:#eaeaea"></jh-icon>
         </div>
       </div>
       <div class="jh-safe-bottom"></div>
@@ -231,6 +238,14 @@ Vue.component('jh-list', {
     showPageSizeHint: { type: Boolean, default: true },
     rightArrow:       { type: Boolean, default: false },
     rightArrowText:   { type: String,  default: '详情' },
+    /**
+     * 移动端 item 行点击行为（移动端 jh-list 专用）：
+     *   'sheet'（默认）→ 弹出中继 ActionSheet
+     *   'none' 或 false → item 整行点击不响应；不影响 action slot / 右侧操作区渲染
+     *   其他字符串      → 直接 $emit('action', mobileItemAction, item)，跳过中继弹窗
+     *                     字符串值即宿主页面 doUiAction 的 case id
+     */
+    mobileItemAction: { type: [String, Boolean], default: 'sheet' },
   },
   data() {
     return {
@@ -290,8 +305,17 @@ Vue.component('jh-list', {
     showActionArea() {
       return this.hasActionSlot || this.showRightArrow || this.hasActions;
     },
+    mobileItemActionRole() {
+      if (!this.mobileItemAction || this.mobileItemAction === 'none') return undefined;
+      return 'button';
+    },
     filteredItems() {
       return Array.isArray(this.items) ? this.items : [];
+    },
+    paginatedItems() {
+      if (this.serverPagination || this.pageLimit === -1) return this.filteredItems;
+      const start = (this.currentPage - 1) * this.pageLimit;
+      return this.filteredItems.slice(start, start + this.pageLimit);
     },
     localTableSelected: {
       get() { return this.tableSelected || []; },
@@ -304,34 +328,37 @@ Vue.component('jh-list', {
     pageLimit() {
       const o = this.syncedOptions || {};
       const n = Number(o.limit != null ? o.limit : (o.itemsPerPage != null ? o.itemsPerPage : this.pageSize));
+      if (n === -1) return -1;
       return n > 0 ? n : 50;
     },
     currentPage() {
       return Number(this.syncedOptions.page || 1) || 1;
     },
     totalCount() {
+      if (!this.serverPagination) return this.filteredItems.length;
       return Number(this.syncedOptions.totalCount || 0) || 0;
     },
     totalPages() {
+      if (this.pageLimit === -1) return 1;
       return Math.max(1, Math.ceil(this.totalCount / this.pageLimit));
     },
     showPaginationBar() {
-      return this.serverPagination && this.filteredItems.length > 0 && this.totalCount != null;
+      return this.filteredItems.length > 0;
     },
     canGoPrev() {
       return this.currentPage > 1;
     },
     canGoNext() {
-      return this.totalCount > this.currentPage * this.pageLimit;
+      return this.currentPage < this.totalPages;
     },
     paginationRangeText() {
       const limit = this.pageLimit;
       const total = this.totalCount;
       const page = this.currentPage;
-      const len = this.filteredItems.length;
+      const len = this.paginatedItems.length;
       if (!total && !len) return '共0条';
-      const start = total ? (page - 1) * limit + 1 : 0;
-      const end = Math.min((page - 1) * limit + (len || 0), total || (page - 1) * limit + len);
+      const start = limit === -1 ? 1 : (page - 1) * limit + 1;
+      const end = limit === -1 ? len : Math.min((page - 1) * limit + len, total);
       return `${start}-${end} 共${total}条`;
     },
     gridCols() {
@@ -347,7 +374,7 @@ Vue.component('jh-list', {
       };
     },
     iconMap() {
-      return { update: 'mdi-pencil', delete: 'mdi-delete', detail: 'mdi-eye' };
+      return { update: 'pencil', delete: 'trash', detail: 'eye' };
     },
     resolvedSheetActions() {
       const item = this.activeItem;
@@ -355,7 +382,7 @@ Vue.component('jh-list', {
         .filter(action => this.isActionVisible(action, item))
         .map(action => ({
           value: action.label || action.text || '',
-          icon: action.icon || this.iconMap[this.actionUiToken(action)] || 'mdi-circle-small',
+          icon: action.icon || this.iconMap[this.actionUiToken(action)] || 'point',
           color: action.color || (this.actionUiToken(action) === 'delete' ? 'error' : 'primary'),
           disabled: this.isActionDisabled(action, item),
           loading: this.isActionLoading(action, item),
@@ -399,6 +426,16 @@ Vue.component('jh-list', {
     openActionSheet(item) {
       this.activeItem = item;
       this.isActionSheetShown = true;
+    },
+    handleItemClick(item) {
+      if (!this.mobileItemAction || this.mobileItemAction === 'none') return;
+      if (this.mobileItemAction === 'sheet') {
+        if (this.hasActions) this.openActionSheet(item);
+        return;
+      }
+      // 自定义 doUiAction id：跳过中继弹窗，直接向上 emit
+      // 宿主页面通过 @action="doUiAction" 接收后按 actionId dispatch
+      this.$emit('action', this.mobileItemAction, item);
     },
     handleSheetAction(sheetAction) {
       const original = sheetAction && sheetAction._action;
