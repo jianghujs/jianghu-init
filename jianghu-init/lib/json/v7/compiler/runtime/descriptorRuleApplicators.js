@@ -1,5 +1,11 @@
 'use strict';
 
+const { isDeepStrictEqual } = require('util');
+const { recordDeprecatedKey } = require('../../migration/diagnostics');
+const {
+  extractSheetContentPanelChildren,
+} = require('./sheetContentPanels');
+
 /**
  * descriptorRuleApplicators.js
  *
@@ -7,47 +13,149 @@
  * resolveNode 中原来散落的各个 if 块，全部收归到这里的纯函数中。
  *
  * 对外导出：
- *   applyPropPreprocess(rawProps, desc)          → headersBinding|null
+ *   applyPropPreprocess(rawProps, desc)          → { headersBinding, injectedChildren }
  *   applyPropPostprocess(resolvedProps, desc)     → void
  *   applyExprMarking(resolvedProps, desc, markExprFields, markExprActions)  → void
  *   buildResolvedBindings(resolvedProps, desc, key, headersBinding, applyPropBindOverrides)  → object
  *   buildChildren(schema, node, desc, componentSlotTemplates, resolveNodeFn, listSlotScopeAttr, componentName)  → Array
  */
 
+/**
+ * Sheet：旧内容模式 props（orderList / menuActionList / 网格形 actionList）
+ * 外置为 children HTML；须在 headActionList→actionList 的 propRenames 之前执行。
+ * 同时处理「headActionList + actionList」旧语义（actionList 为网格）。
+ */
+const applySheetActionCompat = (rawProps, options = {}) => {
+  const hasHead = Object.prototype.hasOwnProperty.call(rawProps, 'headActionList');
+  const hasAction = Object.prototype.hasOwnProperty.call(rawProps, 'actionList');
+  const hasMenu = Object.prototype.hasOwnProperty.call(rawProps, 'menuActionList');
+
+  // 同时存在 headActionList + actionList → 旧语义下 actionList 是内容网格
+  if (hasHead && hasAction && !hasMenu) {
+    rawProps.menuActionList = rawProps.actionList;
+    delete rawProps.actionList;
+  }
+
+  return extractSheetContentPanelChildren(rawProps, {
+    ...options,
+    recordDeprecatedKey,
+  });
+};
+
 // ─────────────────────────────────────────────────────────────
 // 1. props 预处理（resolveProps 之前执行，原地修改 rawProps）
-//    返回 headersBinding（若提取了动态 headers 绑定）
+//    返回 { headersBinding, injectedChildren }
 // ─────────────────────────────────────────────────────────────
 
 /**
  * @param {object} rawProps  - 原地修改
  * @param {object} desc      - 组件描述符
- * @returns {string|null}    - headersBinding（Table/List 专用）
+ * @returns {{ headersBinding: string|null, injectedChildren: string[] }}
  */
-function applyPropPreprocess(rawProps, desc) {
-  if (!desc) return null;
+function applyPropPreprocess(rawProps, desc, options = {}) {
+  const empty = { headersBinding: null, injectedChildren: [] };
+  if (!desc) return empty;
+
+  let injectedChildren = [];
+
+  const applyRenameMap = renameMap => {
+    for (const [oldKey, newKey] of Object.entries(renameMap || {})) {
+      if (!Object.prototype.hasOwnProperty.call(rawProps, oldKey)) continue;
+      if (Object.prototype.hasOwnProperty.call(rawProps, newKey)
+          && !isDeepStrictEqual(rawProps[oldKey], rawProps[newKey])) {
+        throw new Error(`v7 ${options.path || 'component.props'}: 旧 key ${oldKey} 与 canonical key ${newKey} 同时存在且值不同，请只保留 ${newKey}`);
+      }
+      if (!Object.prototype.hasOwnProperty.call(rawProps, newKey)) rawProps[newKey] = rawProps[oldKey];
+      delete rawProps[oldKey];
+      recordDeprecatedKey(options.diagnostics, {
+        path: `${options.path || 'component.props'}.${oldKey}`,
+        replacement: `${options.path || 'component.props'}.${newKey}`,
+      });
+    }
+  };
 
   // ── compat：旧 key 兼容（早于 propRenames，仅在旧 key 存在且新 key 不存在时生效）
-  if (desc.compat) {
-    for (const [oldKey, newKey] of Object.entries(desc.compat)) {
-      if (Object.prototype.hasOwnProperty.call(rawProps, oldKey) &&
-          !Object.prototype.hasOwnProperty.call(rawProps, newKey)) {
-        rawProps[newKey] = rawProps[oldKey];
-        delete rawProps[oldKey];
-      }
-    }
+  applyRenameMap(desc.compat);
+
+  // ── Sheet：内容模式外置为 children（须早于 headActionList→actionList）
+  if (desc.sheetActionCompat) {
+    injectedChildren = applySheetActionCompat(rawProps, options);
   }
 
   // ── propRenames：key 重命名（原地）
-  if (desc.propRenames) {
-    for (const [oldKey, newKey] of Object.entries(desc.propRenames)) {
-      if (Object.prototype.hasOwnProperty.call(rawProps, oldKey)) {
-        if (!Object.prototype.hasOwnProperty.call(rawProps, newKey)) {
-          rawProps[newKey] = rawProps[oldKey];
-        }
-        delete rawProps[oldKey];
+  applyRenameMap(desc.propRenames);
+
+  if (desc.sheetHeightCompat) {
+    const hasLegacyBodyHeight = rawProps.bodyHeight != null && rawProps.bodyHeight !== '';
+    if (hasLegacyBodyHeight) {
+      if (rawProps.maxBodyHeight != null && rawProps.maxBodyHeight !== rawProps.bodyHeight) {
+        throw new Error(`v7 ${options.path || 'component.props'}: bodyHeight 与 maxBodyHeight 同时存在且值不同`);
       }
+      rawProps.maxBodyHeight = rawProps.bodyHeight;
+      rawProps.bodyHeightMode = 'fill';
+      delete rawProps.bodyHeight;
+      recordDeprecatedKey(options.diagnostics, {
+        path: `${options.path || 'component.props'}.bodyHeight`,
+        replacement: `${options.path || 'component.props'}.maxBodyHeight + bodyHeightMode`,
+      });
     }
+    if (rawProps.viewportOffset != null && rawProps.viewportOffset !== '') {
+      const offset = Number(rawProps.viewportOffset);
+      if (!Number.isNaN(offset) && (rawProps.maxBodyHeight == null || rawProps.maxBodyHeight === '')) {
+        rawProps.maxBodyHeight = `calc(100vh - ${offset}px)`;
+      }
+      delete rawProps.viewportOffset;
+      recordDeprecatedKey(options.diagnostics, {
+        path: `${options.path || 'component.props'}.viewportOffset`,
+        replacement: `${options.path || 'component.props'}.maxBodyHeight`,
+      });
+    }
+    if (rawProps.autoHeight != null) {
+      const mode = rawProps.autoHeight ? 'content' : 'fill';
+      if (!hasLegacyBodyHeight && rawProps.bodyHeightMode != null && rawProps.bodyHeightMode !== mode) {
+        throw new Error(`v7 ${options.path || 'component.props'}: autoHeight 与 bodyHeightMode 同时存在且语义冲突`);
+      }
+      if (!hasLegacyBodyHeight && rawProps.bodyHeightMode == null) rawProps.bodyHeightMode = mode;
+      delete rawProps.autoHeight;
+      recordDeprecatedKey(options.diagnostics, {
+        path: `${options.path || 'component.props'}.autoHeight`,
+        replacement: `${options.path || 'component.props'}.bodyHeightMode`,
+      });
+    }
+  }
+
+  if (desc.gridColsCompat && (rawProps.colsSm != null || rawProps.colsMd != null)) {
+    if (rawProps.cols && typeof rawProps.cols === 'object') {
+      throw new Error(`v7 ${options.path || 'component.props'}: colsSm/colsMd 与 canonical cols 对象不能同时使用`);
+    }
+    const base = rawProps.cols != null ? rawProps.cols : 1;
+    rawProps.cols = {
+      xs: rawProps.colsSm != null ? rawProps.colsSm : base,
+      sm: rawProps.colsMd != null ? rawProps.colsMd : base,
+      md: base,
+    };
+    if (rawProps.colsSm != null) {
+      recordDeprecatedKey(options.diagnostics, {
+        path: `${options.path || 'component.props'}.colsSm`,
+        replacement: `${options.path || 'component.props'}.cols.xs`,
+      });
+    }
+    if (rawProps.colsMd != null) {
+      recordDeprecatedKey(options.diagnostics, {
+        path: `${options.path || 'component.props'}.colsMd`,
+        replacement: `${options.path || 'component.props'}.cols.sm`,
+      });
+    }
+    delete rawProps.colsSm;
+    delete rawProps.colsMd;
+  }
+
+  for (const key of desc.retainedDeprecatedProps || []) {
+    if (!Object.prototype.hasOwnProperty.call(rawProps, key)) continue;
+    recordDeprecatedKey(options.diagnostics, {
+      path: `${options.path || 'component.props'}.${key}`,
+      replacement: '兼容保留（新配置不再生成）',
+    });
   }
 
   // ── slotTemplates：先提取，后续由 buildChildren 处理；从 rawProps 移除避免序列化
@@ -74,7 +182,7 @@ function applyPropPreprocess(rawProps, desc) {
     }
   }
 
-  return headersBinding;
+  return { headersBinding, injectedChildren };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -140,14 +248,15 @@ function applyExprMarking(resolvedProps, desc, markExprFields, markExprActions) 
     }
   }
 
-  // exprTabList：tabList 内每个 tab 的 fieldList/fields/actionList/headActionList
+  // exprTabList：tabList 内每个 tab 的 fieldList/fields/actionList/menuActionList
   if (desc.exprTabList && Array.isArray(resolvedProps.tabList)) {
     resolvedProps.tabList = resolvedProps.tabList.map(tab => {
       if (!tab || typeof tab !== 'object') return tab;
       const t = { ...tab };
-      if (Array.isArray(t.fieldList))     t.fieldList     = markExprFields(t.fieldList);
-      if (Array.isArray(t.fields))        t.fields        = markExprFields(t.fields);
-      if (Array.isArray(t.actionList))    t.actionList    = markExprActions(t.actionList);
+      if (Array.isArray(t.fieldList))      t.fieldList      = markExprFields(t.fieldList);
+      if (Array.isArray(t.fields))         t.fields         = markExprFields(t.fields);
+      if (Array.isArray(t.actionList))     t.actionList     = markExprActions(t.actionList);
+      if (Array.isArray(t.menuActionList)) t.menuActionList = markExprActions(t.menuActionList);
       if (Array.isArray(t.headActionList)) t.headActionList = markExprActions(t.headActionList);
       return t;
     });
@@ -164,8 +273,8 @@ function applyExprMarking(resolvedProps, desc, markExprFields, markExprActions) 
 function pageHeaderHasSearch(resolvedProps) {
   if (resolvedProps.keyword != null) return true;
   if (resolvedProps.keywordFieldList != null) return true;
-  if (Array.isArray(resolvedProps.searchFieldList) && resolvedProps.searchFieldList.length > 0) return true;
-  if (typeof resolvedProps.searchFieldList === 'string' && resolvedProps.searchFieldList.trim()) return true;
+  if (Array.isArray(resolvedProps.fieldList) && resolvedProps.fieldList.length > 0) return true;
+  if (typeof resolvedProps.fieldList === 'string' && resolvedProps.fieldList.trim()) return true;
   return false;
 }
 
@@ -232,6 +341,10 @@ function buildResolvedBindings(resolvedProps, desc, key, headersBinding, applyPr
 
   // 组合框架绑定（优先级从低到高）
   const frameworkBindings = Object.assign({}, fixed, keyed, search, headers, extracted);
+  if (frameworkBindings['v-model']) {
+    delete resolvedProps.value;
+    delete resolvedProps.shown;
+  }
 
   // ── *Bind 通用绑定（最高优先级，覆盖同名框架绑定）
   // 传入 component 名，让 applyPropBind 正确保护 PageHeader/SearchSheet 的 reserved props
@@ -264,7 +377,7 @@ function buildChildren(schema, node, desc, componentSlotTemplates, resolveNodeFn
 
   // 递归子节点
   if (Array.isArray(node.children) && node.children.length > 0) {
-    childrenResolved = node.children.map(child => resolveNodeFn(schema, child));
+    childrenResolved = node.children.map((child, index) => resolveNodeFn(schema, child, index));
   }
 
   // slotTemplates → <template v-slot:…> 字符串

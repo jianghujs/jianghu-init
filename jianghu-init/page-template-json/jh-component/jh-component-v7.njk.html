@@ -40,7 +40,7 @@
 <script type="module">
 // 运行时所需的静态配置，由 NJK 生成时直接 bake-in 为标量常量
 // blocks.header / blocks.forms / features 已全部 bake 进 HTML 模板属性，不再重复传入
-// 组件不 bake pageId：运行时通过 resolvePageId() 取宿主 Page 的 pageId
+// 组件不 bake pageId：运行时 this.pageId 取宿主 Page（inject jhPage）
 //===// const table              = '<=$ standardConfig.dataSource.table $=>';
 //===// const primaryKey         = '<=$ standardConfig.dataSource.primaryKey $=>';
 //===// const listResource       = '<=$ standardConfig.dataSource.listResource $=>';
@@ -197,8 +197,17 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
     //===// <=%- endif %=>
     
     //===// <=%- for key, item in common.computed %=>
+    //===// <=%- if key != 'pageId' %=>
     //===// <=$ item | variableToVar(key) $=>,
+    //===// <=%- endif %=>
     //===// <=%- endfor %=>
+
+    // 统一写法：与 Page 一致用 this.pageId（来自宿主 provide，非模块全局）
+    pageId() {
+      const parent = this.parentJhPage;
+      if (parent && parent.pageId) return parent.pageId;
+      return '';
+    },
   },
 
   //===// <=%- if not common.created %=>
@@ -232,10 +241,9 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
   //===// <=%- endif %=>
   methods: {
 
+    // 兼容旧调用；新代码统一用 this.pageId
     resolvePageId() {
-      const parent = this.parentJhPage;
-      if (parent && parent.pageId) return parent.pageId;
-      return this?.pageId || '';
+      return this.pageId;
     },
 
     // ─────────────────────────────────────────────
@@ -362,7 +370,7 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
       this.isTableLoading = true;
       const result = await window.jianghuAxios({
         data: { appData: {
-          pageId:     this.resolvePageId(),
+          pageId:     this.pageId,
           actionId:   listResource,
           actionData: {},
           ...this.tableParams,
@@ -422,7 +430,7 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
       await window.vtoast.loading('新增数据');
       await window.jianghuAxios({
         data: { appData: {
-          pageId:     this.resolvePageId(),
+          pageId:     this.pageId,
           actionId:   createResource,
           actionData: this.createActionData,
           //===// <=%- if standardConfig.features.autoId %=>
@@ -480,7 +488,7 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
       await window.vtoast.loading('修改数据');
       await window.jianghuAxios({
         data: { appData: {
-          pageId:     this.resolvePageId(),
+          pageId:     this.pageId,
           actionId:   updateResource,
           actionData: this.updateActionData,
           where:      { [primaryKey]: this.updateItemId },
@@ -517,7 +525,7 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
       await window.vtoast.loading('删除数据');
       await window.jianghuAxios({
         data: { appData: {
-          pageId:     this.resolvePageId(),
+          pageId:     this.pageId,
           actionId:   deleteResource,
           actionData: {},
           where:      { [primaryKey]: this.deleteItemId },

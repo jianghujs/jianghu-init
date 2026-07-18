@@ -3,7 +3,7 @@
 
   props:
     title     String  页面标题
-    helpDoc   Boolean 是否显示帮助按钮
+    showHelp  Boolean 是否显示帮助按钮（helpDoc 为旧 prop）
     helpSrc   String  帮助页 iframe src
 
   根节点 v-bind="$attrs"
@@ -11,12 +11,12 @@
 <script type="text/html" id="jh-page-title-template">
   <div v-bind="$attrs" v-on="$listeners" class="d-flex align-center py-4">
     <span class="text-body-1 font-weight-bold">{{ title }}</span>
-    <v-icon v-if="helpDoc" size="15" class="black--text ml-1" @click="isHelpDrawerShown = true">mdi-help-circle</v-icon>
+    <v-icon v-if="resolvedShowHelp" size="15" class="black--text ml-1" @click="isHelpDrawerShown = true">mdi-help-circle</v-icon>
     <slot></slot>
 
     <!-- 帮助文档抽屉 -->
     <v-navigation-drawer
-      v-if="helpDoc && isHelpDrawerShown"
+      v-if="resolvedShowHelp && isHelpDrawerShown"
       v-model="isHelpDrawerShown"
       fixed temporary right width="80%" class="elevation-24"
     >
@@ -34,7 +34,8 @@ Vue.component('jh-page-title', {
   template: '#jh-page-title-template',
   props: {
     title:   { type: String,  default: '' },
-    helpDoc: { type: Boolean, default: false },
+    showHelp:{ type: Boolean, default: null },
+    helpDoc: { type: Boolean, default: null },
     helpSrc: { type: String,  default: '' },
     pageId:  { type: String,  default: '' },
   },
@@ -42,6 +43,9 @@ Vue.component('jh-page-title', {
     return { isHelpDrawerShown: false };
   },
   computed: {
+    resolvedShowHelp() {
+      return this.showHelp != null ? this.showHelp : !!this.helpDoc;
+    },
     resolvedHelpSrc() {
       if (this.helpSrc) return this.helpSrc;
       const appId = (window.appInfo && window.appInfo.appId) || '';

@@ -19,8 +19,10 @@ Treat `app/view/init-json/**/*.js` as source and generated HTML as output.
    - Narrow edit to an existing CRUD page: read only `.ai-rules/jianghu-init-json-app/v7-crud-authoring.md` and the nearby source file.
    - New page/component or uncertain CRUD/UI, Page/Component, target, slot, or override choice: read [references/decision-guide.md](references/decision-guide.md).
    - Need to inspect, repair, or customize a generated shape: additionally read [references/common-recipes.md](references/common-recipes.md).
+   - Complex CRUD requiring tabs, slots, layout, platform policy, or PC/mobile composition overrides: additionally read `.ai-rules/jianghu-init-json-app/v7-crud-full-structure.md`. Do not load it for an ordinary generated CRUD.
 6. Load only the applicable canonical project rule:
    - CRUD fields, views, actions, and data source: `.ai-rules/jianghu-init-json-app/v7-crud-authoring.md`
+   - Complete canonical CRUD structure and advanced options: `.ai-rules/jianghu-init-json-app/v7-crud-full-structure.md`
    - Page/component structure and complete v7 fields: `.ai-rules/jianghu-init-json-app/v7-app-authoring.md`
    - Component-specific rules: `.ai-rules/jianghu-init-json-app/jh-component.md`
 7. Prefer `version: 'v7'`. Use `pageType: 'jh-page'` for pages and `pageType: 'jh-component'` for components; express PC/mobile generation through targets.

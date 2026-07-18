@@ -3,7 +3,7 @@
 /** views.create -> create form IR */
 
 const { normalizeActionList } = require('../../../actionIntent');
-const { fieldKeyToFormField, applyFieldAttrs } = require('../../../fieldFormProps');
+const { fieldKeyToFormField } = require('../../../fieldFormProps');
 const { applyFieldInteraction } = require('../../../whenExpr');
 
 const applyVariants = (fieldList, layout, target) => {
@@ -44,22 +44,21 @@ const resolveChildren = (semantic, target) => {
 };
 
 const compileCreateView = ({ semantic, view, fields, target, layout, component }) => {
-  let fieldList = Array.isArray(view.fields)
-    ? view.fields.map(key => fieldKeyToFormField(fields, key, target))
+  let fieldList = Array.isArray(view.fieldList)
+    ? view.fieldList.map(key => fieldKeyToFormField(fields, key, target, 'create'))
     : [];
   if (view.interaction) fieldList = applyFieldInteraction(fieldList, view.interaction);
-  if (view.fieldAttrs) fieldList = applyFieldAttrs(fieldList, view.fieldAttrs);
   fieldList = applyVariants(fieldList, layout, target);
 
   return {
     component,
     title: view.title || '新建',
     fieldList,
-    actions: Array.isArray(view.actions)
-      ? normalizeActionList(view.actions, 'formCreate', 'views.create.actions')
+    actions: Array.isArray(view.actionList)
+      ? normalizeActionList(view.actionList, 'formCreate', 'views.create.actionList')
       : null,
-    sheet: view.sheet,
-    saveTipBeforeClose: !!(view.beforeCloseConfirm || view.saveTipBeforeClose),
+    sheet: view.mobileSheet,
+    saveTipBeforeClose: !!view.beforeCloseConfirm,
     cols: layout.create && layout.create.cols,
     children: resolveChildren(semantic, target),
   };

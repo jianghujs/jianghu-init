@@ -8,7 +8,7 @@
 |------|--------|------|
 | [authoring-guide.md](./authoring-guide.md) | 新写 init-json | 心智模型、CRUD / UI / 子组件三种写法、编译命令 |
 | [config-reference.md](./config-reference.md) | 查字段 | 根对象、`fields`、`views`、`platform`、`layout`、`dataSource` 全表 |
-| [bind-slots-and-targets.md](./bind-slots-and-targets.md) | 进阶 | `*Bind`、`children` 插槽、`page.targets` vs `includeList[].target` |
+| [bind-slots-and-targets.md](./bind-slots-and-targets.md) | 进阶 | `*Bind`、`children` 插槽、`page.targets` vs `includeList[].targets` |
 | [semantic-to-component-mapping.md](./semantic-to-component-mapping.md) | 改编译器 | 语义 → Schema 组件 → Vue 标签对照 |
 | [examples-guide.md](./examples-guide.md) | 抄示例 | `pages/examples/` 各文件用途与自检 |
 
@@ -16,7 +16,7 @@
 
 - **`jianghu-init/docs/v7-config-rules.md`** — 与 [config-reference.md](./config-reference.md) 同源维护（发布/对外时可只保留其一）。
 - **`jianghu-init/docs/v6-page-config-overview.md`** — V6 手写组件树、`MobileFilterBtn`、`*Bind`。
-- **`jianghu-init/docs/v7-config-rules.md`**（Sheet overlay 等）— 见 config-reference § views.create/update.sheet。
+- **`jianghu-init/docs/v7-config-rules.md`**（Sheet overlay 等）— 见 config-reference § views.create/update.mobileSheet。
 
 ## 示例配置
 

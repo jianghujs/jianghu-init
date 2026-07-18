@@ -21,7 +21,6 @@ const defaultComponentNameFromTable = table => {
 
 const typeList = [
   { value: 'jh-page', name: 'jh-page' },
-  { value: 'jh-mobile-page', name: 'jh-mobile-page' },
   { value: 'jh-component', name: 'jh-component' },
 ];
 
@@ -168,6 +167,7 @@ module.exports = class InitJson extends CommandBase {
       pageName = pageId;
     }
     const filenameForPage = pageId;
+    // jh-mobile-page 仅保留显式 CLI 参数兼容；新建 V7 页面使用 jh-page + page.targets。
     const mobileFilePrefix = pageType === 'jh-mobile-page' ? 'mobile/' : '';
     return {
       table,

@@ -40,7 +40,7 @@ lib/json/v7/
 | **`pc` / `mobile`** | function | `(views, blocks) => { pageContent, actionContent }` 覆写 |
 | **`dataSource`** | object | 表、主键、resource（§10） |
 | **`common`** | object | Vue：`data`、`computed`、`methods`、`props`、`doUiAction` |
-| **`includeList`** | array | 静态资源；项上 **`target`** 分端（§11） |
+| **`includeList`** | array | 静态资源；项上 **`targets`** 分端（§11） |
 | **`resourceList`** | array | 权限资源（页面级） |
 | **`pageContent` / `actionContent`** | tree | UI 模式或降级覆写结果 |
 
@@ -55,7 +55,7 @@ lib/json/v7/
 
 **优先级**：显式 **`page.targets`** > **`mode:'crud'`** 默认双端。
 
-与 **`includeList[].target`** 不同：后者只过滤**单次编译**里的资源项（见 [bind-slots-and-targets.md](./bind-slots-and-targets.md)）。
+与 **`includeList[].targets`** 不同：后者只过滤**单次编译**里的资源项（见 [bind-slots-and-targets.md](./bind-slots-and-targets.md)）。
 
 ## 3. `fields` 字典
 
@@ -63,44 +63,39 @@ lib/json/v7/
 |------|------|
 | **`label`** | 展示名 |
 | **`type`** | `text`、`select`、`textarea`、`number`… |
-| **`options`** | select 选项；常为 `'constantObj.xxx'` 表达式 |
-| **`required` / `readonly`** | 表单 |
-| **`op`** | 搜索操作符 `like`、`eq`… |
-| **`width` / `align` / `class` / `cellClass`** | 列宽 / 对齐 / 固定列 class |
-| **`attrs`** | 透传 Vuetify（双端默认） |
-| **`pc` / `mobile`** | attrs 分端覆写（merge 进 attrs） |
-| **`placeholder` / `hint` / `quickAttrs`** | 表单项 |
+| **`column`** | `{ width, align, class, cellClass }` 列配置 |
+| **`search`** | `{ op }` 搜索配置 |
+| **`form`** | 通用表单配置：`type/component/options/required/readonly/rules/attrs/pcAttrs/mobileAttrs` 等 |
+| **`createForm` / `updateForm`** | 新增/编辑专属表单覆写 |
+| **`autoId`** | 业务 ID 自动生成配置 |
 
 ## 4. `views.list`
 
 | 字段 | 说明 |
 |------|------|
-| **`columns`** | **必填**（有 list 时）；`string[]` 或 `{ field, width, align, class, cellClass, slot }[]` |
-| **`mobileColumns`** | 移动 List 列；首列可作标题 |
-| **`search`** | `string[]` 或 `{ keyword: { fields, placeholder }, fields: [] }` → PageHeader / SearchSheet |
+| **`columnList`** | **必填**（有 list 时）；`string[]` 或 `{ field, width, align, class, cellClass, slot }[]` |
+| **`mobileColumnList`** | 移动 List 列；首列可作标题 |
+| **`search`** | `{ keyword: { fields, placeholder }, fieldList: [], btnText?, btnIcon?, mobileBtnText?, mobileBtnIcon?, mobileSheet? }` |
 | **`filter`** | 对象 → 客户端 `filterList`；字符串 `'inline'|'sheet'` → 仅布局 |
 | **`filters`** | 声明型筛选项数组 |
-| **`toolbarActions`** | `[{ label, uiAction, visibleWhen?, disabledWhen?, loadingWhen? }]`；标准 uiAction：`create` / `delete` / `batchDelete`；自定义 uiAction 即 doUiAction 方法名 |
-| **`rowActions`** | 行操作；标准 uiAction：`update` / `delete` / `detail`；支持 **`visibleWhen` / `disabledWhen` / `loadingWhen`**（上下文含 **`item`**） |
+| **`headActionList`** | `[{ label, uiAction, visibleWhen?, disabledWhen?, loadingWhen? }]`；标准 uiAction：`create` / `delete` / `batchDelete`；自定义 uiAction 即 doUiAction 方法名 |
+| **`rowActionList`** | 行操作；标准 uiAction：`update` / `delete` / `detail`；支持 **`visibleWhen` / `disabledWhen` / `loadingWhen`**（上下文含 **`item`**） |
 | **`orderBy` / `serverPagination` / `pageSize` / `selectable`** | 列表行为 |
 | **`dataTableProps`** | 仅 PC `Table`：透传给内部 Vuetify `v-data-table` 的非托管 props；例如 `{ groupBy: ['coursewareId'] }`。`headers`、`items`、`loading`、`options` 等由 `jh-table` 托管并覆盖。 |
 | **`layout.type` / `filter`** | 参与 platform 解析（优先级见 §6） |
-| **`mobileSearchKey` / `mobileSearchBtnText` / `mobileSearchTitle` / `mobileSearchIcon`** | SearchSheet + 触发按钮 |
-| **`searchSheet`** | SearchSheet overlay：`persistent`、`autoHeight`、`viewportOffset`… |
+| **`search.mobileBtnText` / `mobileBtnIcon` / `mobileSheet`** | SearchSheet + 触发按钮；`persistent` / `maxBodyHeight`（默认 `70vh`）/ `bodyHeightMode`（**默认 `content`**） |
 
 ## 5. `views.create` / `views.update`
 
 | 字段 | 说明 |
 |------|------|
-| **`fields`** | 非空才生成 create/update 表单 |
+| **`fieldList`** | 非空才生成 create/update 表单 |
 | **`title`** | 抽屉/Sheet 标题 |
-| **`type`** | `'form'`（tabs 内） |
-| **`tabs`** | `[{ key, title, fields, interaction, actions }]` |
+| **`tabList`** | `[{ key, title, fieldList, interaction, actionList }]` |
 | **`interaction`** | `{ fieldKey: { visibleWhen, readonlyWhen, disabledWhen } }` |
-| **`actions`** | `[{ label, uiAction, color, visibleWhen?, disabledWhen?, loadingWhen? }]`；create：`save`/`create`/`cancel`；update：`save`/`update`/`cancel`；**`intent` / `id` / `actionId` 已废弃** |
-| **`saveTipBeforeClose`** | create 脏检查 |
-| **`fieldAttrs`** | 按 key 覆写 `fieldList[].attrs` |
-| **`sheet`** | **仅 FormSheet**：`persistent`、`autoHeight`、`viewportOffset`、`maxBodyHeight`… |
+| **`actionList`** | `[{ label, uiAction, color, visibleWhen?, disabledWhen?, loadingWhen? }]`；**`intent` / `id` / `actionId` 不属于 canonical 写法** |
+| **`beforeCloseConfirm`** | 关闭前脏检查 |
+| **`mobileSheet`** | **仅 FormSheet**：`persistent`、`maxBodyHeight`、`bodyHeightMode: 'fill'|'content'`（**默认 `fill`**，可省略） |
 
 抽屉 **`key`** 固定：`create`、`update`。
 
@@ -203,8 +198,8 @@ resource: { list: 'getX', create: 'createX', update: 'updateX', delete: 'deleteX
 ```js
 includeList: [
   { type: 'css', path: '/page/foo.css' },
-  { type: 'html', path: 'fragment/bar.html', target: 'pc' },
-  { type: 'js', path: '/page/foo.js', target: ['pc', 'mobile'] },
+  { type: 'html', path: 'fragment/bar.html', targets: 'pc' },
+  { type: 'js', path: '/page/foo.js', targets: ['pc', 'mobile'] },
 ]
 ```
 
@@ -212,7 +207,7 @@ includeList: [
 |--------|------|
 | css / js / html / include / vueUse / vueComponent | 见 hover |
 
-编译后 **剔除 `target` 字段**；省略 `target` → 当前端编译若跑双端则两端都包含该项。
+`targets` 支持 `'pc'`、`'mobile'`、`'both'` 或 `['pc', 'mobile']`。编译后 **剔除 `targets` 字段**；省略 `targets` 时两端都包含该项。
 
 ## 12. `standardConfig.v7Meta`
 

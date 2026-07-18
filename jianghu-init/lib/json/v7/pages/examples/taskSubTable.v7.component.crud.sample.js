@@ -29,17 +29,17 @@ const content = {
 
   views: {
     list: {
-      columns: ['taskName', 'status'],
-      toolbarActions: [{ uiAction: 'create', label: '新增' }],
-      rowActions: [{ uiAction: 'update', label: '编辑' }, { uiAction: 'delete', label: '删除' }],
+      columnList: ['taskName', 'status'],
+      headActionList: [{ uiAction: 'create', label: '新增' }],
+      rowActionList: [{ uiAction: 'update', label: '编辑' }, { uiAction: 'delete', label: '删除' }],
     },
     create: {
-      fields: ['taskName', 'status'],
-      actions: [{ label: '保存', uiAction: 'create', color: 'primary' }],
+      fieldList: ['taskName', 'status'],
+      actionList: [{ label: '保存', uiAction: 'create', color: 'primary' }],
     },
     update: {
-      fields: ['taskName', 'status'],
-      actions: [{ label: '保存', uiAction: 'update', color: 'primary' }],
+      fieldList: ['taskName', 'status'],
+      actionList: [{ label: '保存', uiAction: 'update', color: 'primary' }],
     },
   },
 

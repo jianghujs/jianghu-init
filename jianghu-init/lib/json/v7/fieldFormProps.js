@@ -1,57 +1,81 @@
 'use strict';
 
-/**
- * fields.{key} + fields.{key}.pc|mobile + views.*.fieldAttrs → fieldList[].attrs
- *
- * 合并顺序：
- *   1. fields 根 attrs（双端默认）
- *   2. fields.{key}.pc | .mobile — **直接为 attrs 覆写对象**（merge 进 attrs）
- *   3. views.create|update.fieldAttrs
- */
+/** fields.* 表单配置 → runtime fieldList 项。 */
 
 const isPlainObject = v => v && typeof v === 'object' && !Array.isArray(v);
-
-const PLATFORM_SLICE_KEYS = new Set(['pc', 'mobile']);
 
 const mergeFieldAttrs = (base, override) => {
   if (!isPlainObject(base) && !isPlainObject(override)) return undefined;
   return Object.assign({}, base || {}, override || {});
 };
 
-/** 解析 fields.{key}：pc/mobile 即 attrs 覆写；merge 于根 attrs 上 */
-const resolveFieldDefForTarget = (raw, target) => {
-  if (!raw || typeof raw !== 'object') return {};
-  const platformKey = target === 'mobile' ? 'mobile' : 'pc';
-  const slice = raw[platformKey];
-  const base = {};
-  for (const k of Object.keys(raw)) {
-    if (!PLATFORM_SLICE_KEYS.has(k)) base[k] = raw[k];
-  }
-  const merged = { ...base };
-  const baseAttrs = isPlainObject(base.attrs) ? base.attrs : undefined;
-  let platformAttrsPatch = null;
-  if (isPlainObject(slice)) {
-    if (slice.component != null) merged.component = slice.component;
-    if (slice.type != null) merged.type = slice.type;
-    const sliceForAttrs = { ...slice };
-    delete sliceForAttrs.component;
-    delete sliceForAttrs.type;
-    // pc | mobile 直接是 attrs 对象；兼容旧写法 pc: { attrs: { … } }
-    platformAttrsPatch = isPlainObject(sliceForAttrs.attrs) && Object.keys(sliceForAttrs).length === 1
-      ? sliceForAttrs.attrs
-      : (Object.keys(sliceForAttrs).length ? sliceForAttrs : null);
-  }
-  const attrs = mergeFieldAttrs(baseAttrs, platformAttrsPatch);
+const mergeFormConfig = (base, override) => {
+  const merged = Object.assign({}, base || {}, override || {});
+  const attrs = mergeFieldAttrs(base && base.attrs, override && override.attrs);
   if (attrs) merged.attrs = attrs;
-  else delete merged.attrs;
   return merged;
 };
 
+/**
+ * 合并顺序：字段根级展示信息 < form < createForm/updateForm < pcAttrs/mobileAttrs。
+ * pcAttrs/mobileAttrs 只进入 attrs，不污染 fieldList 项的一级结构。
+ */
+const resolveFieldDefForTarget = (raw, target, mode) => {
+  if (!raw || typeof raw !== 'object') return {};
+  const platformKey = target === 'mobile' ? 'mobile' : 'pc';
+  const platformAttrsKey = target === 'mobile' ? 'mobileAttrs' : 'pcAttrs';
+  const root = {};
+  for (const key of ['label', 'type', 'html', 'cls', 'autoId']) {
+    if (raw[key] != null) root[key] = raw[key];
+  }
+
+  // 未经 normalizeSchema 的直接调用仍兼容旧 fields.attrs/pc/mobile 结构。
+  const legacyForm = isPlainObject(raw.form) ? raw.form : raw;
+  const modeForm = mode === 'create'
+    ? raw.createForm
+    : (mode === 'update' ? raw.updateForm : null);
+  const form = mergeFormConfig(legacyForm, isPlainObject(modeForm) ? modeForm : null);
+  const legacyPlatformSlice = isPlainObject(raw[platformKey]) ? raw[platformKey] : null;
+  const internalPlatformOverride = raw[target === 'mobile'
+    ? '_legacyMobileFormOverride'
+    : '_legacyPcFormOverride'];
+  const platformFormOverride = isPlainObject(internalPlatformOverride)
+    ? internalPlatformOverride
+    : legacyPlatformSlice;
+  if (isPlainObject(platformFormOverride)) {
+    if (platformFormOverride.component != null) form.component = platformFormOverride.component;
+    if (platformFormOverride.type != null) form.type = platformFormOverride.type;
+  }
+  const legacyPlatformAttrs = legacyPlatformSlice
+    ? (isPlainObject(legacyPlatformSlice.attrs) && Object.keys(legacyPlatformSlice).length === 1
+      ? legacyPlatformSlice.attrs
+      : Object.fromEntries(Object.entries(legacyPlatformSlice).filter(([key]) => !['component', 'type'].includes(key))))
+    : null;
+  const platformAttrs = isPlainObject(form[platformAttrsKey]) ? form[platformAttrsKey] : legacyPlatformAttrs;
+  form.attrs = mergeFieldAttrs(form.attrs, platformAttrs);
+  delete form.pcAttrs;
+  delete form.mobileAttrs;
+  delete form.pc;
+  delete form.mobile;
+  delete form.column;
+  delete form.search;
+  delete form.form;
+  delete form.createForm;
+  delete form.updateForm;
+  delete form._legacyPcFormOverride;
+  delete form._legacyMobileFormOverride;
+
+  return Object.assign(root, form, {
+    type: form.type || root.type || 'text',
+  });
+};
+
 /** fields.{key} → form fieldList 项（含 attrs / placeholder / hint / quickAttrs） */
-const fieldKeyToFormField = (fieldsDict, key, target = 'pc') => {
-  const f = resolveFieldDefForTarget(fieldsDict && fieldsDict[key], target);
+const fieldKeyToFormField = (fieldsDict, key, target = 'pc', mode) => {
+  const f = resolveFieldDefForTarget(fieldsDict && fieldsDict[key], target, mode);
   const out = { key, label: f.label || key, type: f.type || 'text' };
   if (f.required) out.required = true;
+  if (f.labelRequired != null) out.labelRequired = !!f.labelRequired;
   if (f.readonly) out.readonly = true;
   if (f.options != null) out.options = f.options;
   if (f.autoId) out.autoId = f.autoId;
@@ -82,5 +106,6 @@ module.exports = {
   fieldKeyToFormField,
   applyFieldAttrs,
   mergeFieldAttrs,
+  mergeFormConfig,
   resolveFieldDefForTarget,
 };

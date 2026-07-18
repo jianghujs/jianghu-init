@@ -10,13 +10,15 @@
  *   - platform token → 选 Table|List、CreateDrawer|FormSheet 等（见 policy.js）
  *   - 调用 views/compile*View 将 views.* + fields 字典转换为明确的 view IR
  *   - 输出 IR 后交 builders.js 组装树，再经 schemaPipeline.parseSchema 解析绑定
+ *
+ * 前置条件：semantic 须已由 normalizeSchema 规范化（buildPage 主入口已保证）。
  */
 
 const { flattenDataSource } = require('./normalizeDataSource');
 const { resolveIncludeList } = require('./resolveIncludeList');
 const { normalizePageContentOverride } = require('./pageContentShape');
 const { resolveTargetPlatform, resolvePageType } = require('../../policy');
-const { validateCrudSemantic, resolvePageMeta } = require('../../authoringMode');
+const { resolvePageMeta } = require('../../authoringMode');
 const {
   getEffectivePlatformPolicy,
   resolveListLayoutFilter,
@@ -29,7 +31,6 @@ const { buildListRegionsPlan } = require('./buildListRegionsPlan');
 const { compileListView } = require('./views/compileListView');
 const { compileCreateView } = require('./views/compileCreateView');
 const { compileUpdateView } = require('./views/compileUpdateView');
-const { normalizeSemanticViewKeys } = require('./views/semanticKeyAliases');
 const {
   buildCollectionBlock,
   buildFilterBlock,
@@ -50,6 +51,30 @@ const assertOverrideKeyShape = (semantic, key) => {
   }
 };
 
+const mergeListColumnSettingWiring = (semantic, wiring) => {
+  if (!wiring) {
+    return {
+      common: semantic.common || {},
+      includeList: Array.isArray(semantic.includeList) ? semantic.includeList : [],
+    };
+  }
+  const common = { ...(semantic.common || {}) };
+  const commonData = { ...(common.data || {}) };
+  if (wiring.commonDataHeaders != null && commonData.headers == null) {
+    commonData.headers = wiring.commonDataHeaders;
+  }
+  common.data = commonData;
+
+  const includeList = Array.isArray(semantic.includeList) ? semantic.includeList.slice() : [];
+  if (wiring.includeListEntry) {
+    const hasColumnSetting = includeList.some(
+      item => item && String(item.path || '').replace(/\\/g, '/').includes('tableColumnSettingBtn'),
+    );
+    if (!hasColumnSetting) includeList.push(wiring.includeListEntry);
+  }
+  return { common, includeList };
+};
+
 // ─── 主函数 ────────────────────────────────────────────────────────────────────
 
 /**
@@ -60,11 +85,12 @@ const assertOverrideKeyShape = (semantic, key) => {
  *   2. 调用各 view compiler，汇总 list/create/update IR
  *   3. 调用 platform builders 组装节点树
  *
+ * 调用方须先经 normalizeSchema（buildPage 主链路已保证）；本函数不再重复 key 迁移或 CRUD 校验。
+ *
  * layout / platform 未写时使用 defaults.js、policy.DEFAULT_PLATFORM_TOKENS。
  */
 const expandCrudPage = semanticInput => {
-  const semantic = normalizeSemanticViewKeys(semanticInput);
-  validateCrudSemantic(semantic);
+  const semantic = semanticInput;
   assertOverrideKeyShape(semantic, 'pc');
   assertOverrideKeyShape(semantic, 'mobile');
 
@@ -125,15 +151,18 @@ const expandCrudPage = semanticInput => {
   });
 
   const pageTitle = (semantic.page && semantic.page.title) || (semantic.page && semantic.page.name) || (semantic.page && semantic.page.id) || '';
+  const pageId = semantic.page && semantic.page.id;
   const helpDoc = (semantic.page && semantic.page.helpDoc) || null;
   const regions = buildListRegionsPlan(Object.assign({}, semantic, { layout }));
 
   // 3. IR（平台无关的中间表示）
   const ir = {
     pageTitle,
+    pageId,
     helpDoc,
     searchFieldList: listResult ? listResult.searchFieldList : [],
     keywordConfig: listResult ? listResult.keywordConfig : null,
+    searchConfig: listResult ? listResult.searchConfig : {},
     filterList: listResult ? listResult.filterList : [],
     toolbarActions: listResult ? listResult.mobileToolbarActions : [],
     mobileSearch: listResult ? listResult.mobileSearch : null,
@@ -236,13 +265,18 @@ const expandCrudPage = semanticInput => {
     }
     : null;
 
+  const wiredSemantic = mergeListColumnSettingWiring(
+    semantic,
+    listResult && listResult.columnSettingWiring,
+  );
+
   return {
     pageType,
     page: resolvePageMeta(semantic),
     component: semantic.component || null,
     dataSource: flattenDataSource(semantic.dataSource),
-    common: semantic.common || {},
-    includeList: resolveIncludeList(semantic.includeList, target),
+    common: wiredSemantic.common,
+    includeList: resolveIncludeList(wiredSemantic.includeList, target),
     resourceList: pageType === 'jh-component'
       ? []
       : (Array.isArray(semantic.resourceList) ? semantic.resourceList : []),

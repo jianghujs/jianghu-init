@@ -15,7 +15,7 @@ const content = {
   },
 
   includeList: [
-    { type: 'css', path: '/component/taskSubTable/task.css', target: 'pc' },
+    { type: 'css', path: '/component/taskSubTable/task.css', targets: 'pc' },
   ],
 
   dataSource: {
@@ -43,10 +43,10 @@ const content = {
 
   views: {
     list: {
-      columns: ['taskId', 'taskName', 'status', 'assignee'],
-      mobileColumns: ['taskName', 'status'],
-      toolbarActions: [{ uiAction: 'create', label: '新增任务' }],
-      rowActions: [
+      columnList: ['taskId', 'taskName', 'status', 'assignee'],
+      mobileColumnList: ['taskName', 'status'],
+      headActionList: [{ uiAction: 'create', label: '新增任务' }],
+      rowActionList: [
         { uiAction: 'update', label: '编辑' },
         { uiAction: 'delete', label: '删除', disabledWhen: "status === '已关闭'" },
       ],
@@ -55,19 +55,19 @@ const content = {
     },
     create: {
       title: '新建任务',
-      fields: ['taskName', 'status', 'assignee', 'dueDate'],
+      fieldList: ['taskName', 'status', 'assignee', 'dueDate'],
       interaction: {
         assignee: { visibleWhen: 'showAssigneeField' },
       },
-      actions: [{ label: '保存', uiAction: 'create', color: 'primary' }],
+      actionList: [{ label: '保存', uiAction: 'create', color: 'primary' }],
     },
     update: {
       title: '编辑任务',
-      fields: ['taskId', 'taskName', 'status', 'assignee', 'dueDate'],
+      fieldList: ['taskId', 'taskName', 'status', 'assignee', 'dueDate'],
       interaction: {
         taskId: { readonlyWhen: true },
       },
-      actions: [{ label: '保存', uiAction: 'update', color: 'primary' }],
+      actionList: [{ label: '保存', uiAction: 'update', color: 'primary' }],
     },
   },
 

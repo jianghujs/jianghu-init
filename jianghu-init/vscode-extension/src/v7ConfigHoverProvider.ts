@@ -6,6 +6,8 @@ interface DocEntry {
   description: string;
   type?: string;
   example?: string;
+  deprecated?: boolean;
+  replacement?: string;
 }
 
 /**
@@ -13,7 +15,7 @@ interface DocEntry {
  * Key 格式：`祖先|...|当前键`；悬停父级 key 时由 collectChildren 聚合「支持的子属性」
  * 与 lib/json/v7/docs/semantic-to-component-mapping.md、jianghu-config-v7.schema.json 对齐
  */
-const V7_PATH_DOCS: Record<string, DocEntry> = {
+export const V7_PATH_DOCS: Record<string, DocEntry> = {
   // ── 顶级 ──────────────────────────────────────────────────────────────────
   version: { type: 'string', description: '固定 `"v7"`' },
   mode: { type: 'string', description: '仅 `"crud"` 时走 fields/views 语义展开；省略默认为 UI（pageContent）' },
@@ -45,7 +47,10 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
       '抽屉、Sheet 等：`[blocks.create, blocks.update, blocks.searchSheet]`',
   },
 
-  page: { description: '页面元信息' },
+  page: {
+    description: '页面元信息',
+    example: '{ id: "projectManagement", name: "项目管理", menu: true, targets: "both" }',
+  },
   'page|id': { type: 'string', description: 'pageId / 路由', example: '"projectManagement"' },
   'page|name': { type: 'string', description: '显示名称', example: '"项目管理"' },
   'page|title': { type: 'string', description: '页面标题（可选，覆盖 name）' },
@@ -56,13 +61,26 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'page|targets': { type: 'string', description: 'UI 模式：`pc`（默认）| `mobile` | `both`；`mode:"crud"` 固定双端' },
   'page|hook': { description: '页面钩子' },
   'page|vuetify': { type: 'object', description: 'Vuetify 主题配置' },
-  'page|template': { type: 'string', description: 'NJK 根模板名（可选）' },
-  'page|helpDoc': { type: 'string', description: '帮助文档 URL → PageTitle.helpDoc' },
+  'page|template': {
+    type: 'object',
+    description: '按端指定 NJK 根模板：`{ pc?, mobile? }`；旧字符串写法仅兼容运行',
+    example: '{ pc: "jh-page-v7", mobile: "jh-mobile-page-v7" }',
+  },
+  'page|helpDoc': { type: 'string', description: '帮助文档 URL；编译为 PageTitle/PageHeader 的 `showHelp + helpSrc + pageId`' },
 
   dataSource: {
     description:
       '数据源：表名 + CRUD actionId。\n' +
       '流水线：`flattenDataSource` → `normalizeDataSource` → standardConfig.dataSource → NJK bake `listResource` 等。',
+    example:
+      '{\n'
+      + '  table: "project",\n'
+      + '  primaryKey: "projectId",\n'
+      + '  listResource: "getProjectList",\n'
+      + '  createResource: "createProject",\n'
+      + '  updateResource: "updateProject",\n'
+      + '  deleteResource: "deleteProject",\n'
+      + '}',
   },
   'dataSource|table': { type: 'string', description: '数据库表名（必填）', example: '"project"' },
   'dataSource|model': { type: 'string', description: 'table 向下兼容别名' },
@@ -87,10 +105,19 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   fields: {
     description:
       '字段字典：`{ fieldKey: { label, type, ... } }`；供 views.* 引用。\n\n'
-      + '**表单分组（不绑数据，仅写在 create/update.fields 里）：**\n'
+      + '**表单分组（不绑数据，仅写在 create/update.fieldList 里）：**\n'
       + '- `type: "section"` + `label`：小节标题\n'
       + '- `type: "divider"`：分割线\n'
       + '- `type: "tip"`：提示文字，用 `label` 或 `html`',
+    example:
+      '{\n'
+      + '  projectName: {\n'
+      + '    label: "项目名称",\n'
+      + '    type: "text",\n'
+      + '    column: { width: 200 },\n'
+      + '    form: { required: true, placeholder: "请输入项目名称" },\n'
+      + '  },\n'
+      + '}',
   },
   'fields|label': { type: 'string', description: '展示标签；缺省为字段 key；`type:"section"` 时为分组标题' },
   'fields|type': {
@@ -99,7 +126,21 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
       '控件：`text` | `select` | `number` | `textarea` | `date` | `custom`；\n'
       + '结构性（不绑数据）：`section` | `divider` | `tip`；缺省 text',
   },
-  'fields|component': {
+  'fields|column': { type: 'object', description: '列配置：`{ width?, align?, class?, cellClass? }`', example: '{ width: 200, align: "start" }' },
+  'fields|search': { type: 'object', description: '搜索配置：`{ op? }`', example: '{ op: "eq" }' },
+  'fields|form': {
+    type: 'object',
+    description: '通用表单配置；支持 type/component/options/rules/attrs/pcAttrs/mobileAttrs',
+    example: '{ required: true, placeholder: "请输入项目名称", attrs: { clearable: true } }',
+  },
+  'fields|createForm': { type: 'object', description: '新增表单专属覆写，merge 于通用 form', example: '{ attrs: { readonly: true } }' },
+  'fields|updateForm': { type: 'object', description: '编辑表单专属覆写，merge 于通用 form', example: '{ readonly: true }' },
+  form: {
+    description: '字段的通用表单配置',
+    example: '{ required: true, placeholder: "请输入项目名称", attrs: { clearable: true } }',
+  },
+  'form|type': { type: 'string', description: '表单控件类型；省略时回退字段根 type' },
+  'form|component': {
     type: 'string',
     description:
       '`type:"custom"` 时指定全局 Vue 组件名（须 `includeList` 引入并 `Vue.component` 注册）。\n'
@@ -108,18 +149,11 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   },
   'fields|html': { type: 'string', description: '`type:"tip"` 时的 HTML 内容（v-html）' },
   'fields|cls': { type: 'string', description: '额外 CSS class（section/divider/tip 或普通字段）' },
-  'fields|options': {
-    type: 'array | string',
-    description: 'select 选项：静态数组，或 `"constantObj.xxx"`（编译为 __expr__）',
-    example: '"constantObj.projectStatus"',
-  },
-  'fields|required': { type: 'boolean', description: '表单必填' },
-  'fields|readonly': { type: 'boolean', description: '表单只读' },
-  'fields|op': { type: 'string', description: '搜索操作符：`like` / `eq` 等 → searchFieldList' },
-  'fields|width': { type: 'number', description: 'PC Table 列宽 → headers[].width' },
-  'fields|align': { type: 'string', description: 'PC Table 列对齐 start | center | end → headers[].align' },
-  'fields|class': { type: 'string', description: 'PC Table 表头 class → headers[].class' },
-  'fields|cellClass': { type: 'string', description: 'PC Table 单元格 class → headers[].cellClass' },
+  column: { description: '字段的 Table/List 列配置', example: '{ width: 200, align: "start" }' },
+  'column|width': { type: 'number', description: 'PC Table 列宽 → headers[].width' },
+  'column|align': { type: 'string', description: 'PC Table 列对齐 start | center | end → headers[].align' },
+  'column|class': { type: 'string', description: 'PC Table 表头 class → headers[].class' },
+  'column|cellClass': { type: 'string', description: 'PC Table 单元格 class → headers[].cellClass' },
   'fields|autoId': { type: 'object', description: 
     '自动 ID 生成配置 `{ type, prefix, start }`。\n'
     + '- `type`: 生成器类型（枚举）\n'
@@ -127,67 +161,134 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
     + '  - `"bizSequence"`(不带前缀的纯序列id)\n'
     + '- `prefix`: 业务前缀（可选）\n'
     + '- `start`: 起始值（可选，默认 10000）', },
-  'fields|rules': { type: 'string | array', description: '校验规则；字符串 → __expr__' },
-  'fields|placeholder': { type: 'string', description: '表单 placeholder → fieldList[].placeholder' },
-  'fields|hint': { type: 'string', description: '表单 hint → fieldList[].hint' },
-  'fields|quickAttrs': { description: '布尔型 Vuetify 属性：`["clearable"]` 或 `"clearable small-chips"`' },
-  'fields|attrs': {
+  'form|rules': { type: 'string | array', description: '校验规则；字符串 → __expr__' },
+  'form|placeholder': { type: 'string', description: '表单 placeholder → fieldList[].placeholder' },
+  'form|hint': { type: 'string', description: '表单 hint → fieldList[].hint' },
+  'form|quickAttrs': { description: '布尔型 Vuetify 属性：`["clearable"]` 或 `"clearable small-chips"`' },
+  'form|attrs': {
     type: 'object',
     description:
       '透传 jh-form → Vuetify props → `fieldList[].attrs`。\n'
       + '例 textarea：`{ rows: 5, autoGrow: false }`；select：`{ "item-text": "text" }`',
   },
-  'fields|pc': {
+  'form|pcAttrs': {
     type: 'object',
     description:
-      '**PC 端 attrs 覆写**（target=pc）。**直接是 attrs 对象**，merge 于 `fields.attrs`：`{ rows: 8 }`。',
+      '**PC 端 attrs 覆写**（target=pc）。**直接是 attrs 对象**，merge 于 `form.attrs`：`{ rows: 8 }`。',
   },
-  'fields|mobile': {
+  'form|mobileAttrs': {
     type: 'object',
     description:
-      '**Mobile 端 attrs 覆写**（target=mobile）。**直接是 attrs 对象**，merge 于 `fields.attrs`。',
+      '**Mobile 端 attrs 覆写**（target=mobile）。**直接是 attrs 对象**，merge 于 `form.attrs`。',
   },
 
-  fieldAttrs: { description: 'views.create.fieldAttrs / views.update.fieldAttrs：按 field key 覆写 attrs（同 pc/mobile 形状）' },
 
-  views: { description: '**mode:"crud" 专用**：视图 list / create / update（均可选组合）' },
+  views: {
+    description: '**mode:"crud" 专用**：视图 list / create / update（均可选组合）',
+    example:
+      '{\n'
+      + '  list: { columnList: ["projectId", "projectName"] },\n'
+      + '  create: { fieldList: ["projectName"] },\n'
+      + '  update: { fieldList: ["projectName"] },\n'
+      + '}',
+  },
   'views|list': {
     description:
       '列表视图（**可选**）：列、搜索、筛选、分页、工具栏/行操作。\n'
       + '省略则不生成 Table/List；仅有 create/update 或 pc/mobile 覆写时可不写。',
+    example:
+      '{\n'
+      + '  columnList: ["projectId", "projectName", "status"],\n'
+      + '  headActionList: [{ label: "新增", uiAction: "create" }],\n'
+      + '  rowActionList: [{ label: "编辑", uiAction: "update" }],\n'
+      + '  search: {\n'
+      + '    keyword: { fields: ["projectName"] },\n'
+      + '    fieldList: ["status"],\n'
+      + '  },\n'
+      + '  serverPagination: true,\n'
+      + '}',
   },
-  'views|create': { description: '新增表单视图' },
-  'views|update': { description: '编辑表单；支持 tabs 或单 fields' },
+  'views|create': {
+    description: '新增表单视图',
+    example:
+      '{\n'
+      + '  title: "新建项目",\n'
+      + '  fieldList: ["projectName", "status"],\n'
+      + '  actionList: [{ label: "保存", uiAction: "create" }],\n'
+      + '}',
+  },
+  'views|update': {
+    description: '编辑表单；使用 tabList 或单 fieldList',
+    example:
+      '{\n'
+      + '  title: "编辑项目",\n'
+      + '  fieldList: ["projectName", "status"],\n'
+      + '  actionList: [{ label: "保存", uiAction: "update" }],\n'
+      + '}',
+  },
 
   list: { description: 'views.list 列表视图（可选）' },
-  'list|columns': { type: 'string[] | object[]', description: '列：字段 key 或 `{ field, width?, align?, class?, cellClass?, slot?, span? }`' },
-  'list|mobileColumns': { type: 'string[] | object[]', description: 'Mobile List 卡片列；省略则用 columns' },
-  'list|search': { description: '服务端搜索 → PC: Search；Mobile: SearchSheet' },
-  'list|filter': { description: 'PC 客户端二次筛选 → Table.filterList；Mobile 与 search 合并进 SearchSheet' },
-  'list|toolbarActions': { type: 'array', description: '工具栏按钮 → PC Table.headActionList；Mobile MobileActions' },
-  'list|rowActions': { type: 'array', description: '行操作 → rowActionList' },
+  'list|columnList': {
+    type: 'string[] | object[]',
+    description: '列：字段 key 或 `{ field, width?, align?, class?, cellClass?, slot?, span? }`',
+    example: '["projectId", { field: "projectName", width: 200 }, "status"]',
+  },
+  'list|mobileColumnList': { type: 'string[] | object[]', description: 'Mobile List 卡片列；省略则用 columnList', example: '["projectName", "status"]' },
+  'list|search': {
+    type: 'object',
+    description: '服务端搜索 → PC: Search；Mobile: SearchSheet',
+    example:
+      '{\n'
+      + '  keyword: { fields: ["projectName", "projectId"], placeholder: "搜索项目" },\n'
+      + '  fieldList: ["status", "projectType"],\n'
+      + '  btnText: "查询",\n'
+      + '  mobileBtnText: "筛选",\n'
+      + '}',
+  },
+  'list|filter': {
+    type: 'object',
+    description: 'PC 客户端二次筛选 → Table.filterList；Mobile 与 search 合并进 SearchSheet',
+    example: '{ keyword: { fields: ["projectName"] }, fields: ["status"] }',
+  },
+  'list|headActionList': {
+    type: 'array',
+    description: '列表头部操作 → PC Table.headActionList；Mobile MobileActions',
+    example: '[\n  { label: "新增", uiAction: "create" },\n  { label: "批量删除", uiAction: "delete", visibleWhen: "hasSelection" },\n]',
+  },
+  'list|rowActionList': {
+    type: 'array',
+    description: '行操作 → Table/List rowActionList',
+    example: '[\n  { label: "编辑", uiAction: "update" },\n  { label: "删除", uiAction: "delete", confirm: true },\n]',
+  },
   'list|rowSlot': { type: 'string | object', description: '行/列插槽占位 → slotTemplates' },
   'list|serverPagination': { type: 'boolean', description: '服务端分页' },
   'list|pageSize': { type: 'number', description: '默认每页条数，默认 50' },
   'list|selectable': { type: 'boolean', description: '行多选' },
-  'list|orderBy': { type: 'array', description: '默认排序 `[{ column, order }]`' },
+  'list|orderBy': { type: 'array', description: '默认排序 `[{ column, order }]`', example: '[{ column: "operationAt", order: "desc" }]' },
   'list|layout': { type: 'object', description: '列表 layout 提示：`{ type: "table"|"card" }`' },
-  'list|mobileSearchKey': { type: 'string', description: 'SearchSheet 节点 key，默认 mobileSearch' },
-  'list|mobileSearchBtnText': { type: 'string', description: 'MobileFilterBtn 文案，默认「搜索」' },
-  'list|mobileSearchTitle': { type: 'string', description: 'SearchSheet 标题' },
-  'list|mobileSearchIcon': { type: 'string', description: 'MobileFilterBtn 图标名' },
-  'list|mobileSearchBtnClass': { type: 'string', description: 'MobileFilterBtn 按钮 class' },
 
-  search: { description: 'list.search / list.filter 对象式配置' },
-  'search|keyword': { type: 'object', description: 'keyword 控件块' },
-  'search|fields': { type: 'array', description: '除 keyword 外的 field key 或字段对象' },
+  search: {
+    description: 'list.search / list.filter 对象式配置',
+    example: '{ keyword: { fields: ["projectName"], placeholder: "搜索项目" }, fieldList: ["status"] }',
+  },
+  'search|keyword': { type: 'object', description: 'keyword 控件块', example: '{ fields: ["projectName", "projectId"], placeholder: "搜索项目" }' },
+  'search|fieldList': { type: 'array', description: '除 keyword 外的 field key 或字段对象', example: '["status", "projectType"]' },
+  'search|btnText': { type: 'string', description: 'PC 查询按钮文案' },
+  'search|btnIcon': { type: 'string', description: 'PC 查询按钮图标' },
+  'search|mobileBtnText': { type: 'string', description: '移动端筛选按钮文案' },
+  'search|mobileBtnIcon': { type: 'string', description: '移动端筛选按钮图标' },
+  'search|mobileSheet': {
+    type: 'object',
+    description: '移动端 SearchSheet 配置（**默认 bodyHeightMode: content**，可省略）',
+    example: '{ title: "列表筛选", persistent: false, maxBodyHeight: "70vh" }',
+  },
 
   keyword: { description: 'keyword 多列 OR 搜索块' },
   'keyword|fields': { type: 'string[]', description: '参与匹配的列（必填）', example: "['projectName','projectType']" },
   'keyword|placeholder': { type: 'string', description: '占位文案', example: '"搜索项目"' },
   'keyword|label': { type: 'string', description: '标签/占位别名' },
 
-  columns: { description: 'columns[] 对象项（string 项仅写字段 key）' },
+  columnList: { description: 'columnList[] 对象项（string 项仅写字段 key）' },
   'columns|field': { type: 'string', description: '字段 key（同 key / value）' },
   'columns|key': { type: 'string', description: '列 value' },
   'columns|value': { type: 'string', description: '列 value 别名' },
@@ -198,86 +299,96 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'columns|slot': { type: 'object', description: '列插槽配置' },
   'columns|span': { type: 'number', description: 'Mobile List 详情区跨列（2=满行）' },
 
-  toolbarActions: { description: '工具栏按钮项' },
-  'toolbarActions|label': { type: 'string', description: '**必填**。按钮文案' },
-  'toolbarActions|uiAction': { type: 'string', description: '**必填**。标准 token（`create` 等）或 doUiAction 方法名；编译期 1:1 保留为 `uiAction`' },
-  'toolbarActions|intent': { type: 'string', description: '**已废弃且 v7 schema 不再接受**。请用 uiAction' },
-  'toolbarActions|id': { type: 'string', description: '**已废弃且 v7 schema 不再接受**。请用 uiAction' },
-  'toolbarActions|color': { type: 'string', description: '按钮颜色' },
-  'toolbarActions|visibleWhen': { type: 'string | object', description: '隐藏条件 → __expr__（与 actionList 同口径）' },
-  'toolbarActions|disabledWhen': { type: 'string | object', description: '禁用条件 → __expr__（可引用页面 $data，如 tableSelected.length === 0）' },
-  'toolbarActions|type': { type: 'string', description: 'PC：`spacer` | `filter` | `slot`' },
+  headActionList: { description: '列表头部操作项', example: '[{ label: "新增", uiAction: "create" }]' },
+  'headActionList|label': { type: 'string', description: '**必填**。按钮文案' },
+  'headActionList|uiAction': { type: 'string', description: '**必填**。标准 token（`create` 等）或 doUiAction 方法名' },
+  'headActionList|color': { type: 'string', description: '按钮颜色' },
+  'headActionList|visibleWhen': { type: 'string | object', description: '显示条件 → __expr__' },
+  'headActionList|disabledWhen': { type: 'string | object', description: '禁用条件 → __expr__' },
+  'headActionList|type': { type: 'string', description: '结构项：`spacer` | `filter` | `slot`' },
 
-  rowActions: { description: '行操作按钮项' },
-  'rowActions|label': { type: 'string', description: '**必填**。按钮文案' },
-  'rowActions|uiAction': { type: 'string', description: '**必填**。`update` | `delete` | `detail` 或自定义 doUiAction 名' },
-  'rowActions|intent': { type: 'string', description: '**已废弃且 v7 schema 不再接受**。请用 uiAction' },
-  'rowActions|id': { type: 'string', description: '**已废弃且 v7 schema 不再接受**。请用 uiAction' },
-  'rowActions|key': { type: 'string', description: '行内唯一 key' },
-  'rowActions|color': { type: 'string', description: '语义色或 hex' },
-  'rowActions|icon': { type: 'string', description: 'jh-icon 名；省略时用 uiAction 默认 icon' },
-  'rowActions|confirm': { type: 'boolean', description: '点击前 confirmDialog' },
-  'rowActions|visible': { description: '`(item) => boolean` 条件显示' },
-  'rowActions|disabled': { description: 'boolean 或 `(item) => boolean`' },
+  rowActionList: { description: '行操作按钮项', example: '[{ label: "编辑", uiAction: "update" }]' },
+  'rowActionList|label': { type: 'string', description: '**必填**。按钮文案' },
+  'rowActionList|uiAction': { type: 'string', description: '**必填**。`update` | `delete` | `detail` 或自定义 doUiAction 名' },
+  'rowActionList|key': { type: 'string', description: '行内唯一 key' },
+  'rowActionList|color': { type: 'string', description: '语义色或 hex' },
+  'rowActionList|icon': { type: 'string', description: 'jh-icon 名；省略时用 uiAction 默认 icon' },
+  'rowActionList|confirm': { type: 'boolean', description: '点击前 confirmDialog' },
+  'rowActionList|visibleWhen': { description: '条件显示' },
+  'rowActionList|disabledWhen': { description: '禁用条件' },
 
-  create: { description: 'views.create 表单' },
-  'create|type': { type: 'string', description: '固定 `"form"`（可选）' },
+  create: {
+    description: 'views.create 表单',
+    example: '{ title: "新建项目", fieldList: ["projectName", "status"], actionList: [{ label: "保存", uiAction: "create" }] }',
+  },
   'create|title': { type: 'string', description: '抽屉/Sheet 标题' },
-  'create|fields': { type: 'string[]', description: '表单字段 key 列表' },
+  'create|fieldList': { type: 'string[]', description: '表单字段 key 列表', example: '["projectName", "status", "remark"]' },
   'create|interaction': { type: 'object', description: '字段 key → { visibleWhen, readonlyWhen, disabledWhen }' },
-  'create|actions': { type: 'array', description: '底部/头部操作 `[{ label, uiAction, color?, visibleWhen?, disabledWhen?, loadingWhen? }]`' },
-  'create|saveTipBeforeClose': { type: 'boolean', description: '关闭前脏检测 → beforeCloseConfirm' },
-  'create|fieldAttrs': {
-    description: '按 field key 覆写 `fieldList[].attrs`（合并于 **fields.{key}.attrs** 之上）',
+  'create|actionList': {
+    type: 'array',
+    description: '操作 `[{ label, uiAction, color?, visibleWhen?, disabledWhen?, loadingWhen? }]`',
+    example: '[{ label: "保存", uiAction: "create", color: "primary" }]',
   },
-  'create|sheet': {
+  'create|beforeCloseConfirm': { type: 'boolean', description: '关闭前脏检测' },
+  'create|mobileSheet': {
     description:
-      '**FormSheet 专用**（mobile create）。叠层行为 preset；省略时默认 `autoHeight: true`、`viewportOffset: 102`（满高可滚）。\n'
+      '**FormSheet 专用**（mobile create）。控制内容区最大高度和填满/自然撑开模式（**默认 fill**）。\n'
       + '子键见 **`sheet|*`**；Drawer 不支持这些键。',
+    example: '{ persistent: true, maxBodyHeight: "calc(100vh - 102px)" }',
   },
 
-  sheet: { description: 'views.create.sheet / views.update.sheet / views.list.searchSheet 共用叠层行为块' },
+  sheet: {
+    description: 'views.create/update.mobileSheet 与 views.list.search.mobileSheet 共用叠层行为块（FormSheet 默认 fill；SearchSheet 默认 content）',
+    example: '{ persistent: true, maxBodyHeight: "calc(100vh - 102px)" }',
+  },
   'sheet|persistent': { type: 'boolean', description: '点外侧不关闭 → v-bottom-sheet persistent（Sheet 族）' },
-  'sheet|rounded': { type: 'boolean', description: '卡片顶部圆角 rounded-t-lg' },
-  'sheet|autoHeight': { type: 'boolean', description: 'FormSheet：true=max-h，false=固定 h；create/update 默认 true' },
-  'sheet|viewportOffset': { type: 'number', description: 'FormSheet calc(100vh-Npx)；单 tab 102，多 tab 152' },
-  'sheet|maxBodyHeight': { type: 'string', description: '内容区最大高度，如 `70vh`、`400px`' },
-  'sheet|bodyHeight': { type: 'string', description: '固定内容区高度；优先于 maxBodyHeight' },
-  'sheet|minCardHeight': { type: 'string', description: 'jh-sheet 卡片 min-h，默认 `100px`' },
+  'sheet|bodyHeightMode': { type: 'string', description: '`fill` 填满 maxBodyHeight（**默认**）；`content` 内容自然撑开（不超过 max）' },
+  'sheet|maxBodyHeight': { type: 'string', description: '内容区最大高度；未传时默认 `calc(100vh - 102px)`' },
   'sheet|beforeCloseConfirm': { type: 'boolean', description: 'FormSheet 关前脏检测（亦可用 saveTipBeforeClose）' },
 
-  'list|searchSheet': {
-    description:
-      '**SearchSheet 专用**。默认 `maxBodyHeight: 70vh`；可设 persistent / bodyHeight 等，见 **`sheet|*`**。',
-  },
 
   update: { description: 'views.update 编辑' },
   'update|title': { type: 'string', description: '抽屉/Sheet 标题' },
-  'update|tabs': { type: 'array', description: '多 Tab：`[{ key, title, fields, interaction?, actions? }]`' },
-  'update|fields': { type: 'string[]', description: '无 tabs 时的单表单字段' },
+  'update|tabList': {
+    type: 'array',
+    description: '多 Tab：`[{ key, title, fieldList, interaction?, actionList? }]`',
+    example: '[{ key: "basicInfo", title: "基本信息", fieldList: ["projectName", "status"], actionList: [{ label: "保存", uiAction: "update" }] }]',
+  },
+  'update|fieldList': { type: 'string[]', description: '无 tabList 时的单表单字段', example: '["projectName", "status", "remark"]' },
   'update|interaction': { type: 'object', description: '单表单模式的字段 interaction' },
-  'update|actions': { type: 'array', description: '单表单模式底部/头部操作' },
-  'update|fieldAttrs': { description: '单表单模式：按 field key 覆写 attrs' },
-  'update|sheet': {
+  'update|actionList': { type: 'array', description: '单表单模式操作', example: '[{ label: "保存", uiAction: "update", color: "primary" }]' },
+  'update|mobileSheet': {
     description:
-      '**FormSheet 专用**（mobile update）。默认满高；多 tab 时 `viewportOffset: 152`。子键见 **`sheet|*`**。',
+      '**FormSheet 专用**（mobile update）。使用 maxBodyHeight 控制可用高度（**默认 bodyHeightMode: fill**）；子键见 **`sheet|*`**。',
+    example: '{ maxBodyHeight: "calc(100vh - 152px)" }',
   },
 
-  tabs: { description: 'update.tabs[] 单项' },
+  tabList: {
+    description: 'update.tabList[] 单项',
+    example: '[{ key: "basicInfo", title: "基本信息", fieldList: ["projectName", "status"] }]',
+  },
   'tabs|key': { type: 'string', description: 'Tab 唯一 key（必填）' },
   'tabs|title': { type: 'string', description: 'Tab 标题' },
-  'tabs|type': { type: 'string', description: 'Tab 类型（可选）' },
-  'tabs|fields': { type: 'string[]', description: '该 Tab 表单字段 key' },
+  'tabs|fieldList': { type: 'string[]', description: '该 Tab 表单字段 key' },
   'tabs|interaction': { type: 'object', description: '该 Tab 字段 interaction' },
-  'tabs|actions': { type: 'array', description: '该 Tab 操作按钮' },
-  'tabs|fieldAttrs': { description: '该 Tab 内按 field key 覆写 attrs' },
+  'tabs|actionList': { type: 'array', description: '该 Tab 操作按钮' },
 
-  interaction: { description: '字段级交互（key 为 fields 中的 fieldKey）' },
+  interaction: {
+    description: '字段级交互（key 为 fields 中的 fieldKey）',
+    example: '{ status: { visibleWhen: "isEnabled", disabledWhen: "isArchived" } }',
+  },
   'interaction|visibleWhen': { type: 'string | object', description: '可见条件 → __expr__' },
   'interaction|readonlyWhen': { type: 'string | object', description: '只读条件 → __expr__' },
   'interaction|disabledWhen': { type: 'string | object', description: '禁用条件 → __expr__' },
 
-  platform: { description: '端策略：`platform.pc` / `platform.mobile`（`platform.desktop` 仅兼容别名）' },
+  platform: {
+    description: '端策略：`platform.pc` / `platform.mobile`（`platform.desktop` 仅兼容别名）',
+    example:
+      '{\n'
+      + '  pc: { list: "Table", create: "CreateDrawer", update: "UpdateDrawer", filter: "inline" },\n'
+      + '  mobile: { list: "List", create: "CreateSheet", update: "UpdateSheet", filter: "sheet" },\n'
+      + '}',
+  },
   'platform|desktop': { description: 'PC 端兼容别名；新配置优先写 `platform.pc`' },
   'platform|mobile': { description: 'Mobile 端策略切片' },
   'platform|pc': { description: 'PC 端策略切片' },
@@ -295,7 +406,10 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'platform|pc|update': { type: 'string', description: 'UpdateDrawer | UpdateSheet 等' },
   'platform|pc|filter': { type: 'string', description: '`inline` | `sheet`；PC 默认 inline' },
 
-  layout: { description: '空间布局；可省略（DEFAULT_LAYOUT）' },
+  layout: {
+    description: '空间布局；可省略（DEFAULT_LAYOUT）',
+    example: '{ list: { cols: 2 }, create: { cols: 3 }, update: { cols: 3 } }',
+  },
   'layout|list': { description: '列表区：regions / treeWidth / cols / variants' },
   'layout|create': { description: '新建表单 cols / variants' },
   'layout|update': { description: '编辑表单 cols / variants' },
@@ -315,6 +429,12 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
       + '**统一写法**：`slots.{list|create|update}.{pc|mobile}.children: string[]`，每项为完整 `<template v-slot:…>…</template>`。\n'
       + '- list → Table/List\n'
       + '- create/update → CreateDrawer|FormSheet|UpdateDrawer 子节点（field-*/label-*/after-*）',
+    example:
+      '{\n'
+      + '  list: {\n'
+      + '    pc: { children: [\'<template v-slot:item.status="{ item }">{{ item.status }}</template>\'] },\n'
+      + '  },\n'
+      + '}',
   },
   'slots|list': { description: '列表相关插槽' },
   'slots|create': {
@@ -391,7 +511,10 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
       '(children, opts?) => HStack 顶栏容器；默认 `props.wrap: true`（jh-hstack flex-wrap），窄屏可换行；`opts.props.wrap: false` 可关闭',
   },
 
-  common: { description: '透传 Vue 实例：data / methods / doUiAction 等；**jh-component 的 Vue props 写 common.props**' },
+  common: {
+    description: '透传 Vue 实例：data / methods / doUiAction 等；**jh-component 的 Vue props 写 common.props**',
+    example: '{ data: { dialogShown: false }, methods: { openDialog() { this.dialogShown = true; } } }',
+  },
   'common|props': {
     type: 'object | array',
     description:
@@ -412,16 +535,25 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'common|doUiAction': { type: 'object', description: 'UI 动作链 `{ actionId: [...] }`' },
 
   includeList: {
-    description: 'css/js/html/vue 引入数组；项上可选 `target: pc|mobile`，省略则两端都引',
+    description: 'css/js/html/vue 引入数组；项上可选 `targets: pc|mobile|both`，省略则两端都引',
+    example: '[\n  { type: "css", path: "/page/project/common.css" },\n  { type: "html", path: "page/project/mobile.html", targets: "mobile" },\n]',
   },
   'includeList|type': { type: 'string', description: 'css | js | html | include | vueUse | vueComponent' },
   'includeList|path': { type: 'string', description: '资源路径（css/js/html/include 必填）' },
-  'includeList|target': { type: 'string | string[]', description: 'pc | mobile；省略=两端共用' },
+  'includeList|targets': { type: 'string | string[]', description: 'pc | mobile | both；省略=两端共用', example: '"mobile"' },
   'includeList|attrs': { type: 'object', description: '标签属性或 include attrs' },
   'includeList|includeType': { type: 'string', description: '如 auto：模板内挂载 vue 组件' },
   'includeList|component': { type: 'string', description: 'vueUse/vueComponent 组件名' },
 
-  resourceList: { description: '后端 resource 定义（**jh-page CRUD/UI**）；jh-component 禁止，权限归宿主 Page' },
+  resourceList: {
+    description: '后端 resource 定义（**jh-page CRUD/UI**）；jh-component 禁止，权限归宿主 Page',
+    example:
+      '[{\n'
+      + '  actionId: "selectItemList",\n'
+      + '  resourceType: "sql",\n'
+      + '  resourceData: { table: "project", operation: "select" },\n'
+      + '}]',
+  },
 
   // ── pc / mobile 覆盖（仅 mode:"crud"）────────────────────────────────────
   pc: {
@@ -538,33 +670,23 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'Drawer|cols': { type: 'number', description: '表单 grid 列数（无 tabList 时）；layout.create.cols / layout.update.cols 语义展开', example: '2' },
   'Drawer|gap': { type: 'string', description: '表单字段间距 CSS gap；FormSheet 默认 `"0"`', example: '"12px 16px"' },
   'Drawer|labelMode': { type: 'string', description: '标签模式：`above` | `float` | `inline`（FormSheet 默认 inline）' },
-  'Drawer|rounded': { type: 'boolean', description: 'FormSheet 顶部圆角 `rounded-t-lg`；platform create/update=CreateSheet 时自动 true' },
-  'Drawer|hiddenBtn': { type: 'boolean', description: 'FormSheet：隐藏标题栏默认「重置/确认」' },
   'Drawer|fieldList': {
     description:
-      '单表单字段数组（无 tabList 时）。来自 **views.create.fields** / **views.update.fields** + **fields** 字典；也可手写覆写 blocks。\n\n'
+      '单表单字段数组（无 tabList 时）。来自 **views.create.fieldList** / **views.update.fieldList** + **fields** 字典；也可手写覆写 blocks。\n\n'
       + '项形状见 **`fieldList|*`**；`type: section|divider|tip` 为分组占位。',
     example: '[{ key: "projectName", label: "项目名称", type: "text", required: true }]',
   },
-  'Drawer|fields': { description: '兼容旧名，等价 fieldList（fieldList 优先）' },
   'Drawer|tabList': {
     description:
-      '多 Tab 编辑（**views.update.tabs**）。每项：`{ key, title, fieldList, actions?, cols?, ... }`。\n'
-      + 'Tab 内字段见 **`tabList|*`**；PC Drawer 用 tab **`actionList`**，FormSheet 用 tab **`headActionList`**。',
+      '多 Tab 编辑（**views.update.tabList**）。每项：`{ key, title, fieldList, actionList?, cols?, ... }`。',
   },
   'Drawer|actionList': {
     description:
-      '**CreateDrawer / UpdateDrawer / FormDrawer** 底部操作按钮（**views.create.actions** / **views.update.actions**）。\n'
-      + 'FormSheet 不用此键，改用 **`headActionList`** 放标题栏。项见 **`actionList|*`**。',
-  },
-  'Drawer|headActionList': {
-    description:
-      '**FormSheet** 标题栏操作（**views.create.actions** / tab.actions 在 mobile 展开为此键）。\n'
-      + '编译时 CreateDrawer 仍映射为 **`actionList`**。项见 **`actionList|*`**（含 visibleWhen / disabledWhen）。',
+      '表单操作按钮（**views.create/update.actionList**）。Drawer 渲染在底部，FormSheet 渲染在标题栏。',
   },
   'Drawer|beforeCloseConfirm': {
     type: 'boolean',
-    description: '关闭前脏检测确认（**views.create.saveTipBeforeClose** / beforeCloseConfirm）',
+    description: '关闭前脏检测确认（**views.create/update.beforeCloseConfirm**）',
   },
   'Drawer|beforeCloseCompareFields': {
     type: 'string[]',
@@ -572,24 +694,22 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
     example: '["projectName", "status"]',
   },
   'Drawer|persistent': { type: 'boolean', description: '**FormSheet / Sheet 专用**；点外侧不关闭（Drawer 无效）' },
-  'Drawer|autoHeight': { type: 'boolean', description: '**FormSheet** 高度策略；v7 mobile create/update 默认 true' },
-  'Drawer|viewportOffset': { type: 'number', description: '**FormSheet** calc(100vh-Npx)；编译默认 102 / 152' },
   'Drawer|maxBodyHeight': { type: 'string', description: '**FormSheet / SearchSheet / Sheet** 内容区 max-h' },
-  'Drawer|bodyHeight': { type: 'string', description: '**Sheet 族** 固定内容区高度' },
-  'Drawer|minCardHeight': { type: 'string', description: '**Sheet 族** 卡片 min-h，默认 100px' },
+  'Drawer|bodyHeightMode': { type: 'string', description: '**Sheet 族**：`fill` 填满 max（默认）；`content` 自然收缩' },
+
+
+  // ── actionContent：FormSheet（jh-form-sheet）────────────────────────────────
 
   // ── actionContent：SearchSheet（jh-mobile-search-sheet）────────────────────
-  'SearchSheet|title': { type: 'string', description: 'Sheet 标题；默认「搜索」（views.list.mobileSearchTitle）' },
-  'SearchSheet|rounded': { type: 'boolean', description: '卡片顶部圆角，CRUD 移动搜索默认 true' },
-  'SearchSheet|searchFieldList': {
+  'SearchSheet|title': { type: 'string', description: 'Sheet 标题；来自 views.list.search.mobileSheet.title' },
+  'SearchSheet|fieldList': {
     description:
-      '搜索字段数组，来自 **views.list.search** 展开。**数组**为静态配置；**字符串**为 Vue 变量名 → `:search-field-list`。\n'
-      + '项见 **`searchFieldList|*`**；可含 `type: "keyword"`。',
+      '搜索字段数组，来自 **views.list.search.fieldList** 展开；可含 `type: "keyword"`。',
   },
+  'SearchSheet|keywordConfig': { type: 'object', description: '固定关键字搜索列和 placeholder：`{ fields, placeholder }`' },
   'SearchSheet|keyword': {
-    type: 'string | object',
-    description:
-      'keyword 块：对象 `{ fields, placeholder }`（静态）；或字符串变量名 → `:keyword.sync`（默认页面 `keyword`）',
+    type: 'string',
+    description: '当前关键字字符串；页面节点可写变量名并由 descriptor 生成 `:keyword.sync`',
   },
   'SearchSheet|keywordFieldList': {
     description: 'keyword 已选列：**数组**静态；**字符串**变量名 → `:keyword-field-list.sync`',
@@ -597,12 +717,13 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'SearchSheet|keywordHeaders': {
     description: 'keyword 可选列 `{ text, value }[]`；字符串变量名 → `:keyword-headers`',
   },
-  'SearchSheet|showSearchBtn': { type: 'boolean', description: '是否显示底部「重置 / 查询」，默认 true' },
+  'SearchSheet|showBtn': { type: 'boolean', description: '是否显示底部「重置 / 查询」，默认 true' },
+  'SearchSheet|btnText': { type: 'string', description: '查询按钮文案' },
+  'SearchSheet|btnIcon': { type: 'string', description: '查询按钮图标' },
   'SearchSheet|bodyClass': { description: '透传 jh-sheet 内容区 class（与 maxBodyHeight 合并）' },
-  'SearchSheet|persistent': { type: 'boolean', description: '点外侧不关闭；**views.list.searchSheet.persistent**' },
-  'SearchSheet|maxBodyHeight': { type: 'string', description: '内容区 max-h，默认 `70vh`（**views.list.searchSheet**）' },
-  'SearchSheet|bodyHeight': { type: 'string', description: '固定内容区高度；优先于 maxBodyHeight' },
-  'SearchSheet|minCardHeight': { type: 'string', description: '卡片 min-h，默认 100px' },
+  'SearchSheet|persistent': { type: 'boolean', description: '点外侧不关闭；**views.list.search.mobileSheet.persistent**' },
+  'SearchSheet|maxBodyHeight': { type: 'string', description: '内容区 max-h，默认 `70vh`' },
+  'SearchSheet|bodyHeightMode': { type: 'string', description: '`content` 自然收缩（**SearchSheet 默认**）；`fill` 填满 maxBodyHeight' },
 
   // ── actionContent：Sheet（jh-sheet 通用底部卡片）──────────────────────────
   'Sheet|title': {
@@ -613,26 +734,16 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
     type: 'string',
     description: '**通用 *Bind**：`titleBind` → `:title="Vue 表达式"`（与 plain `title` 互斥）。任意 prop 均可 `<prop>Bind`，见文档 *Bind 协议。',
   },
-  'Sheet|rounded': { type: 'boolean', description: '顶部圆角 `rounded-t-lg`' },
-  'Sheet|orderList': {
-    description:
-      '排序模式（与 **actionList** / **children** 默认插槽三选一）。`[{ text, value }]`；标题栏自带「重置/确认」',
-  },
   'Sheet|actionList': {
     description:
-      '**内容区**图标网格（与 orderList / children 默认插槽三选一）。`cols` 控制列数。\n'
-      + '点击后 `@action` → `doUiAction(整项对象)`（非 intent 字符串）。**不支持** disabled / visible。项见 **`Sheet|actionList|*`**',
+      '**标题栏**按钮（与 FormSheet / Drawer 一致 → `jh-mobile-actions`）。\n'
+      + '点击 `@action` → `doUiAction(actionId)`；项格式：label / uiAction / visibleWhen 等。\n'
+      + '图标网格请用 **MobileAction** 或 children `jh-sheet-menu-grid`，不要再写在 Sheet.actionList。',
   },
-  'Sheet|headActionList': {
-    description:
-      '**标题栏**按钮（`jh-mobile-actions`）；与 orderList 模式标题栏「重置/确认」互斥（有 orderList 时优先后者）。\n'
-      + '点击 `@head-action` → `doUiAction(actionId)`；项格式同 **`actionList|*`**（label / uiAction / visibleWhen 等）。',
-  },
-  'Sheet|actionList|value': { type: 'string', description: '网格项展示文字（jh-sheet 用 value，不是 label）', example: '"解绑"' },
-  'Sheet|actionList|icon': { type: 'string', description: 'mdi 图标名', example: '"mdi-link-off"' },
-  'Sheet|actionList|color': { type: 'string', description: '图标颜色（Vuetify color）' },
-  'Sheet|actionList|tag': { type: 'string', description: '有 tag 时走 custom 插槽，不渲染默认网格单元' },
-  'Sheet|cols': { type: 'number', description: 'actionList 网格列数（Tailwind grid-cols-*）' },
+  'Sheet|actionList|label': { type: 'string', description: '标题栏按钮文案' },
+  'Sheet|actionList|uiAction': { type: 'string', description: 'doUiAction 方法名或标准 token' },
+  'Sheet|actionList|color': { type: 'string', description: '按钮颜色（Vuetify color）' },
+  'Sheet|actionList|visibleWhen': { description: '显示条件' },
   'Sheet|stackZIndex': { type: 'number', description: '叠层层级' },
   'Sheet|cardClass': { description: '卡片额外 class' },
   'Sheet|bodyClass': { description: 'v-card-text 区域 class' },
@@ -640,23 +751,22 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'Sheet|attach': { description: '`false` | `"body"` — Vuetify 挂载目标' },
   'Sheet|lazy': { type: 'boolean', description: 'false 时首次打开前即挂载内容' },
   'Sheet|persistent': { type: 'boolean', description: '点外侧不关闭 → v-bottom-sheet persistent' },
-  'Sheet|maxBodyHeight': { type: 'string', description: '自定义 Sheet 内容区 max-h（actionContent 手写 Sheet 时用）' },
-  'Sheet|bodyHeight': { type: 'string', description: '自定义 Sheet 固定内容区高度' },
-  'Sheet|minCardHeight': { type: 'string', description: '卡片 min-h，默认 100px' },
+  'Sheet|maxBodyHeight': { type: 'string', description: '内容区最大高度；未传时默认 `calc(100vh - 102px)`' },
+  'Sheet|bodyHeightMode': { type: 'string', description: '`fill` 填满 maxBodyHeight（**默认**）；`content` 内容自然撑开（不超过 max）' },
 
   // ── pageContent：Table / List（blocks.list 常用）──────────────────────────
-  'Table|headers': { description: 'Vuetify 列 `{ text, value, width?, align?, class?, cellClass?, ... }[]`；来自 views.list.columns + fields' },
+  'Table|headers': { description: 'Vuetify 列 `{ text, value, width?, align?, class?, cellClass?, ... }[]`；来自 views.list.columnList + fields' },
   'Table|headersBinding': { type: 'string', description: '动态列变量名 → `:headers="headers"`（如列设置按钮场景）' },
   'Table|columnsBinding': { type: 'string', description: 'headersBinding 别名' },
   'Table|serverPagination': { type: 'boolean', description: '服务端分页' },
   'Table|pageSize': { type: 'number', description: '默认每页条数' },
   'Table|selectable': { type: 'boolean', description: '行多选' },
   'Table|orderBy': { type: 'array', description: '默认排序 `[{ column, order }]`' },
-  'Table|headActionList': { description: 'PC 表头工具按钮 → views.list.toolbarActions；运行时映射 toolbarActionList' },
-  'Table|rowActionList': { description: '行操作 → views.list.rowActions；项见 rowActionList|*' },
+  'Table|headActionList': { description: 'PC 表头工具按钮 → views.list.headActionList' },
+  'Table|rowActionList': { description: '行操作 → views.list.rowActionList；项见 rowActionList|*' },
   'Table|filterList': { description: 'PC 客户端二次筛选 → views.list.filter；项见 filterList|*' },
   'Table|slotTemplates': { description: '列插槽占位键（legacy）；推荐 slots.list.pc.children' },
-  'List|headers': { description: '同 Table；Mobile List 卡片列，mobileColumns 优先' },
+  'List|headers': { description: '同 Table；Mobile List 卡片列，mobileColumnList 优先' },
   'List|cols': { type: 'number', description: 'Mobile List 详情区 grid 列数（layout.list.cols）' },
 
   // ── fieldList / tabList / actionList / searchFieldList 项（表单与搜索嵌套）────
@@ -680,14 +790,10 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'tabList|key': { type: 'string', description: 'Tab 唯一 key', example: '"basicInfo"' },
   'tabList|title': { type: 'string', description: 'Tab 标题' },
   'tabList|fieldList': { description: 'Tab 内字段数组' },
-  'tabList|actionList': { description: 'PC Drawer Tab 底部按钮' },
-  'tabList|headActionList': { description: 'FormSheet Tab 标题栏按钮' },
+  'tabList|actionList': { description: 'Tab 操作；Drawer 位于底部，FormSheet 位于标题栏' },
   'tabList|cols': { type: 'number', description: '覆盖根级 cols' },
   'actionList|label': { type: 'string', description: '按钮文字', example: '"保存"' },
-  'actionList|uiAction': { type: 'string', description: '**推荐**。标准 token 或 doUiAction 方法名' },
-  'actionList|intent': { type: 'string', description: '**已废弃且 v7 schema 不再接受**。请用 uiAction' },
-  'actionList|actionId': { type: 'string', description: '自定义 doUiAction ID' },
-  'actionList|id': { type: 'string', description: 'actionId 别名' },
+  'actionList|uiAction': { type: 'string', description: '**必填**。标准 token 或 doUiAction 方法名' },
   'actionList|color': { type: 'string', description: 'Vuetify color' },
   'actionList|visibleWhen': {
     type: 'string | boolean | object',
@@ -716,13 +822,35 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
 
   // ── PageHeader（PC 顶栏 / blocks.pageHeader）────────────────────────────────
   'PageHeader|title': { type: 'string', description: '页面标题' },
-  'PageHeader|searchFieldList': { description: '顶部搜索字段 → searchFieldList|*' },
+  'PageHeader|fieldList': { description: '顶部搜索字段配置' },
+  'PageHeader|keywordConfig': { description: '固定关键字搜索列和 placeholder' },
   'PageHeader|keyword': { type: 'string', description: '字符串 → `:keyword.sync` 变量名' },
   'PageHeader|keywordFieldList': { description: '字符串 → `:keyword-field-list.sync` 变量名' },
   'PageHeader|keywordHeaders': { description: 'keyword 可选列 `{ text, value }[]` 或变量名' },
-  'PageHeader|showSearchBtn': { type: 'boolean', description: '是否显示搜索按钮，默认 true' },
-  'PageHeader|helpBtn': { type: 'boolean', description: '右上角帮助按钮' },
+  'PageHeader|showBtn': { type: 'boolean', description: '是否显示搜索按钮，默认 true' },
+  'PageHeader|btnText': { type: 'string', description: '查询按钮文案' },
+  'PageHeader|btnIcon': { type: 'string', description: '查询按钮图标' },
+  'PageHeader|showHelp': { type: 'boolean', description: '是否显示帮助入口' },
   'PageHeader|helpSrc': { type: 'string', description: '帮助 iframe URL' },
+  'PageHeader|pageId': { type: 'string', description: '由编译器根据 page.id 注入；缺少 helpSrc 时用于默认 pageDoc 地址' },
+  'PageTitle|title': { type: 'string', description: '页面标题' },
+  'PageTitle|showHelp': { type: 'boolean', description: '是否显示帮助入口' },
+  'PageTitle|helpSrc': { type: 'string', description: '帮助 iframe URL' },
+  'PageTitle|pageId': { type: 'string', description: '由编译器根据 page.id 注入' },
+  'Search|fieldList': { description: '搜索字段配置' },
+  'Search|keyword': { type: 'string', description: '当前关键字字符串' },
+  'Search|keywordConfig': { type: 'object', description: '固定关键字搜索列和 placeholder' },
+  'Search|showBtn': { type: 'boolean', description: '是否显示查询按钮' },
+  'Search|btnText': { type: 'string', description: '查询按钮文案' },
+  'Search|btnIcon': { type: 'string', description: '查询按钮图标' },
+
+  'Form|fieldList': { description: '表单字段数组' },
+
+  'TableFilter|filterList': { description: '客户端筛选字段数组' },
+
+  'TextBtn|label': { type: 'string', description: '按钮文案' },
+  'TextBtn|icon': { type: 'string', description: 'jh-icon 名' },
+  'TextBtn|iconPosition': { type: 'string', description: '图标位置：`left` | `right`' },
 
   // ── MobileFilterBtn（jh-mobile-filter-btn；pageContent 顶栏触发器）──────────
   'MobileFilterBtn|labelBind': {
@@ -775,17 +903,15 @@ const V7_PATH_DOCS: Record<string, DocEntry> = {
   'Box|padding': { type: 'string', description: 'CSS padding' },
   'Box|margin': { type: 'string', description: 'CSS margin' },
   'Box|width': { type: 'string', description: 'CSS width，默认 100%' },
-  'Grid|cols': { type: 'number | string', description: 'Grid 列数' },
+  'Grid|cols': { type: 'number | object', description: 'Grid 列数；数字或响应式对象 `{ xs, sm, md, lg }`' },
   'Grid|gap': { type: 'number | string', description: '子项间距' },
-  'Grid|colsMd': { type: 'number | string', description: '中屏列数' },
-  'Grid|colsSm': { type: 'number | string', description: '小屏列数' },
 };
 
 /** 列表/对象上下文 key，用于 lookupDoc 路径拼接 */
 const V7_LIST_CONTEXT = [
-  'fields', 'views', 'list', 'search', 'filter', 'keyword', 'columns',
-  'create', 'update', 'tabs', 'interaction', 'platform', 'layout', 'slots', 'blocks',
-  'resource', 'toolbarActions', 'rowActions', 'includeList', 'common', 'dataSource', 'page',
+  'fields', 'views', 'list', 'search', 'filter', 'keyword', 'columnList', 'column', 'form',
+  'create', 'update', 'tabList', 'interaction', 'platform', 'layout', 'slots', 'blocks',
+  'resource', 'headActionList', 'rowActionList', 'includeList', 'common', 'dataSource', 'page',
   'pc', 'mobile', 'pageContent', 'actionContent',
   'fieldList', 'fields', 'tabList', 'actionList', 'searchFieldList', 'filterList', 'rowActionList', 'headActionList',
 ];
@@ -800,8 +926,7 @@ const V7_COMPONENT_ALIASES: Record<string, string> = {
 };
 
 const V7_LIST_ALIASES: Record<string, string> = {
-  fields: 'fieldList',
-  headers: 'columns',
+  headers: 'columnList',
 };
 
 interface ScanAncestorResult {
@@ -821,6 +946,7 @@ const collectChildren = (prefix: string): ChildEntry[] => {
 
   for (const path of Object.keys(V7_PATH_DOCS)) {
     if (!path.startsWith(pfx)) continue;
+    if (V7_PATH_DOCS[path].deprecated) continue;
     const rest = path.slice(pfx.length);
     const segs = rest.split('|');
     const first = segs[0];
@@ -853,7 +979,10 @@ const findChildren = (word: string, ancestors: string[], componentType: string |
   const comp = componentType ? (V7_COMPONENT_ALIASES[componentType] || componentType) : null;
   const prefixes: string[] = [];
 
-  if (word === 'props' && comp) {
+  if (word === 'props' && componentType) {
+    prefixes.push(componentType);
+  }
+  if (word === 'props' && comp && comp !== componentType) {
     prefixes.push(comp);
   }
 
@@ -867,7 +996,10 @@ const findChildren = (word: string, ancestors: string[], componentType: string |
     prefixes.push(`${nearestCtx}|${word}`);
   }
 
-  if (comp) {
+  if (componentType) {
+    prefixes.push(`${componentType}|${word}`);
+  }
+  if (comp && comp !== componentType) {
     prefixes.push(`${comp}|${word}`);
   }
 
@@ -897,6 +1029,36 @@ const renderChildEntry = (md: vscode.MarkdownString, c: ChildEntry, indent = '')
 
 function getIndent(text: string): number {
   return text.match(/^(\s*)/)?.[1].length ?? 0;
+}
+
+/** 识别当前行光标前仍未闭合的内联对象，例如 column: { width: 200 }。 */
+export function scanInlineObjectAncestors(linePrefix: string): string[] {
+  const stack: Array<string | null> = [];
+  let quote = '';
+  let escaped = false;
+
+  for (let i = 0; i < linePrefix.length; i++) {
+    const ch = linePrefix[i];
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === quote) quote = '';
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') {
+      quote = ch;
+      continue;
+    }
+    if (ch === '/' && linePrefix[i + 1] === '/') break;
+    if (ch === '{') {
+      const keyMatch = linePrefix.slice(0, i).match(/([\w$]+)\s*:\s*$/);
+      stack.push(keyMatch ? keyMatch[1] : null);
+    } else if (ch === '}') {
+      stack.pop();
+    }
+  }
+
+  return stack.filter((key): key is string => !!key).reverse();
 }
 
 function scanAncestors(document: vscode.TextDocument, position: vscode.Position): ScanAncestorResult {
@@ -940,7 +1102,7 @@ function scanAncestors(document: vscode.TextDocument, position: vscode.Position)
   return { ancestors, componentType };
 }
 
-function lookupDoc(word: string, ancestors: string[], componentType: string | null): DocEntry | null {
+export function lookupDoc(word: string, ancestors: string[], componentType: string | null): DocEntry | null {
   const comp = componentType ? (V7_COMPONENT_ALIASES[componentType] || componentType) : null;
   const nearestListRaw = ancestors.find(a => V7_LIST_CONTEXT.includes(a) && [
     'fieldList', 'fields', 'tabList', 'actionList', 'searchFieldList',
@@ -975,7 +1137,10 @@ function lookupDoc(word: string, ancestors: string[], componentType: string | nu
   if (comp && nearestList) {
     candidates.push(`${comp}|${nearestList}|${word}`);
   }
-  if (comp) {
+  if (componentType) {
+    candidates.push(`${componentType}|${word}`);
+  }
+  if (comp && comp !== componentType) {
     candidates.push(`${comp}|${word}`);
   }
   if (nearestList) {
@@ -1144,11 +1309,14 @@ function buildHoverMarkdown(word: string, doc: DocEntry | null | undefined, chil
   md.appendMarkdown(titleParts.join('  ') + '\n\n');
 
   if (doc?.description) {
+    if (doc.deprecated) {
+      md.appendMarkdown(`> **已废弃，仍兼容。** 请使用 \`${doc.replacement}\`。\n\n`);
+    }
     md.appendMarkdown(doc.description);
   }
 
   if (doc?.example) {
-    md.appendMarkdown(`\n\n**示例：**\n\`\`\`js\n${word}: ${doc.example}\n\`\`\``);
+    md.appendMarkdown(`\n\n**基础写法：**\n\`\`\`js\n${word}: ${doc.example}\n\`\`\``);
   }
 
   if (children.length > 0) {
@@ -1196,8 +1364,10 @@ export class V7ConfigHoverProvider implements vscode.HoverProvider {
       doc = V7_PATH_DOCS[`blocks|${word}`] || lookupDoc(word, ['blocks'], null) || null;
     } else {
       const { ancestors, componentType } = scanAncestors(document, position);
-      doc = lookupDoc(word, ancestors, componentType);
-      children = findChildren(word, ancestors, componentType);
+      const inlineAncestors = scanInlineObjectAncestors(lineText.slice(0, range.start.character));
+      const effectiveAncestors = [...inlineAncestors, ...ancestors];
+      doc = lookupDoc(word, effectiveAncestors, componentType);
+      children = findChildren(word, effectiveAncestors, componentType);
     }
 
     if (!doc && children.length === 0) return null;
@@ -1251,15 +1421,22 @@ export class V7ConfigCompletionProvider implements vscode.CompletionItemProvider
     position: vscode.Position,
   ): vscode.ProviderResult<vscode.CompletionItem[]> {
     if (!isV7ConfigDocument(document)) return null;
-    if (!findOverridePlatform(document, position)) return null;
 
     const line = document.lineAt(position.line).text;
     const before = line.slice(0, position.character);
-    if (!/\bblocks\.[a-zA-Z$_][a-zA-Z0-9$_]*$/.test(before) && !/\bblocks\.$/.test(before)) {
-      return null;
+    let candidates: ChildEntry[] = [];
+    if (/\bblocks\.[a-zA-Z$_][a-zA-Z0-9$_]*$/.test(before) || /\bblocks\.$/.test(before)) {
+      if (!findOverridePlatform(document, position)) return null;
+      candidates = collectChildren('blocks');
+    } else {
+      if (!/^\s*[a-zA-Z$_][a-zA-Z0-9$_]*$/.test(before) && !/^\s*$/.test(before)) return null;
+      const { ancestors, componentType } = scanAncestors(document, position);
+      const parent = ancestors[0];
+      if (!parent) return null;
+      candidates = findChildren(parent, ancestors.slice(1), componentType);
     }
 
-    return collectChildren('blocks').map(c => {
+    return candidates.map(c => {
       const item = new vscode.CompletionItem(c.key, vscode.CompletionItemKind.Property);
       if (c.doc?.type) item.detail = c.doc.type;
       if (c.doc?.description) {

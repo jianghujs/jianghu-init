@@ -3,7 +3,7 @@
 /** views.update -> update form IR */
 
 const { normalizeActionList } = require('../../../actionIntent');
-const { fieldKeyToFormField, applyFieldAttrs } = require('../../../fieldFormProps');
+const { fieldKeyToFormField } = require('../../../fieldFormProps');
 const { applyFieldInteraction } = require('../../../whenExpr');
 
 const applyVariants = (fieldList, layout, target) => {
@@ -18,37 +18,35 @@ const applyVariants = (fieldList, layout, target) => {
   });
 };
 
-const compileFieldList = (keys, fields, target, interaction, fieldAttrs, layout) => {
+const compileFieldList = (keys, fields, target, interaction, layout) => {
   let fieldList = Array.isArray(keys)
-    ? keys.map(key => fieldKeyToFormField(fields, key, target))
+    ? keys.map(key => fieldKeyToFormField(fields, key, target, 'update'))
     : [];
   if (interaction) fieldList = applyFieldInteraction(fieldList, interaction);
-  if (fieldAttrs) fieldList = applyFieldAttrs(fieldList, fieldAttrs);
   return applyVariants(fieldList, layout, target);
 };
 
 const compilePayload = ({ view, fields, target, layout }) => {
-  if (Array.isArray(view.tabs) && view.tabs.length) {
+  if (Array.isArray(view.tabList) && view.tabList.length) {
     return {
       mode: 'tabs',
-      tabList: view.tabs.map(tab => {
+      tabList: view.tabList.map(tab => {
         const result = {
           key: tab.key,
           title: tab.title,
           fieldList: compileFieldList(
-            tab.fields,
+            tab.fieldList,
             fields,
             target,
             tab.interaction,
-            tab.fieldAttrs,
             layout,
           ),
         };
-        if (tab.actions) {
+        if (tab.actionList) {
           result.actions = normalizeActionList(
-            tab.actions,
+            tab.actionList,
             'formUpdate',
-            `views.update.tabs.${tab.key}.actions`,
+            `views.update.tabList.${tab.key}.actionList`,
           );
         }
         return result;
@@ -59,16 +57,15 @@ const compilePayload = ({ view, fields, target, layout }) => {
   const payload = {
     mode: 'fields',
     fieldList: compileFieldList(
-      view.fields,
+      view.fieldList,
       fields,
       target,
       view.interaction,
-      view.fieldAttrs,
       layout,
     ),
   };
-  if (Array.isArray(view.actions)) {
-    payload.actions = normalizeActionList(view.actions, 'formUpdate', 'views.update.actions');
+  if (Array.isArray(view.actionList)) {
+    payload.actions = normalizeActionList(view.actionList, 'formUpdate', 'views.update.actionList');
   }
   return payload;
 };
@@ -106,7 +103,7 @@ const compileUpdateView = ({ semantic, view, fields, target, layout, component }
     component,
     title: view.title || '编辑',
     payload: compilePayload({ view, fields, target, layout }),
-    sheet: view.sheet,
+    sheet: view.mobileSheet,
     cols: layout.update && layout.update.cols,
     children: resolveChildren(semantic, target),
   };

@@ -45,12 +45,23 @@ const buildComponentPageMeta = semantic => {
   };
 };
 
+const resolvePageTemplate = semantic => {
+  const template = semantic.page && semantic.page.template;
+  if (!template || typeof template !== 'object' || Array.isArray(template)) return template;
+  const target = semantic.targetPlatform === 'mobile' || semantic.pageType === 'jh-mobile-page'
+    ? 'mobile'
+    : 'pc';
+  return template[target] || template.pc || template.mobile || '';
+};
+
 /**
  * CRUD / UI 共用的 page 元信息（jh-component 用 component，jh-page 用 page）
  */
 const resolvePageMeta = semantic => {
   if (isJhComponent(semantic)) return buildComponentPageMeta(semantic);
-  return semantic.page || {};
+  const page = semantic.page || {};
+  const template = resolvePageTemplate(semantic);
+  return template === page.template ? page : { ...page, template };
 };
 
 const validateCrudSemantic = semantic => {

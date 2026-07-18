@@ -3,10 +3,10 @@
 /**
  * includeList 按编译端过滤（与 targetPlatform / _v7.target 对齐）
  *
- * 扁平数组 + 项上可选 target：
- *   { type: 'html', path: '...', target: 'pc' }
- *   { type: 'html', path: '...', target: ['pc', 'mobile'] }
- *   省略 target → PC / Mobile 各编译一次时都会引入
+ * 扁平数组 + 项上可选 targets：
+ *   { type: 'html', path: '...', targets: 'pc' }
+ *   { type: 'html', path: '...', targets: ['pc', 'mobile'] }
+ *   省略 targets → PC / Mobile 各编译一次时都会引入
  */
 
 const VALID_TARGETS = new Set(['pc', 'mobile']);
@@ -15,8 +15,9 @@ const normalizeTargetFilter = raw => {
   if (raw == null || raw === '') return null;
   if (typeof raw === 'string') {
     const t = raw.trim();
+    if (t === 'both') return ['pc', 'mobile'];
     if (!VALID_TARGETS.has(t)) {
-      throw new Error(`v7 resolveIncludeList: target 须为 'pc' | 'mobile'，当前为 ${JSON.stringify(raw)}`);
+      throw new Error(`v7 resolveIncludeList: targets 须为 'pc' | 'mobile' | 'both'，当前为 ${JSON.stringify(raw)}`);
     }
     return [t];
   }
@@ -39,13 +40,13 @@ const normalizeTargetFilter = raw => {
 
 const stripTargetField = item => {
   if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
-  const { target, ...rest } = item;
+  const { target, targets, ...rest } = item;
   return rest;
 };
 
 const includeItemMatchesTarget = (item, compileTarget) => {
   if (!item || typeof item !== 'object' || Array.isArray(item)) return true;
-  const filter = normalizeTargetFilter(item.target);
+  const filter = normalizeTargetFilter(item.targets != null ? item.targets : item.target);
   if (!filter) return true;
   return filter.includes(compileTarget);
 };

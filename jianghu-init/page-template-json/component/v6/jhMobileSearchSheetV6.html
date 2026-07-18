@@ -13,26 +13,29 @@
 
 <script type="text/html" id="jh-mobile-search-sheet-v6-template">
   <jh-sheet
-    :shown="shown"
+    :value="resolvedValue"
     :rounded="rounded"
     :persistent="persistent"
     :min-card-height="minCardHeight"
     :title="title"
-    :body-height="bodyHeight"
+    :body-height="bodyHeight || undefined"
     :max-body-height="maxBodyHeight"
+    :body-height-mode="resolvedBodyHeightMode"
     :body-class="sheetBodyClassMerged"
-    @update:shown="$emit('update:shown', $event)"
+    @input="onValueInput"
   >
     <template v-slot:actions>
-      <template v-if="showSearchBtn">
+      <template v-if="resolvedShowBtn">
         <v-btn class="elevation-0" @click="handleResetLocal">重置</v-btn>
-        <v-btn class="elevation-0 ml-2" color="success" @click="handleSearchSubmit">查询</v-btn>
+        <v-btn class="elevation-0 ml-2" color="success" @click="handleSearchSubmit">
+          <jh-icon v-if="btnIcon" :name="btnIcon" size="16" class="mr-1"></jh-icon>{{ btnText }}
+        </v-btn>
       </template>
     </template>
 
     <v-row class="jh-backend-form-container" no-gutters>
       <v-col
-        v-for="(field, sidx) in searchFieldList"
+        v-for="(field, sidx) in resolvedFieldList"
         :key="(field.key || 'sf') + '-' + sidx"
         cols="12"
         class="pb-2"
@@ -167,19 +170,27 @@ Vue.component('jh-mobile-search-sheet', {
     jhPage: { default: null },
   },
   props: {
-    shown:       { type: Boolean, default: false },
+    value:       { type: Boolean, default: null },
+    shown:       { type: Boolean, default: null },
     title:       { type: String,  default: '搜索' },
     rounded:     { type: Boolean, default: true },
-    searchFieldList:  { type: Array, default: () => [] },
+    fieldList:        { type: Array, default: null },
+    searchFieldList:  { type: Array, default: null },
     keywordHeaders:   { type: Array, default: () => [] },
-    showSearchBtn:    { type: Boolean, default: true },
+    showBtn:          { type: Boolean, default: null },
+    showSearchBtn:    { type: Boolean, default: null },
+    btnText:          { type: String, default: '查询' },
+    btnIcon:          { type: String, default: 'search' },
     /** 页面 :keyword.sync 绑定的关键字文案 */
     keyword:          { type: String,  default: '' },
     /** views.list.search.keyword → { fields, placeholder }，有 fields 时列范围固定（同 PC） */
+    keywordConfig:    { type: Object,  default: null },
     keywordMeta:      { type: Object,  default: null },
     keywordFieldList: { type: Array,   default: () => [] },
-    /** 内容区最大高度，默认 70vh（views.list.searchSheet.maxBodyHeight） */
+    /** 内容区最大高度，默认 70vh（views.list.search.mobileSheet.maxBodyHeight） */
     maxBodyHeight:    { type: String,  default: '70vh' },
+    /** 默认 content（随筛选字段自然收缩）；与 Sheet/FormSheet 默认 fill 不同 */
+    bodyHeightMode:   { type: String,  default: 'content' },
     /** 固定内容区高度；设置后优先于 maxBodyHeight */
     bodyHeight:       { type: String,  default: null },
     /** 点外侧不关闭 */
@@ -199,11 +210,29 @@ Vue.component('jh-mobile-search-sheet', {
     };
   },
   computed: {
+    resolvedValue() {
+      return this.value != null ? this.value : !!this.shown;
+    },
+    /** SearchSheet 默认 content；仅显式 fill 才撑满（与 Sheet/FormSheet 默认 fill 相反） */
+    resolvedBodyHeightMode() {
+      return this.bodyHeightMode === 'fill' ? 'fill' : 'content';
+    },
+    resolvedFieldList() {
+      return Array.isArray(this.fieldList) ? this.fieldList : (this.searchFieldList || []);
+    },
+    resolvedKeywordConfig() {
+      return this.keywordConfig || this.keywordMeta || null;
+    },
+    resolvedShowBtn() {
+      if (this.showBtn != null) return this.showBtn;
+      if (this.showSearchBtn != null) return this.showSearchBtn;
+      return true;
+    },
     keywordUsesFixedFields() {
-      return !!(this.keywordMeta && Array.isArray(this.keywordMeta.fields) && this.keywordMeta.fields.length);
+      return !!(this.resolvedKeywordConfig && Array.isArray(this.resolvedKeywordConfig.fields) && this.resolvedKeywordConfig.fields.length);
     },
     configKeywordFields() {
-      return this.keywordUsesFixedFields ? this.keywordMeta.fields.slice() : [];
+      return this.keywordUsesFixedFields ? this.resolvedKeywordConfig.fields.slice() : [];
     },
     effectiveKeywordFieldList() {
       return this.keywordUsesFixedFields
@@ -217,8 +246,8 @@ Vue.component('jh-mobile-search-sheet', {
       return (this.keywordHeaders || []).filter(h => h && h.value !== 'action');
     },
     keywordPlaceholderText() {
-      if (this.keywordMeta && this.keywordMeta.placeholder) {
-        return this.keywordMeta.placeholder;
+      if (this.resolvedKeywordConfig && this.resolvedKeywordConfig.placeholder) {
+        return this.resolvedKeywordConfig.placeholder;
       }
       const list = this.effectiveKeywordFieldList || [];
       const headers = this.keywordHeaderOptions;
@@ -248,7 +277,7 @@ Vue.component('jh-mobile-search-sheet', {
       if (this.keywordUsesFixedFields) return;
       this.localKeywordFieldList = val ? [...val] : [];
     },
-    keywordMeta: {
+    resolvedKeywordConfig: {
       deep: true,
       handler() {
         this.syncLocalKeywordFieldsFromConfig();
@@ -260,7 +289,7 @@ Vue.component('jh-mobile-search-sheet', {
         if (this.keywordUsesFixedFields) return;
         if (!Array.isArray(headers) || headers.length === 0) return;
         if (this.localKeywordFieldList.length > 0) return;
-        const hasKeywordWidget = (this.searchFieldList || []).some(f => f && (f.type === 'keyword'));
+        const hasKeywordWidget = this.resolvedFieldList.some(f => f && (f.type === 'keyword'));
         if (!hasKeywordWidget) return;
         this.localKeywordFieldList = headers
           .filter(h => h && h.value !== 'action')
@@ -269,6 +298,10 @@ Vue.component('jh-mobile-search-sheet', {
     },
   },
   methods: {
+    onValueInput(value) {
+      this.$emit('input', value);
+      this.$emit('update:shown', value);
+    },
     fieldExtraAttrs(field) {
       const extra = Object.assign({}, field.attrs || {});
       const qa = field.quickAttrs;
@@ -296,7 +329,7 @@ Vue.component('jh-mobile-search-sheet', {
       return Array.isArray(o) && o.length > 0;
     },
     initWhereInArrays() {
-      (this.searchFieldList || []).forEach((f) => {
+      this.resolvedFieldList.forEach((f) => {
         if (!f || (f.type === 'keyword')) return;
         if ((f.type === 'date') && this.fieldUsesIn(f)) return;
         if (this.fieldUsesIn(f)) {

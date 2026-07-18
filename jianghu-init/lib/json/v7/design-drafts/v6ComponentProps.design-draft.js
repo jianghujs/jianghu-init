@@ -1,13 +1,13 @@
 /**
- * V6 component props 统一设计草案。
+ * V6 component props 统一设计记录（已实施）。
  *
  * 用途：集中讨论 component/v6 下全部组件的 props 命名与职责；
- * 不代表当前正式规范。
+ * 正式组件契约以 runtime descriptors、组件源码和 Schema 为准。
  *
  * 约束：
  *   - 本文件不参与组件复制、V7 编译或页面生成。
  *   - 先统一同类组件的公共 props，再保留 PC/Mobile 专属 props。
- *   - 改名必须提供旧 key 兼容；确认前不修改现有 V6 组件。
+ *   - 改名提供旧 key 兼容并输出统一 warning。
  *
  * 注释标签：
  *   - 保持现行：名称与职责均不调整。
@@ -130,9 +130,9 @@ const sheetOnlyProps = {
   maxBodyHeight: null,
 
   // 内容区伸展方式；两种模式使用同一个 maxBodyHeight，仅最小表现不同：
+  //   fill：height:maxBodyHeight，内容较少时也撑满全部可用高度（**默认**）。
   //   content：height:auto，内容较少时自然收缩，最多不超过 maxBodyHeight。
-  //   fill：height:maxBodyHeight，内容较少时也撑满全部可用高度。
-  bodyHeightMode: 'content',
+  bodyHeightMode: 'fill',
 
   // 内容区附加 class，仅作为高级样式扩展入口，不参与高度模式计算。
   bodyClass: null,
@@ -141,8 +141,7 @@ const sheetOnlyProps = {
 const formSheetOnlyProps = {
   ...sheetOnlyProps,
 
-  // FormSheet 默认 maxBodyHeight 由视口减去 menu、标题栏和安全区得到；
-  // 默认撑满该可用高度，业务可显式改为 content。
+  // FormSheet 与 jh-sheet 同默认 fill；业务可显式改为 content。
   bodyHeightMode: 'fill',
 };
 
@@ -153,22 +152,16 @@ const drawerOnlyProps = {
 
 // 基础 jh-sheet 的内容模式 props；FormSheet 不直接暴露这些模式切换项。
 const genericSheetContentProps = {
-  // 排序模式与操作网格模式互斥；均为空时渲染默认插槽。
-  orderList: [],
+  // 排序 / 图标网格已外置为 jh-sheet-order-panel / jh-sheet-menu-grid（由中继注入 children）
+  // 基座 Sheet 仅保留默认插槽。
+
+  // 标题栏按钮：与 FormSheet / Drawer / FormDrawer 统一为 actionList
   actionList: [],
 
-  // 仅基础 Sheet 使用：与内容区 actionList 是不同操作区域。
-  // FormSheet 统一只使用 formContainerProps.actionList。
-  headActionList: [],
-
-  // 保持现行：基础 Sheet 独立使用 headActionList 时的条件求值上下文。
-  // FormSheet 内部自行提供，不将这三个 key 暴露为表单容器公共 props。
+  // 条件求值上下文
   initialData: {},
   scope: null,
   headActionResolveScope: '',
-
-  // 操作网格列数，仅 actionList 内容模式使用。
-  cols: 2,
 };
 
 // 基础 Sheet 的高级运行参数；普通业务配置不应默认生成这些 key。
@@ -385,6 +378,10 @@ const compatibilityDraft = {
   'jh-form.fields': 'fieldList',
   'formContainer.fields': 'fieldList',
   'formSheet.headActionList': 'actionList',
+  'sheet.headActionList': 'actionList',
+  'sheet.orderList': 'children → jh-sheet-order-panel',
+  'sheet.menuActionList': 'children → jh-sheet-menu-grid',
+  'sheet.actionList(contentGrid)': 'children → jh-sheet-menu-grid',
   'sheet.shown': 'value',
   'searchSheet.shown': 'value',
   'views.list.search.fields': 'fieldList',

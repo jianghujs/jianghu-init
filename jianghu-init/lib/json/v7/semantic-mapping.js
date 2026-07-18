@@ -35,16 +35,16 @@ const SCHEMA_TO_VUE_TAG = { ...COMPONENT_TAG_MAP };
  */
 const VIEWS_CREATE_TO_PROPS = {
   'views.create.title': 'props.title',
-  'views.create.fields + fields.*': 'props.fieldList[]',
+  'views.create.fieldList + fields.*': 'props.fieldList[]',
   'views.create.interaction': 'props.fieldList[].visibleWhen|readonlyWhen|disabledWhen',
-  'views.create.saveTipBeforeClose': 'props.beforeCloseConfirm',
-  'fields.{key}.attrs': 'props.fieldList[].attrs → jh-form extraAttrs',
-  'fields.{key}.pc|mobile': '分端 attrs 覆写对象（非 pc.attrs 嵌套）；merge 于 fields.attrs',
-  'views.create.fieldAttrs': 'fieldList[].attrs 覆写（merge 于 fields 解析结果上）',
-  'views.create.sheet': 'props.persistent|autoHeight|viewportOffset|maxBodyHeight|bodyHeight|minCardHeight (FormSheet only)',
+  'views.create.beforeCloseConfirm': 'props.beforeCloseConfirm',
+  'fields.{key}.form.attrs': 'props.fieldList[].attrs → jh-form extraAttrs',
+  'fields.{key}.form.pcAttrs|mobileAttrs': '分端 attrs 覆写；merge 于 form.attrs',
+  'fields.{key}.createForm': 'create fieldList[] 专属覆写',
+  'views.create.mobileSheet': 'props.persistent|maxBodyHeight|bodyHeightMode (FormSheet only)',
   'layout.create.cols': 'props.cols',
   'layout.create.variants': 'props.fieldList[].span',
-  'views.create.actions': 'props.actionList (CreateDrawer) | props.headActionList (FormSheet)',
+  'views.create.actionList': 'props.actionList',
   'platform.*.create': 'node.component (CreateDrawer|FormSheet)',
 };
 
@@ -52,17 +52,17 @@ const VIEWS_CREATE_TO_PROPS = {
  * views.list 语义键 → 集合组件 props（compileListView → collection.props）
  */
 const VIEWS_LIST_TO_PROPS = {
-  'views.list.columns': 'props.headers',
-  'views.list.mobileColumns': 'props.headers (mobile only)',
+  'views.list.columnList': 'props.headers',
+  'views.list.mobileColumnList': 'props.headers (mobile only)',
   'views.list.serverPagination': 'props.serverPagination',
   'views.list.pageSize': 'blocks.table.pageSize',
   'views.list.selectable': 'props.selectable',
   'views.list.orderBy': 'blocks.table.orderBy → prepareTableParams（API 请求，非 jh-table prop）',
-  'views.list.toolbarActions': 'props.headActionList (PC) | MobileActions.actionList (mobile)',
-  'views.list.rowActions': 'props.rowActionList',
-  'views.list.search': 'Search / SearchSheet via searchFieldList + keywordConfig',
+  'views.list.headActionList': 'props.headActionList (PC) | MobileActions.actionList (mobile)',
+  'views.list.rowActionList': 'props.rowActionList',
+  'views.list.search': 'Search / SearchSheet via fieldList + keywordConfig',
   'views.list.filter|filters': 'Table.filterList → jh-table-filter (PC only)',
-  'views.list.searchSheet': 'SearchSheet props.persistent|maxBodyHeight|bodyHeight|minCardHeight',
+  'views.list.search.mobileSheet': 'SearchSheet props.persistent|maxBodyHeight|bodyHeightMode',
   'views.list.mobileItemAction': 'props.mobileItemAction (mobile List only)：\'sheet\'|false|\'none\'|doUiAction 名',
 };
 
@@ -71,14 +71,13 @@ const VIEWS_LIST_TO_PROPS = {
  */
 const VIEWS_UPDATE_TO_PROPS = {
   'views.update.title': 'props.title',
-  'views.update.tabs': 'props.tabList',
-  'views.update.fields': 'props.fieldList',
-  'views.update.actions': 'props.actionList (UpdateDrawer) | props.headActionList (FormSheet)',
-  'views.update.tabs[].actions': 'props.tabList[].actionList (UpdateDrawer) | props.tabList[].headActionList (FormSheet)',
-  'views.update.tabs[].interaction': 'props.tabList[].fieldList[]',
-  'views.update.sheet': 'props.persistent|autoHeight|viewportOffset|maxBodyHeight|bodyHeight|minCardHeight (FormSheet only)',
-  'views.update.fieldAttrs': 'fieldList[].attrs 覆写（fields 模式）',
-  'views.update.tabs[].fieldAttrs': 'tabList[].fieldList[].attrs 覆写',
+  'views.update.tabList': 'props.tabList',
+  'views.update.fieldList': 'props.fieldList',
+  'views.update.actionList': 'props.actionList',
+  'views.update.tabList[].actionList': 'props.tabList[].actionList',
+  'views.update.tabList[].interaction': 'props.tabList[].fieldList[]',
+  'views.update.mobileSheet': 'props.persistent|maxBodyHeight|bodyHeightMode (FormSheet only)',
+  'fields.{key}.updateForm': 'update fieldList[] 专属覆写',
   'platform.*.update': 'node.component (UpdateDrawer|FormSheet)',
 };
 

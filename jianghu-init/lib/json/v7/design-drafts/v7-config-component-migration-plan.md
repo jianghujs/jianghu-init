@@ -2,7 +2,11 @@
 
 ## 1. 文档状态
 
-- 状态：实施前计划，尚未作为正式 V7 规范发布。
+- 状态：核心实施完成；待真实业务项目与 Extension Host 验收后发布。
+- 自动化验证：semantic aliases、views compiler、runtime descriptors、7 份示例、VSCode Schema/diagnostics、TypeScript compile 已通过。
+- 发布物：已生成 `vscode-extension/prebuilt/jianghu-init-vscode-0.0.11.vsix`；npm 发布清单已排除测试、V7 示例、开发文档和 design drafts。
+- 已知工具问题：现有 ESLint 配置不能解析 TypeScript，`npm run lint` 在 TS 语法处报 Parsing Error；本次未扩展到 lint 配置改造。
+- 待验收：Extension Host 人工 Hover/Warning/Quick Fix，以及真实业务项目 PC/Mobile、`_page`、`_resource` 验收。
 - 适用范围：`jianghu-init json`、V7 semantic compiler、V6 Vue 组件、VSCode 扩展。
 - 设计输入：
   - `pages/examples/design-drafts/fullCrudPage.v7.design-draft.js`
@@ -227,7 +231,7 @@ Sheet 高度 canonical props：
 
 ```js
 maxBodyHeight: null,
-bodyHeightMode: 'content', // content | fill
+bodyHeightMode: 'fill', // fill（默认）| content；SearchSheet 默认 content
 ```
 
 旧高度 props 的处理：
@@ -464,7 +468,7 @@ const searchProps = {
    - `MobileFilterBtn`
    - `MobileActions`
    - `VSpacer`
-5. `Form`、`TextBtn` 是否作为直接 Schema 节点开放，在正式实施前做一次最终确认；未确认前不加入 enum。
+5. `Form`、`TextBtn` 已作为直接 Schema 节点开放，并与 runtime descriptor 对齐。
 
 ## 9. VSCode 扩展改动
 
@@ -497,6 +501,14 @@ interface DocEntry {
 7. 修正 PageTitle/PageHeader Hover：`showHelp/helpSrc` 为公开 prop，`pageId` 标明“编译器根据 page.id 注入”。
 8. 搜索 Hover 使用 `fieldList/showBtn/btnText/btnIcon`；保留并标明 `keywordFieldList/keywordHeaders` 为后续完善能力。
 9. Sheet Hover 只推荐 `maxBodyHeight/bodyHeightMode`；旧高度 key 显示迁移说明。
+10. 所有核心结构型 key 必须提供最小 canonical 基础写法，至少覆盖：
+    - 根结构：`page/dataSource/fields/views/platform/layout/slots/common/includeList/resourceList`
+    - 列表结构：`columnList/search/filter/headActionList/rowActionList/orderBy`
+    - 表单结构：`fieldList/actionList/tabList/interaction/mobileSheet`
+11. 示例只表达最小常用结构；高级参数继续通过子属性 Hover 展开，避免单个 Hover 过长。
+12. action 示例必须同时包含 `label + uiAction`；Sheet 示例只推荐 `persistent/maxBodyHeight/bodyHeightMode`。
+13. Hover 示例测试维护必备路径清单，并禁止示例出现 `columns/actions/target/autoHeight/viewportOffset/bodyHeight` 等旧 key。
+14. Hover 示例标题统一为“基础写法”，展示顺序保持：名称和类型、职责、基础写法、canonical 子属性。
 
 ### 9.2 补全
 

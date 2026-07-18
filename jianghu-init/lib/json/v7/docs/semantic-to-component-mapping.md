@@ -7,10 +7,10 @@
 
 ```text
 fields / views / platform / layout / dataSource  (authoring)
-  → normalizeSemanticViewKeys (兼容 key → canonical key)
+  → normalizeSchema (key 迁移 + fields/search 结构迁移 + defaults)
   → validateCrudSemantic / validateActionUiActionSyntax
+  → expandCrudPage (选组件 + 汇总 IR；不再重复 normalize/validate)
   → compileListView / compileCreateView / compileUpdateView (语义 key → view IR)
-  → expandCrudPage (选组件 + 汇总 IR)
   → builders (组装 pageContent / actionContent 节点)
   → parseSchema (resolvedComponent / resolvedProps / resolvedBindings)
   → jh-page-v7.njk / jh-mobile-page-v7.njk (Vue 页面 data + 模板)
@@ -43,13 +43,13 @@ fields / views / platform / layout / dataSource  (authoring)
 |-----------|----------|----------|------|
 | `label` | fieldKeyToFormField / columnEntryToHeader | `text`（列）/ 表单项 `label` | list / create / update / search |
 | `type` | 同上 | `text`/`select`/… | 控件类型 |
-| `options` | 同上 | 字符串路径或数组 | select |
-| `required` / `readonly` | fieldKeyToFormField | boolean | 表单 |
+| `form.options` | 同上 | 字符串路径或数组 | select |
+| `form.required` / `form.readonly` | fieldKeyToFormField | boolean | 表单 |
 | `autoId` | fieldKeyToFormField | object | 自动生成 ID |
-| `width` | columnEntryToHeader | number | 列宽（可被 columns 覆盖） |
-| `align` | columnEntryToHeader | string | 列对齐 `start` / `center` / `end`（可被 columns 覆盖）→ `headers[].align` |
-| `class` | columnEntryToHeader | string | 表头 th class（固定列等；可被 columns 覆盖） |
-| `cellClass` | columnEntryToHeader | string | 单元格 td class（可被 columns 覆盖） |
+| `column.width` | columnEntryToHeader | number | 列宽（可被 columnList 覆盖） |
+| `column.align` | columnEntryToHeader | string | 列对齐 `start` / `center` / `end`（可被 columnList 覆盖）→ `headers[].align` |
+| `column.class` | columnEntryToHeader | string | 表头 th class（固定列等；可被 columnList 覆盖） |
+| `column.cellClass` | columnEntryToHeader | string | 单元格 td class（可被 columnList 覆盖） |
 
 ---
 
@@ -62,10 +62,10 @@ fields / views / platform / layout / dataSource  (authoring)
 
 | 语义配置 | 处理 | 组件 props |
 |----------|------|------------|
-| `views.list.columns[]` | PC 及移动 fallback | `headers[]`（Vuetify 列） |
-| `views.list.mobileColumns[]` | 仅 mobile，有则替代 columns | 同上；首列 `isTitle`+`isSimpleMode`（List） |
-| columns 项 `string` | normalizeColumnEntry | `{ value: key }` |
-| columns 项 `{ field, width, class, cellClass, slot }` | normalizeColumnEntry | 合并 fields 字典 label → `text` |
+| `views.list.columnList[]` | PC 及移动 fallback | `headers[]`（Vuetify 列） |
+| `views.list.mobileColumnList[]` | 仅 mobile，有则替代 columnList | 同上；首列 `isTitle`+`isSimpleMode`（List） |
+| columnList 项 `string` | normalizeColumnEntry | `{ value: key }` |
+| columnList 项 `{ field, width, class, cellClass, slot }` | normalizeColumnEntry | 合并 fields 字典 label → `text` |
 
 `columnEntryToHeader`：`fields[key].label` → `header.text`，`key` → `header.value`。
 
@@ -77,8 +77,8 @@ fields / views / platform / layout / dataSource  (authoring)
 | `views.list.pageSize` | `blocks.table.pageSize` → 页面 `tableOptions.itemsPerPage`（非 jh-table prop） | |
 | `views.list.selectable` | `selectable` | |
 | `views.list.orderBy` | `blocks.table.orderBy` → `prepareTableParams`（API 请求参数，非 jh-table prop） | |
-| `views.list.toolbarActions[]` | PC:`headActionList`；移动:顶栏 `MobileActions`（`jh-mobile-actions`） | 见 builders |
-| `views.list.rowActions[]` | `rowActionList` | `uiAction` 1:1 输出；运行时解析 doUiAction |
+| `views.list.headActionList[]` | PC:`headActionList`；移动:顶栏 `MobileActions`（`jh-mobile-actions`） | 见 builders |
+| `views.list.rowActionList[]` | `rowActionList` | `uiAction` 1:1 输出；运行时解析 doUiAction |
 | `views.list.rowSlot` | `slotTemplates` | 列/行插槽 |
 | `slots.list.pc` / `slots.list.mobile` | `collectionChildren` | `Table` / `List` 节点 `children`（`<template v-slot>` HTML 字符串） |
 | `slots.create.pc` / `slots.create.mobile` | `createFormChildren` | `CreateDrawer` / `FormSheet` 节点 `children` |
@@ -89,12 +89,12 @@ fields / views / platform / layout / dataSource  (authoring)
 
 | 语义配置 | 中间结果 | PC 组件 | 移动组件 |
 |----------|----------|---------|----------|
-| `views.list.search` | `searchFieldList` + `keywordConfig` | `Search`（inline） | `SearchSheet` |
+| `views.list.search` | `fieldList` + `keywordConfig` | `Search`（inline） | `SearchSheet` |
 | `views.list.filter`（或 `filters` 别名） | `filterList` | `Table.props.filterList` → `jh-table-filter` | （移动不生成） |
-| `search` / `filter` 语法 | 同形：`{ keyword: { fields, placeholder }, fields: [...] }` 或数组 | search→API；filter→`inlineFilterValues` |
+| `search` / `filter` 语法 | search 使用 `fieldList`；filter 保持 `fields` | search→API；filter→`inlineFilterValues` |
 | `keyword.fields` | search：`serverSearchWhereOrOptions`；filter：`inlineFilterValues.keyword` + 行内 OR 匹配 `keys[]` |
-| `views.list.mobileSearchBtnText` 等 | — | — | `MobileFilterBtn` + `SearchSheet` |
-| `views.list.searchSheet` | mergeSheetOverlay | — | SearchSheet: `maxBodyHeight`（默认 70vh）、`persistent` 等 |
+| `views.list.search.mobileBtnText` 等 | — | — | `MobileFilterBtn` + `SearchSheet` |
+| `views.list.search.mobileSheet` | mergeSheetOverlay | — | SearchSheet: `maxBodyHeight`（默认 70vh）、`bodyHeightMode`（默认 content）、`persistent` |
 
 筛选布局：`platform.list` token 或 policy → `filter: inline|sheet` → `buildInlineFilter` / `buildSheetFilter`。
 
@@ -103,7 +103,7 @@ fields / views / platform / layout / dataSource  (authoring)
 | blocks 键 | Mobile (sheet) | PC (inline) |
 |-----------|----------------|-------------|
 | `pageHeader` | 默认 HStack：`MobileActions` + `VSpacer` + `MobileFilterBtn` | 默认 HStack：`PageTitle` + `Search` |
-| `toolbarActions` | `MobileActions` 节点 | `null`（操作用 `Table.headActionList`） |
+| `toolbarActions`（blocks 键，非 semantic key） | `MobileActions` 节点 | `null`（操作用 `Table.headActionList`） |
 | `toolbarSpacer` | `VSpacer` 节点（有 toolbarActions 时） | `null` |
 | `spacer` | `{ component: 'VSpacer' }`，PC/Mobile 通用 | 同上 |
 | `searchBtn` / `filterBtn` | `MobileFilterBtn` 节点 | `null` |
@@ -139,14 +139,13 @@ mobile: (views, blocks) => ({
 |----------|---------|------------|-------------------------------|
 | `platform.*.create` token | `createFormComponent` | `component` 名 | — |
 | `views.create.title` | `createTitle` | `title` | — |
-| `views.create.fields[]` + `fields` 字典 | `createFields` | `fieldList` | — |
+| `views.create.fieldList[]` + `fields` 字典 | `createFields` | `fieldList` | — |
 | `views.create.interaction` | 合并进 `createFields[]` | `visibleWhen` 等 `__expr__` | — |
-| `views.create.saveTipBeforeClose` | `createSaveTipBeforeClose` | `beforeCloseConfirm` | — |
-| `views.create.sheet` | `createSheet` → mergeSheetOverlay | FormSheet: `autoHeight`（默认 true）、`viewportOffset`（102）、`persistent`、`maxBodyHeight` 等 | — |
+| `views.create.beforeCloseConfirm` | `createSaveTipBeforeClose` | `beforeCloseConfirm` | — |
+| `views.create.mobileSheet` | `createSheet` → mergeSheetOverlay | FormSheet: `maxBodyHeight`、`bodyHeightMode`（默认 fill）、`persistent` | — |
 | `layout.create.cols` | `createCols` | `cols` | — |
 | `layout.create.variants.pc/mobile` | span 写入 fieldList 项 | `fieldList[].span` | — |
-| `views.create.actions` | `createActions` | PC `CreateDrawer`: `actionList`；移动 `FormSheet`: `headActionList` → `jh-mobile-actions` | — |
-| FormSheet 时 | — | `rounded: true` | — |
+| `views.create.actionList` | `createActions` | PC/Mobile 均为 `actionList`，FormSheet 渲染在标题栏 | — |
 | — | — | — | `v-model` → `isCreateDrawerShown` |
 | — | — | — | `:initialData` → `createItem` |
 | — | — | — | `@field-change` → 写回 `createItem` |
@@ -162,12 +161,12 @@ mobile: (views, blocks) => ({
 | 语义配置 | 中间结构 | 节点 props | 绑定（key=update） |
 |----------|----------|------------|-------------------|
 | `views.update.title` | `updateTitle` | `title` | — |
-| `views.update.tabs[]` | `{ mode:'tabs', tabList }` | `tabList` | 每 tab `fieldList` 来自 fields+interaction |
-| `views.update.tabs[].actions` | tab `actions` | PC tab `actionList`；移动 tab `headActionList` | |
-| `views.update.actions` | `actions`（fields 模式） | PC `actionList`；移动 `headActionList` | |
-| `views.update.fields[]` | `{ mode:'fields', fieldList }` | `fieldList` | |
-| `views.update.tabs[].interaction` | 合并到 tab.fieldList | 同上 | |
-| `views.update.sheet` | `updateSheet` → mergeSheetOverlay | FormSheet 叠层行为；多 tab 默认 `viewportOffset: 152` | |
+| `views.update.tabList[]` | `{ mode:'tabs', tabList }` | `tabList` | 每 tab `fieldList` 来自 fields+interaction |
+| `views.update.tabList[].actionList` | tab actions | PC/Mobile 均为 `actionList` | |
+| `views.update.actionList` | actions（fieldList 模式） | `actionList` | |
+| `views.update.fieldList[]` | `{ mode:'fields', fieldList }` | `fieldList` | |
+| `views.update.tabList[].interaction` | 合并到 tab.fieldList | 同上 | |
+| `views.update.mobileSheet` | `updateSheet` → mergeSheetOverlay | FormSheet 叠层行为；默认 `maxBodyHeight` + `bodyHeightMode: fill` | |
 | `slots.update.tabs[].interaction` | 合并到 tab.fieldList | 同上 | |
 | `slots.create.pc/mobile.children` | `createFormChildren` → 节点 `children` | | |
 | `slots.update.pc/mobile.children` | `updateFormChildren` → 节点 `children` | | |
@@ -181,7 +180,7 @@ mobile: (views, blocks) => ({
 | 语义 | 用途 | 组件/页面 |
 |------|------|-----------|
 | `page.id` / `page.name` / `page.title` | 页元信息 | `PageTitle.title`；文档标题 |
-| `page.helpDoc` | 帮助 | `PageTitle.helpDoc` |
+| `page.helpDoc` | 帮助 | `PageTitle/PageHeader.showHelp + helpSrc + pageId` |
 | `dataSource.*Resource` | 接口 | 页面模板 bake `listResource` 等 → `getTableData` |
 | `dataSource.table` / `primaryKey` | 表 | `tableParams`、List `primaryKey` |
 | `layout.list.regions` | 多区域 | `HStack` + `Box`/`Table` |
@@ -189,7 +188,7 @@ mobile: (views, blocks) => ({
 | `layout.list.cols` | 移动 List 详情 grid 列数 | `List.props.cols`（默认 2） |
 | `views.list.serverPagination` | 移动 List 满高滚动 | `jh-list` flex 列 + 底部分页（见 `adaptCrudPageMobile`） |
 | `layout.list.variants.mobile` | 详情字段跨列 | `headers[].span`（2=占满一行） |
-| `mobileColumns[].span` | 单列跨列 | `headers[].span` | |
+| `mobileColumnList[].span` | 单列跨列 | `headers[].span` | |
 
 ---
 

@@ -17,22 +17,22 @@
       class="jh-text-btn__icon mr-1"
       :color="colorMap[color] || color"
     ></v-progress-circular>
-    <template v-if="!iconRight && !loading">
+    <template v-if="!resolvedIconRight && !loading">
       <jh-icon
-        v-if="iconName"
-        :name="iconName"
+        v-if="resolvedIcon"
+        :name="resolvedIcon"
         :size="iconSize"
         :stroke="iconStroke"
         class="jh-text-btn__icon"
       ></jh-icon>
     </template>
     <span class="jh-text-btn__text">
-      <slot>{{ text }}</slot>
+      <slot>{{ resolvedLabel }}</slot>
     </span>
-    <template v-if="iconRight">
+    <template v-if="resolvedIconRight">
       <jh-icon
-        v-if="iconName"
-        :name="iconName"
+        v-if="resolvedIcon"
+        :name="resolvedIcon"
         :size="iconSize"
         :stroke="iconStroke"
         class="jh-text-btn__icon icon-right"
@@ -46,8 +46,11 @@ Vue.component('jh-text-btn', {
   inheritAttrs: false,
   template: '#jhTextBtn',
   props: {
-    text: { type: String, default: '' },
-    iconName: { type: String, default: '' },
+    label: { type: String, default: null },
+    icon: { type: String, default: null },
+    iconPosition: { type: [String, Boolean], default: null },
+    text: { type: String, default: null },
+    iconName: { type: String, default: null },
     iconSize: { type: [String, Number], default: 16 },
     iconStroke: { type: [String, Number], default: 1.5 },
     color: { type: String, default: 'primary' },
@@ -56,7 +59,7 @@ Vue.component('jh-text-btn', {
     disabled: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
     alignSub: { type: Boolean, default: true },
-    iconRight: { type: Boolean, default: false }, // 新增
+    iconRight: { type: Boolean, default: null },
   },
   data() {
     return {
@@ -73,6 +76,16 @@ Vue.component('jh-text-btn', {
     }
   },
   computed: {
+    resolvedLabel() {
+      return this.label != null ? this.label : (this.text || '');
+    },
+    resolvedIcon() {
+      return this.icon != null ? this.icon : (this.iconName || '');
+    },
+    resolvedIconRight() {
+      if (this.iconPosition != null) return this.iconPosition === true || this.iconPosition === 'right';
+      return !!this.iconRight;
+    },
     btnClass() {
       return {
         'jh-text-btn': true,

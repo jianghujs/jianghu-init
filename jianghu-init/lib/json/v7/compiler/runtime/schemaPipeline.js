@@ -38,6 +38,10 @@ const {
   buildResolvedBindings,
   buildChildren: buildChildrenFromDesc,
 } = require('./descriptorRuleApplicators');
+const {
+  buildOrderPanelChildHtml,
+  buildMenuGridChildHtml,
+} = require('./sheetContentPanels');
 
 // ─────────────────────────────────────────────
 // COMPONENT_MAP 保持原有公开导出；运行时映射、固定绑定和布局默认值均由 descriptors 派生。
@@ -184,7 +188,7 @@ function markFieldItemExpr(f) {
   return out;
 }
 
-function resolveNode(schema, node) {
+function resolveNode(schema, node, options = {}) {
   if (!node || typeof node !== 'object') return node;
 
   const component = resolveSchemaComponentName(node);
@@ -204,8 +208,11 @@ function resolveNode(schema, node) {
       : undefined;
 
   // ── 1. props 预处理（propRenames / stripProps 前置 / bindingExtractHeaders）
-  //       返回 headersBinding（Table/List 动态 headers 变量名，或 null）
-  const headersBinding = applyPropPreprocess(rawProps, desc);
+  //       返回 headersBinding；Sheet 旧内容模式还会注入 children HTML
+  const { headersBinding, injectedChildren } = applyPropPreprocess(rawProps, desc, {
+    diagnostics: options.diagnostics,
+    path: `${options.path || 'component'}.props`,
+  });
 
   // ── 2. resolveProps（xxxRef 路径展开 + 默认值注入）
   const resolvedProps = resolveProps(schema, component, rawProps);
@@ -255,13 +262,25 @@ function resolveNode(schema, node) {
         needsItemState: false,
       };
 
-  // ── 8. children + slotTemplates
+  // ── 8. children + slotTemplates；Sheet 兼容注入的 panel HTML 前置
+  const nodeForChildren = (injectedChildren && injectedChildren.length)
+    ? {
+      ...node,
+      children: [
+        ...injectedChildren,
+        ...(Array.isArray(node.children) ? node.children : []),
+      ],
+    }
+    : node;
   const children = buildChildrenFromDesc(
     schema,
-    node,
+    nodeForChildren,
     desc,
     componentSlotTemplates,
-    resolveNode,
+    (_schema, child, childIndex) => resolveNode(schema, child, {
+      ...options,
+      path: `${options.path || 'component'}.children[${childIndex}]`,
+    }),
     listSlotScopeAttr,
     component,
   );
@@ -345,7 +364,7 @@ function findFirstResolvedTable(nodeList) {
 }
 
 function searchableUsesKeywordWidget(node) {
-  const list = (node.resolvedProps && node.resolvedProps.searchFieldList) || [];
+  const list = (node.resolvedProps && node.resolvedProps.fieldList) || [];
   return list.some(f => f && (f.type === 'keyword'));
 }
 
@@ -388,16 +407,16 @@ function syncKeywordHeadersFromTable(resolvedPageContent, resolvedActionContent)
   walkTree(resolvedActionContent || [], apply);
 }
 
-/** MobileSearch 生成的 SearchSheet：未配置 searchFieldList 时继承 PageHeader / list.search.fields */
+/** MobileSearch 生成的 SearchSheet：未配置 fieldList 时继承 PageHeader / list.search.fields */
 function enrichSearchSheetNodes(actionNodes, fallbackSearchFieldList) {
   if (!Array.isArray(actionNodes) || !Array.isArray(fallbackSearchFieldList) || !fallbackSearchFieldList.length) return;
   for (const n of actionNodes) {
     if (!n || typeof n !== 'object' || n.component !== 'SearchSheet') continue;
     const p = n.props || {};
-    const sf = p.searchFieldList;
+    const sf = p.fieldList != null ? p.fieldList : p.searchFieldList;
     if (typeof sf === 'string' && sf.trim()) continue;
     if (Array.isArray(sf) && sf.length > 0) continue;
-    n.props = Object.assign({}, p, { searchFieldList: fallbackSearchFieldList });
+    n.props = Object.assign({}, p, { fieldList: fallbackSearchFieldList });
   }
 }
 
@@ -463,6 +482,16 @@ function normalizeActionContent(schema) {
   return [];
 }
 
+const resolveRootNodePath = (schema, rootKey, index) => {
+  const raw = schema[rootKey];
+  if (Array.isArray(raw)) return `${rootKey}[${index}]`;
+  if (raw && typeof raw === 'object') return rootKey;
+  if (rootKey === 'pageContent' && schema.layout) {
+    return Array.isArray(schema.layout) ? `layout[${index}]` : 'layout';
+  }
+  return `${rootKey}[${index}]`;
+};
+
 /**
  * pageContent 内的「移动端中继」组件：解析阶段剥离为
  *   - 页面上的触发 UI（统一生成 `<jh-mobile-filter-btn>`，@click 打开 is{Key}DrawerShown）
@@ -470,10 +499,10 @@ function normalizeActionContent(schema) {
  * 这样配置侧只在 pageContent 声明一次，无需手写 actionContent 对联。
  *
  * 中继类型：
- *   MobileOrder  → Sheet（排序：props.orderList）
+ *   MobileOrder  → Sheet + children jh-sheet-order-panel（props.orderList）
  *   MobileFilter → FormSheet（筛选：children 进插槽，props.hiddenBtn 等）
  *   MobileSearch → SearchSheet（搜索：与 PageHeader 同源 searchFieldList / keyword / keywordFieldList）
- *   MobileAction → Sheet（更多操作：props.actionList / cols）
+ *   MobileAction → Sheet + children jh-sheet-menu-grid（中继仍可写 actionList / cols）
  *
  * 触发按钮：`jh-mobile-filter-btn`（四类中继共用）；文案 btnText | triggerText | label 或各类型默认中文；
  * showActive | active 等与 opener 相关的字段不会传给弹出层。
@@ -532,14 +561,19 @@ function sheetPropsFromRelayProps(relayProps) {
 
 function buildLiftedSheetNode(relayComponent, sheetKey, relayProps, relayChildren) {
   const sp = sheetPropsFromRelayProps(relayProps);
-  const childArr = Array.isArray(relayChildren) && relayChildren.length ? relayChildren : null;
+  const childArr = Array.isArray(relayChildren) && relayChildren.length ? [...relayChildren] : [];
 
   if (relayComponent === 'MobileOrder') {
+    const orderList = sp.orderList;
+    delete sp.orderList;
+    if (orderList != null) {
+      childArr.unshift(buildOrderPanelChildHtml(orderList));
+    }
     return {
       component: 'Sheet',
       key: sheetKey,
       props: Object.assign({ title: '排序', rounded: true }, sp),
-      ...(childArr ? { children: childArr } : {}),
+      ...(childArr.length ? { children: childArr } : {}),
     };
   }
   if (relayComponent === 'MobileFilter') {
@@ -547,27 +581,35 @@ function buildLiftedSheetNode(relayComponent, sheetKey, relayProps, relayChildre
       component: 'FormSheet',
       key: sheetKey,
       props: Object.assign({ title: '筛选', rounded: true }, sp),
-      ...(childArr ? { children: childArr } : {}),
+      ...(childArr.length ? { children: childArr } : {}),
     };
   }
   if (relayComponent === 'MobileSearch') {
-    const sp = sheetPropsFromRelayProps(relayProps);
+    const searchProps = sheetPropsFromRelayProps(relayProps);
     for (const k of ['fieldList', 'fields', 'tabList', 'actionList', 'headActionList', 'initialData', 'jianghuSearch', 'icon']) {
-      if (Object.prototype.hasOwnProperty.call(sp, k)) delete sp[k];
+      if (Object.prototype.hasOwnProperty.call(searchProps, k)) delete searchProps[k];
     }
     return {
       component: 'SearchSheet',
       key: sheetKey,
-      props: Object.assign({ title: '搜索', rounded: true }, sp),
-      ...(childArr ? { children: childArr } : {}),
+      props: Object.assign({ title: '搜索', rounded: true }, searchProps),
+      ...(childArr.length ? { children: childArr } : {}),
     };
   }
-  // MobileAction
+  // MobileAction：图标网格进 children，不写 Sheet.menuActionList
+  const menuList = sp.menuActionList != null ? sp.menuActionList : sp.actionList;
+  const cols = sp.cols;
+  delete sp.menuActionList;
+  delete sp.actionList;
+  delete sp.cols;
+  if (menuList != null) {
+    childArr.unshift(buildMenuGridChildHtml(menuList, cols));
+  }
   return {
     component: 'Sheet',
     key: sheetKey,
     props: Object.assign({ title: '更多操作', rounded: true }, sp),
-    ...(childArr ? { children: childArr } : {}),
+    ...(childArr.length ? { children: childArr } : {}),
   };
 }
 
@@ -784,7 +826,7 @@ function buildDrawerByForm(formKey, formSchema) {
 // 主函数
 // ─────────────────────────────────────────────
 
-function parseSchema(schema) {
+function parseSchema(schema, options = {}) {
   const pageType = schema.pageType || 'jh-page';
   const page   = schema.page   || {};
   const ds     = normalizeDataSource(schema.dataSource || {});
@@ -823,8 +865,14 @@ function parseSchema(schema) {
   enrichSearchSheetNodes(mergedActionContentForResolve, fallbackSearchFieldListForSheet);
 
   // 2. 递归解析节点（补全 resolvedComponent / resolvedProps）
-  const resolvedPageContent = mergedPageContentForResolve.map(node => resolveNode(schema, node));
-  const resolvedActionContent = mergedActionContentForResolve.map(node => resolveNode(schema, node));
+  const resolvedPageContent = mergedPageContentForResolve.map((node, index) => resolveNode(schema, node, {
+    ...options,
+    path: resolveRootNodePath(schema, 'pageContent', index),
+  }));
+  const resolvedActionContent = mergedActionContentForResolve.map((node, index) => resolveNode(schema, node, {
+    ...options,
+    path: resolveRootNodePath(schema, 'actionContent', index),
+  }));
   syncKeywordHeadersFromTable(resolvedPageContent, resolvedActionContent);
 
   // 3. 从原始树中提取业务配置（用于 features / legacyConfig）
@@ -852,12 +900,12 @@ function parseSchema(schema) {
 
   const resolveConfiguredKeywordFieldList = () => {
     const sheetNode = findComponent(resolvedActionContent, 'SearchSheet');
-    const km = sheetNode && (sheetNode.resolvedProps || {}).keywordMeta;
+    const km = sheetNode && (sheetNode.resolvedProps || {}).keywordConfig;
     if (km && Array.isArray(km.fields) && km.fields.length) {
       return km.fields.slice();
     }
     const searchNode = findComponent(resolvedPageContent, 'Search');
-    const kw = searchNode && (searchNode.resolvedProps || {}).keyword;
+    const kw = searchNode && (searchNode.resolvedProps || {}).keywordConfig;
     if (kw && Array.isArray(kw.fields) && kw.fields.length) {
       return kw.fields.slice();
     }

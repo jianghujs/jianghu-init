@@ -18,7 +18,7 @@
             "properties": {
                 "component": {
                     "type": "string",
-                    "enum": ["VStack", "HStack", "Box", "Grid", "PageHeader", "Table", "MobileOrder", "MobileFilter", "MobileAction", "MobileSearch"],
+                    "enum": ["VStack", "HStack", "Box", "Grid", "PageTitle", "PageHeader", "Search", "Table", "List", "Form", "TextBtn", "MobileFilterBtn", "MobileActions", "MobileOrder", "MobileFilter", "MobileAction", "MobileSearch"],
                     "description": "Schema 组件名，对应 Vue 标签 jh-{kebab-case}；MobileOrder/MobileFilter/MobileAction/MobileSearch 为解析期中继（生成触发按钮 + 自动追加 actionContent 弹出层；MobileSearch → SearchSheet）"
                 },
                 "key": { "type": "string", "description": "节点标识，Table 等可用于 ref" },
@@ -43,7 +43,7 @@
             "allOf": [
                 {
                     "if": {
-                        "properties": { "component": { "const": "Table" } },
+                        "properties": { "component": { "enum": ["Table", "List"] } },
                         "required": ["component"]
                     },
                     "then": {
@@ -52,6 +52,34 @@
                             "props": { "$ref": "#/definitions/tableProps" }
                         }
                     }
+                },
+                {
+                    "if": {
+                        "properties": { "component": { "const": "PageTitle" } },
+                        "required": ["component"]
+                    },
+                    "then": { "properties": { "props": { "$ref": "#/definitions/pageTitleProps" } } }
+                },
+                {
+                    "if": {
+                        "properties": { "component": { "const": "Search" } },
+                        "required": ["component"]
+                    },
+                    "then": { "properties": { "props": { "$ref": "#/definitions/searchProps" } } }
+                },
+                {
+                    "if": {
+                        "properties": { "component": { "const": "Form" } },
+                        "required": ["component"]
+                    },
+                    "then": { "properties": { "props": { "$ref": "#/definitions/formProps" } } }
+                },
+                {
+                    "if": {
+                        "properties": { "component": { "const": "TextBtn" } },
+                        "required": ["component"]
+                    },
+                    "then": { "properties": { "props": { "$ref": "#/definitions/textBtnProps" } } }
                 },
                 {
                     "if": {
@@ -262,15 +290,17 @@
                 "padding": { "type": "string" },
                 "flexFromCls": {
                     "type": "boolean",
-                    "description": "为 true 时用节点 attrs（class / :class）控制 flex 方向，避免与内联样式冲突"
+                    "description": "已废弃，请改用节点 attrs.class",
+                    "x-jianghu-deprecated": true,
+                    "x-jianghu-replacement": "attrs.class"
                 },
-                "cols": { "description": "Grid 列数" },
-                "colsMd": { "description": "Grid 中屏列数" },
-                "colsSm": { "description": "Grid 小屏列数" },
+                "cols": { "description": "Grid 列数；数字或响应式对象 { xs, sm, md, lg }" },
+                "colsMd": { "description": "已废弃，请使用 cols.sm", "x-jianghu-deprecated": true, "x-jianghu-replacement": "cols.sm" },
+                "colsSm": { "description": "已废弃，请使用 cols.xs", "x-jianghu-deprecated": true, "x-jianghu-replacement": "cols.xs" },
                 "margin": { "type": "string" },
                 "width": { "type": "string" },
                 "height": { "type": "string" },
-                "extraStyle": { "type": "object", "description": "jh-box 扩展内联样式" }
+                "extraStyle": { "type": "object", "description": "已废弃，请使用节点 attrs.style", "x-jianghu-deprecated": true, "x-jianghu-replacement": "attrs.style" }
             }
         },
         "pageHeaderProps": {
@@ -279,10 +309,14 @@
             "additionalProperties": false,
             "properties": {
                 "title": { "type": "string" },
-                "helpBtn": { "type": "boolean" },
+                "showHelp": { "type": "boolean" },
+                "helpBtn": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "showHelp" },
                 "helpSrc": { "type": "string" },
                 "pageId": { "type": "string" },
-                "showSearchBtn": { "type": "boolean" },
+                "showBtn": { "type": "boolean" },
+                "showSearchBtn": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "showBtn" },
+                "btnText": { "type": "string" },
+                "btnIcon": { "type": "string" },
                 "keywordHeaders": {
                     "type": "array",
                     "description": "keyword 控件可选列 { text, value }；省略时由生成器从同页 Table 同步",
@@ -292,12 +326,64 @@
                     "type": "string",
                     "description": "从配置根路径解析列数组（同 xxxRef），写入 keywordHeaders"
                 },
-                "searchFieldList": {
+                "fieldList": {
                     "type": "array",
                     "items": { "$ref": "#/definitions/searchField" }
                 },
+                "searchFieldList": { "type": "array", "x-jianghu-deprecated": true, "x-jianghu-replacement": "fieldList" },
                 "keyword": {},
+                "keywordConfig": { "type": "object" },
                 "keywordFieldList": {}
+            }
+        },
+        "pageTitleProps": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "title": { "type": "string" },
+                "showHelp": { "type": "boolean" },
+                "helpDoc": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "showHelp" },
+                "helpSrc": { "type": "string" },
+                "pageId": { "type": "string" }
+            }
+        },
+        "searchProps": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "fieldList": { "type": "array", "items": { "$ref": "#/definitions/searchField" } },
+                "fields": { "type": "array", "x-jianghu-deprecated": true, "x-jianghu-replacement": "fieldList" },
+                "searchFieldList": { "type": "array", "x-jianghu-deprecated": true, "x-jianghu-replacement": "fieldList" },
+                "keyword": { "type": "string" },
+                "keywordConfig": { "type": "object" },
+                "keywordFieldList": { "type": "array" },
+                "keywordHeaders": { "type": "array" },
+                "showBtn": { "type": "boolean" },
+                "showSearchBtn": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "showBtn" },
+                "searchBtn": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "showBtn" },
+                "btnText": { "type": "string" },
+                "btnIcon": { "type": "string" }
+            }
+        },
+        "formProps": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "fieldList": { "type": "array", "items": { "$ref": "#/definitions/formField" } },
+                "fields": { "type": "array", "x-jianghu-deprecated": true, "x-jianghu-replacement": "fieldList" }
+            }
+        },
+        "textBtnProps": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "label": { "type": "string" },
+                "text": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "label" },
+                "icon": { "type": "string" },
+                "iconName": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "icon" },
+                "iconPosition": { "type": "string", "enum": ["left", "right"] },
+                "iconRight": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "iconPosition" },
+                "alignSub": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "固定组件样式" }
             }
         },
         "searchField": {
@@ -360,6 +446,12 @@
                     "type": "array",
                     "items": { "$ref": "#/definitions/toolbarAction" }
                 },
+                "toolbarActionList": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/toolbarAction" },
+                    "x-jianghu-deprecated": true,
+                    "x-jianghu-replacement": "headActionList"
+                },
                 "filterList": {
                     "type": "array",
                     "items": { "$ref": "#/definitions/filterField" }
@@ -395,12 +487,17 @@
         },
         "rowAction": {
             "type": "object",
-            "required": ["label"],
+            "anyOf": [
+                { "required": ["label", "uiAction"] },
+                { "required": ["label", "intent"] },
+                { "required": ["label", "id"] }
+            ],
             "additionalProperties": true,
             "properties": {
                 "label": { "type": "string", "minLength": 1 },
-                "intent": { "type": "string" },
-                "id": { "type": "string" },
+                "uiAction": { "type": "string", "minLength": 1 },
+                "intent": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "uiAction" },
+                "id": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "uiAction" },
                 "confirm": { "type": "boolean" },
                 "color": { "type": "string" },
                 "icon": { "type": "string" },
@@ -414,8 +511,9 @@
             "properties": {
                 "type": { "type": "string", "enum": ["button", "spacer", "filter", "slot"] },
                 "label": { "type": "string" },
-                "intent": { "type": "string" },
-                "id": { "type": "string" },
+                "uiAction": { "type": "string" },
+                "intent": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "uiAction" },
+                "id": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "uiAction" },
                 "color": { "type": "string" },
                 "slotName": { "type": "string" },
                 "fields": { "type": "array" }
@@ -465,7 +563,9 @@
                 "fields": {
                     "type": "array",
                     "minItems": 1,
-                    "items": { "$ref": "#/definitions/formField" }
+                    "items": { "$ref": "#/definitions/formField" },
+                    "x-jianghu-deprecated": true,
+                    "x-jianghu-replacement": "fieldList"
                 },
                 "beforeCloseConfirm": {
                     "type": "boolean",
@@ -483,15 +583,18 @@
                 "headActionList": {
                     "type": "array",
                     "items": { "$ref": "#/definitions/drawerAction" },
-                    "description": "FormSheet 标题栏按钮；CreateDrawer 用 actionList"
+                    "description": "已废弃；FormSheet 与 Drawer 统一使用 actionList",
+                    "x-jianghu-deprecated": true,
+                    "x-jianghu-replacement": "actionList"
                 },
                 "hiddenBtn": { "type": "boolean", "description": "FormSheet：隐藏标题栏默认重置/确认" },
                 "rounded": { "type": "boolean", "description": "FormSheet/Sheet 顶部圆角 rounded-t-lg" },
                 "persistent": { "type": "boolean", "description": "Sheet 族：点外侧不关闭" },
-                "autoHeight": { "type": "boolean", "description": "FormSheet 内容区 max-height 策略" },
-                "viewportOffset": { "type": "number", "description": "FormSheet calc(100vh - Npx)" },
+                "bodyHeightMode": { "type": "string", "enum": ["content", "fill"], "default": "fill", "description": "Sheet/FormSheet 默认 fill；SearchSheet 默认 content" },
+                "autoHeight": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "bodyHeightMode" },
+                "viewportOffset": { "type": "number", "x-jianghu-deprecated": true, "x-jianghu-replacement": "maxBodyHeight" },
                 "maxBodyHeight": { "type": "string" },
-                "bodyHeight": { "type": "string" },
+                "bodyHeight": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "maxBodyHeight + bodyHeightMode" },
                 "minCardHeight": { "type": "string" }
             }
         },
@@ -507,19 +610,23 @@
         },
         "searchSheetProps": {
             "type": "object",
-            "description": "jh-mobile-search-sheet：与 jh-page-header 对齐的搜索条件（keyword / keywordFieldList / keywordHeaders / searchFieldList）",
+            "description": "jh-mobile-search-sheet：与 jh-page-header 对齐的搜索条件",
             "additionalProperties": true,
             "properties": {
                 "title": { "type": "string" },
                 "rounded": { "type": "boolean" },
-                "showSearchBtn": { "type": "boolean", "description": "底部是否显示「重置 / 查询」" },
-                "searchFieldList": {
-                    "description": "与 PageHeader 相同：数组静态字段列表；或写字符串变量名（解析器生成 :search-field-list）"
-                },
+                "value": { "type": "boolean" },
+                "shown": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "value" },
+                "showBtn": { "type": "boolean" },
+                "showSearchBtn": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "showBtn" },
+                "fieldList": {},
+                "searchFieldList": { "x-jianghu-deprecated": true, "x-jianghu-replacement": "fieldList" },
                 "keywordHeaders": {
                     "description": "与 PageHeader 一致：数组静态 headers；或字符串变量名（生成 :keyword-headers）；亦可由解析器从 Table 注入"
                 },
                 "keyword": { "description": "字符串时为绑定变量名（与 PageHeader 一致）" },
+                "keywordConfig": { "type": "object" },
+                "keywordMeta": { "type": "object", "x-jianghu-deprecated": true, "x-jianghu-replacement": "keywordConfig" },
                 "keywordFieldList": {},
                 "bodyClass": {}
             }
@@ -569,7 +676,9 @@
                 },
                 "fields": {
                     "type": "array",
-                    "items": { "$ref": "#/definitions/formField" }
+                    "items": { "$ref": "#/definitions/formField" },
+                    "x-jianghu-deprecated": true,
+                    "x-jianghu-replacement": "fieldList"
                 },
                 "actionList": {
                     "type": "array",
@@ -580,13 +689,20 @@
         },
         "drawerAction": {
             "type": "object",
+            "anyOf": [
+                { "required": ["label", "uiAction"] },
+                { "required": ["label", "actionId"] },
+                { "required": ["label", "intent"] },
+                { "required": ["label", "id"] }
+            ],
             "additionalProperties": true,
             "properties": {
                 "label": { "type": "string", "minLength": 1 },
                 "color": { "type": "string" },
-                "actionId": { "type": "string" },
-                "id": { "type": "string" },
-                "intent": { "type": "string" }
+                "uiAction": { "type": "string", "minLength": 1 },
+                "actionId": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "uiAction" },
+                "id": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "uiAction" },
+                "intent": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "uiAction" }
             }
         }
     }

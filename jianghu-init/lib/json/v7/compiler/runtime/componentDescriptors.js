@@ -9,7 +9,7 @@
  * 字段说明：
  *   tag              {string}   Vue 组件标签名（jh-*），必填
  *   aliasOf          {string}   指向另一个 descriptor key，tag/规则全部继承（platform token 别名用）
- *   defaultProps     {object}   布局 Primitive 默认 props（VStack/HStack/Box/Grid）
+ *   defaultProps     {object}   默认 props（布局 Primitive；SearchSheet 等也可声明）
  *   hoistCls         {boolean}  props.cls → resolvedAttrs.class（旧约定，VStack/HStack/Box/Grid/Table 有）
  *   propRenames      {object}   props key 重命名：{ 旧key: 新key }（在 resolveProps 前执行）
  *   stripProps       {string[]} 从 rawProps 中剔除的 key（不传给组件的配置项，如 orderBy/pageSize）
@@ -30,10 +30,16 @@
  */
 
 const _ = require('lodash');
+const {
+  RUNTIME_PROP_MIGRATIONS,
+  SHEET_RETAINED_DEPRECATED_PROPS,
+  toAliasMap,
+} = require('../../migration/keyMigrations');
 
 // ─── 工具 ──────────────────────────────────────────────────────────────────────
 const upperFirst = s => _.upperFirst(s);
 const lowerFirst = s => _.lowerFirst(s);
+const aliasesFor = (...names) => Object.assign({}, ...names.map(name => toAliasMap(RUNTIME_PROP_MIGRATIONS[name])));
 
 // ─── Descriptor 表 ─────────────────────────────────────────────────────────────
 const COMPONENT_DESCRIPTORS = {
@@ -45,6 +51,7 @@ const COMPONENT_DESCRIPTORS = {
     tag: 'jh-vstack',
     defaultProps: { gap: 0, align: 'stretch', justify: 'start' },
     hoistCls: true,
+    retainedDeprecatedProps: ['flexFromCls'],
     bindings: {},
     meta: { needsShownState: false, needsItemState: false },
   },
@@ -53,6 +60,7 @@ const COMPONENT_DESCRIPTORS = {
     tag: 'jh-hstack',
     defaultProps: { gap: 0, align: 'center', justify: 'start', wrap: false },
     hoistCls: true,
+    retainedDeprecatedProps: ['flexFromCls'],
     bindings: {},
     meta: { needsShownState: false, needsItemState: false },
   },
@@ -61,6 +69,7 @@ const COMPONENT_DESCRIPTORS = {
     tag: 'jh-box',
     defaultProps: { padding: '', margin: '', width: '100%' },
     hoistCls: true,
+    retainedDeprecatedProps: ['extraStyle'],
     bindings: {},
     meta: { needsShownState: false, needsItemState: false },
   },
@@ -68,6 +77,7 @@ const COMPONENT_DESCRIPTORS = {
   Grid: {
     tag: 'jh-grid',
     defaultProps: { cols: 1, gap: 0 },
+    gridColsCompat: true,
     hoistCls: true,
     bindings: {},
     meta: { needsShownState: false, needsItemState: false },
@@ -78,13 +88,15 @@ const COMPONENT_DESCRIPTORS = {
   // ════════════════════════════════════════════════════════
   PageTitle: {
     tag: 'jh-page-title',
+    propRenames: aliasesFor('PageTitle'),
     bindings: {},
     meta: { needsShownState: false, needsItemState: false },
   },
 
   PageHeader: {
     tag: 'jh-page-header',
-    exprFieldProps: ['searchFieldList', 'fields'],
+    propRenames: aliasesFor('PageHeader', 'Search'),
+    exprFieldProps: ['fieldList'],
     // 值为字符串时视为变量名，提取为 .sync binding 并从 resolvedProps 剔除
     bindingExtract: {
       keyword:          ':keyword.sync',
@@ -105,7 +117,8 @@ const COMPONENT_DESCRIPTORS = {
   // ════════════════════════════════════════════════════════
   Search: {
     tag: 'jh-search',
-    exprFieldProps: ['searchFieldList', 'fields'],
+    propRenames: aliasesFor('Search'),
+    exprFieldProps: ['fieldList'],
     bindings: {
       '@search': 'handleSearch',
     },
@@ -114,20 +127,28 @@ const COMPONENT_DESCRIPTORS = {
 
   SearchSheet: {
     tag: 'jh-mobile-search-sheet',
-    exprFieldProps: ['searchFieldList', 'fields'],
+    propRenames: aliasesFor('SearchSheet', 'Search'),
+    exprFieldProps: ['fieldList'],
+    // 与 jh-mobile-search-sheet Vue 默认一致；Sheet/FormSheet 默认 fill，SearchSheet 例外为 content
+    defaultProps: {
+      maxBodyHeight: '70vh',
+      bodyHeightMode: 'content',
+    },
+    sheetHeightCompat: true,
+    retainedDeprecatedProps: SHEET_RETAINED_DEPRECATED_PROPS,
     // 字符串型 props 提取为 binding
     bindingExtract: {
       keyword:          ':keyword.sync',
       keywordFieldList: ':keywordFieldList.sync',
       keywordHeaders:   ':keyword-headers',
-      searchFieldList:  ':search-field-list',
+      fieldList:        ':field-list',
     },
     // key 驱动绑定：:shown.sync 用 key 决定变量名，其余固定
     keyedBindings: (key) => ({
       ':keyword.sync':          'keyword',
       ':keywordFieldList.sync': 'keywordFieldList',
       '@search':                'handleSearch',
-      ':shown.sync':            `is${upperFirst(key)}DrawerShown`,
+      'v-model':                `is${upperFirst(key)}DrawerShown`,
     }),
     meta: { needsShownState: true, needsItemState: true },
   },
@@ -138,20 +159,13 @@ const COMPONENT_DESCRIPTORS = {
   Table: {
     tag: 'jh-table',
     hoistCls: true,
-    // v6 旧名 headActionList → 组件实际 prop toolbarActionList
-    propRenames: {
-      headActionList: 'toolbarActionList',
-    },
-    // columns 与 headers 同义，统一为 headers
-    propRenames2: {
-      columns: 'headers',
-    },
+    propRenames: aliasesFor('Table'),
     // 这些字段只用于页面层（prepareTableParams / tableOptions 初值），不传给组件
     stripProps: ['orderBy', 'pageSize'],
     // 字符串型 headersBinding / columnsBinding → :headers="varName"，并剔除静态 headers/columns
     bindingExtractHeaders: ['headersBinding', 'columnsBinding'],
     slotTemplates: true,
-    exprActionProps: ['toolbarActionList', 'rowActionList'],
+    exprActionProps: ['headActionList', 'rowActionList'],
     bindings: {
       ':items':              'tableDataComputed',
       ':loading':            'isTableLoading',
@@ -164,16 +178,11 @@ const COMPONENT_DESCRIPTORS = {
 
   List: {
     tag: 'jh-list',
-    propRenames: {
-      headActionList: 'toolbarActionList',
-    },
-    propRenames2: {
-      columns: 'headers',
-    },
+    propRenames: aliasesFor('List'),
     stripProps: ['orderBy', 'pageSize'],
     bindingExtractHeaders: ['headersBinding', 'columnsBinding'],
     slotTemplates: true,
-    exprActionProps: ['toolbarActionList', 'rowActionList'],
+    exprActionProps: ['headActionList', 'rowActionList'],
     bindings: {
       ':items':              'tableDataComputed',
       ':loading':            'isTableLoading',
@@ -189,8 +198,9 @@ const COMPONENT_DESCRIPTORS = {
   // ════════════════════════════════════════════════════════
   CreateDrawer: {
     tag: 'jh-create-drawer',
-    exprFieldProps: ['fieldList', 'fields'],
-    exprActionProps: ['actionList', 'headActionList'],
+    propRenames: aliasesFor('FormContainer'),
+    exprFieldProps: ['fieldList'],
+    exprActionProps: ['actionList'],
     exprTabList: true,
     bindings: {
       'v-model':       'isCreateDrawerShown',
@@ -203,8 +213,9 @@ const COMPONENT_DESCRIPTORS = {
 
   UpdateDrawer: {
     tag: 'jh-update-drawer',
-    exprFieldProps: ['fieldList', 'fields'],
-    exprActionProps: ['actionList', 'headActionList'],
+    propRenames: aliasesFor('FormContainer'),
+    exprFieldProps: ['fieldList'],
+    exprActionProps: ['actionList'],
     exprTabList: true,
     bindings: {
       'v-model':       'isUpdateDrawerShown',
@@ -220,17 +231,20 @@ const COMPONENT_DESCRIPTORS = {
   // ════════════════════════════════════════════════════════
   Drawer: {
     tag: 'jh-drawer',
+    exprActionProps: ['actionList'],
     keyedBindings: (key) => ({
       'v-model':      `is${upperFirst(key)}DrawerShown`,
       ':initialData': `${lowerFirst(key)}Item`,
+      '@action':      'doUiAction',
     }),
     meta: { needsShownState: true, needsItemState: true },
   },
 
   FormDrawer: {
     tag: 'jh-form-drawer',
-    exprFieldProps: ['fieldList', 'fields'],
-    exprActionProps: ['actionList', 'headActionList'],
+    propRenames: aliasesFor('FormContainer'),
+    exprFieldProps: ['fieldList'],
+    exprActionProps: ['actionList'],
     exprTabList: true,
     keyedBindings: (key) => ({
       'v-model':       `is${upperFirst(key)}DrawerShown`,
@@ -246,26 +260,33 @@ const COMPONENT_DESCRIPTORS = {
   // ════════════════════════════════════════════════════════
   Sheet: {
     tag: 'jh-sheet',
-    exprFieldProps: ['fieldList', 'fields'],
-    exprActionProps: ['actionList', 'headActionList'],
+    propRenames: aliasesFor('Sheet'),
+    exprFieldProps: ['fieldList'],
+    // actionList = 标题栏（与 FormSheet/Drawer 一致）；内容网格已外置为 jh-sheet-menu-grid
+    exprActionProps: ['actionList'],
     exprTabList: true,
+    sheetHeightCompat: true,
+    sheetActionCompat: true,
+    retainedDeprecatedProps: SHEET_RETAINED_DEPRECATED_PROPS,
     keyedBindings: (key) => ({
-      ':shown.sync':  `is${upperFirst(key)}DrawerShown`,
+      'v-model':      `is${upperFirst(key)}DrawerShown`,
       ':initialData': `${lowerFirst(key)}Item`,
       '@confirm':     "doUiAction('getTableData')",
       '@action':      'doUiAction',
-      '@head-action': 'doUiAction',
     }),
     meta: { needsShownState: true, needsItemState: true },
   },
 
   FormSheet: {
     tag: 'jh-form-sheet',
-    exprFieldProps: ['fieldList', 'fields'],
-    exprActionProps: ['actionList', 'headActionList'],
+    propRenames: aliasesFor('FormContainer', 'FormSheet'),
+    exprFieldProps: ['fieldList'],
+    exprActionProps: ['actionList'],
     exprTabList: true,
+    sheetHeightCompat: true,
+    retainedDeprecatedProps: SHEET_RETAINED_DEPRECATED_PROPS,
     keyedBindings: (key) => ({
-      ':shown.sync':   `is${upperFirst(key)}DrawerShown`,
+      'v-model':       `is${upperFirst(key)}DrawerShown`,
       ':initialData':  `${lowerFirst(key)}Item`,
       '@field-change': `(val) => { ${lowerFirst(key)}Item[val.key] = val.value }`,
       '@action':       'doUiAction',
@@ -301,6 +322,22 @@ const COMPONENT_DESCRIPTORS = {
   MobileToolbarActions: {
     tag: 'jh-mobile-actions',
     bindings: { '@action': 'doUiAction' },
+    meta: { needsShownState: false, needsItemState: false },
+  },
+
+  Form: {
+    tag: 'jh-form',
+    propRenames: aliasesFor('Form'),
+    exprFieldProps: ['fieldList'],
+    bindings: {},
+    meta: { needsShownState: false, needsItemState: false },
+  },
+
+  TextBtn: {
+    tag: 'jh-text-btn',
+    propRenames: aliasesFor('TextBtn'),
+    retainedDeprecatedProps: ['alignSub'],
+    bindings: {},
     meta: { needsShownState: false, needsItemState: false },
   },
 };

@@ -9,6 +9,10 @@ const {
 const { detectHasDelete } = require('../shared/detectCrudActionFeatures');
 const { normalizeDataSource } = require('../v7/compiler/semantic/normalizeDataSource');
 const { resolveSchemaComponentName } = require('../shared/schemaComponentAlias');
+const {
+  buildOrderPanelChildHtml,
+  buildMenuGridChildHtml,
+} = require('../v7/compiler/runtime/sheetContentPanels');
 // ─────────────────────────────────────────────
 // Component 注册表：schema component 名 → Vue 组件标签名
 // 命名规则：Schema 名 = Vue tag 去掉 jh- 前缀后做 PascalCase 转换，无额外后缀
@@ -760,14 +764,19 @@ function sheetPropsFromRelayProps(relayProps) {
 
 function buildLiftedSheetNode(relayComponent, sheetKey, relayProps, relayChildren) {
   const sp = sheetPropsFromRelayProps(relayProps);
-  const childArr = Array.isArray(relayChildren) && relayChildren.length ? relayChildren : null;
+  const childArr = Array.isArray(relayChildren) && relayChildren.length ? [...relayChildren] : [];
 
   if (relayComponent === 'MobileOrder') {
+    const orderList = sp.orderList;
+    delete sp.orderList;
+    if (orderList != null) {
+      childArr.unshift(buildOrderPanelChildHtml(orderList));
+    }
     return {
       component: 'Sheet',
       key: sheetKey,
       props: Object.assign({ title: '排序', rounded: true }, sp),
-      ...(childArr ? { children: childArr } : {}),
+      ...(childArr.length ? { children: childArr } : {}),
     };
   }
   if (relayComponent === 'MobileFilter') {
@@ -775,27 +784,35 @@ function buildLiftedSheetNode(relayComponent, sheetKey, relayProps, relayChildre
       component: 'FormSheet',
       key: sheetKey,
       props: Object.assign({ title: '筛选', rounded: true }, sp),
-      ...(childArr ? { children: childArr } : {}),
+      ...(childArr.length ? { children: childArr } : {}),
     };
   }
   if (relayComponent === 'MobileSearch') {
-    const sp = sheetPropsFromRelayProps(relayProps);
+    const searchProps = sheetPropsFromRelayProps(relayProps);
     for (const k of ['fieldList', 'fields', 'tabList', 'actionList', 'headActionList', 'initialData', 'jianghuSearch', 'icon']) {
-      if (Object.prototype.hasOwnProperty.call(sp, k)) delete sp[k];
+      if (Object.prototype.hasOwnProperty.call(searchProps, k)) delete searchProps[k];
     }
     return {
       component: 'SearchSheet',
       key: sheetKey,
-      props: Object.assign({ title: '搜索', rounded: true }, sp),
-      ...(childArr ? { children: childArr } : {}),
+      props: Object.assign({ title: '搜索', rounded: true }, searchProps),
+      ...(childArr.length ? { children: childArr } : {}),
     };
   }
-  // MobileAction
+  // MobileAction：图标网格进 children
+  const menuList = sp.menuActionList != null ? sp.menuActionList : sp.actionList;
+  const cols = sp.cols;
+  delete sp.menuActionList;
+  delete sp.actionList;
+  delete sp.cols;
+  if (menuList != null) {
+    childArr.unshift(buildMenuGridChildHtml(menuList, cols));
+  }
   return {
     component: 'Sheet',
     key: sheetKey,
     props: Object.assign({ title: '更多操作', rounded: true }, sp),
-    ...(childArr ? { children: childArr } : {}),
+    ...(childArr.length ? { children: childArr } : {}),
   };
 }
 

@@ -6,11 +6,15 @@
   jh-update-drawer    编辑业务抽屉（依赖 jh-drawer + jh-form）
 
   ── jh-drawer props ──────────────────────────────────────────────
-    value   Boolean              v-model，控制显隐
-    title   String               标题栏文字
-    width   String               抽屉宽度，默认 '90%'
+    value       Boolean              v-model，控制显隐
+    title       String               标题栏文字
+    width       String               抽屉宽度，默认 '90%'
+    actionList  Array                标题栏右侧按钮：{ label, uiAction, color?, visibleWhen?, disabledWhen?, loadingWhen? }
+    initialData Object               供 visibleWhen 等条件求值（与 FormDrawer 一致）
+    scope       Object               条件求值上下文（页面 $data）
     排版 class 写在节点 attrs，经 v-bind="$attrs" 落在 v-navigation-drawer 根上。
-  slots: default（主体内容）、actions（标题栏右侧按钮区）
+  slots: default（主体内容）、actions（标题栏右侧；与 actionList 并存时先渲染 actionList）
+  events: action(actionId)           点击 actionList 项时抛出
   内置：左侧浮动关闭按钮（drawer-close-float-btn，与 v4 一致）
   根节点 v-bind="$attrs" v-on="$listeners"：支持 v6 actionContent 节点 attrs；v-model 由 $listeners 转发至 v-navigation-drawer
 
@@ -60,6 +64,17 @@
       <slot name="title-right"></slot>
       <v-spacer></v-spacer>
       <div class="jh-drawer-action-btn-group d-flex align-center" style="gap:8px">
+        <v-btn
+          v-for="(action, idx) in visibleActionList"
+          :key="'drawer-action-' + (action.actionId || action.id || actionUiToken(action) || idx)"
+          class="elevation-0"
+          :color="action.color || undefined"
+          :outlined="!!action.outlined"
+          :disabled="isActionDisabled(action)"
+          :loading="isActionLoading(action)"
+          small
+          @click="handleActionListClick(action)"
+        >{{ action.label }}</v-btn>
         <slot name="actions"></slot>
       </div>
     </v-row>
@@ -71,10 +86,27 @@
 Vue.component('jh-drawer', {
   inheritAttrs: false,
   template: '#jh-drawer-template',
+  mixins: [window.jhActionWhenMixin],
   props: {
     value: { type: Boolean, default: false },
     title: { type: String,  default: '' },
     width: { type: String,  default: '90%' },
+    actionList: { type: Array, default: () => [] },
+    initialData: { type: Object, default: () => ({}) },
+    scope: { type: Object, default: null },
+  },
+  computed: {
+    visibleActionList() {
+      return this.filterVisibleActions(this.actionList || []);
+    },
+  },
+  methods: {
+    handleActionListClick(action) {
+      if (this.isActionDisabled(action) || this.isActionLoading(action)) return;
+      const actionId = this.resolveDoUiActionId(action);
+      if (!actionId) return;
+      this.$emit('action', actionId);
+    },
   },
 });
 </script>
@@ -123,7 +155,7 @@ Vue.component('jh-drawer', {
           class="px-4 py-4 overflow-hidden overflow-y-auto"
           :class="resolvedTabList.length > 1 ? 'h-[calc(100vh-100px)]' : 'h-[calc(100vh-52px)]'"
           :ref="'createForm_' + idx"
-          :fields="tab.fieldList"
+          :field-list="tab.fieldList"
           :initialData="initialData"
           :origin-data="_originSnapshot"
           :cols="tab.cols"
@@ -147,7 +179,7 @@ Vue.component('jh-drawer', {
       v-else
       class="px-4 py-4 overflow-hidden overflow-y-auto h-[calc(100vh-52px)]"
       ref="createForm_0"
-      :fields="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
+      :field-list="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
       :initialData="initialData"
       :origin-data="_originSnapshot"
       :cols="resolvedTabList[0] ? resolvedTabList[0].cols : cols"
@@ -378,7 +410,7 @@ Vue.component('jh-create-drawer', {
           class="px-4 py-4 overflow-hidden overflow-y-auto"
           :class="resolvedTabList.length > 1 ? 'h-[calc(100vh-100px)]' : 'h-[calc(100vh-52px)]'"
           :ref="'updateForm_' + idx"
-          :fields="tab.fieldList"
+          :field-list="tab.fieldList"
           :initialData="initialData"
           :origin-data="_originSnapshot"
           :cols="tab.cols"
@@ -401,7 +433,7 @@ Vue.component('jh-create-drawer', {
       v-else
       class="px-4 py-4"
       ref="updateForm_0"
-      :fields="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
+      :field-list="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
       :initialData="initialData"
       :origin-data="_originSnapshot"
       :cols="resolvedTabList[0] ? resolvedTabList[0].cols : cols"
@@ -649,7 +681,7 @@ Vue.component('jh-update-drawer', {
           class="px-4 py-4 overflow-hidden overflow-y-auto"
           :class="resolvedTabList.length > 1 ? 'h-[calc(100vh-100px)]' : 'h-[calc(100vh-52px)]'"
           :ref="_formRefName(tab)"
-          :fields="tab.fieldList"
+          :field-list="tab.fieldList"
           :initialData="initialData"
           :origin-data="_originSnapshot"
           :cols="tab.cols"
@@ -672,7 +704,7 @@ Vue.component('jh-update-drawer', {
       v-else
       class="px-4 py-4 overflow-hidden overflow-y-auto h-[calc(100vh-52px)]"
       :ref="_formRefName(resolvedTabList[0])"
-      :fields="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
+      :field-list="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
       :initialData="initialData"
       :origin-data="_originSnapshot"
       :cols="resolvedTabList[0] ? resolvedTabList[0].cols : cols"

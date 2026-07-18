@@ -87,6 +87,7 @@ Do not switch the whole page to UI mode for one custom column. Do not embed larg
 ## 6. Decide what to read next
 
 - Read `.ai-rules/jianghu-init-json-app/v7-crud-authoring.md` for CRUD fields, views, actions, data sources, slots, and target overrides.
+- Read `.ai-rules/jianghu-init-json-app/v7-crud-full-structure.md` only for complex CRUD requiring tabs, slots, layout, platform policy, or PC/mobile composition overrides.
 - Read `.ai-rules/jianghu-init-json-app/v7-app-authoring.md` for full page/component structure and current field names.
 - Read `.ai-rules/jianghu-init-json-app/jh-component.md` for any component task.
 - Read [common-recipes.md](common-recipes.md) only when a matching recipe helps establish the minimal structure.

@@ -1,0 +1,381 @@
+{
+  "semantic": {
+    "list": [
+      {
+        "from": "columns",
+        "to": "columnList"
+      },
+      {
+        "from": "mobileColumns",
+        "to": "mobileColumnList"
+      },
+      {
+        "from": "toolbarActions",
+        "to": "headActionList"
+      },
+      {
+        "from": "toolbarList",
+        "to": "headActionList"
+      },
+      {
+        "from": "headActions",
+        "to": "headActionList"
+      },
+      {
+        "from": "rowActions",
+        "to": "rowActionList"
+      },
+      {
+        "from": "actionList",
+        "to": "rowActionList"
+      },
+      {
+        "from": "actions",
+        "to": "rowActionList"
+      }
+    ],
+    "create": [
+      {
+        "from": "fields",
+        "to": "fieldList"
+      },
+      {
+        "from": "actions",
+        "to": "actionList"
+      },
+      {
+        "from": "submitActions",
+        "to": "actionList"
+      },
+      {
+        "from": "formActions",
+        "to": "actionList"
+      },
+      {
+        "from": "saveTipBeforeClose",
+        "to": "beforeCloseConfirm"
+      },
+      {
+        "from": "sheet",
+        "to": "mobileSheet"
+      }
+    ],
+    "update": [
+      {
+        "from": "fields",
+        "to": "fieldList"
+      },
+      {
+        "from": "actions",
+        "to": "actionList"
+      },
+      {
+        "from": "submitActions",
+        "to": "actionList"
+      },
+      {
+        "from": "formActions",
+        "to": "actionList"
+      },
+      {
+        "from": "tabs",
+        "to": "tabList"
+      },
+      {
+        "from": "sheet",
+        "to": "mobileSheet"
+      }
+    ],
+    "tab": [
+      {
+        "from": "fields",
+        "to": "fieldList"
+      },
+      {
+        "from": "actions",
+        "to": "actionList"
+      }
+    ]
+  },
+  "structural": {
+    "pageTemplateString": "template.{pc,mobile}",
+    "includeListItem": [
+      {
+        "from": "target",
+        "to": "targets"
+      }
+    ],
+    "field": [
+      {
+        "from": "width",
+        "to": "column.width"
+      },
+      {
+        "from": "align",
+        "to": "column.align"
+      },
+      {
+        "from": "class",
+        "to": "column.class"
+      },
+      {
+        "from": "cellClass",
+        "to": "column.cellClass"
+      },
+      {
+        "from": "op",
+        "to": "search.op"
+      },
+      {
+        "from": "component",
+        "to": "form.component"
+      },
+      {
+        "from": "options",
+        "to": "form.options"
+      },
+      {
+        "from": "required",
+        "to": "form.required"
+      },
+      {
+        "from": "readonly",
+        "to": "form.readonly"
+      },
+      {
+        "from": "rules",
+        "to": "form.rules"
+      },
+      {
+        "from": "placeholder",
+        "to": "form.placeholder"
+      },
+      {
+        "from": "hint",
+        "to": "form.hint"
+      },
+      {
+        "from": "quickAttrs",
+        "to": "form.quickAttrs"
+      },
+      {
+        "from": "attrs",
+        "to": "form.attrs"
+      },
+      {
+        "from": "pc",
+        "to": "form.pcAttrs"
+      },
+      {
+        "from": "mobile",
+        "to": "form.mobileAttrs"
+      }
+    ],
+    "listIntoSearch": [
+      {
+        "from": "mobileSearchBtnText",
+        "to": "search.mobileBtnText"
+      },
+      {
+        "from": "mobileSearchIcon",
+        "to": "search.mobileBtnIcon"
+      },
+      {
+        "from": "mobileSearchBtnClass",
+        "to": "search.mobileBtnClass"
+      },
+      {
+        "from": "searchSheet",
+        "to": "search.mobileSheet"
+      },
+      {
+        "from": "mobileSearchTitle",
+        "to": "search.mobileSheet.title"
+      },
+      {
+        "from": "mobileSearchKey",
+        "to": "内部稳定 key"
+      }
+    ],
+    "listSearch": [
+      {
+        "from": "fields",
+        "to": "fieldList"
+      }
+    ],
+    "formView": {
+      "fieldAttrs": "fields.*.createForm/updateForm.attrs",
+      "type": "移除（结构已表示 form）"
+    },
+    "sheet": {
+      "autoHeight": "bodyHeightMode",
+      "viewportOffset": "maxBodyHeight",
+      "bodyHeight": "maxBodyHeight + bodyHeightMode:'fill'",
+      "minCardHeight": "兼容保留",
+      "rounded": "固定组件视觉"
+    },
+    "actionIntent": {
+      "intent": "uiAction",
+      "id": "uiAction",
+      "actionId": "uiAction"
+    }
+  },
+  "runtime": {
+    "Table": [
+      {
+        "from": "toolbarActionList",
+        "to": "headActionList"
+      },
+      {
+        "from": "columns",
+        "to": "headers"
+      }
+    ],
+    "List": [
+      {
+        "from": "toolbarActionList",
+        "to": "headActionList"
+      },
+      {
+        "from": "columns",
+        "to": "headers"
+      }
+    ],
+    "Form": [
+      {
+        "from": "fields",
+        "to": "fieldList"
+      }
+    ],
+    "FormContainer": [
+      {
+        "from": "fields",
+        "to": "fieldList"
+      },
+      {
+        "from": "headActionList",
+        "to": "actionList"
+      }
+    ],
+    "FormSheet": [
+      {
+        "from": "shown",
+        "to": "value"
+      }
+    ],
+    "Sheet": [
+      {
+        "from": "shown",
+        "to": "value"
+      },
+      {
+        "from": "headActionList",
+        "to": "actionList"
+      }
+    ],
+    "SearchSheet": [
+      {
+        "from": "shown",
+        "to": "value"
+      },
+      {
+        "from": "searchFieldList",
+        "to": "fieldList"
+      },
+      {
+        "from": "keywordMeta",
+        "to": "keywordConfig"
+      },
+      {
+        "from": "showSearchBtn",
+        "to": "showBtn"
+      }
+    ],
+    "Search": [
+      {
+        "from": "fields",
+        "to": "fieldList"
+      },
+      {
+        "from": "searchFieldList",
+        "to": "fieldList"
+      },
+      {
+        "from": "searchBtn",
+        "to": "showBtn"
+      },
+      {
+        "from": "showSearchBtn",
+        "to": "showBtn"
+      },
+      {
+        "from": "searchBtnText",
+        "to": "btnText"
+      },
+      {
+        "from": "searchBtnIcon",
+        "to": "btnIcon"
+      }
+    ],
+    "TableFilter": [
+      {
+        "from": "fields",
+        "to": "filterList"
+      }
+    ],
+    "PageTitle": [
+      {
+        "from": "helpDoc",
+        "to": "showHelp"
+      }
+    ],
+    "PageHeader": [
+      {
+        "from": "helpBtn",
+        "to": "showHelp"
+      }
+    ],
+    "TextBtn": [
+      {
+        "from": "text",
+        "to": "label"
+      },
+      {
+        "from": "iconName",
+        "to": "icon"
+      },
+      {
+        "from": "iconRight",
+        "to": "iconPosition"
+      }
+    ]
+  },
+  "runtimeGroups": {
+    "PageHeader": [
+      "PageHeader",
+      "Search"
+    ],
+    "SearchSheet": [
+      "SearchSheet",
+      "Search"
+    ],
+    "CreateDrawer": [
+      "FormContainer"
+    ],
+    "UpdateDrawer": [
+      "FormContainer"
+    ],
+    "FormDrawer": [
+      "FormContainer"
+    ],
+    "FormSheet": [
+      "FormContainer",
+      "FormSheet"
+    ]
+  },
+  "sheetRetainedDeprecatedProps": [
+    "minCardHeight",
+    "hiddenBtn",
+    "rounded"
+  ]
+}

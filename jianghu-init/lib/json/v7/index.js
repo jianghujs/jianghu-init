@@ -29,11 +29,13 @@ const {
 } = require('./policy');
 const { DEFAULT_LAYOUT, getEffectiveLayout } = require('./defaults');
 const { applyMobileRuntimePageId } = require('./mobilePageId');
+const { dedupeDiagnostics } = require('./migration/diagnostics');
 
 // ─── buildPage：完整编译入口 ──────────────────────────────────────────────────
 
 const buildPage = semanticInput => {
-  const semantic = normalizeSchema(semanticInput);
+  const diagnostics = [];
+  const semantic = normalizeSchema(semanticInput, { diagnostics });
   if (semantic.version !== 'v7') {
     throw new Error(`v7 buildPage: 期望 version === 'v7'，当前为 ${JSON.stringify(semantic.version)}`);
   }
@@ -63,7 +65,7 @@ const buildPage = semanticInput => {
 
   payload.version = 'v7';
 
-  const result = parseSchema(payload);
+  const result = parseSchema(payload, { diagnostics });
   if (v7Meta) result.standardConfig.v7Meta = v7Meta;
 
   if (v7Meta && v7Meta.target === 'mobile') {
@@ -89,6 +91,8 @@ const buildPage = semanticInput => {
   if (payload.pageType === 'jh-component') {
     result.legacyConfig.resourceList = [];
   }
+
+  result.diagnostics = dedupeDiagnostics(diagnostics);
 
   return result;
 };

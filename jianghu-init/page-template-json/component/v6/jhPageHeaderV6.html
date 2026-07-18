@@ -45,7 +45,7 @@
         <div class="py-4 text-body-1 font-weight-bold d-flex align-center gap-0.5">
           <span>{{ title }}</span>
           <!-- 帮助页按钮 -->
-          <v-icon v-if="helpBtn" size="15" class="black--text ml-1" @click="isHelpDrawerShown = true">mdi-help-circle</v-icon>
+          <v-icon v-if="resolvedShowHelp" size="15" class="black--text ml-1" @click="isHelpDrawerShown = true">mdi-help-circle</v-icon>
         </div>
       </v-col>
 
@@ -55,7 +55,7 @@
         <v-row class="jh-backend-form-container justify-end py-md-3" no-gutters>
 
           <v-col
-            v-for="(field, sidx) in searchFieldList"
+            v-for="(field, sidx) in resolvedFieldList"
             :key="(field.key || 'f') + '-' + sidx"
             :cols="field.type === 'keyword' ? 12 : 12"
             :sm="field.type === 'keyword' ? 8 : 4"
@@ -186,11 +186,11 @@
           </v-col>
 
           <!-- 查询按钮 -->
-          <div v-if="showSearchBtn" class="jh-backend-search-btn ml-2 d-flex align-center">
+          <div v-if="resolvedShowBtn" class="jh-backend-search-btn ml-2 d-flex align-center">
             <v-btn
               class="elevation-0" color="success" small
               @click="handleSearch()"
-            >查询</v-btn>
+            ><jh-icon v-if="btnIcon" :name="btnIcon" size="16" class="mr-1"></jh-icon>{{ btnText }}</v-btn>
           </div>
 
         </v-row>
@@ -200,7 +200,7 @@
 
     <!-- 帮助文档抽屉（状态完全内聚，不暴露到页面） -->
     <v-navigation-drawer
-      v-if="helpBtn && isHelpDrawerShown"
+      v-if="resolvedShowHelp && isHelpDrawerShown"
       v-model="isHelpDrawerShown"
       fixed temporary right
       width="80%"
@@ -231,15 +231,21 @@ Vue.component('jh-page-header', {
   template: '#jh-page-header-template',
   props: {
     title:            { type: String,  default: '' },
-    helpBtn:          { type: Boolean, default: false },
+    showHelp:         { type: Boolean, default: null },
+    helpBtn:          { type: Boolean, default: null },
     helpSrc:          { type: String,  default: '' },
     pageId:           { type: String,  default: '' },
-    searchFieldList:  { type: Array,   default: () => [] },
+    fieldList:        { type: Array,   default: null },
+    searchFieldList:  { type: Array,   default: null },
     /** keyword 控件可选列（通常由 parse_schema 从 Table 同步） */
     keywordHeaders:   { type: Array,   default: () => [] },
-    showSearchBtn:    { type: Boolean, default: true },
+    showBtn:          { type: Boolean, default: null },
+    showSearchBtn:    { type: Boolean, default: null },
+    btnText:          { type: String,  default: '查询' },
+    btnIcon:          { type: String,  default: 'search' },
     /** 支持父页面传入初始值 / 外部重置（配合 .sync 使用） */
     keyword:          { type: String,  default: '' },
+    keywordConfig:    { type: Object,  default: null },
     keywordFieldList: { type: Array,   default: () => [] },
   },
   data() {
@@ -274,7 +280,7 @@ Vue.component('jh-page-header', {
       handler(headers) {
         if (!Array.isArray(headers) || headers.length === 0) return;
         if (this.localKeywordFieldList.length > 0) return;
-        const hasKeywordWidget = (this.searchFieldList || []).some(f => f && (f.type === 'keyword'));
+        const hasKeywordWidget = this.resolvedFieldList.some(f => f && (f.type === 'keyword'));
         if (!hasKeywordWidget) return;
         this.localKeywordFieldList = headers
           .filter(h => h && h.value !== 'action')
@@ -283,8 +289,19 @@ Vue.component('jh-page-header', {
     },
   },
   computed: {
+    resolvedShowHelp() {
+      return this.showHelp != null ? this.showHelp : !!this.helpBtn;
+    },
+    resolvedFieldList() {
+      return Array.isArray(this.fieldList) ? this.fieldList : (this.searchFieldList || []);
+    },
+    resolvedShowBtn() {
+      if (this.showBtn != null) return this.showBtn;
+      if (this.showSearchBtn != null) return this.showSearchBtn;
+      return true;
+    },
     hasSearch() {
-      return this.searchFieldList && this.searchFieldList.length > 0;
+      return this.resolvedFieldList.length > 0;
     },
     resolvedHelpSrc() {
       if (this.helpSrc) return this.helpSrc;
@@ -295,6 +312,7 @@ Vue.component('jh-page-header', {
       return (this.keywordHeaders || []).filter(h => h && h.value !== 'action');
     },
     keywordPlaceholder() {
+      if (this.keywordConfig && this.keywordConfig.placeholder) return this.keywordConfig.placeholder;
       const list = this.localKeywordFieldList || [];
       const headers = this.keywordHeaderOptions;
       const texts = _.compact(list.map(k => (headers.find(h => h.value === k) || {}).text));
@@ -334,7 +352,7 @@ Vue.component('jh-page-header', {
       return Array.isArray(o) && o.length > 0;
     },
     initWhereInArrays() {
-      (this.searchFieldList || []).forEach((f) => {
+      this.resolvedFieldList.forEach((f) => {
         if (!f || (f.type === 'keyword')) return;
         if ((f.type === 'date') && this.fieldUsesIn(f)) return;
         if (this.fieldUsesIn(f)) {

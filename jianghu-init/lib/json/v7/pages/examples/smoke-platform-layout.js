@@ -2,13 +2,14 @@
 
 const assert = require('assert');
 const v = require('../../index');
-const { expandCrudPage } = require('../../compiler/semantic/expandCrudPage');
+const { expandCrudPage: expandCanonicalCrudPage } = require('../../compiler/semantic/expandCrudPage');
 const { normalizeAction } = require('../../actionIntent');
 const { fieldKeyToFormField } = require('../../fieldFormProps');
 const { resolvePageSyncEntries } = require('../../mobilePageId');
 const { resolvePageMenu } = require('../../../shared/resolvePageMenu');
 
 const desk = require('./projectManagement.v7.sample');
+const expandCrudPage = semantic => expandCanonicalCrudPage(v.normalizeSchema(semantic));
 
 assert.ok(resolvePageMenu(undefined, 'jh-page', false) === 'jh-menu', 'page menu default jh-menu');
 assert.ok(resolvePageMenu(false, 'jh-page', true) === false, 'page menu false');
@@ -88,7 +89,7 @@ assert.ok(pcPageStr.includes('projectName') || pcPageStr.includes('projectType')
 // status 应在 Search 的 fields 中
 assert.ok(pcPageStr.includes('"key":"status"') || pcPageStr.includes('"key": "status"'), 'status in searchFieldList');
 
-// ─── Req 4: views.update.tabs ─────────────────────────────────────────────────
+// ─── Req 4: views.update.tabList ──────────────────────────────────────────────
 const pcActionStr = JSON.stringify(pc.actionContent);
 assert.ok(pcActionStr.includes('tabList'), 'UpdateDrawer has tabList');
 assert.ok(pcActionStr.includes('basicInfo') || pcActionStr.includes('"basicInfo"'), 'tab basicInfo exists');
@@ -124,7 +125,7 @@ const fieldsModeIr = expandCrudPage(Object.assign({}, desk, {
   views: Object.assign({}, desk.views, {
     update: {
       title: '编辑',
-      fields: ['projectId', 'projectName'],
+      fieldList: ['projectId', 'projectName'],
       interaction: { projectId: { visibleWhen: false } },
     },
   }),
@@ -144,7 +145,7 @@ const attrsIr = expandCrudPage(Object.assign({}, desk, {
   }),
   views: Object.assign({}, desk.views, {
     create: Object.assign({}, desk.views.create, {
-      fields: [ ...(desk.views.create.fields || []), 'projectDesc' ],
+      fieldList: [ ...(desk.views.create.fieldList || []), 'projectDesc' ],
       fieldAttrs: { projectDesc: { rows: 8 } },
     }),
   }),
@@ -247,7 +248,7 @@ const formSlotDesk = Object.assign({}, desk, {
   views: Object.assign({}, desk.views, {
     update: {
       title: '编辑',
-      fields: ['projectId', 'projectName', 'status'],
+      fieldList: ['projectId', 'projectName', 'status'],
       interaction: { projectId: { visibleWhen: false } },
     },
   }),
@@ -359,8 +360,8 @@ const shownBindNode = parseSchema({
   }],
 }).standardConfig.actionContent[0];
 assert.ok(
-  shownBindNode.resolvedBindings[':shown.sync'] === 'isCreateDrawerShown',
-  'framework :shown.sync wins over shownBind',
+  shownBindNode.resolvedBindings['v-model'] === 'isCreateDrawerShown',
+  'framework v-model wins over shownBind',
 );
 assert.ok(
   shownBindNode.resolvedBindings[':shown'] === undefined,
@@ -382,7 +383,7 @@ assert.ok(
   'CreateSheet token → jh-form-sheet',
 );
 assert.ok(
-  createSheetByComponent.resolvedBindings[':shown.sync'] === 'isCreateDrawerShown',
+  createSheetByComponent.resolvedBindings['v-model'] === 'isCreateDrawerShown',
   'CreateSheet token → FormSheet bindings',
 );
 
@@ -437,19 +438,19 @@ assert.ok(mo.v7Meta.collectionComponent === 'List', 'mobile platform.list List')
 assert.ok(mo.v7Meta.createFormComponent === 'FormSheet', 'mobile platform.create CreateSheet→FormSheet');
 assert.ok(mo.v7Meta.updateFormComponent === 'FormSheet', 'mobile platform.update UpdateSheet→FormSheet');
 
-// SearchSheet searchFieldList 内 select.options 字符串 → __expr__（NJK 序列化为 options:constantObj.xxx）
+// SearchSheet fieldList 内 select.options 字符串 → __expr__（NJK 序列化为 options:constantObj.xxx）
 const moSearchSheet = mo.actionContent.find(n => n && n.component === 'SearchSheet');
-const moKeywordMeta = moSearchSheet && (moSearchSheet.resolvedProps || moSearchSheet.props || {}).keywordMeta;
+const moKeywordConfig = moSearchSheet && (moSearchSheet.resolvedProps || moSearchSheet.props || {}).keywordConfig;
 assert.ok(
-  moKeywordMeta && moKeywordMeta.fields && moKeywordMeta.fields.includes('projectName'),
-  'SearchSheet keywordMeta.fields from views.list.search.keyword',
+  moKeywordConfig && moKeywordConfig.fields && moKeywordConfig.fields.includes('projectName'),
+  'SearchSheet keywordConfig.fields from views.list.search.keyword',
 );
 assert.ok(
   mo.features.keywordFieldList && mo.features.keywordFieldList.includes('projectName'),
   'features.keywordFieldList baked for mobile page data',
 );
-const moStatusField = moSearchSheet && (moSearchSheet.resolvedProps || moSearchSheet.props || {}).searchFieldList
-  && moSearchSheet.resolvedProps.searchFieldList.find(f => f && f.key === 'status');
+const moStatusField = moSearchSheet && (moSearchSheet.resolvedProps || moSearchSheet.props || {}).fieldList
+  && moSearchSheet.resolvedProps.fieldList.find(f => f && f.key === 'status');
 assert.ok(
   moStatusField && moStatusField.options && moStatusField.options.__expr__ === 'constantObj.projectStatus',
   'SearchSheet status.options → __expr__',
@@ -460,12 +461,12 @@ const moUpdateNode = mo.actionContent.find(n => n && n.key === 'update');
 assert.ok(moCreateNode && moCreateNode.component === 'FormSheet', 'mobile actionContent create is FormSheet');
 const moCreateProps = (moCreateNode && (moCreateNode.resolvedProps || moCreateNode.props)) || {};
 assert.ok(
-  moCreateProps.headActionList && moCreateProps.headActionList[0] && moCreateProps.headActionList[0].uiAction === 'create',
-  'mobile FormSheet create.actions → headActionList',
+  moCreateProps.actionList && moCreateProps.actionList[0] && moCreateProps.actionList[0].uiAction === 'create',
+  'mobile FormSheet create.actionList → actionList',
 );
-assert.ok(!moCreateProps.actionList, 'mobile FormSheet create has no bottom actionList');
-assert.ok(moCreateProps.autoHeight === true, 'mobile FormSheet create default autoHeight');
-assert.ok(moCreateProps.viewportOffset === 102, 'mobile FormSheet create default viewportOffset 102');
+assert.ok(!moCreateProps.headActionList, 'mobile FormSheet create has no headActionList');
+assert.ok(moCreateProps.maxBodyHeight === 'calc(100vh - 102px)', 'mobile FormSheet create default maxBodyHeight');
+assert.ok(moCreateProps.bodyHeightMode === 'fill', 'mobile FormSheet create defaults to fill mode');
 assert.ok(moCreateProps.beforeCloseConfirm === true, 'mobile FormSheet create beforeCloseConfirm');
 assert.ok(moCreateProps.persistent === true, 'mobile FormSheet beforeCloseConfirm → persistent');
 assert.ok(moSearchSheet, 'mobile SearchSheet exists');
@@ -473,12 +474,18 @@ assert.ok(
   (moSearchSheet.resolvedProps || moSearchSheet.props || {}).maxBodyHeight === '70vh',
   'SearchSheet default maxBodyHeight 70vh',
 );
+assert.ok(
+  (moSearchSheet.resolvedProps || moSearchSheet.props || {}).bodyHeightMode === 'content',
+  'SearchSheet default bodyHeightMode content',
+);
 const sheetOverrideDesk = Object.assign({}, desk, {
   targetPlatform: 'mobile',
   pc: undefined,
   views: Object.assign({}, desk.views, {
     list: Object.assign({}, desk.views.list, {
-      searchSheet: { maxBodyHeight: '50vh', persistent: true },
+      search: Object.assign({}, desk.views.list.search, {
+        mobileSheet: { maxBodyHeight: '50vh', persistent: true },
+      }),
     }),
   }),
 });
@@ -487,7 +494,7 @@ const overrideSearchSheet = moSheetOverride.actionContent.find(n => n && n.compo
 const overrideSheetProps = (overrideSearchSheet && (overrideSearchSheet.resolvedProps || overrideSearchSheet.props)) || {};
 assert.ok(
   overrideSheetProps.maxBodyHeight === '50vh' && overrideSheetProps.persistent === true,
-  'views.list.searchSheet merges overlay props',
+  'views.list.search.mobileSheet merges overlay props',
 );
 assert.ok(moUpdateNode && moUpdateNode.component === 'FormSheet', 'mobile actionContent update is FormSheet');
 const pcCreateNode = pc.actionContent.find(n => n && n.key === 'create');
@@ -500,13 +507,14 @@ assert.ok(
 );
 assert.ok(!pcCreateProps.headActionList, 'pc CreateDrawer create has no headActionList');
 const moUpdateProps = (moUpdateNode && (moUpdateNode.resolvedProps || moUpdateNode.props)) || {};
-assert.ok(moUpdateProps.viewportOffset === 152, 'mobile FormSheet update tabs viewportOffset 152');
+assert.ok(moUpdateProps.maxBodyHeight === 'calc(100vh - 152px)', 'mobile FormSheet update tabs maxBodyHeight');
+assert.ok(moUpdateProps.bodyHeightMode === 'fill', 'mobile FormSheet update defaults to fill mode');
 const moBasicTab = moUpdateProps.tabList && moUpdateProps.tabList.find(t => t.key === 'basicInfo');
 assert.ok(
-  moBasicTab && moBasicTab.headActionList && moBasicTab.headActionList[0] && moBasicTab.headActionList[0].uiAction === 'update',
-  'mobile FormSheet update tab.actions → headActionList',
+  moBasicTab && moBasicTab.actionList && moBasicTab.actionList[0] && moBasicTab.actionList[0].uiAction === 'update',
+  'mobile FormSheet update tab.actionList → actionList',
 );
-assert.ok(!moBasicTab || !moBasicTab.actionList, 'mobile FormSheet update tab has no actionList');
+assert.ok(!moBasicTab || !moBasicTab.headActionList, 'mobile FormSheet update tab has no headActionList');
 const pcUpdateProps = updateDrawerProps;
 const pcBasicTab = pcUpdateProps.tabList && pcUpdateProps.tabList.find(t => t.key === 'basicInfo');
 assert.ok(
@@ -514,7 +522,7 @@ assert.ok(
   'pc UpdateDrawer update tab.actions → actionList',
 );
 assert.ok(!pcBasicTab || !pcBasicTab.headActionList, 'pc UpdateDrawer update tab has no headActionList');
-assert.ok(mo.v7Meta.listColumnsSource === 'mobileColumns', 'mobile uses mobileColumns when set');
+assert.ok(mo.v7Meta.listColumnsSource === 'mobileColumnList', 'mobile uses mobileColumnList when set');
 const moListNode = (() => {
   const walk = nodes => {
     for (const n of nodes || []) {

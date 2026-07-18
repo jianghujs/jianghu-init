@@ -29,8 +29,22 @@
                     "type": "string",
                     "description": "组件名称"
                 },
+                "targets": {
+                    "description": "编译端：'pc' | 'mobile' | 'both'；省略则两端都引入",
+                    "oneOf": [
+                        { "type": "string", "enum": ["pc", "mobile", "both"] },
+                        {
+                            "type": "array",
+                            "items": { "type": "string", "enum": ["pc", "mobile"] },
+                            "minItems": 1,
+                            "uniqueItems": true
+                        }
+                    ]
+                },
                 "target": {
-                    "description": "编译端：'pc' | 'mobile'；省略则两端都引入（v7 buildPage 按 targetPlatform 过滤）",
+                    "description": "已废弃，请使用 targets",
+                    "x-jianghu-deprecated": true,
+                    "x-jianghu-replacement": "targets",
                     "oneOf": [
                         { "type": "string", "enum": ["pc", "mobile"] },
                         {
@@ -76,7 +90,7 @@
             "items": {
                 "$ref": "#/definitions/includeList"
             },
-            "description": "引入资源列表；v7 可在项上设 target: pc|mobile，省略则两端共用"
+            "description": "引入资源列表；v7 可在项上设 targets: pc|mobile|both，省略则两端共用"
         }
     }
 }

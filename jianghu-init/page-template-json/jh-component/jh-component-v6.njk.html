@@ -55,7 +55,9 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
   name: '<=$ _componentName | camelToKebab $=>',
 
   // inject（可选）：如果本组件被嵌套到更大的页面/组件中，允许从上层接收 jhPage
-  inject: ['jhPage'],
+  inject: {
+    jhPage: { default: null },
+  },
 
   //===// <=%- if common.model | isObject %=> 
   //===// <=$ common.model | variableToVar('model') $=>,
@@ -175,8 +177,16 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
     //===// <=%- endif %=>
     
     //===// <=%- for key, item in common.computed %=>
+    //===// <=%- if key != 'pageId' %=>
     //===// <=$ item | variableToVar(key) $=>,
+    //===// <=%- endif %=>
     //===// <=%- endfor %=>
+
+    // 优先宿主 jhPage.pageId；否则回退本组件 bake 的 pageId（v6 旧惯例）
+    pageId() {
+      if (this.jhPage && this.jhPage.pageId) return this.jhPage.pageId;
+      return typeof pageId === 'string' ? pageId : '';
+    },
   },
 
   //===// <=%- if not common.created %=>
@@ -209,6 +219,11 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
   },
   //===// <=%- endif %=>
   methods: {
+
+    // 兼容旧调用；新代码统一用 this.pageId
+    resolvePageId() {
+      return this.pageId;
+    },
 
     // ─────────────────────────────────────────────
     // doUiAction：调度层，只做分发，不做业务
@@ -342,7 +357,7 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
       this.isTableLoading = true;
       const result = await window.jianghuAxios({
         data: { appData: {
-          pageId:     pageId,
+          pageId:     this.pageId,
           actionId:   listResource,
           actionData: {},
           ...this.tableParams,
@@ -402,7 +417,7 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
       await window.vtoast.loading('新增数据');
       await window.jianghuAxios({
         data: { appData: {
-          pageId:     pageId,
+          pageId:     this.pageId,
           actionId:   createResource,
           actionData: this.createActionData,
           //===// <=%- if standardConfig.features.autoId %=>
@@ -460,7 +475,7 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
       await window.vtoast.loading('修改数据');
       await window.jianghuAxios({
         data: { appData: {
-          pageId:     pageId,
+          pageId:     this.pageId,
           actionId:   updateResource,
           actionData: this.updateActionData,
           where:      { [primaryKey]: this.updateItemId },
@@ -497,7 +512,7 @@ Vue.component("<=$ _componentName | camelToKebab $=>", {
       await window.vtoast.loading('删除数据');
       await window.jianghuAxios({
         data: { appData: {
-          pageId:     pageId,
+          pageId:     this.pageId,
           actionId:   deleteResource,
           actionData: {},
           where:      { [primaryKey]: this.deleteItemId },

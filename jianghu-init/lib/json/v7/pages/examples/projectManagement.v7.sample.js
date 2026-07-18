@@ -48,14 +48,14 @@ const content = {
   views: {
     list: {
 
-      columns: [ 'projectId', 'projectName', 'status' ],
-      // 移动端 List：第一项为卡片标题，其余为详情；省略则仍用 columns
-      mobileColumns: [ 'projectName', 'status' ],
-      toolbarActions: [{uiAction: 'create', label: '新增'}],
-      rowActions: [{uiAction: 'update', label: '编辑', key: 'update'}, {uiAction: 'delete', label: '删除', key: 'update'}],
+      columnList: [ 'projectId', 'projectName', 'status' ],
+      // 移动端 List：第一项为卡片标题，其余为详情；省略则仍用 columnList
+      mobileColumnList: [ 'projectName', 'status' ],
+      headActionList: [{uiAction: 'create', label: '新增'}],
+      rowActionList: [{uiAction: 'update', label: '编辑', key: 'update'}, {uiAction: 'delete', label: '删除', key: 'update'}],
       search: {
         keyword: { fields: ['projectName', 'projectType'], placeholder: '搜索项目' },
-        fields: ['status'],
+        fieldList: ['status'],
       },
       filter: {
         keyword: { fields: ['projectName', 'projectType'], placeholder: '筛选当前页' },
@@ -72,9 +72,8 @@ const content = {
     // =========================
     create: {
 
-      type: 'form',
       title: '创建项目',
-      fields: [ 'projectId', 'projectName', 'status' ],
+      fieldList: [ 'projectId', 'projectName', 'status' ],
       interaction: {
         projectName: {
           readonlyWhen: 'isFinished'
@@ -90,8 +89,8 @@ const content = {
           disabledWhen: "status === '已归档'"
         }
       },
-      saveTipBeforeClose: true,
-      actions: [{ label: '保存', uiAction: 'create', color: 'primary' }],
+      beforeCloseConfirm: true,
+      actionList: [{ label: '保存', uiAction: 'create', color: 'primary' }],
     },
 
     // =========================
@@ -99,13 +98,12 @@ const content = {
     // =========================
     update: {
 
-      tabs: [
+      tabList: [
 
         {
           key: 'basicInfo',
-          type: 'form',
           title: '基础信息',
-          fields: [ 'projectId', 'projectName', 'status' ],
+          fieldList: [ 'projectId', 'projectName', 'status' ],
           interaction: {
             projectName: {
               readonlyWhen: 'isFinished'
@@ -121,7 +119,7 @@ const content = {
               disabledWhen: "status === '已归档'"
             }
           },
-          actions: [{ label: '保存', uiAction: 'update', color: 'primary' }],
+          actionList: [{ label: '保存', uiAction: 'update', color: 'primary' }],
         },
 
 

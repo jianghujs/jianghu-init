@@ -31,7 +31,8 @@ const buildFieldDef = col => {
   const type = inferFieldType(col);
   const field = { label, type };
   if (type === 'select') {
-    field.options = `constantObj.${key}`;
+    field.form = { options: `constantObj.${key}` };
+    field.search = { op: 'eq' };
   }
   return { key, field };
 };
@@ -67,6 +68,20 @@ const pickSearchTextFields = entries => (
   entries.filter(e => e.field.type === 'text').slice(0, 3).map(e => e.key)
 );
 
+const pickSearchFieldList = entries => (
+  entries.filter(e => e.field.type === 'select').slice(0, 4).map(e => e.key)
+);
+
+const pickMobileColumnList = entries => {
+  const titleEntry = entries.find(e => e.field.type === 'text' && !/Id$/.test(e.key))
+    || entries.find(e => e.field.type === 'text')
+    || entries[0];
+  return Array.from(new Set([
+    titleEntry && titleEntry.key,
+    ...entries.slice(0, 4).map(e => e.key),
+  ].filter(Boolean))).slice(0, 4);
+};
+
 const buildResourceList = (table, actionIds) => [
   {
     actionId: actionIds.list,
@@ -94,65 +109,50 @@ const buildResourceList = (table, actionIds) => [
   },
 ];
 
-const buildCrudViews = (fieldKeys, searchTextFields) => {
+const buildCrudViews = entries => {
+  const fieldKeys = entries.map(e => e.key);
   const listColumns = fieldKeys.slice(0, 8);
+  const mobileColumns = pickMobileColumnList(entries);
   const formFields = fieldKeys.slice(0, 12);
+  const searchTextFields = pickSearchTextFields(entries);
+  const searchFieldList = pickSearchFieldList(entries);
   const views = {
     list: {
-      columns: listColumns.length ? listColumns : fieldKeys,
-      toolbarActions: [{ uiAction: 'startCreateItem', label: '新增' }],
-      rowActions: [
-        { uiAction: 'startUpdateItem', label: '编辑' },
-        { uiAction: 'deleteItem', label: '删除' },
+      columnList: listColumns.length ? listColumns : fieldKeys,
+      mobileColumnList: mobileColumns,
+      headActionList: [{ uiAction: 'create', label: '新增' }],
+      rowActionList: [
+        { uiAction: 'update', label: '编辑' },
+        { uiAction: 'delete', label: '删除' },
       ],
       serverPagination: true,
       pageSize: 50,
     },
     create: {
-      type: 'form',
       title: '新增',
-      fields: formFields.length ? formFields : fieldKeys,
-      actions: [{ label: '保存', uiAction: 'createItem', color: 'primary' }],
+      fieldList: formFields.length ? formFields : fieldKeys,
+      beforeCloseConfirm: true,
+      actionList: [{ label: '保存', uiAction: 'create', color: 'primary' }],
     },
     update: {
       title: '编辑',
-      fields: formFields.length ? formFields : fieldKeys,
-      actions: [{ label: '保存', uiAction: 'updateItem', color: 'primary' }],
+      fieldList: formFields.length ? formFields : fieldKeys,
+      beforeCloseConfirm: true,
+      actionList: [{ label: '保存', uiAction: 'update', color: 'primary' }],
     },
   };
 
-  if (searchTextFields.length) {
-    views.list.search = {
-      keyword: { fields: searchTextFields, placeholder: '关键字搜索' },
-    };
+  if (searchTextFields.length || searchFieldList.length) {
+    views.list.search = {};
+    if (searchTextFields.length) {
+      views.list.search.keyword = { fields: searchTextFields, placeholder: '关键字搜索' };
+    }
+    if (searchFieldList.length) {
+      views.list.search.fieldList = searchFieldList;
+    }
   }
   return views;
 };
-
-/** mode:crud 默认 pc/mobile 布局覆写（与 projectManagement.v7.sample 一致） */
-const CRUD_PC_MOBILE_OVERRIDES = `
-  pc: (views, blocks) => ({
-    pageContent: {
-      component: 'VStack',
-      children: [blocks.pageHeader, blocks.list].filter(Boolean),
-    },
-    actionContent: [blocks.create, blocks.update].filter(Boolean),
-  }),
-  mobile: (views, blocks) => ({
-    pageContent: {
-      component: 'VStack',
-      children: [
-        blocks.composeToolbar([
-          blocks.toolbarActions,
-          blocks.toolbarSpacer,
-          blocks.searchBtn,
-        ], { props: { justify: 'space-between' } }),
-        blocks.list,
-      ].filter(Boolean),
-    },
-    actionContent: [blocks.create, blocks.update, blocks.searchSheet].filter(Boolean),
-  }),
-`;
 
 const buildV7CrudContent = ({
   pageType,
@@ -164,9 +164,7 @@ const buildV7CrudContent = ({
 }) => {
   const isComponent = pageType === 'jh-component';
   const { fields, constantObj, entries } = buildFieldsFromColumns(columns);
-  const fieldKeys = entries.map(e => e.key);
   const primaryKey = resolvePrimaryKey(columns, table);
-  const searchTextFields = pickSearchTextFields(entries);
   const actionIds = {
     list: 'selectItemList',
     create: 'insertItem',
@@ -184,20 +182,27 @@ const buildV7CrudContent = ({
     ? `  component: ${formatObject({
       path: componentPath,
       name: pageName || (componentPath && String(componentPath).split('/').filter(Boolean).pop()) || '组件',
-      targets: 'pc',
+      targets: 'both',
     }, 2).split('\n').map((line, i) => (i === 0 ? line : '  ' + line)).join('\n')},
 `
-    : `  page: ${formatObject({ id: pageId, name: pageName, hook: {} }, 2).split('\n').map((line, i) => (i === 0 ? line : '  ' + line)).join('\n')},
+    : `  page: ${formatObject({ id: pageId, name: pageName, menu: true, targets: 'both', hook: {} }, 2).split('\n').map((line, i) => (i === 0 ? line : '  ' + line)).join('\n')},
   includeList: [
-    { type: 'include', path: 'common/jianghuJs/fixedTableHeightV4.html', target: 'pc' },
-    { type: 'include', path: 'common/jianghuJs/globalCSSJHV4.html', target: 'mobile' },
-    { type: 'include', path: 'common/jianghuJs/globalCSSMediaV4.html', target: 'mobile' },
+    { type: 'include', path: 'common/jianghuJs/fixedTableHeightV4.html', targets: 'pc' },
+    { type: 'include', path: 'common/jianghuJs/globalCSSJHV4.html', targets: 'mobile' },
+    { type: 'include', path: 'common/jianghuJs/globalCSSMediaV4.html', targets: 'mobile' },
   ],
   resourceList: ${formatObject(buildResourceList(table, actionIds), 2).split('\n').map((line, i) => (i === 0 ? line : '  ' + line)).join('\n')},
 `;
 
   const componentInclude = isComponent ? '  includeList: [],\n' : '';
 
+  const componentProps = isComponent ? '    props: {},\n' : '';
+  const pageMounted = isComponent ? '' : `    mounted() {
+      this.$nextTick(() => {
+        resetTableMaxHeight()
+      })
+    },
+`;
   const tail = `  dataSource: ${formatObject({
     table,
     primaryKey,
@@ -207,10 +212,9 @@ const buildV7CrudContent = ({
     deleteResource: actionIds.del,
   }, 2).split('\n').map((line, i) => (i === 0 ? line : '  ' + line)).join('\n')},
   fields: ${formatObject(fields, 2).split('\n').map((line, i) => (i === 0 ? line : '  ' + line)).join('\n')},
-  views: ${formatObject(buildCrudViews(fieldKeys, searchTextFields), 2).split('\n').map((line, i) => (i === 0 ? line : '  ' + line)).join('\n')},
-${CRUD_PC_MOBILE_OVERRIDES}  common: {
-    props: {},
-    data: {
+  views: ${formatObject(buildCrudViews(entries), 2).split('\n').map((line, i) => (i === 0 ? line : '  ' + line)).join('\n')},
+  common: {
+${componentProps}    data: {
       constantObj: ${formatObject(constantObj, 2).split('\n').map((line, i) => (i === 0 ? line : '      ' + line)).join('\n')},
       validationRules: {
         requireRules: [
@@ -218,12 +222,7 @@ ${CRUD_PC_MOBILE_OVERRIDES}  common: {
         ],
       },
     },
-    mounted() {
-      this.$nextTick(() => {
-        resetTableMaxHeight()
-      })
-    },
-  },
+${pageMounted}  },
 };
 
 module.exports = content;

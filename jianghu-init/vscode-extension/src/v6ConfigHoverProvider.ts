@@ -8,6 +8,8 @@ interface DocEntry {
   description: string;
   type?: string;
   example?: string;
+  deprecated?: boolean;
+  replacement?: string;
 }
 
 /**
@@ -239,10 +241,15 @@ const V6_PATH_DOCS: Record<string, DocEntry> = {
   'MobileAction|title':       { type: 'string', description: '底部 **Sheet** 标题，默认「更多操作」。' },
   'MobileAction|rounded':     { type: 'boolean', description: '底部 Sheet 圆角，默认 true。' },
   'MobileAction|actionList': {
-    description: '**核心**：操作项 `[{ value, icon?, color?, tag? }]`，网格展示；点选触发 `@action`。',
+    description:
+      '**核心**：操作项 `[{ value, icon?, color?, tag? }]`；中继生成 Sheet children `jh-sheet-menu-grid`。',
   },
-  'MobileAction|cols':        { type: 'number', description: '网格列数（Tailwind `grid-cols-*`）。' },
-  'MobileAction|headActionList': { description: '若有透传需求时的标题区按钮（一般用不到）。' },
+  'MobileAction|cols':        { type: 'number', description: '网格列数（Tailwind `grid-cols-*`），传给 jh-sheet-menu-grid。' },
+  'MobileAction|headActionList': {
+    description: '旧写法；标题栏请用 Sheet 提升后的 `actionList`（一般用不到）。',
+    deprecated: true,
+    replacement: 'actionList（标题栏）',
+  },
 
   // ── MobileSearch（中继 → **`jh-mobile-filter-btn`** + **`jh-mobile-search-sheet`**）
   //     弹出层仅对应 Vue 组件 props：title / rounded / searchFieldList / keywordHeaders / keyword /
@@ -341,17 +348,25 @@ const V6_PATH_DOCS: Record<string, DocEntry> = {
   'Sheet|title':          { type: 'string',  description: '底部卡片标题（静态）；动态用 **`titleBind`**（→ `:title`）或 `{ __expr__: \'computedTitle\' }`' },
   'Sheet|titleBind':      { type: 'string',  description: 'Vue 表达式 → `:title="…"`（与 `title` 互斥）' },
   'Sheet|shown':          { description: '显隐：解析器通常生成 `:shown.sync="is{Key}DrawerShown"`' },
-  'Sheet|orderList':      { description: '排序模式（与 actionList / children 默认插槽三选一）：`[{ text, value }]`' },
-  'Sheet|actionList':     {
+  'Sheet|orderList': {
+    description: '旧排序内容 props，仍兼容（注入 jh-sheet-order-panel）',
+    deprecated: true,
+    replacement: 'MobileOrder / children jh-sheet-order-panel',
+  },
+  'Sheet|actionList': {
     description:
-      '**内容区**图标网格（与 orderList / children 三选一）。项 `{ value, icon?, color? }`；`cols` 控制列数。\n'
-      + '点击 `@action` → `doUiAction(整项对象)`。**不支持** disabled / visible / intent。',
+      '**标题栏**按钮（与 FormSheet/Drawer 一致）。图标网格请用 MobileAction → jh-sheet-menu-grid。',
   },
   'Sheet|headActionList': {
-    description:
-      '**标题栏**按钮 → `jh-mobile-actions`（与 orderList 标题栏重置/确认互斥）。`@head-action` → `doUiAction`；或 `v-slot:head-actions` 覆盖。',
+    description: '旧标题栏 key，仍兼容',
+    deprecated: true,
+    replacement: 'actionList',
   },
-  'Sheet|cols':           { description: 'actionList 网格列数（Tailwind `grid-cols-*`）' },
+  'Sheet|cols': {
+    description: '旧网格列数（兼容注入 menu-grid 时使用）',
+    deprecated: true,
+    replacement: 'MobileAction.cols',
+  },
   'Sheet|rounded':        { type: 'boolean', description: '`true` 时卡片顶部圆角 `rounded-t-lg`' },
   'Sheet|stackZIndex':    { type: 'number', description: '叠层层级，默认高于全屏遮罩' },
   'Sheet|attach':         { description: '`false` 跟随 Vuetify 挂载；`"body"` 挂到 body' },

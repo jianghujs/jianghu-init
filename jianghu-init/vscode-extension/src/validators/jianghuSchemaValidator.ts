@@ -23,6 +23,7 @@ import v6PageTreeSchema from '../schemas/components/v6-page-tree.schema.json';
 // v6 完整文档
 import v6Schema from '../schemas/v6/jianghu-config-v6.schema.json';
 import v7Schema from '../schemas/v7/jianghu-config-v7.schema.json';
+import v7KeyMigrations from '../generated/v7-key-migrations.json';
 
 /** V7 根级互斥字段 → 简短提示（标在属性键上，不含「根对象」前缀） */
 const V7_FORBIDDEN_PROPERTY_MSG: Record<string, string> = {
@@ -36,6 +37,110 @@ const V7_FORBIDDEN_PROPERTY_MSG: Record<string, string> = {
   pc: 'UI 模式不需要根级 pc',
   mobile: 'UI 模式不需要根级 mobile',
 };
+
+interface V7DeprecatedKey {
+  path: string[];
+  property: string;
+  replacement: string;
+}
+
+const migrationsToMap = (items: Array<{ from: string, to: string }>): Record<string, string> =>
+  Object.fromEntries(items.map(item => [item.from, item.to]));
+
+const V7_RUNTIME_PROP_MIGRATIONS: Record<string, Record<string, string>> = Object.fromEntries(
+  Object.entries(v7KeyMigrations.runtime).map(([component, items]) => [component, migrationsToMap(items)])
+);
+
+const structuralListFlatToSearch = migrationsToMap(v7KeyMigrations.structural.listIntoSearch);
+
+const structuralSheetDeprecated = v7KeyMigrations.structural.sheet as Record<string, string>;
+
+const resolveRuntimePropAliases = (component: string): Record<string, string> => {
+  const groups = (v7KeyMigrations as any).runtimeGroups?.[component] as string[] | undefined;
+  const names = groups || (V7_RUNTIME_PROP_MIGRATIONS[component] ? [component] : []);
+  return Object.assign({}, ...names.map(name => V7_RUNTIME_PROP_MIGRATIONS[name] || {}));
+};
+
+const hasOwn = (value: any, key: string): boolean =>
+  value != null && Object.prototype.hasOwnProperty.call(value, key);
+
+/** 收集 V7 旧 key；结构 Error 仍由 AJV 负责。 */
+export function collectV7DeprecatedKeys(config: any): V7DeprecatedKey[] {
+  const result: V7DeprecatedKey[] = [];
+  const addFromObject = (value: any, path: string[], aliases: Record<string, string>) => {
+    if (!value || typeof value !== 'object') return;
+    for (const [property, replacement] of Object.entries(aliases)) {
+      if (hasOwn(value, property)) result.push({ path, property, replacement });
+    }
+  };
+
+  if (typeof config?.page?.template === 'string') {
+    result.push({
+      path: ['page'],
+      property: 'template',
+      replacement: v7KeyMigrations.structural.pageTemplateString,
+    });
+  }
+  (config?.includeList || []).forEach((item: any, index: number) => {
+    for (const { from, to } of v7KeyMigrations.structural.includeListItem) {
+      if (hasOwn(item, from)) {
+        result.push({ path: ['includeList', String(index)], property: from, replacement: to });
+      }
+    }
+  });
+
+  for (const [fieldKey, field] of Object.entries(config?.fields || {})) {
+    addFromObject(field, ['fields', fieldKey], migrationsToMap(v7KeyMigrations.structural.field));
+  }
+
+  const list = config?.views?.list;
+  addFromObject(list, ['views', 'list'], {
+    ...migrationsToMap(v7KeyMigrations.semantic.list),
+    ...structuralListFlatToSearch,
+  });
+  addFromObject(list?.search, ['views', 'list', 'search'], migrationsToMap(v7KeyMigrations.structural.listSearch));
+
+  const visitFormView = (view: any, path: string[], includeTabs: boolean) => {
+    addFromObject(view, path, {
+      ...migrationsToMap(includeTabs ? v7KeyMigrations.semantic.update : v7KeyMigrations.semantic.create),
+      fieldAttrs: v7KeyMigrations.structural.formView.fieldAttrs,
+      type: v7KeyMigrations.structural.formView.type,
+      ...(includeTabs ? { tabs: 'tabList' } : {}),
+    });
+    for (const sheetKey of ['mobileSheet', 'sheet']) {
+      addFromObject(view?.[sheetKey], [...path, sheetKey], structuralSheetDeprecated);
+    }
+  };
+  visitFormView(config?.views?.create, ['views', 'create'], false);
+  visitFormView(config?.views?.update, ['views', 'update'], true);
+  const tabList = config?.views?.update?.tabList || config?.views?.update?.tabs || [];
+  tabList.forEach((tab: any, index: number) => addFromObject(tab, ['views', 'update', hasOwn(config?.views?.update, 'tabList') ? 'tabList' : 'tabs', String(index)], {
+    ...migrationsToMap(v7KeyMigrations.semantic.tab),
+    type: v7KeyMigrations.structural.formView.type,
+  }));
+
+  const visitRuntimeTree = (value: any, path: string[]) => {
+    if (!value || typeof value !== 'object') return;
+    if (!Array.isArray(value) && typeof value.component === 'string' && value.props && typeof value.props === 'object') {
+      const propsPath = [...path, 'props'];
+      addFromObject(value.props, propsPath, resolveRuntimePropAliases(value.component));
+      const actionKeys = ['headActionList', 'rowActionList'];
+      if (['CreateDrawer', 'UpdateDrawer', 'FormDrawer', 'FormSheet', 'MobileActions'].includes(value.component)) {
+        actionKeys.push('actionList');
+      }
+      for (const actionKey of actionKeys) {
+        (value.props[actionKey] || []).forEach((action: any, index: number) => {
+          addFromObject(action, [...propsPath, actionKey, String(index)], v7KeyMigrations.structural.actionIntent);
+        });
+      }
+    }
+    if (Array.isArray(value)) value.forEach((item, index) => visitRuntimeTree(item, [...path, String(index)]));
+    else for (const [key, child] of Object.entries(value)) visitRuntimeTree(child, [...path, key]);
+  };
+  visitRuntimeTree(config?.pageContent, ['pageContent']);
+  visitRuntimeTree(config?.actionContent, ['actionContent']);
+  return result;
+}
 
 export class JianghuSchemaValidator {
   private ajv: Ajv;
@@ -163,15 +268,22 @@ export class JianghuSchemaValidator {
       const validateFn = isV7 ? this.validateV7Fn : (isV6 ? this.validateV6Fn : this.validateFn);
 
       const valid = validateFn(configObject);
-
+      const deprecatedDiagnostics = isV7
+        ? this.createDeprecatedDiagnostics(document, collectV7DeprecatedKeys(configObject), location)
+        : [];
       if (!valid && validateFn.errors) {
         let errors = validateFn.errors;
         if (isV7) {
           errors = this.normalizeV7ForbiddenNotErrors(errors, configObject);
         }
         const filteredErrors = this.filterErrors(errors);
-        const diagnostics = this.createDiagnostics(document, filteredErrors, location);
+        const diagnostics = [
+          ...this.createDiagnostics(document, filteredErrors, location),
+          ...deprecatedDiagnostics,
+        ];
         this.diagnosticCollection.set(document.uri, diagnostics);
+      } else if (deprecatedDiagnostics.length > 0) {
+        this.diagnosticCollection.set(document.uri, deprecatedDiagnostics);
       } else {
         this.diagnosticCollection.delete(document.uri);
       }
@@ -480,6 +592,25 @@ export class JianghuSchemaValidator {
     });
   }
 
+  private createDeprecatedDiagnostics(
+    document: vscode.TextDocument,
+    items: V7DeprecatedKey[],
+    location: { start: number, end: number, node: any }
+  ): vscode.Diagnostic[] {
+    return items.map(item => {
+      const range = this.getPropertyKeyRange(document, item.path, location, item.property)
+        || this.getNodeRangeByPath(document, item.path, location);
+      const diagnostic = new vscode.Diagnostic(
+        range,
+        `旧 key：${item.property}，请改用 ${item.replacement}`,
+        vscode.DiagnosticSeverity.Warning
+      );
+      diagnostic.code = 'V7_DEPRECATED_KEY';
+      (diagnostic as any).data = { path: item.path, property: item.property, replacement: item.replacement };
+      return diagnostic;
+    });
+  }
+
   /**
    * 获取诊断严重性
    */
@@ -761,4 +892,53 @@ export class JianghuSchemaValidator {
         return `${displayPath}: ${error.message}`;
     }
   }
-} 
+}
+
+export class V7DeprecatedKeyCodeActionProvider implements vscode.CodeActionProvider {
+  public static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
+
+  provideCodeActions(
+    document: vscode.TextDocument,
+    _range: vscode.Range,
+    context: vscode.CodeActionContext
+  ): vscode.CodeAction[] {
+    const actions: vscode.CodeAction[] = [];
+    for (const diagnostic of context.diagnostics) {
+      if (diagnostic.code !== 'V7_DEPRECATED_KEY') continue;
+      const data = (diagnostic as any).data || {};
+      const replacement = data.replacement as string;
+      if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(replacement || '')) continue;
+      if (this.hasSiblingKey(document, diagnostic.range, replacement)) continue;
+
+      const action = new vscode.CodeAction(`改为 ${replacement}`, vscode.CodeActionKind.QuickFix);
+      action.diagnostics = [diagnostic];
+      action.isPreferred = true;
+      action.edit = new vscode.WorkspaceEdit();
+      action.edit.replace(document.uri, diagnostic.range, replacement);
+      actions.push(action);
+    }
+    return actions;
+  }
+
+  private hasSiblingKey(document: vscode.TextDocument, range: vscode.Range, key: string): boolean {
+    const line = document.lineAt(range.start.line).text;
+    const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
+    const keyPattern = new RegExp(`^\\s{${indent}}${key}\\s*:`);
+
+    for (let lineNumber = range.start.line - 1; lineNumber >= 0; lineNumber--) {
+      const text = document.lineAt(lineNumber).text;
+      if (!text.trim()) continue;
+      const currentIndent = text.match(/^(\s*)/)?.[1].length ?? 0;
+      if (currentIndent < indent) break;
+      if (currentIndent === indent && keyPattern.test(text)) return true;
+    }
+    for (let lineNumber = range.start.line + 1; lineNumber < document.lineCount; lineNumber++) {
+      const text = document.lineAt(lineNumber).text;
+      if (!text.trim()) continue;
+      const currentIndent = text.match(/^(\s*)/)?.[1].length ?? 0;
+      if (currentIndent < indent) break;
+      if (currentIndent === indent && keyPattern.test(text)) return true;
+    }
+    return false;
+  }
+}

@@ -2,6 +2,7 @@
 const { buildPage } = require('../v7');
 const { isJhComponent } = require('../v7/authoringMode');
 const { normalizeBakedPageMenu } = require('../shared/resolvePageMenu');
+const { dedupeDiagnostics, formatMigrationWarnings } = require('../v7/migration/diagnostics');
 
 const bakePageMenuOnStandardConfig = standardConfig => {
   if (!standardConfig || !standardConfig.page) return;
@@ -63,9 +64,11 @@ module.exports = function handleJsonConfigV7(jsonConfig) {
   let pcLegacyConfig;
   let mobileStandardConfig;
   let mobileLegacyConfig;
+  const diagnostics = [];
 
   if (buildTargets === 'mobile') {
     const mobile = runBuild('mobile');
+    diagnostics.push(...(mobile.diagnostics || []));
     pcStandardConfig = mobile.standardConfig;
     pcLegacyConfig = mobile.legacyConfig;
     // 单端 mobile：不再写第二份 mobile/ 副本；render 走 jh-mobile-page-v7
@@ -76,13 +79,16 @@ module.exports = function handleJsonConfigV7(jsonConfig) {
     }
   } else if (buildTargets === 'pc') {
     const pc = runBuild('pc');
+    diagnostics.push(...(pc.diagnostics || []));
     pcStandardConfig = pc.standardConfig;
     pcLegacyConfig = pc.legacyConfig;
   } else {
     const pc = runBuild('pc');
+    diagnostics.push(...(pc.diagnostics || []));
     pcStandardConfig = pc.standardConfig;
     pcLegacyConfig = pc.legacyConfig;
     const mobile = runBuild('mobile');
+    diagnostics.push(...(mobile.diagnostics || []));
     mobileStandardConfig = mobile.standardConfig;
     mobileLegacyConfig = mobile.legacyConfig;
   }
@@ -97,7 +103,11 @@ module.exports = function handleJsonConfigV7(jsonConfig) {
     mobileStandardConfig: mobileStandardConfig || null,
     mobileLegacyConfig: mobileLegacyConfig || null,
     v7BuildTargets: buildTargets,
+    v7Diagnostics: dedupeDiagnostics(diagnostics),
   });
+
+  const migrationWarning = formatMigrationWarnings(jsonConfig.v7Diagnostics);
+  if (migrationWarning) this.warning(migrationWarning);
 
   // 文件生成用配置 id；移动端运行时 id 在 standardConfig.page.id（mobile/ 前缀，见 buildPage）
   if (semanticPageId) {

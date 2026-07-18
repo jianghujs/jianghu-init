@@ -158,7 +158,20 @@
         },
         "targets": { "type": "string", "enum": ["pc", "mobile", "both"], "description": "UI 模式默认 pc；mode:crud 固定双端" },
         "vuetify": { "type": "object" },
-        "template": { "type": "string" }
+        "template": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "pc": { "type": "string" },
+                "mobile": { "type": "string" }
+              }
+            },
+            { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "template.{pc,mobile}" }
+          ]
+        },
+        "helpDoc": { "oneOf": [{ "type": "boolean" }, { "type": "string" }] }
       }
     },
     "componentMeta": {
@@ -254,35 +267,85 @@
           "type": "string",
           "enum": ["text", "select", "number", "textarea", "date", "custom", "section", "divider", "tip"]
         },
-        "options": {},
-        "required": { "type": "boolean" },
-        "readonly": { "type": "boolean" },
-        "op": { "type": "string" },
-        "width": { "type": "number" },
-        "class": { "type": "string" },
-        "cellClass": { "type": "string" },
+        "column": { "$ref": "#/definitions/fieldColumnConfig" },
+        "search": { "$ref": "#/definitions/fieldSearchConfig" },
+        "form": { "$ref": "#/definitions/fieldFormConfig" },
+        "createForm": { "$ref": "#/definitions/fieldFormConfig" },
+        "updateForm": { "$ref": "#/definitions/fieldFormConfig" },
+        "component": { "x-jianghu-deprecated": true, "x-jianghu-replacement": "form.component" },
+        "options": { "x-jianghu-deprecated": true, "x-jianghu-replacement": "form.options" },
+        "required": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "form.required" },
+        "readonly": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "form.readonly" },
+        "rules": { "x-jianghu-deprecated": true, "x-jianghu-replacement": "form.rules" },
+        "op": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "search.op" },
+        "width": { "type": "number", "x-jianghu-deprecated": true, "x-jianghu-replacement": "column.width" },
+        "align": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "column.align" },
+        "class": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "column.class" },
+        "cellClass": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "column.cellClass" },
         "html": { "type": "string", "description": "type='tip' 时的 HTML 内容" },
         "cls": { "type": "string", "description": "结构性字段或表单项额外 class" },
-        "placeholder": { "type": "string", "description": "表单 placeholder" },
-        "hint": { "type": "string", "description": "表单 hint（persistent-hint）" },
+        "placeholder": { "type": "string", "description": "表单 placeholder", "x-jianghu-deprecated": true, "x-jianghu-replacement": "form.placeholder" },
+        "hint": { "type": "string", "description": "表单 hint（persistent-hint）", "x-jianghu-deprecated": true, "x-jianghu-replacement": "form.hint" },
         "quickAttrs": {
-          "description": "布尔型 Vuetify 属性：数组 [\"clearable\"] 或空格字符串"
+          "description": "布尔型 Vuetify 属性：数组 [\"clearable\"] 或空格字符串",
+          "x-jianghu-deprecated": true,
+          "x-jianghu-replacement": "form.quickAttrs"
         },
         "attrs": {
           "type": "object",
           "description": "透传 jh-form → Vuetify 组件 props（如 textarea.rows、select item-text）",
+          "x-jianghu-deprecated": true,
+          "x-jianghu-replacement": "form.attrs",
           "additionalProperties": true
         },
         "pc": {
           "type": "object",
           "description": "PC 端 attrs 覆写（直接 merge 进 fields.attrs，如 { rows: 8 }）",
+          "x-jianghu-deprecated": true,
+          "x-jianghu-replacement": "form.pcAttrs",
           "additionalProperties": true
         },
         "mobile": {
           "type": "object",
           "description": "Mobile 端 attrs 覆写（直接 merge 进 fields.attrs，如 { rows: 5 }）",
+          "x-jianghu-deprecated": true,
+          "x-jianghu-replacement": "form.mobileAttrs",
           "additionalProperties": true
         }
+      }
+    },
+    "fieldColumnConfig": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "width": { "type": "number" },
+        "align": { "type": "string", "enum": ["start", "center", "end"] },
+        "class": { "type": "string" },
+        "cellClass": { "type": "string" }
+      }
+    },
+    "fieldSearchConfig": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": { "op": { "type": "string" } }
+    },
+    "fieldFormConfig": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "type": { "type": "string" },
+        "component": { "type": "string" },
+        "options": {},
+        "required": { "type": "boolean" },
+        "labelRequired": { "type": "boolean" },
+        "readonly": { "type": "boolean" },
+        "rules": {},
+        "placeholder": { "type": "string" },
+        "hint": { "type": "string" },
+        "quickAttrs": {},
+        "attrs": { "type": "object", "additionalProperties": true },
+        "pcAttrs": { "type": "object", "additionalProperties": true },
+        "mobileAttrs": { "type": "object", "additionalProperties": true }
       }
     },
     "fieldAttrsMap": {
@@ -297,11 +360,13 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "columns": { "type": "array", "description": "有 views.list 时须非空；省略 views.list 则无需 columns" },
-        "mobileColumns": { "type": "array" },
-        "search": { "$ref": "#/definitions/searchOrFilterConfig" },
+        "columnList": { "type": "array", "minItems": 1, "description": "PC 列；字段 key 或列覆盖对象" },
+        "mobileColumnList": { "type": "array", "description": "Mobile 列；省略时回退 columnList" },
+        "columns": { "type": "array", "x-jianghu-deprecated": true, "x-jianghu-replacement": "columnList" },
+        "mobileColumns": { "type": "array", "x-jianghu-deprecated": true, "x-jianghu-replacement": "mobileColumnList" },
+        "search": { "$ref": "#/definitions/searchConfig" },
         "filter": {},
-        "toolbarActions": {
+        "headActionList": {
           "type": "array",
           "items": {
             "oneOf": [
@@ -310,10 +375,22 @@
             ]
           }
         },
-        "rowActions": {
+        "rowActionList": {
           "type": "array",
           "items": { "$ref": "#/definitions/actionItem" }
         },
+        "toolbarActions": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "$ref": "#/definitions/actionItem" },
+              { "$ref": "#/definitions/structuralActionItem" }
+            ]
+          },
+          "x-jianghu-deprecated": true,
+          "x-jianghu-replacement": "headActionList"
+        },
+        "rowActions": { "type": "array", "items": { "$ref": "#/definitions/actionItem" }, "x-jianghu-deprecated": true, "x-jianghu-replacement": "rowActionList" },
         "orderBy": { "type": "array" },
         "serverPagination": { "type": "boolean" },
         "pageSize": { "type": "number", "minimum": 1 },
@@ -324,8 +401,8 @@
             "type": { "type": "string", "enum": ["table", "card"] }
           }
         },
-        "mobileSearchTitle": { "type": "string", "description": "SearchSheet 标题；默认「搜索」" },
-        "searchSheet": { "$ref": "#/definitions/sheetOverlay", "description": "SearchSheet 叠层行为（高度 / persistent 等）" },
+        "mobileSearchTitle": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "search.mobileSheet.title" },
+        "searchSheet": { "$ref": "#/definitions/sheetOverlay", "x-jianghu-deprecated": true, "x-jianghu-replacement": "search.mobileSheet" },
         "mobileItemAction": {
           "description": "移动端 jh-list item 行点击行为（PC Table 忽略）：'sheet'（默认，弹中继 ActionSheet）| false | 'none'（不响应）| 其他字符串（直接触发对应 doUiAction，跳过中继弹窗）",
           "oneOf": [
@@ -341,12 +418,14 @@
       "additionalProperties": false,
       "properties": {
         "persistent": { "type": "boolean", "description": "点外侧不关闭" },
-        "rounded": { "type": "boolean", "description": "卡片顶部圆角 rounded-t-lg" },
-        "autoHeight": { "type": "boolean", "description": "FormSheet：true 为 max-h，false 为固定 h（create/update 默认 true）" },
-        "viewportOffset": { "type": "number", "description": "FormSheet calc(100vh-Npx)；单 tab 默认 102，多 tab 152" },
+        "bodyHeightMode": { "type": "string", "enum": ["content", "fill"], "default": "fill", "description": "Sheet/FormSheet 默认 fill；SearchSheet 默认 content" },
+        "rounded": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "固定组件视觉" },
+        "autoHeight": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "bodyHeightMode" },
+        "viewportOffset": { "type": "number", "x-jianghu-deprecated": true, "x-jianghu-replacement": "maxBodyHeight" },
         "maxBodyHeight": { "type": "string", "description": "内容区最大高度，如 70vh、400px" },
-        "bodyHeight": { "type": "string", "description": "固定内容区高度；优先于 maxBodyHeight" },
-        "minCardHeight": { "type": "string", "description": "卡片 min-h，默认 100px" },
+        "bodyHeight": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "maxBodyHeight + bodyHeightMode:'fill'" },
+        "minCardHeight": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "兼容保留" },
+        "bodyClass": {},
         "beforeCloseConfirm": { "type": "boolean", "description": "FormSheet 关前脏检测" }
       }
     },
@@ -370,20 +449,45 @@
         }
       ]
     },
+    "searchConfig": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "keyword": {
+          "type": "object",
+          "properties": {
+            "fields": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+            "placeholder": { "type": "string" }
+          },
+          "required": ["fields"]
+        },
+        "fieldList": { "type": "array" },
+        "fields": { "type": "array", "x-jianghu-deprecated": true, "x-jianghu-replacement": "fieldList" },
+        "btnText": { "type": "string" },
+        "btnIcon": { "type": "string" },
+        "mobileBtnText": { "type": "string" },
+        "mobileBtnIcon": { "type": "string" },
+        "mobileBtnClass": { "type": "string" },
+        "mobileSheet": { "$ref": "#/definitions/sheetOverlay" }
+      }
+    },
     "formView": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "type": { "type": "string" },
         "title": { "type": "string" },
-        "fields": { "type": "array", "items": { "type": "string" } },
+        "fieldList": { "type": "array", "items": { "type": "string" } },
+        "fields": { "type": "array", "items": { "type": "string" }, "x-jianghu-deprecated": true, "x-jianghu-replacement": "fieldList" },
         "interaction": { "type": "object" },
-        "actions": {
+        "actionList": {
           "type": "array",
           "items": { "$ref": "#/definitions/actionItem" }
         },
-        "saveTipBeforeClose": { "type": "boolean" },
-        "sheet": { "$ref": "#/definitions/sheetOverlay", "description": "FormSheet 叠层行为（mobile create 默认满高）" },
+        "actions": { "type": "array", "items": { "$ref": "#/definitions/actionItem" }, "x-jianghu-deprecated": true, "x-jianghu-replacement": "actionList" },
+        "saveTipBeforeClose": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "beforeCloseConfirm" },
+        "beforeCloseConfirm": { "type": "boolean" },
+        "mobileSheet": { "$ref": "#/definitions/sheetOverlay" },
+        "sheet": { "$ref": "#/definitions/sheetOverlay", "x-jianghu-deprecated": true, "x-jianghu-replacement": "mobileSheet" },
         "fieldAttrs": { "$ref": "#/definitions/fieldAttrsMap", "description": "覆写 create 表单 fieldList[].attrs" }
       }
     },
@@ -391,12 +495,17 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "tabs": {
+        "tabList": {
           "type": "array",
           "items": { "$ref": "#/definitions/updateTab" }
         },
-        "fields": { "type": "array", "items": { "type": "string" } },
-        "sheet": { "$ref": "#/definitions/sheetOverlay", "description": "FormSheet 叠层行为（mobile update 默认满高）" },
+        "tabs": { "type": "array", "items": { "$ref": "#/definitions/updateTab" }, "x-jianghu-deprecated": true, "x-jianghu-replacement": "tabList" },
+        "fieldList": { "type": "array", "items": { "type": "string" } },
+        "fields": { "type": "array", "items": { "type": "string" }, "x-jianghu-deprecated": true, "x-jianghu-replacement": "fieldList" },
+        "actionList": { "type": "array", "items": { "$ref": "#/definitions/actionItem" } },
+        "actions": { "type": "array", "items": { "$ref": "#/definitions/actionItem" }, "x-jianghu-deprecated": true, "x-jianghu-replacement": "actionList" },
+        "mobileSheet": { "$ref": "#/definitions/sheetOverlay" },
+        "sheet": { "$ref": "#/definitions/sheetOverlay", "x-jianghu-deprecated": true, "x-jianghu-replacement": "mobileSheet" },
         "fieldAttrs": { "$ref": "#/definitions/fieldAttrsMap", "description": "单表单模式覆写 fieldList[].attrs" }
       }
     },
@@ -447,14 +556,15 @@
       "properties": {
         "key": { "type": "string" },
         "title": { "type": "string" },
-        "type": { "type": "string" },
-        "fields": { "type": "array", "items": { "type": "string" } },
+        "fieldList": { "type": "array", "items": { "type": "string" } },
+        "fields": { "type": "array", "items": { "type": "string" }, "x-jianghu-deprecated": true, "x-jianghu-replacement": "fieldList" },
         "interaction": { "type": "object" },
         "fieldAttrs": { "$ref": "#/definitions/fieldAttrsMap" },
-        "actions": {
+        "actionList": {
           "type": "array",
           "items": { "$ref": "#/definitions/actionItem" }
-        }
+        },
+        "actions": { "type": "array", "items": { "$ref": "#/definitions/actionItem" }, "x-jianghu-deprecated": true, "x-jianghu-replacement": "actionList" }
       }
     }
   }

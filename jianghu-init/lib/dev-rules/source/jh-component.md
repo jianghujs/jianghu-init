@@ -25,7 +25,10 @@ title: jh-component
 
 ## V7 pageId 运行时
 
-- 不 bake 进组件 HTML；嵌套在 Page 内时 `inject jhPage` → `resolvePageId()`
+- 不 bake 进组件 HTML；嵌套在 Page 内时 `inject jhPage`
+- **统一写法**：业务 / axios 使用 `this.pageId`（模板提供的 computed）
+- `resolvePageId()` 仍保留为别名（`return this.pageId`），旧代码可渐进替换
+- 禁止在业务里写裸模块常量 `pageId`、禁止硬编码字符串、禁止 `window.pageId`
 
 ## 布局与高度
 

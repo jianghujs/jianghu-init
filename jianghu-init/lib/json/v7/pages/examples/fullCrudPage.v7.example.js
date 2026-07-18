@@ -22,9 +22,9 @@ const content = {
 
   includeList: [
     { type: 'css', path: '/page/fullCrudPage/common.css' },
-    { type: 'html', path: 'page/fullCrudPage/pc-only.html', target: 'pc' },
-    { type: 'html', path: 'page/fullCrudPage/mobile-only.html', target: 'mobile' },
-    { type: 'js', path: '/page/fullCrudPage/extra.js', target: ['pc', 'mobile'] },
+    { type: 'html', path: 'page/fullCrudPage/pc-only.html', targets: 'pc' },
+    { type: 'html', path: 'page/fullCrudPage/mobile-only.html', targets: 'mobile' },
+    { type: 'js', path: '/page/fullCrudPage/extra.js', targets: ['pc', 'mobile'] },
   ],
 
   resourceList: [
@@ -36,57 +36,53 @@ const content = {
     projectId: {
       label: '项目ID',
       type: 'text',
-      width: 160,
-      class: 'fixed',
-      cellClass: 'fixed',
+      column: { width: 160, class: 'fixed', cellClass: 'fixed' },
+      createForm: { attrs: { readonly: true } },
     },
     projectName: {
       label: '项目名称',
       type: 'text',
-      required: true,
-      placeholder: '请输入项目名称',
+      form: { required: true, placeholder: '请输入项目名称' },
     },
     projectType: {
       label: '项目类型',
       type: 'select',
-      options: 'constantObj.projectType',
-      op: 'eq',
+      form: { options: 'constantObj.projectType' },
+      search: { op: 'eq' },
     },
     status: {
       label: '状态',
       type: 'select',
-      options: 'constantObj.projectStatus',
+      form: { options: 'constantObj.projectStatus' },
     },
     remark: {
       label: '备注',
       type: 'textarea',
-      attrs: { rows: 3 },
-      pc: { rows: 5 },
-      mobile: { rows: 4 },
+      form: {
+        attrs: { rows: 3 },
+        pcAttrs: { rows: 5 },
+        mobileAttrs: { rows: 4 },
+      },
     },
   },
 
   // ─── views ───────────────────────────────────────────────────────────────
   views: {
     list: {
-      columns: [
+      columnList: [
         'projectId',
         { field: 'projectName', width: 240 },
         'status',
       ],
-      mobileColumns: ['projectName', 'status', 'projectType'],
-      toolbarActions: [
+      mobileColumnList: ['projectName', 'status', 'projectType'],
+      headActionList: [
         { uiAction: 'create', label: '新增', color: 'primary' },
         { uiAction: 'delete', label: '批量删除', visibleWhen: 'hasSelection' },
       ],
-      rowActions: [
+      rowActionList: [
         { uiAction: 'update', label: '编辑', key: 'edit' },
         { uiAction: 'delete', label: '删除', key: 'del' },
       ],
-      search: {
-        keyword: { fields: ['projectName', 'projectId'], placeholder: '搜索项目' },
-        fields: ['status', 'projectType'],
-      },
       filter: {
         keyword: { fields: ['projectName'], placeholder: '筛选当前页' },
         fields: ['status'],
@@ -95,21 +91,23 @@ const content = {
       serverPagination: true,
       pageSize: 50,
       selectable: true,
-      mobileSearchKey: 'listSearch',
-      mobileSearchBtnText: '筛选',
-      mobileSearchTitle: '列表筛选',
-      mobileSearchIcon: 'filter-2',
-      searchSheet: {
-        persistent: false,
-        autoHeight: true,
-        viewportOffset: 120,
+      search: {
+        keyword: { fields: ['projectName', 'projectId'], placeholder: '搜索项目' },
+        fieldList: ['status', 'projectType'],
+        mobileBtnText: '筛选',
+        mobileBtnIcon: 'filter-2',
+        mobileSheet: {
+          title: '列表筛选',
+          persistent: false,
+          maxBodyHeight: 'calc(100vh - 120px)',
+          bodyHeightMode: 'content',
+        },
       },
     },
 
     create: {
-      type: 'form',
       title: '新建项目',
-      fields: ['projectId', 'projectName', 'projectType', 'status', 'remark'],
+      fieldList: ['projectId', 'projectName', 'projectType', 'status', 'remark'],
       interaction: {
         projectName: { readonlyWhen: 'isFinished' },
         status: {
@@ -117,45 +115,38 @@ const content = {
           disabledWhen: "status === '已归档'",
         },
       },
-      fieldAttrs: {
-        projectId: { readonly: true },
-      },
-      saveTipBeforeClose: true,
-      actions: [
+      beforeCloseConfirm: true,
+      actionList: [
         { label: '保存', uiAction: 'create', color: 'primary' },
         { label: '取消', uiAction: 'cancel', color: 'secondary', visibleWhen: 'false' },
       ],
-      sheet: {
+      mobileSheet: {
         persistent: true,
-        autoHeight: true,
-        viewportOffset: 102,
-        minCardHeight: '100px',
+        maxBodyHeight: 'calc(100vh - 102px)',
       },
     },
 
     update: {
       title: '编辑项目',
-      tabs: [
+      tabList: [
         {
           key: 'basicInfo',
-          type: 'form',
           title: '基础信息',
-          fields: ['projectId', 'projectName', 'status', 'remark'],
+          fieldList: ['projectId', 'projectName', 'status', 'remark'],
           interaction: {
             projectName: { readonlyWhen: 'isFinished' },
             status: { visibleWhen: 'isOutsource' },
           },
-          actions: [{ label: '保存', uiAction: 'update', color: 'primary' }],
+          actionList: [{ label: '保存', uiAction: 'update', color: 'primary' }],
         },
         {
           key: 'extensionInfo',
           title: '扩展信息',
-          fields: ['projectType'],
+          fieldList: ['projectType'],
         },
       ],
-      sheet: {
-        autoHeight: true,
-        viewportOffset: 152,
+      mobileSheet: {
+        maxBodyHeight: 'calc(100vh - 152px)',
       },
     },
   },

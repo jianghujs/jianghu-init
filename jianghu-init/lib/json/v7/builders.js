@@ -97,19 +97,25 @@ const BLOCK_V_SPACER = { component: 'VSpacer' };
 const buildInlineFilter = ir => {
   // PC 端：HStack 容器，左边 PageTitle，右边 Search
   const pageTitleProps = { title: ir.pageTitle };
-  if (ir.helpDoc) pageTitleProps.helpDoc = ir.helpDoc;
+  if (ir.helpDoc) {
+    pageTitleProps.showHelp = true;
+    pageTitleProps.pageId = ir.pageId;
+    if (typeof ir.helpDoc === 'string') pageTitleProps.helpSrc = ir.helpDoc;
+  }
   const pageTitleNode = { component: 'PageTitle', props: pageTitleProps };
 
   const searchProps = {};
   if (ir.searchFieldList && ir.searchFieldList.length) {
-    searchProps.fields = ir.searchFieldList;
+    searchProps.fieldList = ir.searchFieldList;
   }
   if (ir.keywordConfig) {
-    searchProps.keyword = {
+    searchProps.keywordConfig = {
       fields: ir.keywordConfig.keywordFieldList.map(f => f.value),
       placeholder: ir.keywordConfig.keywordPlaceholder || '搜索',
     };
   }
+  if (ir.searchConfig && ir.searchConfig.btnText) searchProps.btnText = ir.searchConfig.btnText;
+  if (ir.searchConfig && ir.searchConfig.btnIcon) searchProps.btnIcon = ir.searchConfig.btnIcon;
   const searchNode = Object.keys(searchProps).length
     ? { component: 'Search', props: searchProps }
     : null;
@@ -179,11 +185,10 @@ const buildSheetFilter = ir => {
 
     const searchSheetProps = {
       title: mobileSearch.title || '搜索',
-      rounded: true,
-      searchFieldList: ir.searchFieldList,
+      fieldList: ir.searchFieldList,
     };
     if (ir.keywordConfig) {
-      searchSheetProps.keywordMeta = {
+      searchSheetProps.keywordConfig = {
         fields: ir.keywordConfig.keywordFieldList.map(f => f.value),
         placeholder: ir.keywordConfig.keywordPlaceholder || '搜索',
       };
@@ -245,11 +250,10 @@ const applyFormSheetLayout = (props, formComp) => {
   if (props.cols == null) props.cols = 1;
 };
 
-/** 语义 actions[] → FormSheet: headActionList；Drawer: actionList */
-const assignFormActions = (props, actions, formComp) => {
+/** 表单容器统一使用 actionList；组件决定其标题栏渲染位置。 */
+const assignFormActions = (props, actions) => {
   if (!Array.isArray(actions) || !actions.length) return;
-  if (formComp === 'FormSheet') props.headActionList = actions;
-  else props.actionList = actions;
+  props.actionList = actions;
 };
 
 /** views.update.tabs[].actions → 各 tab 的 headActionList | actionList */
@@ -259,7 +263,7 @@ const mapTabListActions = (tabList, formComp) => {
     if (!tab || typeof tab !== 'object') return tab;
     const { actions, ...rest } = tab;
     const out = { ...rest };
-    assignFormActions(out, actions, formComp);
+    assignFormActions(out, actions);
     return out;
   });
 };
@@ -277,7 +281,6 @@ const mapTabListActions = (tabList, formComp) => {
  * | platform create=CreateSheet | component=FormSheet, rounded=true |
  */
 const applyFormSheetOverlay = (props, sheetView, tabCount) => {
-  if (props.rounded == null) props.rounded = true;
   Object.assign(props, mergeSheetOverlayProps(sheetView, { preset: 'form', tabCount }));
 };
 

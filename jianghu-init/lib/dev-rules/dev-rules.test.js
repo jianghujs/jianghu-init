@@ -117,6 +117,10 @@ const generatedAuthoringDecisionGuide = fs.readFileSync(
   path.join(appDir, '.agents/skills/jianghu-init-json-authoring/references/decision-guide.md'),
   'utf8',
 );
+const generatedFullCrudStructure = fs.readFileSync(
+  path.join(appDir, '.ai-rules/jianghu-init-json-app/v7-crud-full-structure.md'),
+  'utf8',
+);
 const generatedMigrationSkill = fs.readFileSync(
   path.join(appDir, '.agents/skills/jianghu-init-json-migration/SKILL.md'),
   'utf8',
@@ -132,11 +136,29 @@ assert(generatedAuthoringSkill.includes('Never regenerate over an existing sourc
 assert(generatedAuthoringSkill.includes('do not duplicate its field query manually'));
 assert(generatedAuthoringSkill.includes('--generateType=page --pageType=page --file=<filename> -y'));
 assert(generatedAuthoringSkill.includes('include the project\'s tenant/app identity'));
+assert(generatedAuthoringSkill.includes('v7-crud-full-structure.md'));
 assert(generatedAuthoringDecisionGuide.includes('Stop once the required fact is confirmed'));
 assert(generatedAuthoringDecisionGuide.includes('do not perform writes while discovering schema'));
 assert(generatedAuthoringDecisionGuide.includes('cannot establish current fields or configuration'));
 assert(generatedAuthoringDecisionGuide.includes('The standard generator owns schema lookup'));
 assert(generatedAuthoringDecisionGuide.includes('do not query and reconstruct its schema work manually'));
+assert(generatedAuthoringDecisionGuide.includes('v7-crud-full-structure.md'));
+for (const canonicalKey of [
+  'columnList',
+  'mobileColumnList',
+  'headActionList',
+  'rowActionList',
+  'fieldList',
+  'actionList',
+  'tabList',
+  'mobileSheet',
+  'label',
+  'uiAction',
+]) {
+  assert(generatedFullCrudStructure.includes(canonicalKey), `missing full CRUD key: ${canonicalKey}`);
+}
+assert(generatedFullCrudStructure.includes('Legacy compatibility only'));
+assert(generatedFullCrudStructure.includes('standard generator intentionally emits the smaller canonical structure'));
 assert(generatedMigrationSkill.includes('outside `app/view/init-json/**` is a read-only migration input by default'));
 assert(generatedMigrationSkill.includes('create its v7 replacement under the corresponding path in `app/view/init-json/**`'));
 assert(generatedMigrationSkill.includes('the active host can reach it'));

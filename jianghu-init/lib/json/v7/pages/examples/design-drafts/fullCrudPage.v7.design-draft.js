@@ -1,17 +1,16 @@
 /**
- * V7 semantic config 设计草案。
+ * V7 semantic config 设计记录（已实施）。
  *
  * 基线：fullCrudPage.v7.example.js（2026-07-17）。
- * 用途：集中讨论命名、结构和语义设计；不代表当前正式规范。
+ * 用途：保留命名、结构和语义设计决策；正式规范以 docs/config-reference.md 为准。
  * 约束：
- *   - 不接入示例自动校验、生成器或业务项目。
- *   - 每次只验证一组设计问题，避免同时重写全部 key。
- *   - 候选改动需同步说明：现状、提案、原因、兼容方式。
+ *   - 本文件仍不接入示例自动校验或生成器。
+ *   - 旧 key 由统一归一化层兼容并输出 warning。
  * 注释标签：
  *   - 草案改名：现行 key 改成新的 canonical key，需要 alias 兼容。
  *   - 草案分组：现行平铺 key 收入职责对象，需要结构规范化。
  *   - 草案新增：现行规范没有该能力，需要 compiler/runtime 支持。
- *   - 当前未实现：本文件仅展示目标结构，不能直接交给现行 compiler。
+ *   - 已实施：canonical key 已进入 compiler/runtime/Schema/VSCode。
  */
 
 /**
@@ -37,8 +36,7 @@ const content = {
     vuetify: {},
     // 保持现行 key：false 可省略；true 时显示帮助入口。
     helpDoc: false,
-    // 草案分组：page.template: string → { pc, mobile }，用于双端分别指定模板。
-    // 当前未实现：现行 compiler 只接受 template 字符串。
+    // 已实施：page.template 使用 { pc, mobile }；旧字符串写法仅兼容。
     template: {
       pc: 'jhTemplateV6',
       mobile: 'jhMobileTemplateV6',
@@ -48,8 +46,7 @@ const content = {
   includeList: [
     {
       type: 'js', path: '/page/fullCrudPage/extra.js',
-      // 草案改名：includeList[].target → includeList[].targets，与 page.targets 对齐。
-      // 当前未实现：现行 compiler 仍读取 target；正式实施时由 alias 兼容。
+      // 已实施：includeList[].targets 与 page.targets 对齐；旧 target 仅兼容。
       targets: 'both',
     },
   ],
@@ -122,7 +119,7 @@ const content = {
       },
       // 草案新增：createForm 仅覆盖新增表单，深度 merge 到 form。
       // 职责迁移：views.create.fieldAttrs.projectId → fields.projectId.createForm。
-      // 当前未实现：正式实施时由结构归一化迁移旧 fieldAttrs，不保留双重配置入口。
+      // 已实施：结构归一化迁移旧 fieldAttrs，新配置只写 createForm。
       createForm: {
         readonly: true,
       },
@@ -164,9 +161,9 @@ const content = {
       search: {
         keyword: { fields: ['projectName', 'projectId'], placeholder: '搜索项目' },
         fieldList: ['status', 'projectType'],
-        // 草案新增：PC jh-search 按钮文案；当前组件按钮文案固定为“查询”。
+        // 已实施：PC jh-search 按钮文案。
         btnText: '查询',
-        // 草案新增：PC jh-search 按钮图标；当前组件尚无对应 prop。
+        // 已实施：PC jh-search 按钮图标。
         btnIcon: 'search',
         // 草案改名并分组：mobileSearchBtnText → search.mobileBtnText。
         mobileBtnText: '筛选',
@@ -176,10 +173,10 @@ const content = {
         mobileSheet: {
           // 草案改名并分组：mobileSearchTitle → search.mobileSheet.title。
           title: '列表筛选',
-          // 现行 searchSheet overlay props 原名透传。
+          // canonical Sheet 高度模型。
           persistent: false,
-          autoHeight: true,
-          viewportOffset: 120,
+          maxBodyHeight: 'calc(100vh - 120px)',
+          bodyHeightMode: 'content',
         },
         // 草案删除：mobileSearchKey 不再作为业务配置，内部使用稳定默认 key。
       },
@@ -203,7 +200,7 @@ const content = {
       // 草案删除：create.type:'form' 不提供额外语义，create 本身即表单 view。
       title: '新建项目',
       // 草案改名：create.fields → create.fieldList。
-      // 当前未实现：正式实施时由 alias 兼容 create.fields。
+      // 旧 create.fields 由 alias 兼容。
       fieldList: ['projectId', 'projectName', 'projectType', 'status', 'remark'],
       // 保持现行 key：仅描述 create view 内的动态字段关系。
       // 字段静态差异统一放 fields.*.createForm，不再使用 create.fieldAttrs。
@@ -215,23 +212,22 @@ const content = {
         },
       },
       // 草案删除：create.fieldAttrs → fields.*.createForm，避免两处表达静态覆盖。
-      // 当前未实现：该变更需在 alias 后执行结构归一化，迁移结果以 fields 配置为准。
+      // 旧 fieldAttrs 在 alias 后迁移，以 fields 配置为准。
       // 草案改名：saveTipBeforeClose → beforeCloseConfirm，与组件 prop 对齐。
-      // 当前未实现：正式实施时由 alias 兼容 saveTipBeforeClose。
+      // 旧 saveTipBeforeClose 由 alias 兼容。
       beforeCloseConfirm: true,
       // 草案改名：create.actions → create.actionList。
-      // 当前未实现：正式实施时由 alias 兼容 create.actions。
+      // 旧 create.actions 由 alias 兼容。
       actionList: [
         { label: '保存', uiAction: 'create', color: 'primary' },
         { label: '取消', uiAction: 'cancel', color: 'secondary', visibleWhen: 'false' },
       ],
       // 草案改名：create.sheet → create.mobileSheet，明确该配置仅作用于移动端 FormSheet。
-      // 当前未实现：正式实施时由 alias 兼容 create.sheet；PC CreateDrawer 不读取该配置。
+      // 旧 create.sheet 由 alias 兼容；PC CreateDrawer 不读取该配置。
       mobileSheet: {
         persistent: true,
-        autoHeight: true,
-        viewportOffset: 102,
-        minCardHeight: '100px',
+        maxBodyHeight: 'calc(100vh - 102px)',
+        bodyHeightMode: 'fill',
       },
     },
 
@@ -239,14 +235,14 @@ const content = {
       title: '编辑项目',
       // 草案改名：update.tabs → update.tabList。
       // tabList 与 fieldList 二选一；复杂编辑表单使用 tabList。
-      // 当前未实现：正式实施时由 alias 兼容 update.tabs；简单表单可直接使用 update.fieldList。
+      // 旧 update.tabs 由 alias 兼容；简单表单可直接使用 update.fieldList。
       tabList: [
         {
           key: 'basicInfo',
           // 草案删除：tab.type:'form' 不提供额外语义，tab 默认承载表单字段。
           title: '基础信息',
           // 草案改名：update.tabs[].fields → update.tabList[].fieldList。
-          // 当前未实现：正式实施时由 alias 兼容 tab.fields。
+          // 旧 tab.fields 由 alias 兼容。
           fieldList: ['projectId', 'projectName', 'status', 'remark'],
           // 保持现行 key：仅描述当前 tab 内的动态字段关系。
           interaction: {
@@ -254,22 +250,22 @@ const content = {
             status: { visibleWhen: 'isOutsource' },
           },
           // 草案改名：update.tabs[].actions → update.tabList[].actionList。
-          // 当前未实现：正式实施时由 alias 兼容 tab.actions。
+          // 旧 tab.actions 由 alias 兼容。
           actionList: [{ label: '保存', uiAction: 'update', color: 'primary' }],
         },
         {
           key: 'extensionInfo',
           title: '扩展信息',
           // 草案改名：update.tabs[].fields → update.tabList[].fieldList。
-          // 当前未实现：正式实施时由 alias 兼容 tab.fields。
+          // 旧 tab.fields 由 alias 兼容。
           fieldList: ['projectType'],
         },
       ],
       // 草案改名：update.sheet → update.mobileSheet，明确该配置仅作用于移动端 FormSheet。
-      // 当前未实现：正式实施时由 alias 兼容 update.sheet；PC UpdateDrawer 不读取该配置。
+      // 旧 update.sheet 由 alias 兼容；PC UpdateDrawer 不读取该配置。
       mobileSheet: {
-        autoHeight: true,
-        viewportOffset: 152,
+        maxBodyHeight: 'calc(100vh - 152px)',
+        bodyHeightMode: 'fill',
       },
     },
   },

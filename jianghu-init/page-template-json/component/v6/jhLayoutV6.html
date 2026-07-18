@@ -143,7 +143,7 @@ Vue.component('jh-grid', {
   inheritAttrs: false,
   template: '#jh-grid-template',
   props: {
-    cols:    { type: [Number, String], default: 1 },
+    cols:    { type: [Number, String, Object], default: 1 },
     gap:     { type: [Number, String], default: 0 },
     colsMd:  { type: [Number, String], default: null },
     colsSm:  { type: [Number, String], default: null },
@@ -154,6 +154,12 @@ Vue.component('jh-grid', {
       const bp = this.$vuetify && this.$vuetify.breakpoint;
       const w = bp && typeof bp.width === 'number' ? bp.width
         : (typeof window !== 'undefined' ? window.innerWidth : 960);
+      if (cols && typeof cols === 'object') {
+        if (w < 600) return cols.xs != null ? cols.xs : (cols.sm != null ? cols.sm : 1);
+        if (w < 960) return cols.sm != null ? cols.sm : (cols.xs != null ? cols.xs : 1);
+        if (w < 1264) return cols.md != null ? cols.md : (cols.sm != null ? cols.sm : 1);
+        return cols.lg != null ? cols.lg : (cols.md != null ? cols.md : (cols.sm != null ? cols.sm : 1));
+      }
       // 与原先 window 断点一致：<600 用 colsSm，<960 用 colsMd，否则 cols
       if (this.colsSm != null && w < 600) cols = this.colsSm;
       else if (this.colsMd != null && w < 960) cols = this.colsMd;

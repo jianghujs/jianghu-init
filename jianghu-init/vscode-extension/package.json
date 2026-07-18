@@ -2,7 +2,7 @@
   "name": "jianghu-init-vscode",
   "displayName": "Jianghu Init",
   "description": "Jianghu Init VSCode Extension",
-  "version": "0.0.9",
+  "version": "0.0.11",
   "publisher": "jianghujs",
   "private": false,
   "license": "MIT",
@@ -23,10 +23,6 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      {
-        "command": "jianghu-init-vscode.showPropertyDoc",
-        "title": "查看属性文档"
-      },
       {
         "command": "jianghu-init-vscode.showPropertyDoc",
         "title": "查看属性文档"
@@ -91,6 +87,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
+    "precompile": "node ../scripts/sync-v7-migration-artifacts.js",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",

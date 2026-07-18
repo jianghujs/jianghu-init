@@ -12,7 +12,9 @@ const RESERVED_BINDING_BASE_PROPS = new Set(['headers', 'columns']);
 /** PageHeader / SearchSheet：plain 字符串走「变量名」协议，不用 *Bind 覆盖 */
 const RESERVED_BY_COMPONENT = {
   PageHeader: ['keyword', 'keywordFieldList'],
-  SearchSheet: ['keyword', 'keywordFieldList', 'keywordHeaders', 'searchFieldList'],
+  SearchSheet: ['keyword', 'keywordFieldList', 'keywordHeaders', 'fieldList', 'searchFieldList', 'shown', 'value'],
+  Sheet: ['shown', 'value'],
+  FormSheet: ['shown', 'value'],
 };
 
 const bindingAttrToBaseProp = attr => {

@@ -3,7 +3,7 @@
 
   设计目标：尽量与 jh-table 配置口径一致，方便 schema 复用：
     - 配置层：rowActionList / headActionList（由生成器转换为组件 props）
-    - 组件层：headers / rowActionList / toolbarActionList / filterList / serverPagination / pageSize / selectable / primaryKey
+    - 组件层：headers / rowActionList / headActionList / filterList / serverPagination / pageSize / selectable / primaryKey
     - 响应式绑定：items / loading / options(.sync) / tableSelected(.sync)
     - 事件：@action(actionId, item?)
 
@@ -25,12 +25,12 @@
     <!-- 工具栏（复用 jh-table 约定） -->
     <div v-if="hasToolbar" class="jh-list-v6-toolbar d-flex align-center p-3 flex-shrink-0" style="gap:8px; flex-wrap:wrap">
       <slot name="toolbar-prepend"></slot>
-      <template v-for="(action, idx) in toolbarActionList">
+      <template v-for="(action, idx) in resolvedHeadActionList">
         <v-spacer v-if="action.type === 'spacer'" :key="'spacer-' + idx"></v-spacer>
         <jh-table-filter
           v-else-if="action.type === 'filter' && hasJhTableFilter"
           :key="'filter-' + idx"
-          :fields="action.fields || filterList"
+          :filter-list="action.fields || filterList"
         ></jh-table-filter>
         <slot
           v-else-if="action.type === 'slot'"
@@ -51,7 +51,7 @@
 
       <jh-table-filter
         v-if="hasJhTableFilter && filterList && filterList.length && !hasExplicitFilter"
-        :fields="filterList"
+        :filter-list="filterList"
       ></jh-table-filter>
 
       <slot name="toolbar-append"></slot>
@@ -220,7 +220,8 @@ Vue.component('jh-list', {
   props: {
     headers:          { type: Array,   default: () => [] },
     rowActionList:    { type: Array,   default: () => [] },
-    toolbarActionList:{ type: Array,   default: () => [] },
+    headActionList:   { type: Array,   default: null },
+    toolbarActionList:{ type: Array,   default: null },
     filterList:       { type: Array,   default: () => [] },
     serverPagination: { type: Boolean, default: false },
     pageSize:         { type: Number,  default: 50 },
@@ -254,6 +255,9 @@ Vue.component('jh-list', {
     };
   },
   computed: {
+    resolvedHeadActionList() {
+      return Array.isArray(this.headActionList) ? this.headActionList : (this.toolbarActionList || []);
+    },
     gapStyle() {
       if (typeof this.gap === 'number') return `${this.gap}px`;
       if (typeof this.gap === 'string' && this.gap.trim()) return this.gap.trim();
@@ -264,14 +268,14 @@ Vue.component('jh-list', {
     },
     hasToolbar() {
       return (
-        (this.toolbarActionList && this.toolbarActionList.length) ||
+        this.resolvedHeadActionList.length ||
         (this.filterList && this.filterList.length && this.hasJhTableFilter) ||
         !!this.$slots['toolbar-prepend'] ||
         !!this.$slots['toolbar-append']
       );
     },
     hasExplicitFilter() {
-      return (this.toolbarActionList || []).some(a => a && a.type === 'filter');
+      return this.resolvedHeadActionList.some(a => a && a.type === 'filter');
     },
     internalHeaders() {
       return (this.headers || []).filter(h => h && h.value);

@@ -217,8 +217,15 @@ new Vue({
     //===// <=%- endif %=>
     
     //===// <=%- for key, item in common.computed %=>
+    //===// <=%- if key != 'pageId' %=>
     //===// <=$ item | variableToVar(key) $=>,
+    //===// <=%- endif %=>
     //===// <=%- endfor %=>
+
+    // 统一写法：业务 / axios 使用 this.pageId（来自本页 bake 的 const，非 window 全局）
+    pageId() {
+      return pageId;
+    },
   },
 
   //===// <=%- if not common.created %=>
@@ -251,6 +258,11 @@ new Vue({
   },
   //===// <=%- endif %=>
   methods: {
+
+    // 兼容旧调用；新代码统一用 this.pageId
+    resolvePageId() {
+      return this.pageId;
+    },
 
     // ─────────────────────────────────────────────
     // doUiAction：调度层，只做分发，不做业务
@@ -387,7 +399,7 @@ new Vue({
       this.isTableLoading = true;
       const result = await window.jianghuAxios({
         data: { appData: {
-          pageId:     pageId,
+          pageId:     this.pageId,
           actionId:   listResource,
           actionData: {},
           ...this.tableParams,
@@ -447,7 +459,7 @@ new Vue({
       await window.vtoast.loading('新增数据');
       await window.jianghuAxios({
         data: { appData: {
-          pageId:     pageId,
+          pageId:     this.pageId,
           actionId:   createResource,
           actionData: this.createActionData,
           //===// <=%- if standardConfig.features.autoId %=>
@@ -505,7 +517,7 @@ new Vue({
       await window.vtoast.loading('修改数据');
       await window.jianghuAxios({
         data: { appData: {
-          pageId:     pageId,
+          pageId:     this.pageId,
           actionId:   updateResource,
           actionData: this.updateActionData,
           where:      { [primaryKey]: this.updateItemId },
@@ -542,7 +554,7 @@ new Vue({
       await window.vtoast.loading('删除数据');
       await window.jianghuAxios({
         data: { appData: {
-          pageId:     pageId,
+          pageId:     this.pageId,
           actionId:   deleteResource,
           actionData: {},
           where:      { [primaryKey]: this.deleteItemId },

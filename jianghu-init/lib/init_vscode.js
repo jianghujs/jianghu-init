@@ -13,7 +13,17 @@ const showVSCodeHelp = require('./init_vscode_help');
 module.exports = class CommandInitVSCode {
   constructor() {
     this.vscodeExtensionPath = path.join(__dirname, '..', 'vscode-extension');
-    this.prebuiltVsixPath = path.join(__dirname, '..', 'vscode-extension', 'prebuilt', 'jianghu-init-vscode-0.0.9.vsix');
+    this.prebuiltDir = path.join(this.vscodeExtensionPath, 'prebuilt');
+    this.prebuiltVsixPath = null;
+  }
+
+  resolvePrebuiltVsixPath() {
+    const vsixFileList = fs.readdirSync(this.prebuiltDir)
+      .filter(file => /^jianghu-init-vscode-.*\.vsix$/.test(file));
+    if (vsixFileList.length !== 1) {
+      throw new Error(`预编译目录应只保留一个 VSIX，当前检测到 ${vsixFileList.length} 个: ${this.prebuiltDir}`);
+    }
+    return path.join(this.prebuiltDir, vsixFileList[0]);
   }
 
   /**
@@ -38,6 +48,13 @@ module.exports = class CommandInitVSCode {
     if (!isVSCodeInstalled) {
       console.log(chalk.red('未检测到VSCode，请先安装VSCode后再安装扩展。'));
       console.log(chalk.yellow('您可以从 https://code.visualstudio.com/ 下载安装VSCode。'));
+      return;
+    }
+
+    try {
+      this.prebuiltVsixPath = this.resolvePrebuiltVsixPath();
+    } catch (error) {
+      console.error(chalk.red(error.message));
       return;
     }
 
@@ -111,7 +128,7 @@ module.exports = class CommandInitVSCode {
     console.log(chalk.blue('使用快速安装模式...'));
     
     // 检查预编译的vsix文件是否存在
-    const prebuiltDir = path.dirname(this.prebuiltVsixPath);
+    const prebuiltDir = this.prebuiltDir;
     if (!fs.existsSync(prebuiltDir)) {
       fs.mkdirSync(prebuiltDir, { recursive: true });
       console.log(chalk.gray(`创建预编译目录: ${prebuiltDir}`));

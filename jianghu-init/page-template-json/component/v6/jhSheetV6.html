@@ -1,13 +1,14 @@
 <!-- ─────────────────────────────────────────────────────────────────────
   v6 Sheet 组件族（命名与 Drawer 族对称）
 
-  - jh-sheet      ：通用底部叠层基座（对标 jh-drawer）
-                    orderList / actionList / headActionList / 默认插槽
-  - jh-form-sheet ：表单式底部叠层（对标 jh-form-drawer）
-                    基于 jh-sheet + jh-form / tabList 等
+  - jh-sheet            ：纯叠层壳（对标 jh-drawer）
+                          标题栏 actionList + 默认插槽 + actions 插槽
+  - jh-sheet-order-panel：排序内容（由 MobileOrder 中继注入 children）
+  - jh-sheet-menu-grid  ：图标网格内容（由 MobileAction 中继注入 children）
+  - jh-form-sheet       ：表单式底部叠层（对标 jh-form-drawer）
 
-  Schema：Sheet → jh-sheet，FormSheet → jh-form-sheet（与 Drawer / FormDrawer 命名对称）
-  rounded：true 时卡片顶部才有 Tailwind rounded-t-lg（需在 props / 标签上显式设定）
+  Schema：Sheet → jh-sheet，FormSheet → jh-form-sheet
+  标题栏按钮统一 props.actionList（与 FormSheet / Drawer / FormDrawer 一致）
 
   注意：不内置 doUiAction，只对外 emit，由页面承接。
 ───────────────────────────────────────────────────────────────────── -->
@@ -20,6 +21,135 @@
     border-bottom: 1px solid #e0e0e0 !important;
   }
 </style>
+
+<!-- ══════════════════════════════════════════════════════════════
+  jh-sheet-order-panel  排序列表内容
+══════════════════════════════════════════════════════════════════ -->
+<script type="text/html" id="jh-sheet-order-panel-template">
+  <div>
+    <div class="pt-3">
+      <v-row>
+        <v-col cols="12" class="pb-0" v-for="(item, i) in orderList" :key="'o-' + i">
+          <v-btn
+            block
+            class="p-3 rounded"
+            :color="isOrderActive(item.value) ? 'primary' : 'gray'"
+            @click="localOrder = item.value"
+          >{{ item.text }}</v-btn>
+        </v-col>
+      </v-row>
+    </div>
+    <div class="flex justify-end px-3 jh-safe-bottom-3 bg-white pt-3">
+      <v-btn @click="handleReset">重置</v-btn>
+      <v-btn color="success" class="ml-3" @click="handleConfirm">确认</v-btn>
+    </div>
+  </div>
+</script>
+<script>
+Vue.component('jh-sheet-order-panel', {
+  template: '#jh-sheet-order-panel-template',
+  props: {
+    orderList: { type: Array, default: () => [] },
+  },
+  data() {
+    return { localOrder: null };
+  },
+  methods: {
+    isOrderActive(val) {
+      try { return JSON.stringify(this.localOrder) === JSON.stringify(val); }
+      catch (e) { return this.localOrder === val; }
+    },
+    handleReset() {
+      this.localOrder = null;
+      this.$emit('reset');
+      if (this.$parent && this.$parent.$emit) this.$parent.$emit('reset');
+    },
+    handleConfirm() {
+      this.$emit('confirm', this.localOrder);
+      if (this.$parent && this.$parent.$emit) this.$parent.$emit('confirm', this.localOrder);
+    },
+  },
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+  jh-sheet-menu-grid  图标操作网格
+══════════════════════════════════════════════════════════════════ -->
+<script type="text/html" id="jh-sheet-menu-grid-template">
+  <div class="pt-3">
+    <div class="grid" :class="'grid-cols-' + cols" style="gap:12px">
+      <template v-for="(action, idx) in actionList">
+        <div v-if="action && !action.tag" :key="'a-' + idx" class="flex flex-col gap-2 mx-auto">
+          <div
+            class="text-center"
+            :class="{ 'opacity-60 pointer-events-none': action.loading }"
+            @click="handleActionClick(action)"
+          >
+            <div class="bg-[#EDFAF5] mb-2 mx-auto w-[48px] flex items-center justify-center aspect-square !rounded-md relative">
+              <v-progress-circular
+                v-if="action.loading"
+                indeterminate
+                size="20"
+                width="2"
+                color="primary"
+              ></v-progress-circular>
+              <template v-else>
+                <v-icon v-if="isMdiIcon(action.icon)" :color="action.color || 'primary'" size="24">{{ action.icon || 'mdi-cog' }}</v-icon>
+                <jh-icon v-else :name="action.icon || 'settings'" :size="24" :style="{ color: resolveActionColor(action) }"></jh-icon>
+              </template>
+            </div>
+            <div class="w-full">{{ action.value }}</div>
+          </div>
+        </div>
+        <div v-else :key="'t-' + idx">
+          <slot name="custom" :action="action" :index="idx"></slot>
+        </div>
+      </template>
+    </div>
+  </div>
+</script>
+<script>
+Vue.component('jh-sheet-menu-grid', {
+  template: '#jh-sheet-menu-grid-template',
+  props: {
+    actionList: { type: Array, default: () => [] },
+    cols: { type: [Number, String], default: 2 },
+  },
+  methods: {
+    isMdiIcon(icon) {
+      if (!icon) return false;
+      return icon.startsWith('mdi-') || icon.includes(':');
+    },
+    resolveActionColor(action) {
+      const colorMap = {
+        primary: "var(<$ ctx.app.config.primaryColor $>, #1976D2)",
+        success: 'var(--v-success-base, #4CAF50)',
+        error:   'var(--v-error-base,   #F44336)',
+        warning: 'var(--v-warning-base, #FB8C00)',
+        info:    'var(--v-info-base,    #2196F3)',
+      };
+      const c = (action && action.color) || 'primary';
+      return colorMap[c] || c;
+    },
+    handleActionClick(action) {
+      if (!action || action.loading) return;
+      this.$emit('action', action);
+      this.$emit('menu-action', action);
+      if (this.$parent && this.$parent.$emit) {
+        this.$parent.$emit('action', action);
+        this.$parent.$emit('menu-action', action);
+      }
+      if (this.$parent && typeof this.$parent.closeSheet === 'function') {
+        this.$parent.closeSheet();
+      }
+    },
+  },
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+  jh-sheet  纯叠层壳
+══════════════════════════════════════════════════════════════════ -->
 <script type="text/html" id="jh-sheet-v6-template">
   <!--
     与 jh-drawer 一致：用 v-model 语义驱动（computed 桥接 .sync 的 update:shown）。
@@ -38,17 +168,13 @@
       <v-card-title class=" px-2.5 py-2 h-[50px] bottom-sheet-card-title relative border-b">
         <div class="absolute left-3 space-x-2">
           <slot name="head-actions">
-            <template v-if="orderList && orderList.length > 0">
-              <v-btn @click="handleReset">重置</v-btn>
-              <v-btn color="success" class="ml-3" @click="handleOrderConfirm">确认</v-btn>
-            </template>
-            <template v-else-if="headActionList && headActionList.length > 0">
+            <template v-if="resolvedTitleActionList.length > 0">
               <jh-mobile-actions
-                :action-list="headActionList"
+                :action-list="resolvedTitleActionList"
                 :initial-data="initialData"
                 :scope="scope"
                 :resolve-scope="headActionResolveScope"
-                @action="handleHeadAction"
+                @action="handleTitleAction"
               />
             </template>
           </slot>
@@ -56,81 +182,18 @@
         <span class="text-base w-full text-center">{{ title }}</span>
         <v-spacer></v-spacer>
 
-        <div class="absolute right-3 primary--text text-xs text-center" @click="$emit('update:shown', false)">
-          <jh-icon name="x" :size="22" style="color: var(--v-primary-base, #1976D2)"></jh-icon>
+        <div class="absolute right-3 primary--text text-xs text-center" @click="closeSheet">
+          <jh-icon name="x" :size="22" color="primary"></jh-icon>
           <div class="primary--text mt-[-2px]">关闭</div>
         </div>
       </v-card-title>
 
-      <!-- 内容区：orderList / actionList / 默认插槽 三种模式互斥 -->
       <v-card-text :class="mergedBodyClass" :style="bodyAreaStyle">
-        <!-- 排序模式 -->
-        <template v-if="orderList && orderList.length > 0">
-          <div class="pt-3">
-            <v-row>
-              <v-col cols="12" class="pb-0" v-for="(item, i) in orderList" :key="'o-' + i">
-                <v-btn
-                  block
-                  class="p-3 rounded"
-                  :color="isOrderActive(item.value) ? 'primary' : 'gray'"
-                  @click="localOrder = item.value"
-                >{{ item.text }}</v-btn>
-              </v-col>
-            </v-row>
-          </div>
-        </template>
-
-        <!-- 操作模式（图标网格）-->
-        <template v-else-if="actionList && actionList.length > 0">
-          <div class="pt-3">
-            <div class="grid" :class="'grid-cols-' + cols" style="gap:12px">
-              <template v-for="(action, idx) in actionList">
-                <div v-if="action && !action.tag" :key="'a-' + idx" class="flex flex-col gap-2 mx-auto">
-                  <div
-                    class="text-center"
-                    :class="{ 'opacity-60 pointer-events-none': action.loading }"
-                    @click="!action.loading && $emit('action', action); !action.loading && $emit('update:shown', false)"
-                  >
-                    <div class="bg-[#EDFAF5] mb-2 mx-auto w-[48px] flex items-center justify-center aspect-square !rounded-md relative">
-                      <v-progress-circular
-                        v-if="action.loading"
-                        indeterminate
-                        size="20"
-                        width="2"
-                        color="primary"
-                      ></v-progress-circular>
-                      <template v-else>
-                        <!-- mdi-xxx 走 v-icon；tabler 名（不含冒号且不以 mdi- 开头）走 jh-icon -->
-                        <v-icon v-if="isMdiIcon(action.icon)" :color="action.color || 'primary'" size="24">{{ action.icon || 'mdi-cog' }}</v-icon>
-                        <jh-icon v-else :name="action.icon || 'settings'" :size="24" :style="{ color: resolveActionColor(action) }"></jh-icon>
-                      </template>
-                    </div>
-                    <div class="w-full">{{ action.value }}</div>
-                  </div>
-                </div>
-                <div v-else :key="'t-' + idx">
-                  <slot name="custom" :action="action" :index="idx"></slot>
-                </div>
-              </template>
-            </div>
-          </div>
-        </template>
-
-        <!-- 默认插槽模式 -->
-        <template v-else>
-          <slot></slot>
-        </template>
+        <slot></slot>
       </v-card-text>
 
-      <!-- 底部操作按钮区（actionList 模式不需要底部按钮）-->
       <v-card-actions :class="actionsClass">
-        <!-- 排序模式：提供默认重置/确认；其他模式可通过 slot 自定义 -->
-        <slot name="actions">
-          <template v-if="orderList && orderList.length > 0">
-            <v-btn @click="handleReset">重置</v-btn>
-            <v-btn color="success" class="ml-3" @click="handleOrderConfirm">确认</v-btn>
-          </template>
-        </slot>
+        <slot name="actions"></slot>
       </v-card-actions>
     </v-card>
   </v-bottom-sheet>
@@ -143,7 +206,7 @@ function formatSheetHeightToken(val) {
   return /^\d+$/.test(String(val)) ? `${val}px` : String(val);
 }
 
-function resolveSheetBodyAreaStyle({ bodyHeight, maxBodyHeight, autoHeight, viewportOffset }) {
+function resolveSheetBodyAreaStyle({ maxBodyHeight, bodyHeightMode, bodyHeight, autoHeight, viewportOffset }) {
   if (bodyHeight) {
     const h = formatSheetHeightToken(bodyHeight);
     if (!h) return {};
@@ -152,7 +215,13 @@ function resolveSheetBodyAreaStyle({ bodyHeight, maxBodyHeight, autoHeight, view
   if (maxBodyHeight) {
     const h = formatSheetHeightToken(maxBodyHeight);
     if (!h) return {};
-    return { maxHeight: h, overflowY: 'auto', boxSizing: 'border-box' };
+    // 默认 fill（与 jh-sheet / FormSheet props 一致）；仅显式 content 或旧 autoHeight:true 走 content
+    const mode = bodyHeightMode
+      || (autoHeight === true ? 'content' : 'fill');
+    return Object.assign(
+      { maxHeight: h, overflowY: 'auto', boxSizing: 'border-box' },
+      mode === 'fill' ? { height: h } : {},
+    );
   }
   if (autoHeight == null || viewportOffset == null || viewportOffset === '') return {};
   const offset = Number(viewportOffset);
@@ -166,62 +235,63 @@ Vue.component("jh-sheet", {
   mixins: [window.jhActionWhenMixin],
   inheritAttrs: false,
   props: {
-    // ── 显隐控制 ──────────────────────────────────────────────────────────
-    shown:        { type: Boolean, default: false },             // :shown.sync
-    /** Dialog 栈 z-index，须高于 jh-mask(300) 等全屏层 */
+    value:        { type: Boolean, default: null },
+    shown:        { type: Boolean, default: null },
     stackZIndex:  { type: [Number, String], default: 340 },
-    /**
-     * false：跟随 Vuetify 默认挂载（通常在 .v-application 内），与 jh-drawer 同属一类叠层。
-     * 需要脱离裁剪时再设为 'body'。
-     */
     attach:       { type: [Boolean, String], default: false },
-    /** false：首次打开前就挂载内容，避免懒挂载与受控 value 竞态 */
     lazy:         { type: Boolean, default: false },
-    // ── 通用 ──────────────────────────────────────────────────────────────
     title:        { type: String,  default: "" },
-    // ── 排序模式 props ─────────────────────────────────────────────────────
-    // orderList: [{ text: '最新', value: { sortBy: 'createdAt', desc: true } }, ...]
-    orderList:    { type: Array,   default: () => [] },
-    // ── 操作模式 props ─────────────────────────────────────────────────────
-    // actionList: [{ value: '新增', icon: 'mdi-plus', color: 'primary' }, ...]
+    // 标题栏按钮（与 FormSheet / Drawer 统一）
     actionList:   { type: Array,   default: () => [] },
-    // headActionList: [{ label, intent, id, color, visibleWhen?, disabledWhen?, loadingWhen? }, ...]
+    // 兼容旧标题栏 key（编译期迁到 actionList）
     headActionList: { type: Array,   default: () => [] },
-    /** FormSheet 标题栏：create/save → createItem（传给 jh-mobile-actions.resolveScope） */
     headActionResolveScope: { type: String, default: '' },
-    /** 供 headActionList 条件求值（与 jh-form-sheet initialData 一致） */
     initialData:  { type: Object,  default: () => ({}) },
     scope:        { type: Object,  default: null },
-    cols:         { type: [Number, String], default: 2 },        // 操作网格列数
-    /** true：卡片顶部加 Tailwind rounded-t-lg（与 Vuetify rounded 语义对齐，需显式开启） */
     rounded:      { type: Boolean, default: false },
-    /** true：点外侧不关闭（v-bottom-sheet persistent） */
     persistent:   { type: Boolean, default: false },
-    /** 卡片最小高度，默认 100px → min-h-[…] */
     minCardHeight: { type: [String, Number], default: '100px' },
-    /** true：内容区 max-height: calc(100vh - viewportOffset)；false：固定 height */
     autoHeight:      { type: Boolean, default: null },
-    /** calc(100vh - Npx) 扣减（与 autoHeight 配合；FormSheet 默认 102 / 多 tab 152） */
     viewportOffset:  { type: [Number, String], default: null },
-    /** 内容区最大高度，如 '70vh' */
     maxBodyHeight:   { type: String, default: null },
-    /** 固定内容区高度；优先于 maxBodyHeight / calc */
+    bodyHeightMode:  { type: String, default: 'fill' },
     bodyHeight:      { type: String, default: null },
-    // ── 样式 ──────────────────────────────────────────────────────────────
     cardClass:    { type: [String, Array, Object], default: () => ["ma-0", "w-full", "rounded-b-0"] },
     bodyClass:    { type: [String, Array, Object], default: () => ["px-4", "py-4"] },
     actionsClass: { type: [String, Array, Object], default: () => ["flex", "justify-end", "px-3", "jh-safe-bottom-3", "bg-white"] },
   },
   computed: {
+    resolvedTitleActionList() {
+      if (Array.isArray(this.actionList) && this.actionList.length) return this.actionList;
+      return this.headActionList || [];
+    },
     resolvedMinCardHeight() {
       const v = this.minCardHeight;
       if (v == null || v === '') return '100px';
       return /^\d+$/.test(String(v)) ? `${v}px` : String(v);
     },
-    /** v-bottom-sheet 的 v-model ↔ 父级 :shown.sync */
+    resolvedViewportOffset() {
+      if (this.viewportOffset != null && this.viewportOffset !== '') {
+        return Number(this.viewportOffset);
+      }
+      return 102;
+    },
+    resolvedMaxBodyHeight() {
+      if (this.bodyHeight) return this.bodyHeight;
+      if (this.maxBodyHeight) return this.maxBodyHeight;
+      return `calc(100vh - ${this.resolvedViewportOffset}px)`;
+    },
+    resolvedBodyHeightMode() {
+      if (this.bodyHeightMode === 'content' || this.bodyHeightMode === 'fill') {
+        return this.bodyHeightMode;
+      }
+      if (this.bodyHeight) return 'fill';
+      // 默认 fill；仅旧 autoHeight:true 回退 content
+      return this.autoHeight === true ? 'content' : 'fill';
+    },
     openProxy: {
       get() {
-        return !!this.shown;
+        return this.value != null ? this.value : !!this.shown;
       },
       set(val) {
         const next = !!val;
@@ -246,9 +316,10 @@ Vue.component("jh-sheet", {
     bodyAreaStyle() {
       return resolveSheetBodyAreaStyle({
         bodyHeight: this.bodyHeight,
-        maxBodyHeight: this.maxBodyHeight,
+        maxBodyHeight: this.resolvedMaxBodyHeight,
+        bodyHeightMode: this.resolvedBodyHeightMode,
         autoHeight: this.autoHeight,
-        viewportOffset: this.viewportOffset,
+        viewportOffset: this.resolvedViewportOffset,
       });
     },
     mergedBodyClass() {
@@ -262,15 +333,14 @@ Vue.component("jh-sheet", {
     bottomSheetAttrs() {
       const raw = this.$attrs || {};
       const skip = new Set([
-        'shown', 'stack-z-index', 'stackZIndex', 'attach', 'lazy',
-        'title', 'order-list', 'orderList', 'action-list', 'actionList',
+        'value', 'shown', 'stack-z-index', 'stackZIndex', 'attach', 'lazy',
+        'title', 'action-list', 'actionList',
         'head-action-list', 'headActionList', 'initial-data', 'initialData', 'scope',
-        'cols',
         'rounded',
         'persistent',
         'min-card-height', 'minCardHeight',
         'auto-height', 'autoHeight', 'viewport-offset', 'viewportOffset',
-        'max-body-height', 'maxBodyHeight', 'body-height', 'bodyHeight',
+        'max-body-height', 'maxBodyHeight', 'body-height-mode', 'bodyHeightMode', 'body-height', 'bodyHeight',
         'card-class', 'cardClass', 'body-class', 'bodyClass', 'actions-class', 'actionsClass',
       ]);
       const out = {};
@@ -280,43 +350,14 @@ Vue.component("jh-sheet", {
       return out;
     },
   },
-  data() {
-    return {
-      localOrder: null,  // 排序模式下的当前选中值（内部状态）
-    };
-  },
   methods: {
-    isMdiIcon(icon) {
-      if (!icon) return false;
-      // mdi-xxx 格式 或 包含冒号（如 material-symbols:xxx）走 v-icon
-      return icon.startsWith('mdi-') || icon.includes(':');
+    closeSheet() {
+      this.openProxy = false;
     },
-    resolveActionColor(action) {
-      // Vuetify 颜色名（success/error/primary 等）需转换为 CSS 变量，不然 jh-icon 不识别
-      const colorMap = {
-        primary: 'var(--v-primary-base, #1976D2)',
-        success: 'var(--v-success-base, #4CAF50)',
-        error:   'var(--v-error-base,   #F44336)',
-        warning: 'var(--v-warning-base, #FB8C00)',
-        info:    'var(--v-info-base,    #2196F3)',
-      };
-      const c = action.color || 'primary';
-      return colorMap[c] || c;
-    },
-    isOrderActive(val) {
-      try { return JSON.stringify(this.localOrder) === JSON.stringify(val); } catch (e) { return this.localOrder === val; }
-    },
-    handleReset() {
-      this.localOrder = null;
-      this.$emit('reset');
-    },
-    handleOrderConfirm() {
-      this.$emit('confirm', this.localOrder);
-    },
-    handleHeadAction(actionId) {
+    handleTitleAction(actionId) {
       if (!actionId) return;
       const scopeOpts = this.headActionResolveScope ? { scope: this.headActionResolveScope } : undefined;
-      const action = (this.headActionList || []).find(a => {
+      const action = (this.resolvedTitleActionList || []).find(a => {
         if (!a) return false;
         const resolved = this.resolveDoUiActionId(a, null, scopeOpts);
         return resolved === actionId
@@ -327,8 +368,12 @@ Vue.component("jh-sheet", {
       const resolved = action
         ? this.resolveDoUiActionId(action, null, scopeOpts)
         : actionId;
+      this.$emit('action', resolved);
       this.$emit('head-action', resolved);
-      if (action) this.$emit('action', action);
+    },
+    /** @deprecated 使用 handleTitleAction */
+    handleHeadAction(actionId) {
+      this.handleTitleAction(actionId);
     },
   },
 });
@@ -342,30 +387,21 @@ Vue.component("jh-sheet", {
 
 <script type="text/html" id="jh-form-sheet-v6-template">
   <jh-sheet
-    :shown="shown"
+    :value="resolvedValue"
     :rounded="rounded"
     :persistent="effectivePersistent"
     :min-card-height="minCardHeight"
     :title="sheetTitle"
     :body-class="sheetBodyClass"
-    :head-action-list="toolbarActions"
+    :max-body-height="resolvedMaxBodyHeight"
+    :body-height-mode="resolvedBodyHeightMode"
+    :action-list="toolbarActions"
     head-action-resolve-scope="form"
     :initial-data="initialData"
     :scope="scope"
-    @update:shown="onSheetUpdateShown"
-    @head-action="handleMobileAction"
+    @input="onSheetValueInput"
+    @action="handleMobileAction"
   >
-    <template v-slot:actions>
-      <v-btn
-        v-for="(action, idx) in actions"
-        :key="'fs-act-' + (action.actionId || action.id || actionUiToken(action) || idx)"
-        :class="['elevation-0']"
-        :color="action.color || undefined"
-        :disabled="isActionDisabled(action)"
-        :loading="isActionLoading(action)"
-        @click="handleTabAction(action)"
-      >{{ action.label }}</v-btn>
-    </template>
     <v-tabs
       v-if="resolvedTabList.length > 1"
       v-model="activeTab"
@@ -386,7 +422,7 @@ Vue.component("jh-sheet", {
           class="overflow-hidden overflow-y-auto pb-4"
           :style="formScrollStyle"
           :ref="_formRefName(tab)"
-          :fields="tab.fieldList"
+          :field-list="tab.fieldList"
           :initialData="initialData"
           :origin-data="_originSnapshot"
           :cols="tab.cols"
@@ -410,7 +446,7 @@ Vue.component("jh-sheet", {
       class="overflow-hidden overflow-y-auto pb-4"
       :style="formScrollStyle"
       :ref="_formRefName(resolvedTabList[0])"
-      :fields="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
+      :field-list="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
       :initialData="initialData"
       :origin-data="_originSnapshot"
       :cols="resolvedTabList[0] ? resolvedTabList[0].cols : cols"
@@ -436,7 +472,8 @@ Vue.component("jh-form-sheet", {
   template: "#jh-form-sheet-v6-template",
   mixins: [window.jhActionWhenMixin],
   props: {
-    shown:       { type: Boolean, default: false },
+    value:       { type: Boolean, default: null },
+    shown:       { type: Boolean, default: null },
     title:       { type: String,  default: '' },
     formKey:     { type: String,  default: '' },
     initialData: { type: Object,  default: () => ({}) },
@@ -448,13 +485,17 @@ Vue.component("jh-form-sheet", {
     cols:        { type: Number,  default: 1 },
     gap:         { type: String,  default: '0' },
     labelMode:   { type: String,  default: 'inline' }, // v4 mobile：标签左 + 输入右
-    actionList:  { type: Array,   default: () => [] },
-    headActionList:  { type: Array,   default: () => [] },
-    autoHeight:      { type: Boolean, default: true },
+    // 标题栏按钮（与 Drawer / FormDrawer / Sheet 统一）
+    actionList:   { type: Array,   default: () => [] },
+    // 兼容旧标题栏 key（编译期会迁到 actionList）
+    headActionList:  { type: Array,   default: null },
+    autoHeight:      { type: Boolean, default: null },
     /** calc(100vh - Npx) 扣减；v7 FormSheet 默认单 tab 102、多 tab 152 */
     viewportOffset:  { type: Number, default: null },
     /** 覆盖 calc，如 '70vh'、'400px' */
     maxBodyHeight:   { type: String, default: null },
+    /** 默认 fill（与 jh-sheet 一致）；显式传 content 可改为内容撑开 */
+    bodyHeightMode:  { type: String, default: 'fill' },
     /** 固定内容区高度；与 maxBodyHeight 互斥时 bodyHeight 优先 */
     bodyHeight:      { type: String, default: null },
     /** 点外侧不关闭 */
@@ -477,7 +518,7 @@ Vue.component("jh-form-sheet", {
     };
   },
   watch: {
-    shown(val, oldVal) {
+    resolvedValue(val, oldVal) {
       if (val && !oldVal) {
         this._originSnapshot = _.cloneDeep(this.initialData || {});
         this.activeTab = 0;
@@ -485,6 +526,9 @@ Vue.component("jh-form-sheet", {
     },
   },
   computed: {
+    resolvedValue() {
+      return this.value != null ? this.value : !!this.shown;
+    },
     sheetTitle() {
       return this.title || '高级搜索';
     },
@@ -498,13 +542,21 @@ Vue.component("jh-form-sheet", {
       }
       return (this.resolvedTabList && this.resolvedTabList.length > 1) ? 152 : 102;
     },
+    resolvedMaxBodyHeight() {
+      if (this.bodyHeight) return this.bodyHeight;
+      if (this.maxBodyHeight) return this.maxBodyHeight;
+      return `calc(100vh - ${this.resolvedViewportOffset}px)`;
+    },
+    resolvedBodyHeightMode() {
+      if (this.bodyHeightMode === 'content' || this.bodyHeightMode === 'fill') {
+        return this.bodyHeightMode;
+      }
+      if (this.bodyHeight) return 'fill';
+      // 默认 fill；仅旧 autoHeight:true 回退 content
+      return this.autoHeight === true ? 'content' : 'fill';
+    },
     formScrollStyle() {
-      return resolveSheetBodyAreaStyle({
-        bodyHeight: this.bodyHeight,
-        maxBodyHeight: this.maxBodyHeight,
-        autoHeight: this.autoHeight != null ? this.autoHeight : true,
-        viewportOffset: this.resolvedViewportOffset,
-      });
+      return {};
     },
     resolvedFieldList() {
       return (this.fieldList && this.fieldList.length) ? this.fieldList : (this.fields || []);
@@ -518,8 +570,7 @@ Vue.component("jh-form-sheet", {
           cols: tab.cols != null ? tab.cols : this.cols,
           gap: tab.gap != null ? tab.gap : this.gap,
           labelMode: tab.labelMode || this.labelMode,
-          actionList: Array.isArray(tab.actionList) ? tab.actionList : [],
-          headActionList: Array.isArray(tab.headActionList) ? tab.headActionList : [],
+          actionList: Array.isArray(tab.actionList) ? tab.actionList : (tab.headActionList || []),
           beforeCloseConfirm: !!tab.beforeCloseConfirm,
           beforeCloseCompareFields: Array.isArray(tab.beforeCloseCompareFields) ? tab.beforeCloseCompareFields : null,
         }));
@@ -531,8 +582,7 @@ Vue.component("jh-form-sheet", {
         cols: this.cols,
         gap: this.gap,
         labelMode: this.labelMode,
-        actionList: this.actionList,
-        headActionList: this.headActionList,
+        actionList: Array.isArray(this.actionList) ? this.actionList : (this.headActionList || []),
         beforeCloseConfirm: !!this.beforeCloseConfirm,
         beforeCloseCompareFields: Array.isArray(this.beforeCloseCompareFields) ? this.beforeCloseCompareFields : null,
       }];
@@ -540,12 +590,8 @@ Vue.component("jh-form-sheet", {
     currentTabConfig() {
       return this.resolvedTabList[this.activeTab] || this.resolvedTabList[0] || {};
     },
-    actions() {
-      const list = this.currentTabConfig.actionList || [];
-      return this.filterVisibleActions(list);
-    },
     toolbarActions() {
-      const list = this.currentTabConfig.headActionList || [];
+      const list = this.currentTabConfig.actionList || [];
       return this.filterVisibleActions(list);
     },
     formForwardedSlotNames() {
@@ -564,7 +610,7 @@ Vue.component("jh-form-sheet", {
     },
   },
   methods: {
-    async onSheetUpdateShown(nextVal) {
+    async onSheetValueInput(nextVal) {
       if (nextVal === false) {
         await this.tryClose();
         return;

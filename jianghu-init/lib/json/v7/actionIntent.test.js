@@ -33,7 +33,7 @@ assert(rowVis.visibleWhen && rowVis.visibleWhen.__expr__ === 'item.id !== -1', '
 validateActionUiActionSyntax({
   mode: 'crud',
   views: {
-    list: { toolbarActions: [{ uiAction: 'create', label: '新增' }] },
+    list: { headActionList: [{ uiAction: 'create', label: '新增' }] },
   },
 });
 
@@ -50,7 +50,7 @@ try {
   validateActionUiActionSyntax({
     mode: 'crud',
     views: {
-      list: { rowActions: [{ uiAction: 'delete' }] },
+      list: { rowActionList: [{ uiAction: 'delete' }] },
     },
   });
   assert(false, 'syntax missing label should throw');

@@ -9,10 +9,10 @@ import { activateJsonTemplateHover } from './jsonTemplateHoverProvider';
 import { activateJsonDocCodeLens } from './jsonDocCodeLensProvider';
 import { activateV6ConfigHover } from './v6ConfigHoverProvider';
 import { activateV7ConfigHover } from './v7ConfigHoverProvider';
-import { JianghuSchemaValidator } from './validators/jianghuSchemaValidator';
+import { JianghuSchemaValidator, V7DeprecatedKeyCodeActionProvider } from './validators/jianghuSchemaValidator';
 
 // 当前扩展版本
-const CURRENT_VERSION = '0.0.1';
+const CURRENT_VERSION = '0.0.11';
 // 检查更新的URL（可以是GitHub仓库API或自定义服务器）
 const VERSION_CHECK_URL = 'https://api.github.com/repos/jianghujs/jianghu-init/releases/latest';
 
@@ -382,6 +382,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // 创建验证器实例
   const validator = new JianghuSchemaValidator(context);
+  context.subscriptions.push(
+    vscode.languages.registerCodeActionsProvider(
+      [
+        { scheme: 'file', language: 'javascript' },
+        { scheme: 'file', language: 'javascriptreact' },
+        { scheme: 'file', language: 'typescript' },
+        { scheme: 'file', language: 'typescriptreact' },
+      ],
+      new V7DeprecatedKeyCodeActionProvider(),
+      { providedCodeActionKinds: V7DeprecatedKeyCodeActionProvider.providedCodeActionKinds }
+    )
+  );
 
   // 注册文档变化事件
   context.subscriptions.push(
@@ -508,4 +520,4 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 /**
  * 停用扩展
  */
-export function deactivate(): void {} 
+export function deactivate(): void {}

@@ -12,7 +12,7 @@
                                        默认：delete → error，其余 → success
                       · icon           jh-icon name（可选，显示在文字左侧）
                       · 操作列宽自动计算：中文 12px/字 + icon 16px + icon 与文字间距 2px（0.2em@12px）+ 按钮间距 8px
-    toolbarActionList  工具栏数组，顺序即布局顺序：
+    headActionList     工具栏数组，顺序即布局顺序（toolbarActionList 为旧 prop）：
                       标准按钮：{ label, intent, id, color }
                       分隔符：  { type: 'spacer' }           ← 推开两侧
                       过滤器：  { type: 'filter', fields? }  ← 内联 jh-table-filter，
@@ -67,14 +67,14 @@
       <slot v-if="showFixedToolbarPrepend" name="toolbar-prepend"></slot>
 
       <!-- 操作区：支持 button / spacer / slot / filter 四种类型，顺序完全由配置决定 -->
-      <template v-for="(action, idx) in toolbarActionList">
+      <template v-for="(action, idx) in resolvedHeadActionList">
         <!-- spacer：推开左右两侧内容 -->
         <v-spacer v-if="action.type === 'spacer'" :key="'spacer-' + idx"></v-spacer>
         <!-- filter：jh-table-filter 内联过滤器，放在按钮组任意位置 -->
         <jh-table-filter
           v-else-if="action.type === 'filter'"
           :key="'filter-' + idx"
-          :fields="action.fields || filterList"
+          :filter-list="action.fields || filterList"
         ></jh-table-filter>
         <!-- 内置 toolbar-prepend / toolbar-append：在配置顺序处渲染；未写入 toolbarActionList 时走下方固定 outlet -->
         <slot
@@ -113,7 +113,7 @@
       <jh-table-filter
         v-if="showImplicitFilter"
         key="jh-table-implicit-filter"
-        :fields="filterList"
+        :filter-list="filterList"
       ></jh-table-filter>
 
       <!-- 末尾追加插槽（隐式 filter 之后；未在 toolbarActionList 声明 type:slot 时） -->
@@ -196,7 +196,8 @@ Vue.component('jh-table', {
   props: {
     headers:          { type: Array,   default: () => [] },
     rowActionList:    { type: Array,   default: () => [] },
-    toolbarActionList:{ type: Array,   default: () => [] },
+    headActionList:   { type: Array,   default: null },
+    toolbarActionList:{ type: Array,   default: null },
     filterList:       { type: Array,   default: () => [] },
     serverPagination: { type: Boolean, default: false },
     pageSize:         { type: Number,  default: 50 },
@@ -239,11 +240,14 @@ Vue.component('jh-table', {
     },
   },
   computed: {
+    resolvedHeadActionList() {
+      return Array.isArray(this.headActionList) ? this.headActionList : (this.toolbarActionList || []);
+    },
     isMobile() {
       return window.innerWidth < 600;
     },
     hasToolbar() {
-      const hasActions = (this.toolbarActionList && this.toolbarActionList.length > 0);
+      const hasActions = this.resolvedHeadActionList.length > 0;
       const hasFilterFields = (this.filterList && this.filterList.length > 0);
       const slots = this.$slots || {};
       const scoped = this.$scopedSlots || {};
@@ -254,12 +258,12 @@ Vue.component('jh-table', {
       return hasActions || hasFilterFields || hasSlotToolbar;
     },
     hasToolbarPrependInActions() {
-      return (this.toolbarActionList || []).some(
+      return this.resolvedHeadActionList.some(
         a => a && a.type === 'slot' && a.slotName === 'toolbar-prepend',
       );
     },
     hasToolbarAppendInActions() {
-      return (this.toolbarActionList || []).some(
+      return this.resolvedHeadActionList.some(
         a => a && a.type === 'slot' && a.slotName === 'toolbar-append',
       );
     },
@@ -302,10 +306,10 @@ Vue.component('jh-table', {
     },
     // toolbarActionList 中是否已有 type:'filter' 显式配置（避免自动追加重复）
     hasExplicitFilter() {
-      return (this.toolbarActionList || []).some(a => a.type === 'filter');
+      return this.resolvedHeadActionList.some(a => a.type === 'filter');
     },
     hasToolbarSpacer() {
-      return (this.toolbarActionList || []).some(a => a.type === 'spacer');
+      return this.resolvedHeadActionList.some(a => a.type === 'spacer');
     },
     showImplicitFilter() {
       return !!(this.filterList && this.filterList.length && !this.hasExplicitFilter);
@@ -576,12 +580,13 @@ Vue.component('jh-table-filter', {
   template: '#jh-table-filter-template',
   inject: ['jhTableCtx'],
   props: {
-    fields: { type: Array, default: () => [] },
+    filterList: { type: Array, default: null },
+    fields: { type: Array, default: null },
   },
   computed: {
     /** keyword 固定排在工具栏筛选区最后 */
     orderedFields() {
-      const list = this.fields || [];
+      const list = Array.isArray(this.filterList) ? this.filterList : (this.fields || []);
       const normal = list.filter(f => f && f.type !== 'keyword');
       const keywords = list.filter(f => f && f.type === 'keyword');
       return [...normal, ...keywords];

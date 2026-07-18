@@ -19,6 +19,7 @@ Select only the sections matching the file under review. Do not apply v7-only re
 - Verify visible columns are not assumed to be all writable fields.
 - Verify search/filter operators, pagination, primary key, and resource behavior against project evidence.
 - Verify every business action has non-empty `label + uiAction` and no semantic `intent/id/actionId`.
+- Verify new v7 source uses canonical keys (`columnList`, `headActionList`, `rowActionList`, `fieldList`, `actionList`, `tabList`, `mobileSheet`) and report deprecated-key warnings.
 - Verify slots and PC/mobile overrides use supported locations.
 - Verify targets and platform policy produce the intended route and layout.
 
@@ -70,6 +71,7 @@ Select only the sections matching the file under review. Do not apply v7-only re
 - Compare page IDs, routes, list/form structure, actions, slots, methods, and includes.
 - Check mobile list/card fields, sheet behavior, page height, scrolling, and touch interaction.
 - Treat generated HTML differences as evidence; locate the source defect in init-json or compiler code.
+- For v7, distinguish deprecated-key Warning from structural Error; supported old keys may run, but should not be recommended in new source.
 - Do not recommend long-term direct edits to generated HTML.
 
 ## 9. Database and operational safety
@@ -86,4 +88,3 @@ Select only the sections matching the file under review. Do not apply v7-only re
 - Separate confirmed defects from questions and residual risks.
 - State the evidence level for claims involving compilation, database state, or runtime behavior.
 - If no defect is found, say so and list unperformed validation.
-

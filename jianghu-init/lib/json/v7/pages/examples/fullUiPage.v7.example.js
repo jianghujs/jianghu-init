@@ -13,7 +13,7 @@ const content = {
 
   includeList: [
     { type: 'css', path: '/page/fullUiPage/style.css' },
-    { type: 'html', path: 'page/fullUiPage/widget.html', target: 'mobile' },
+    { type: 'html', path: 'page/fullUiPage/widget.html', targets: 'mobile' },
   ],
 
   resourceList: [],

@@ -69,19 +69,19 @@ const collectSemanticActions = semantic => {
   };
 
   if (views.list && typeof views.list === 'object') {
-    pushList(views.list.toolbarActions, 'toolbar', 'views.list.toolbarActions');
-    pushList(views.list.rowActions, 'row', 'views.list.rowActions');
+    pushList(views.list.headActionList, 'toolbar', 'views.list.headActionList');
+    pushList(views.list.rowActionList, 'row', 'views.list.rowActionList');
   }
   if (views.create && typeof views.create === 'object') {
-    pushList(views.create.actions, 'formCreate', 'views.create.actions');
+    pushList(views.create.actionList, 'formCreate', 'views.create.actionList');
   }
   if (views.update && typeof views.update === 'object') {
-    pushList(views.update.actions, 'formUpdate', 'views.update.actions');
-    if (Array.isArray(views.update.tabs)) {
-      views.update.tabs.forEach(tab => {
+    pushList(views.update.actionList, 'formUpdate', 'views.update.actionList');
+    if (Array.isArray(views.update.tabList)) {
+      views.update.tabList.forEach(tab => {
         if (!tab || typeof tab !== 'object') return;
         const tabKey = tab.key || 'tab';
-        pushList(tab.actions, 'formUpdate', `views.update.tabs.${tabKey}.actions`);
+        pushList(tab.actionList, 'formUpdate', `views.update.tabList.${tabKey}.actionList`);
       });
     }
   }

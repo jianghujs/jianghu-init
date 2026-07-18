@@ -13,9 +13,11 @@ const pickFieldDef = (fields, key) => (fields && fields[key]) || null;
 
 const fieldKeyToSearchField = (fieldsDict, key) => {
   const field = pickFieldDef(fieldsDict, key);
-  const result = { key, label: (field && field.label) || key, type: (field && field.type) || 'text' };
-  if (field && field.op) result.op = field.op;
-  if (field && field.options != null) result.options = field.options;
+  const form = field && field.form && typeof field.form === 'object' ? field.form : {};
+  const search = field && field.search && typeof field.search === 'object' ? field.search : {};
+  const result = { key, label: (field && field.label) || key, type: form.type || (field && field.type) || 'text' };
+  if (search.op) result.op = search.op;
+  if (form.options != null) result.options = form.options;
   return result;
 };
 
@@ -32,8 +34,9 @@ const mergeSearchFieldDef = (fieldsDict, fieldConfig) => {
 
 const fieldKeyToFilterField = (fieldsDict, key) => {
   const field = pickFieldDef(fieldsDict, key);
-  const result = { key, label: (field && field.label) || key, type: (field && field.type) || 'text' };
-  if (field && field.options != null) result.options = field.options;
+  const form = field && field.form && typeof field.form === 'object' ? field.form : {};
+  const result = { key, label: (field && field.label) || key, type: form.type || (field && field.type) || 'text' };
+  if (form.options != null) result.options = form.options;
   return result;
 };
 
@@ -65,7 +68,7 @@ const resolveListFilterBlock = listView => {
   return null;
 };
 
-const parseListFieldBlock = block => {
+const parseListFieldBlock = (block, listKey = 'fieldList') => {
   const items = [];
   const seen = new Set();
 
@@ -104,8 +107,8 @@ const parseListFieldBlock = block => {
       defaultKeys: block.keyword.fields,
     });
   }
-  if (Array.isArray(block.fields)) {
-    for (const entry of block.fields) {
+  if (Array.isArray(block[listKey])) {
+    for (const entry of block[listKey]) {
       if (typeof entry === 'string') pushKey(entry);
       else pushObject(entry);
     }
@@ -141,7 +144,7 @@ const compileSearch = (listView, fieldsDict) => {
 const compileFilterList = (listView, fieldsDict) => {
   const normal = [];
   const keywords = [];
-  for (const { kind, def } of parseListFieldBlock(resolveListFilterBlock(listView))) {
+  for (const { kind, def } of parseListFieldBlock(resolveListFilterBlock(listView), 'fields')) {
     const item = kind === 'key'
       ? fieldKeyToFilterField(fieldsDict, def)
       : mergeFilterFieldDef(fieldsDict, def);
@@ -176,7 +179,8 @@ const columnEntryToHeader = (fieldsDict, entry, options = {}) => {
   const field = pickFieldDef(fieldsDict, entry.key);
   const header = { text: (field && field.label) || entry.key, value: entry.key };
   for (const prop of ['width', 'align', 'class', 'cellClass']) {
-    const value = entry[prop] != null ? entry[prop] : (field && field[prop]);
+    const column = field && field.column && typeof field.column === 'object' ? field.column : {};
+    const value = entry[prop] != null ? entry[prop] : column[prop];
     if (value != null) header[prop] = value;
   }
   if (entry.span != null) header.span = entry.span;
@@ -188,12 +192,12 @@ const columnEntryToHeader = (fieldsDict, entry, options = {}) => {
 };
 
 const resolveColumns = (listView, target) => {
-  const columns = Array.isArray(listView.columns) ? listView.columns : [];
-  if (!columns.length) throw new Error('v7 expandCrudPage: 已声明 views.list 时 columns 不能为空');
-  if (target === 'mobile' && Array.isArray(listView.mobileColumns) && listView.mobileColumns.length) {
-    return { columns: listView.mobileColumns, source: 'mobileColumns' };
+  const columns = Array.isArray(listView.columnList) ? listView.columnList : [];
+  if (!columns.length) throw new Error('v7 expandCrudPage: 已声明 views.list 时 columnList 不能为空');
+  if (target === 'mobile' && Array.isArray(listView.mobileColumnList) && listView.mobileColumnList.length) {
+    return { columns: listView.mobileColumnList, source: 'mobileColumnList' };
   }
-  return { columns, source: 'columns' };
+  return { columns, source: 'columnList' };
 };
 
 const applyListDetailVariants = (headers, layout, target) => {
@@ -236,27 +240,20 @@ const resolveCollectionChildren = (semantic, target) => {
   return [];
 };
 
-const applyColumnSettingWiring = ({ semantic, collectionProps, collectionChildren, headers, target, component }) => {
-  if (target !== 'pc' || component !== 'Table') return;
+const COLUMN_SETTING_INCLUDE = { type: 'html', path: 'component/tableColumnSettingBtn.html' };
+
+/** 列设置插槽 wiring：只返回补丁，不 mutate semantic。 */
+const buildColumnSettingWiring = ({ collectionProps, collectionChildren, headers, target, component }) => {
+  if (target !== 'pc' || component !== 'Table') return null;
   const html = collectionChildren.filter(item => typeof item === 'string').join('\n');
-  if (!/table-column-setting-btn/i.test(html)) return;
-  if (!/:headers\s*=|:headers="|@change\s*=\s*["']headers\s*=/i.test(html)) return;
+  if (!/table-column-setting-btn/i.test(html)) return null;
+  if (!/:headers\s*=|:headers="|@change\s*=\s*["']headers\s*=/i.test(html)) return null;
 
   collectionProps.headersBinding = 'headers';
-  semantic.common = semantic.common || {};
-  semantic.common.data = semantic.common.data || {};
-  if (semantic.common.data.headers == null) {
-    semantic.common.data.headers = JSON.parse(JSON.stringify(headers));
-  }
-
-  const includeList = Array.isArray(semantic.includeList) ? semantic.includeList.slice() : [];
-  const hasColumnSetting = includeList.some(
-    item => item && String(item.path || '').replace(/\\/g, '/').includes('tableColumnSettingBtn'),
-  );
-  if (!hasColumnSetting) {
-    includeList.push({ type: 'html', path: 'component/tableColumnSettingBtn.html' });
-    semantic.includeList = includeList;
-  }
+  return {
+    commonDataHeaders: JSON.parse(JSON.stringify(headers)),
+    includeListEntry: COLUMN_SETTING_INCLUDE,
+  };
 };
 
 const compileListView = ({ semantic, view, fields, target, layout, component, listLayout }) => {
@@ -272,8 +269,8 @@ const compileListView = ({ semantic, view, fields, target, layout, component, li
 
   const { searchFieldList, keywordConfig } = compileSearch(view, fields);
   const filterList = compileFilterList(view, fields);
-  const toolbarActions = Array.isArray(view.toolbarActions)
-    ? normalizeActionList(view.toolbarActions.map(mapToolbarToken), 'toolbar', 'views.list.toolbarActions')
+  const toolbarActions = Array.isArray(view.headActionList)
+    ? normalizeActionList(view.headActionList.map(mapToolbarToken), 'toolbar', 'views.list.headActionList')
     : [];
   const mobileCardList = target === 'mobile' && listLayout === 'card';
   const tableKey = (typeof view.tableKey === 'string' && view.tableKey.trim()) || 'mainTable';
@@ -286,11 +283,11 @@ const compileListView = ({ semantic, view, fields, target, layout, component, li
 
   if (view.dataTableProps && typeof view.dataTableProps === 'object') props.dataTableProps = view.dataTableProps;
   if (toolbarActions.length && !mobileCardList) props.headActionList = toolbarActions;
-  if (Array.isArray(view.rowActions) && view.rowActions.length) {
+  if (Array.isArray(view.rowActionList) && view.rowActionList.length) {
     props.rowActionList = normalizeActionList(
-      view.rowActions.map(mapRowToken),
+      view.rowActionList.map(mapRowToken),
       'row',
-      'views.list.rowActions',
+      'views.list.rowActionList',
     );
   }
   if (view.orderBy != null) props.orderBy = view.orderBy;
@@ -303,8 +300,7 @@ const compileListView = ({ semantic, view, fields, target, layout, component, li
   if (mobileCardList && listCols != null) props.cols = listCols;
 
   const collectionChildren = resolveCollectionChildren(semantic, target);
-  applyColumnSettingWiring({
-    semantic,
+  const columnSettingWiring = buildColumnSettingWiring({
     collectionProps: props,
     collectionChildren,
     headers,
@@ -315,17 +311,24 @@ const compileListView = ({ semantic, view, fields, target, layout, component, li
   return {
     collection: { component, key: tableKey, props },
     collectionChildren,
+    columnSettingWiring,
     searchFieldList,
     keywordConfig,
+    searchConfig: view.search && typeof view.search === 'object'
+      ? {
+          btnText: view.search.btnText,
+          btnIcon: view.search.btnIcon,
+        }
+      : {},
     filterList,
     mobileToolbarActions: mobileCardList ? toolbarActions : [],
     mobileSearch: {
-      key: (typeof view.mobileSearchKey === 'string' && view.mobileSearchKey.trim()) || 'mobileSearch',
-      buttonLabel: view.mobileSearchBtnText || '搜索',
-      buttonClass: view.mobileSearchBtnClass || '!rounded-xl px-2 border border-solid border-gray-300',
-      icon: view.mobileSearchIcon || 'filter-2',
-      title: view.mobileSearchTitle || '搜索',
-      sheet: view.searchSheet,
+      key: (typeof view._legacyMobileSearchKey === 'string' && view._legacyMobileSearchKey.trim()) || 'mobileSearch',
+      buttonLabel: (view.search && view.search.mobileBtnText) || '搜索',
+      buttonClass: (view.search && view.search.mobileBtnClass) || '!rounded-xl px-2 border border-solid border-gray-300',
+      icon: (view.search && view.search.mobileBtnIcon) || 'filter-2',
+      title: (view.search && view.search.mobileSheet && view.search.mobileSheet.title) || '搜索',
+      sheet: view.search && view.search.mobileSheet,
     },
     meta: {
       pageSize: props.pageSize,

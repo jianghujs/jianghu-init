@@ -20,6 +20,7 @@ const RULE_PACKS = {
     files: [
       { dest: 'README.md', title: 'JianghuJS init-json app', source: 'source/overview.md' },
       { dest: 'v7-crud-authoring.md', source: 'source/v7-crud-authoring.md' },
+      { dest: 'v7-crud-full-structure.md', source: 'docs/v7-crud-full-structure.md' },
       { dest: 'jh-component.md', source: 'source/jh-component.md' },
       { dest: 'v7-app-authoring.md', source: 'docs/v7-app-authoring.md' },
     ],

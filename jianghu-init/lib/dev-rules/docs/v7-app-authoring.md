@@ -57,17 +57,20 @@ V7 CRUD 须显式 `mode: 'crud'`（或由生成器写入）。
 
 ## 4. fields 与 views
 
-- `fields`：字段字典 `{ label, type, options, required, readonly, op, attrs, pc, mobile }`
-- `views.list.columns` / `mobileColumns`：列定义；**list 整块可省略**
+- `fields`：字段字典；顶层保留 `label` / `type` / `autoId`，按用途收进 `column` / `search` / `form` / `createForm` / `updateForm`
+- `fields.*.column`：PC Table 列配置；`fields.*.search`：搜索配置；`fields.*.form`：通用表单配置
+- `views.list.columnList` / `mobileColumnList`：列定义；**list 整块可省略**
 - `views.list.search` / `filter`：搜索与筛选
-- `views.create.fields` / `views.update.fields` 或 `tabs`
+- `views.list.search.fieldList`：服务端搜索字段；`filter.fields` 暂时保持旧命名
+- `views.create.fieldList` / `views.update.fieldList`，或 `views.update.tabList`
 - `views.list.serverPagination: true`：移动端列表区内滚动
-- **Sheet 叠层**（仅 Sheet）：`views.create.sheet` / `views.update.sheet` 默认满高；`views.list.searchSheet` 默认 `maxBodyHeight: 70vh`；共用 `persistent`、`maxBodyHeight`、`bodyHeight`、`minCardHeight`
+- **Sheet 叠层**（仅移动端）：`views.create.mobileSheet` / `views.update.mobileSheet` / `views.list.search.mobileSheet`；使用 `persistent`、`maxBodyHeight`、`bodyHeightMode: 'fill' | 'content'`（**Sheet/FormSheet 默认 `fill`**；SearchSheet 默认 `content`）
+- 新建标准 CRUD 优先使用 table 生成器；完整高级结构按需查看 `v7-crud-full-structure.md`，不要默认生成 slots、layout、platform 或 pc/mobile 覆写
 
 ### actions
 
 - 业务 action 必须写对象，且必填 `label` + `uiAction`
-- 覆盖位置：`views.list.toolbarActions` / `rowActions`、`views.create.actions`、`views.update.actions`、`views.update.tabs[].actions`
+- 覆盖位置：`views.list.headActionList` / `rowActionList`、`views.create.actionList`、`views.update.actionList`、`views.update.tabList[].actionList`
 - `uiAction` 写标准 token（如 `create` / `update` / `delete`）或自定义 `doUiAction` 方法名
 - 不要用 `intent` / `id` / `actionId`；结构项 `{ type: 'spacer' | 'slot' | 'filter' }` 例外
 
@@ -100,6 +103,8 @@ V7 CRUD 须显式 `mode: 'crud'`（或由生成器写入）。
 - Vue props → **`common.props`**；`component.props` 仅兼容旧写法
 - 宿主设高：`<my-comp class="h-[400px]" />`；列表滚动需 `serverPagination`
 - 运行时 `pageId` 来自宿主 Page（`inject jhPage`）
+- **统一写法**：Page / Component 业务侧都用 `this.pageId`（模板 computed；组件不 bake）
+- 组件内 `resolvePageId()` 为兼容别名，新代码优先 `this.pageId`
 
 旧版组件（无 `version: 'v7'`）仍可使用 `pageId`、`componentPath`、`resourceList`，勿按 V7 规则删字段。
 

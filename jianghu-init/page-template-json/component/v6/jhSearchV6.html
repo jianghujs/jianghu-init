@@ -23,14 +23,14 @@
 
     <!-- keyword 全局搜索 -->
     <v-text-field
-      v-if="keyword && keyword.fields && keyword.fields.length"
+      v-if="resolvedKeywordConfig && resolvedKeywordConfig.fields && resolvedKeywordConfig.fields.length"
       v-model="localKeyword"
-      :placeholder="keyword.placeholder || '搜索'"
+      :placeholder="resolvedKeywordConfig.placeholder || '搜索'"
       class="jh-v-input max-w-[240px]"
       dense single-line filled clearable
       @keyup.enter="handleSearch"
       @click:clear="localKeyword = ''; handleSearch()"
-      :style="{ width: keyword.width || '200px', minWidth: keyword.width || '200px', maxWidth: keyword.width || '200px' }"
+      :style="{ width: resolvedKeywordConfig.width || '200px', minWidth: resolvedKeywordConfig.width || '200px', maxWidth: resolvedKeywordConfig.width || '200px' }"
     >
       <template v-slot:prepend-inner>
         <jh-icon name="lucide:search" size="20"></jh-icon>
@@ -38,7 +38,7 @@
     </v-text-field>
 
     <!-- 字段筛选 -->
-    <template v-for="(field, idx) in fields">
+    <template v-for="(field, idx) in resolvedFieldList">
       <!-- 跳过 keyword 类型（已由上面的 keyword 输入框处理） -->
       <template v-if="field.type === 'keyword'"></template>
 
@@ -52,7 +52,7 @@
         :prefix="field.label"
         class="jh-v-input max-w-[180px]"
         dense single-line filled clearable
-        @change="!searchBtn && handleSearch()"
+        @change="!resolvedShowBtn && handleSearch()"
       ></v-select>
 
       <!-- select 多选 -->
@@ -65,7 +65,7 @@
         :prefix="field.label"
         class="jh-v-input max-w-[220px]"
         dense single-line filled clearable multiple small-chips deletable-chips
-        @change="!searchBtn && handleSearch()"
+        @change="!resolvedShowBtn && handleSearch()"
       ></v-select>
 
       <!-- date -->
@@ -81,13 +81,13 @@
             prepend-inner-icon="mdi-calendar-range"
             class="jh-v-input max-w-[180px]"
             dense single-line filled readonly clearable
-            @click:clear="localValues[field.key] = null; !searchBtn && handleSearch()"
+            @click:clear="localValues[field.key] = null; !resolvedShowBtn && handleSearch()"
           ></v-text-field>
         </template>
         <v-date-picker
           color="success" elevation="20" no-title
           v-model="localValues[field.key]"
-          @input="!searchBtn && handleSearch()"
+          @input="!resolvedShowBtn && handleSearch()"
         ></v-date-picker>
       </v-menu>
 
@@ -102,12 +102,14 @@
         class="jh-v-input max-w-[180px]"
         dense single-line filled clearable
         @keyup.enter="handleSearch"
-        @click:clear="localValues[field.key] = ''; !searchBtn && handleSearch()"
+        @click:clear="localValues[field.key] = ''; !resolvedShowBtn && handleSearch()"
       ></v-text-field>
     </template>
 
     <!-- 查询按钮 -->
-    <v-btn v-if="searchBtn" class="elevation-0" color="success" small @click="handleSearch">查询</v-btn>
+    <v-btn v-if="resolvedShowBtn" class="elevation-0" color="success" small @click="handleSearch">
+      <jh-icon v-if="btnIcon" :name="btnIcon" size="16" class="mr-1"></jh-icon>{{ btnText }}
+    </v-btn>
 
   </div>
 </script>
@@ -118,9 +120,17 @@ Vue.component('jh-search', {
   template: '#jh-search-template',
   inject: { jhPage: { default: null } },
   props: {
-    fields:    { type: Array,   default: () => [] },
-    keyword:   { type: Object,  default: null },
-    searchBtn: { type: Boolean, default: true },
+    fieldList:     { type: Array,   default: null },
+    keywordConfig: { type: Object, default: null },
+    showBtn:       { type: Boolean, default: null },
+    btnText:       { type: String,  default: '查询' },
+    btnIcon:       { type: String,  default: 'search' },
+    // 旧 prop alias
+    fields:        { type: Array,   default: null },
+    searchFieldList: { type: Array, default: null },
+    keyword:       { type: Object,  default: null },
+    searchBtn:     { type: Boolean, default: null },
+    showSearchBtn: { type: Boolean, default: null },
   },
   data() {
     return {
@@ -129,10 +139,26 @@ Vue.component('jh-search', {
     };
   },
   created() {
-    (this.fields || []).forEach(f => {
+    this.resolvedFieldList.forEach(f => {
       if (f.type === 'keyword') return;
       this.$set(this.localValues, f.key, f.multiple ? [] : null);
     });
+  },
+  computed: {
+    resolvedFieldList() {
+      if (Array.isArray(this.fieldList)) return this.fieldList;
+      if (Array.isArray(this.searchFieldList)) return this.searchFieldList;
+      return this.fields || [];
+    },
+    resolvedKeywordConfig() {
+      return this.keywordConfig || this.keyword || null;
+    },
+    resolvedShowBtn() {
+      if (this.showBtn != null) return this.showBtn;
+      if (this.showSearchBtn != null) return this.showSearchBtn;
+      if (this.searchBtn != null) return this.searchBtn;
+      return true;
+    },
   },
   methods: {
     resolveOptions(field) {
@@ -151,7 +177,7 @@ Vue.component('jh-search', {
       const whereIn = {};
       let whereOrOptions = [];
 
-      for (const field of (this.fields || [])) {
+      for (const field of this.resolvedFieldList) {
         if (field.type === 'keyword') continue;
         const val = this.localValues[field.key];
         if (val == null || val === '' || (Array.isArray(val) && !val.length)) continue;
@@ -170,10 +196,10 @@ Vue.component('jh-search', {
         }
       }
 
-      if (this.keyword && this.keyword.fields && this.keyword.fields.length) {
+      if (this.resolvedKeywordConfig && this.resolvedKeywordConfig.fields && this.resolvedKeywordConfig.fields.length) {
         const k = (this.localKeyword || '').trim();
         if (k) {
-          this.keyword.fields.forEach(fieldKey => {
+          this.resolvedKeywordConfig.fields.forEach(fieldKey => {
             whereOrOptions.push([fieldKey, 'like', '%' + k + '%']);
           });
         }

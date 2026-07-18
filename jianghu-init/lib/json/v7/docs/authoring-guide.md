@@ -44,12 +44,12 @@ module.exports = {
   },
   views: {
     list: {
-      columns: ['id', 'name'],
-      toolbarActions: [{ uiAction: 'create', label: '新增' }],
-      rowActions: [{ uiAction: 'update', label: '编辑' }, { uiAction: 'delete', label: '删除' }],
+      columnList: ['id', 'name'],
+      headActionList: [{ uiAction: 'create', label: '新增' }],
+      rowActionList: [{ uiAction: 'update', label: '编辑' }, { uiAction: 'delete', label: '删除' }],
     },
-    create: { fields: ['id', 'name'], actions: [{ label: '保存', uiAction: 'save', color: 'primary' }] },
-    update: { fields: ['id', 'name'], actions: [{ label: '保存', uiAction: 'save', color: 'primary' }] },
+    create: { fieldList: ['id', 'name'], actionList: [{ label: '保存', uiAction: 'save', color: 'primary' }] },
+    update: { fieldList: ['id', 'name'], actionList: [{ label: '保存', uiAction: 'save', color: 'primary' }] },
   },
   common: { data: {}, methods: {}, doUiAction: {} },
 };
@@ -107,11 +107,11 @@ module.exports = {
 ## 4. 常用扩展（仍不写组件名）
 
 - **列表树 + 表**：`layout.list.regions: { treePanel: { role: 'tree' }, main: { role: 'table' } }`
-- **字段显隐/只读**：`views.create.interaction` / `views.update.tabs[].interaction`
+- **字段显隐/只读**：`views.create.interaction` / `views.update.tabList[].interaction`
 - **表头/行/表单插槽**：`slots.list.pc.children` 等（完整 `<template v-slot:…>` 字符串）
 - **移动端搜索条**：`views.list.search` + 默认 mobile `filter: sheet` → SearchSheet
 - **顶栏富文本摘要**：手写 **`MobileFilterBtn`** + `children` 里 `v-slot:active-display`（见 [bind-slots-and-targets.md](./bind-slots-and-targets.md)）
-- **分端静态资源**：`includeList[].target`（见同上）
+- **分端静态资源**：`includeList[].targets`（见同上）
 
 ## 5. 降级：完全自定义布局
 

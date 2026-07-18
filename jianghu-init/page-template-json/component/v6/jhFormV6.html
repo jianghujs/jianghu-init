@@ -518,7 +518,8 @@ Vue.component('jh-form', {
   inheritAttrs: false,
   template: '#jh-form-template',
   props: {
-    fields:      { type: Array,  default: () => [] },
+    fieldList:   { type: Array,  default: null },
+    fields:      { type: Array,  default: null },
     initialData: { type: Object, default: () => ({}) },
     /** 打开表单时的快照；与 formData 字段值不一致时在 label 旁显示橙色变更点（对齐 v4 mobile 抽屉） */
     originData:  { type: Object, default: null },
@@ -538,6 +539,9 @@ Vue.component('jh-form', {
     };
   },
   computed: {
+    resolvedFieldList() {
+      return Array.isArray(this.fieldList) ? this.fieldList : (this.fields || []);
+    },
     isInlineLayout() {
       return this.labelMode === 'inline';
     },
@@ -558,7 +562,7 @@ Vue.component('jh-form', {
     },
     // 统一字段格式：仅使用 field.type
     normalizedFields() {
-      return (this.fields || []).map((field, idx) => {
+      return this.resolvedFieldList.map((field, idx) => {
         // 结构性 type：不绑定数据，不参与校验
         const structuralType = field.type === 'section' ? 'section'
           : field.type === 'divider' ? 'divider'

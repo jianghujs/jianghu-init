@@ -11,22 +11,52 @@ module.exports = {
   version: 'v7',
   pageType: 'jh-page',
   mode: 'crud',
-  page: { id: 'itemManagement', name: '条目管理', targets: 'pc' },
+  page: { id: 'itemManagement', name: '条目管理', menu: true, targets: 'both', hook: {} },
   resourceList: [
     { actionId: 'selectItemList', resourceType: 'sql', resourceData: { table: 'item', operation: 'select' } },
     { actionId: 'insertItem', resourceType: 'sql', resourceData: { table: 'item', operation: 'jhInsert' } },
     { actionId: 'updateItem', resourceType: 'sql', resourceData: { table: 'item', operation: 'jhUpdate' } },
     { actionId: 'deleteItem', resourceType: 'sql', resourceData: { table: 'item', operation: 'jhDelete' } },
   ],
-  dataSource: { table: 'item' },
+  dataSource: {
+    table: 'item',
+    primaryKey: 'itemId',
+    listResource: 'selectItemList',
+    createResource: 'insertItem',
+    updateResource: 'updateItem',
+    deleteResource: 'deleteItem',
+  },
   fields: {
-    itemId: { label: '条目ID' },
-    name: { label: '名称', required: true },
+    itemId: { label: '条目ID', type: 'text' },
+    name: { label: '名称', form: { required: true } },
+    status: { label: '状态', type: 'select', form: { options: 'constantObj.status' }, search: { op: 'eq' } },
   },
   views: {
-    list: { columns: ['itemId', 'name'] },
-    create: { fields: ['name'] },
-    update: { fields: ['name'] },
+    list: {
+      columnList: ['itemId', 'name', 'status'],
+      mobileColumnList: ['name', 'status'],
+      headActionList: [{ label: '新增', uiAction: 'create' }],
+      rowActionList: [
+        { label: '编辑', uiAction: 'update' },
+        { label: '删除', uiAction: 'delete' },
+      ],
+      search: {
+        keyword: { fields: ['itemId', 'name'], placeholder: '关键字搜索' },
+        fieldList: ['status'],
+      },
+      serverPagination: true,
+      pageSize: 50,
+    },
+    create: {
+      fieldList: ['name', 'status'],
+      beforeCloseConfirm: true,
+      actionList: [{ label: '保存', uiAction: 'create' }],
+    },
+    update: {
+      fieldList: ['name', 'status'],
+      beforeCloseConfirm: true,
+      actionList: [{ label: '保存', uiAction: 'update' }],
+    },
   },
 };
 ```
@@ -63,7 +93,7 @@ module.exports = {
     name: { label: '名称' },
   },
   views: {
-    list: { columns: ['itemId', 'name'] },
+    list: { columnList: ['itemId', 'name'] },
   },
   common: {
     props: {},

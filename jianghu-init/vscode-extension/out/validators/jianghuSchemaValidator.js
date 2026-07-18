@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JianghuSchemaValidator = void 0;
+exports.V7DeprecatedKeyCodeActionProvider = exports.JianghuSchemaValidator = exports.collectV7DeprecatedKeys = void 0;
 const vscode = __importStar(require("vscode"));
 const ajv_1 = __importDefault(require("ajv"));
 const ajv_formats_1 = __importDefault(require("ajv-formats"));
@@ -44,6 +44,7 @@ const v6_page_tree_schema_json_1 = __importDefault(require("../schemas/component
 // v6 完整文档
 const jianghu_config_v6_schema_json_1 = __importDefault(require("../schemas/v6/jianghu-config-v6.schema.json"));
 const jianghu_config_v7_schema_json_1 = __importDefault(require("../schemas/v7/jianghu-config-v7.schema.json"));
+const v7_key_migrations_json_1 = __importDefault(require("../generated/v7-key-migrations.json"));
 /** V7 根级互斥字段 → 简短提示（标在属性键上，不含「根对象」前缀） */
 const V7_FORBIDDEN_PROPERTY_MSG = {
     resourceList: 'jh-component 不需要 resourceList',
@@ -56,6 +57,95 @@ const V7_FORBIDDEN_PROPERTY_MSG = {
     pc: 'UI 模式不需要根级 pc',
     mobile: 'UI 模式不需要根级 mobile',
 };
+const migrationsToMap = (items) => Object.fromEntries(items.map(item => [item.from, item.to]));
+const V7_RUNTIME_PROP_MIGRATIONS = Object.fromEntries(Object.entries(v7_key_migrations_json_1.default.runtime).map(([component, items]) => [component, migrationsToMap(items)]));
+const structuralListFlatToSearch = migrationsToMap(v7_key_migrations_json_1.default.structural.listIntoSearch);
+const structuralSheetDeprecated = v7_key_migrations_json_1.default.structural.sheet;
+const resolveRuntimePropAliases = (component) => {
+    const groups = v7_key_migrations_json_1.default.runtimeGroups?.[component];
+    const names = groups || (V7_RUNTIME_PROP_MIGRATIONS[component] ? [component] : []);
+    return Object.assign({}, ...names.map(name => V7_RUNTIME_PROP_MIGRATIONS[name] || {}));
+};
+const hasOwn = (value, key) => value != null && Object.prototype.hasOwnProperty.call(value, key);
+/** 收集 V7 旧 key；结构 Error 仍由 AJV 负责。 */
+function collectV7DeprecatedKeys(config) {
+    const result = [];
+    const addFromObject = (value, path, aliases) => {
+        if (!value || typeof value !== 'object')
+            return;
+        for (const [property, replacement] of Object.entries(aliases)) {
+            if (hasOwn(value, property))
+                result.push({ path, property, replacement });
+        }
+    };
+    if (typeof config?.page?.template === 'string') {
+        result.push({
+            path: ['page'],
+            property: 'template',
+            replacement: v7_key_migrations_json_1.default.structural.pageTemplateString,
+        });
+    }
+    (config?.includeList || []).forEach((item, index) => {
+        for (const { from, to } of v7_key_migrations_json_1.default.structural.includeListItem) {
+            if (hasOwn(item, from)) {
+                result.push({ path: ['includeList', String(index)], property: from, replacement: to });
+            }
+        }
+    });
+    for (const [fieldKey, field] of Object.entries(config?.fields || {})) {
+        addFromObject(field, ['fields', fieldKey], migrationsToMap(v7_key_migrations_json_1.default.structural.field));
+    }
+    const list = config?.views?.list;
+    addFromObject(list, ['views', 'list'], {
+        ...migrationsToMap(v7_key_migrations_json_1.default.semantic.list),
+        ...structuralListFlatToSearch,
+    });
+    addFromObject(list?.search, ['views', 'list', 'search'], migrationsToMap(v7_key_migrations_json_1.default.structural.listSearch));
+    const visitFormView = (view, path, includeTabs) => {
+        addFromObject(view, path, {
+            ...migrationsToMap(includeTabs ? v7_key_migrations_json_1.default.semantic.update : v7_key_migrations_json_1.default.semantic.create),
+            fieldAttrs: v7_key_migrations_json_1.default.structural.formView.fieldAttrs,
+            type: v7_key_migrations_json_1.default.structural.formView.type,
+            ...(includeTabs ? { tabs: 'tabList' } : {}),
+        });
+        for (const sheetKey of ['mobileSheet', 'sheet']) {
+            addFromObject(view?.[sheetKey], [...path, sheetKey], structuralSheetDeprecated);
+        }
+    };
+    visitFormView(config?.views?.create, ['views', 'create'], false);
+    visitFormView(config?.views?.update, ['views', 'update'], true);
+    const tabList = config?.views?.update?.tabList || config?.views?.update?.tabs || [];
+    tabList.forEach((tab, index) => addFromObject(tab, ['views', 'update', hasOwn(config?.views?.update, 'tabList') ? 'tabList' : 'tabs', String(index)], {
+        ...migrationsToMap(v7_key_migrations_json_1.default.semantic.tab),
+        type: v7_key_migrations_json_1.default.structural.formView.type,
+    }));
+    const visitRuntimeTree = (value, path) => {
+        if (!value || typeof value !== 'object')
+            return;
+        if (!Array.isArray(value) && typeof value.component === 'string' && value.props && typeof value.props === 'object') {
+            const propsPath = [...path, 'props'];
+            addFromObject(value.props, propsPath, resolveRuntimePropAliases(value.component));
+            const actionKeys = ['headActionList', 'rowActionList'];
+            if (['CreateDrawer', 'UpdateDrawer', 'FormDrawer', 'FormSheet', 'MobileActions'].includes(value.component)) {
+                actionKeys.push('actionList');
+            }
+            for (const actionKey of actionKeys) {
+                (value.props[actionKey] || []).forEach((action, index) => {
+                    addFromObject(action, [...propsPath, actionKey, String(index)], v7_key_migrations_json_1.default.structural.actionIntent);
+                });
+            }
+        }
+        if (Array.isArray(value))
+            value.forEach((item, index) => visitRuntimeTree(item, [...path, String(index)]));
+        else
+            for (const [key, child] of Object.entries(value))
+                visitRuntimeTree(child, [...path, key]);
+    };
+    visitRuntimeTree(config?.pageContent, ['pageContent']);
+    visitRuntimeTree(config?.actionContent, ['actionContent']);
+    return result;
+}
+exports.collectV7DeprecatedKeys = collectV7DeprecatedKeys;
 class JianghuSchemaValidator {
     constructor(context) {
         // 初始化 AJV 实例，启用高级特性
@@ -161,14 +251,23 @@ class JianghuSchemaValidator {
             const isV6 = configObject.version === 'v6';
             const validateFn = isV7 ? this.validateV7Fn : (isV6 ? this.validateV6Fn : this.validateFn);
             const valid = validateFn(configObject);
+            const deprecatedDiagnostics = isV7
+                ? this.createDeprecatedDiagnostics(document, collectV7DeprecatedKeys(configObject), location)
+                : [];
             if (!valid && validateFn.errors) {
                 let errors = validateFn.errors;
                 if (isV7) {
                     errors = this.normalizeV7ForbiddenNotErrors(errors, configObject);
                 }
                 const filteredErrors = this.filterErrors(errors);
-                const diagnostics = this.createDiagnostics(document, filteredErrors, location);
+                const diagnostics = [
+                    ...this.createDiagnostics(document, filteredErrors, location),
+                    ...deprecatedDiagnostics,
+                ];
                 this.diagnosticCollection.set(document.uri, diagnostics);
+            }
+            else if (deprecatedDiagnostics.length > 0) {
+                this.diagnosticCollection.set(document.uri, deprecatedDiagnostics);
             }
             else {
                 this.diagnosticCollection.delete(document.uri);
@@ -434,6 +533,16 @@ class JianghuSchemaValidator {
             return diagnostic;
         });
     }
+    createDeprecatedDiagnostics(document, items, location) {
+        return items.map(item => {
+            const range = this.getPropertyKeyRange(document, item.path, location, item.property)
+                || this.getNodeRangeByPath(document, item.path, location);
+            const diagnostic = new vscode.Diagnostic(range, `旧 key：${item.property}，请改用 ${item.replacement}`, vscode.DiagnosticSeverity.Warning);
+            diagnostic.code = 'V7_DEPRECATED_KEY';
+            diagnostic.data = { path: item.path, property: item.property, replacement: item.replacement };
+            return diagnostic;
+        });
+    }
     /**
      * 获取诊断严重性
      */
@@ -670,4 +779,54 @@ class JianghuSchemaValidator {
     }
 }
 exports.JianghuSchemaValidator = JianghuSchemaValidator;
+class V7DeprecatedKeyCodeActionProvider {
+    provideCodeActions(document, _range, context) {
+        const actions = [];
+        for (const diagnostic of context.diagnostics) {
+            if (diagnostic.code !== 'V7_DEPRECATED_KEY')
+                continue;
+            const data = diagnostic.data || {};
+            const replacement = data.replacement;
+            if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(replacement || ''))
+                continue;
+            if (this.hasSiblingKey(document, diagnostic.range, replacement))
+                continue;
+            const action = new vscode.CodeAction(`改为 ${replacement}`, vscode.CodeActionKind.QuickFix);
+            action.diagnostics = [diagnostic];
+            action.isPreferred = true;
+            action.edit = new vscode.WorkspaceEdit();
+            action.edit.replace(document.uri, diagnostic.range, replacement);
+            actions.push(action);
+        }
+        return actions;
+    }
+    hasSiblingKey(document, range, key) {
+        const line = document.lineAt(range.start.line).text;
+        const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
+        const keyPattern = new RegExp(`^\\s{${indent}}${key}\\s*:`);
+        for (let lineNumber = range.start.line - 1; lineNumber >= 0; lineNumber--) {
+            const text = document.lineAt(lineNumber).text;
+            if (!text.trim())
+                continue;
+            const currentIndent = text.match(/^(\s*)/)?.[1].length ?? 0;
+            if (currentIndent < indent)
+                break;
+            if (currentIndent === indent && keyPattern.test(text))
+                return true;
+        }
+        for (let lineNumber = range.start.line + 1; lineNumber < document.lineCount; lineNumber++) {
+            const text = document.lineAt(lineNumber).text;
+            if (!text.trim())
+                continue;
+            const currentIndent = text.match(/^(\s*)/)?.[1].length ?? 0;
+            if (currentIndent < indent)
+                break;
+            if (currentIndent === indent && keyPattern.test(text))
+                return true;
+        }
+        return false;
+    }
+}
+exports.V7DeprecatedKeyCodeActionProvider = V7DeprecatedKeyCodeActionProvider;
+V7DeprecatedKeyCodeActionProvider.providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 //# sourceMappingURL=jianghuSchemaValidator.js.map
