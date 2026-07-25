@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.activateV7ConfigHover = exports.V7ConfigCompletionProvider = exports.V7ConfigSignatureHelpProvider = exports.V7ConfigHoverProvider = exports.lookupDoc = exports.scanInlineObjectAncestors = exports.V7_PATH_DOCS = void 0;
+exports.activateV7ConfigHover = exports.V7ConfigCompletionProvider = exports.V7ConfigSignatureHelpProvider = exports.V7ConfigHoverProvider = exports.suggestSimilarKey = exports.resolveSiblingDocContext = exports.lookupDoc = exports.scanInlineObjectAncestors = exports.V7_PATH_DOCS = void 0;
 const vscode = __importStar(require("vscode"));
 const configHoverUtils_1 = require("./configHoverUtils");
 const configVersionDetect_1 = require("./configVersionDetect");
@@ -76,7 +76,7 @@ exports.V7_PATH_DOCS = {
         description: '按端指定 NJK 根模板：`{ pc?, mobile? }`；旧字符串写法仅兼容运行',
         example: '{ pc: "jh-page-v7", mobile: "jh-mobile-page-v7" }',
     },
-    'page|helpDoc': { type: 'string', description: '帮助文档 URL；编译为 PageTitle/PageHeader 的 `showHelp + helpSrc + pageId`' },
+    'page|helpDoc': { type: 'boolean | string', description: '帮助文档：`true` 用默认 pageDoc；字符串为自定义 helpSrc URL' },
     dataSource: {
         description: '数据源：表名 + CRUD actionId。\n' +
             '流水线：`flattenDataSource` → `normalizeDataSource` → standardConfig.dataSource → NJK bake `listResource` 等。',
@@ -126,7 +126,8 @@ exports.V7_PATH_DOCS = {
     'fields|label': { type: 'string', description: '展示标签；缺省为字段 key；`type:"section"` 时为分组标题' },
     'fields|type': {
         type: 'string',
-        description: '控件：`text` | `select` | `number` | `textarea` | `date` | `custom`；\n'
+        description: '控件：`text` | `select` | `autocomplete` | `number` | `textarea` | `date` | `custom`；\n'
+            + '短枚举用 `select`，可搜索长列表用 `autocomplete`；\n'
             + '结构性（不绑数据）：`section` | `divider` | `tip`；缺省 text',
     },
     'fields|column': { type: 'object', description: '列配置：`{ width?, align?, class?, cellClass? }`', example: '{ width: 200, align: "start" }' },
@@ -142,7 +143,10 @@ exports.V7_PATH_DOCS = {
         description: '字段的通用表单配置',
         example: '{ required: true, placeholder: "请输入项目名称", attrs: { clearable: true } }',
     },
-    'form|type': { type: 'string', description: '表单控件类型；省略时回退字段根 type' },
+    'form|type': {
+        type: 'string',
+        description: '表单控件类型（含 `autocomplete`）；省略时回退字段根 type',
+    },
     'form|component': {
         type: 'string',
         description: '`type:"custom"` 时指定全局 Vue 组件名（须 `includeList` 引入并 `Vue.component` 注册）。\n'
@@ -254,7 +258,14 @@ exports.V7_PATH_DOCS = {
     'list|pageSize': { type: 'number', description: '默认每页条数，默认 50' },
     'list|selectable': { type: 'boolean', description: '行多选' },
     'list|orderBy': { type: 'array', description: '默认排序 `[{ column, order }]`', example: '[{ column: "operationAt", order: "desc" }]' },
-    'list|layout': { type: 'object', description: '列表 layout 提示：`{ type: "table"|"card" }`' },
+    'list|mobileItemAction': {
+        description: '**Mobile List 专用**（PC Table 忽略）：卡片 item **整行点击**行为。\n'
+            + '**省略或 "sheet"**：组件内置预设，弹出 ActionSheet 展示 **rowActionList**（**不是** doUiAction case）。\n'
+            + '**false / "none"**：整行点击不响应（action slot 仍可用）。\n'
+            + '**其他字符串**：自定义 **doUiAction 方法名**，点击直接 doUiAction(名, item)，跳过 ActionSheet。',
+        example: '"viewDetail"',
+    },
+    'list|tableKey': { type: 'string', description: '列表 block key，默认 `mainTable`', example: '"mainTable"' },
     search: {
         description: 'list.search / list.filter 对象式配置',
         example: '{ keyword: { fields: ["projectName"], placeholder: "搜索项目" }, fieldList: ["status"] }',
@@ -366,15 +377,26 @@ exports.V7_PATH_DOCS = {
     'platform|desktop': { description: 'PC 端兼容别名；新配置优先写 `platform.pc`' },
     'platform|mobile': { description: 'Mobile 端策略切片' },
     'platform|pc': { description: 'PC 端策略切片' },
-    'platform|desktop|list': { type: 'string', description: 'Table | List；默认 Table' },
+    'platform|desktop|list': {
+        type: 'string | object',
+        description: '`Table`|`List` token，或 `{ layout: "table"|"card", filter: "inline"|"sheet" }`；默认 Table',
+    },
     'platform|desktop|create': { type: 'string', description: 'CreateDrawer | CreateSheet 等' },
     'platform|desktop|update': { type: 'string', description: 'UpdateDrawer | UpdateSheet 等' },
     'platform|desktop|filter': { type: 'string', description: '`inline` | `sheet`；PC 默认 inline' },
-    'platform|mobile|list': { type: 'string', description: 'List | Table；mobile 默认 List' },
+    'platform|mobile|list': {
+        type: 'string | object',
+        description: 'Mobile 列表组件/呈现：`List`（默认，jh-list 卡片）| `Table`；\n'
+            + '或 `{ layout: "table"|"card", filter: "inline"|"sheet" }`（默认 card + sheet 筛选）',
+    },
     'platform|mobile|create': { type: 'string', description: 'CreateSheet → FormSheet 等' },
     'platform|mobile|update': { type: 'string', description: 'UpdateSheet → FormSheet 等' },
     'platform|mobile|filter': { type: 'string', description: 'mobile 默认 sheet → SearchSheet' },
-    'platform|pc|list': { type: 'string', description: 'Table | List；默认 Table' },
+    'platform|pc|list': {
+        type: 'string | object',
+        description: 'PC 列表组件/呈现：`Table`（默认，jh-table）| `List`（jh-list）；\n'
+            + '或 `{ layout: "table"|"card", filter: "inline"|"sheet" }`',
+    },
     'platform|pc|create': { type: 'string', description: 'CreateDrawer | CreateSheet 等' },
     'platform|pc|update': { type: 'string', description: 'UpdateDrawer | UpdateSheet 等' },
     'platform|pc|filter': { type: 'string', description: '`inline` | `sheet`；PC 默认 inline' },
@@ -382,7 +404,10 @@ exports.V7_PATH_DOCS = {
         description: '空间布局；可省略（DEFAULT_LAYOUT）',
         example: '{ list: { cols: 2 }, create: { cols: 3 }, update: { cols: 3 } }',
     },
-    'layout|list': { description: '列表区：regions / treeWidth / cols / variants' },
+    'layout|list': {
+        description: '列表空间布局：regions / treeWidth / cols / variants',
+        example: '{ cols: 2, regions: { treePanel: { role: "tree" }, main: { role: "table" } } }',
+    },
     'layout|create': { description: '新建表单 cols / variants' },
     'layout|update': { description: '编辑表单 cols / variants' },
     'layout|list|regions': { type: 'object', description: '{ regionId: { role: tree|table|collection|list } }' },
@@ -498,6 +523,12 @@ exports.V7_PATH_DOCS = {
     'includeList|attrs': { type: 'object', description: '标签属性或 include attrs' },
     'includeList|includeType': { type: 'string', description: '如 auto：模板内挂载 vue 组件' },
     'includeList|component': { type: 'string', description: 'vueUse/vueComponent 组件名' },
+    style: {
+        type: 'string',
+        description: '页面内嵌 CSS，NJK 模板 `<style>` 输出。\n'
+            + '推荐 `/*css*/` 模板字符串写法。',
+        example: '/*css*/`\n  .my-page { padding: 8px; }\n`',
+    },
     resourceList: {
         description: '后端 resource 定义（**jh-page CRUD/UI**）；jh-component 禁止，权限归宿主 Page',
         example: '[{\n'
@@ -693,17 +724,26 @@ exports.V7_PATH_DOCS = {
     'Table|slotTemplates': { description: '列插槽占位键（legacy）；推荐 slots.list.pc.children' },
     'List|headers': { description: '同 Table；Mobile List 卡片列，mobileColumnList 优先' },
     'List|cols': { type: 'number', description: 'Mobile List 详情区 grid 列数（layout.list.cols）' },
+    'List|mobileItemAction': {
+        description: 'views.list.mobileItemAction。默认省略/`sheet`=ActionSheet 预设；字符串=doUiAction 方法名（非 sheet）',
+        example: '"viewDetail"',
+    },
+    'List|rowActionList': { description: '行操作 → views.list.rowActionList' },
+    'List|headActionList': { description: 'Mobile 工具栏 → views.list.headActionList（卡片模式）' },
     // ── fieldList / tabList / actionList / searchFieldList 项（表单与搜索嵌套）────
     'fieldList|key': { type: 'string', description: '字段 key，绑定 createItem/updateItem 属性', example: '"projectName"' },
     'fieldList|label': { type: 'string', description: '显示标签；section 时为分组标题' },
     'fieldList|type': {
         type: 'string',
-        description: 'text | number | select | date | textarea | custom | section | divider | tip',
+        description: 'text | number | select | autocomplete | date | textarea | custom | section | divider | tip',
     },
     'fieldList|required': { type: 'boolean', description: '必填' },
     'fieldList|readonly': { type: 'boolean', description: '只读' },
     'fieldList|disabled': { type: 'boolean', description: '禁用' },
-    'fieldList|options': { type: 'array | string', description: 'select 选项；字符串 `"constantObj.xxx"` → __expr__' },
+    'fieldList|options': {
+        type: 'array | string',
+        description: 'select/autocomplete 选项；字符串 `"constantObj.xxx"` → __expr__',
+    },
     'fieldList|placeholder': { type: 'string', description: '占位文字' },
     'fieldList|span': { type: 'number', description: 'grid 跨列；layout.create.variants 语义展开' },
     'fieldList|slot': { type: 'boolean', description: 'true 时走 slots.create|update 自定义插槽' },
@@ -1049,6 +1089,57 @@ function lookupDoc(word, ancestors, componentType) {
     return null;
 }
 exports.lookupDoc = lookupDoc;
+/** 向上解析「有文档的子属性列表」的父级路径，用于未知 key 提示。 */
+function resolveSiblingDocContext(ancestors) {
+    if (ancestors.length === 0)
+        return null;
+    const prefixes = [];
+    if (ancestors.includes('fields')) {
+        prefixes.push('fields');
+    }
+    for (let depth = 1; depth <= Math.min(ancestors.length, 4); depth++) {
+        prefixes.push(ancestors.slice(0, depth).reverse().join('|'));
+    }
+    const seen = new Set();
+    for (const prefix of prefixes) {
+        if (seen.has(prefix))
+            continue;
+        seen.add(prefix);
+        const siblings = collectChildren(prefix);
+        if (siblings.length > 0)
+            return { prefix, siblings };
+    }
+    return null;
+}
+exports.resolveSiblingDocContext = resolveSiblingDocContext;
+const levenshteinDistance = (a, b) => {
+    const rows = a.length + 1;
+    const cols = b.length + 1;
+    const matrix = Array.from({ length: rows }, () => Array(cols).fill(0));
+    for (let i = 0; i < rows; i++)
+        matrix[i][0] = i;
+    for (let j = 0; j < cols; j++)
+        matrix[0][j] = j;
+    for (let i = 1; i < rows; i++) {
+        for (let j = 1; j < cols; j++) {
+            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost);
+        }
+    }
+    return matrix[a.length][b.length];
+};
+function suggestSimilarKey(word, keys) {
+    let best = null;
+    for (const key of keys) {
+        const dist = levenshteinDistance(word, key);
+        if (dist > 3)
+            continue;
+        if (!best || dist < best.dist)
+            best = { key, dist };
+    }
+    return best?.key ?? null;
+}
+exports.suggestSimilarKey = suggestSimilarKey;
 const V7_DOC_LANGUAGES = [
     { scheme: 'file', language: 'javascript' },
     { scheme: 'file', language: 'javascriptreact' },
@@ -1241,6 +1332,18 @@ class V7ConfigHoverProvider {
             const effectiveAncestors = [...inlineAncestors, ...ancestors];
             doc = lookupDoc(word, effectiveAncestors, componentType);
             children = findChildren(word, effectiveAncestors, componentType);
+            if (!doc && isKeyHover) {
+                const siblingCtx = resolveSiblingDocContext(effectiveAncestors);
+                if (siblingCtx && !siblingCtx.siblings.some(item => item.key === word)) {
+                    const suggestion = suggestSimilarKey(word, siblingCtx.siblings.map(item => item.key));
+                    let description = `**不支持的属性。** \`${siblingCtx.prefix}\` 下没有 \`${word}\`。`;
+                    if (suggestion) {
+                        description += `\n\n你是否想写 \`${suggestion}\`？`;
+                    }
+                    doc = { description };
+                    children = siblingCtx.siblings;
+                }
+            }
         }
         if (!doc && children.length === 0)
             return null;

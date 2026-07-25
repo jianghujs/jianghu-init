@@ -16,6 +16,8 @@ const {
   V7_PATH_DOCS,
   lookupDoc,
   scanInlineObjectAncestors,
+  resolveSiblingDocContext,
+  suggestSimilarKey,
 } = require('../out/v7ConfigHoverProvider');
 Module._load = originalLoad;
 
@@ -74,10 +76,24 @@ for (const expected of [
 
 const ajv = new Ajv({ allErrors: true, strict: false, logger: false });
 addFormats(ajv);
+ajv.addSchema(require('../src/schemas/components/basic-types.schema.json'));
 ajv.addSchema(require('../src/schemas/components/resource-list.schema.json'));
 ajv.addSchema(require('../src/schemas/components/include-list.schema.json'));
 const validateV7 = ajv.compile(require('../src/schemas/v7/jianghu-config-v7.schema.json'));
 assert.strictEqual(validateV7(canonical), true, JSON.stringify(validateV7.errors));
+
+const pageWithUnknownKey = JSON.parse(JSON.stringify(canonical));
+pageWithUnknownKey.page.helpDocsss = true;
+assert.strictEqual(validateV7(pageWithUnknownKey), false, 'page unknown key must fail');
+assert.ok(
+  validateV7.errors.some(err => err.keyword === 'additionalProperties' && err.params.additionalProperty === 'helpDocsss'),
+  'page unknown key must surface additionalProperties',
+);
+
+const pageSiblingCtx = resolveSiblingDocContext(['page']);
+assert.ok(pageSiblingCtx, 'page sibling context must exist');
+assert.ok(pageSiblingCtx.siblings.some(item => item.key === 'helpDoc'), 'page docs must include helpDoc');
+assert.strictEqual(suggestSimilarKey('helpDocsss', pageSiblingCtx.siblings.map(item => item.key)), 'helpDoc');
 
 const missingLabel = JSON.parse(JSON.stringify(canonical));
 missingLabel.views.list.rowActionList = [{ uiAction: 'update' }];

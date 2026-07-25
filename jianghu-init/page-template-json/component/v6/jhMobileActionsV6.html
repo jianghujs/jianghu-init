@@ -1,8 +1,8 @@
 <!-- ─────────────────────────────────────────────────────────────────────
   jh-mobile-actions
 
-  移动端多按钮统一展示（首项平铺 + 其余三点菜单）：
-  · 列表顶栏 toolbarActions
+  移动端多按钮统一展示（首项平铺 + 其余三点底部 Sheet，对齐 Odoo Action）：
+  · 列表顶栏 toolbarActions / headActionList
   · jh-form-sheet 标题栏 headActionList
 
   props:
@@ -10,6 +10,7 @@
     initialData  Object 条件求值上下文（与 jh-form-sheet initialData 一致）
     scope        Object 条件求值上下文（页面 $data）
     resolveScope String 传给 resolveDoUiActionId 的 scope（FormSheet 标题栏用 'form'）
+    moreSheetTitle String 更多操作 Sheet 标题，默认「操作」
 
   events:
     @action(actionId)
@@ -27,37 +28,149 @@
       @click="emitAction(primaryAction)"
     >{{ actionLabel(primaryAction) }}</v-btn>
 
-    <v-menu v-if="moreActions.length" offset-y left>
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn fab x-small v-bind="attrs" v-on="on" aria-label="更多操作" outlined class="!rounded-xl px-2 border-gray-300">
-          <v-icon>mdi-dots-vertical</v-icon>
-        </v-btn>
-      </template>
-      <v-list dense>
-        <v-list-item
-          v-for="(action, idx) in moreActions"
-          :key="action.id || actionUiToken(action) || idx"
-          :disabled="isActionDisabled(action)"
-          @click="emitAction(action)"
-        >
-          <v-list-item-title :class="[(action.color || 'success') + '--text', isActionLoading(action) ? 'opacity-60' : '']">
-            <v-progress-circular
-              v-if="isActionLoading(action)"
-              indeterminate
-              size="14"
-              width="2"
-              class="mr-1"
-            ></v-progress-circular>
-            {{ actionLabel(action) }}
-          </v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+    <template v-if="moreActions.length">
+      <v-btn
+        fab
+        x-small
+        outlined
+        class="!rounded-xl px-2 border-gray-300"
+        aria-label="更多操作"
+        @click="openMoreSheet"
+      >
+        <v-icon>mdi-dots-vertical</v-icon>
+      </v-btn>
+
+      <v-bottom-sheet
+        v-model="isMoreSheetShown"
+        :z-index="moreSheetZIndex"
+      >
+        <v-card class="ma-0 w-full rounded-b-0 !rounded-t-xl border-none pb-4">
+          <div class="jh-mobile-actions-more-list flex flex-col gap-2 px-3 pt-4 pb-3 jh-safe-bottom">
+            <button
+              v-for="(action, idx) in moreActions"
+              :key="action.id || actionUiToken(action) || idx"
+              type="button"
+              class="jh-mobile-actions-more-item"
+              :class="{
+                'is-disabled': isActionDisabled(action),
+                'is-loading': isActionLoading(action),
+              }"
+              :disabled="isActionDisabled(action) || isActionLoading(action)"
+              :aria-label="actionLabel(action)"
+              @click="handleMoreAction(action)"
+            >
+              <span
+                class="jh-mobile-actions-more-icon"
+                :style="{ backgroundColor: resolveActionTint(action), color: resolveActionColor(action) }"
+              >
+                <v-progress-circular
+                  v-if="isActionLoading(action)"
+                  indeterminate
+                  size="18"
+                  width="2"
+                  :color="action.color || 'success'"
+                ></v-progress-circular>
+                <template v-else>
+                  <v-icon v-if="isMdiIcon(action.icon)" size="20" :color="action.color || 'success'">
+                    {{ action.icon }}
+                  </v-icon>
+                  <jh-icon
+                    v-else
+                    :name="resolveActionIcon(action)"
+                    :size="18"
+                    :style="{ color: resolveActionColor(action) }"
+                  ></jh-icon>
+                </template>
+              </span>
+              <span
+                class="jh-mobile-actions-more-label"
+                :style="{ color: resolveActionColor(action) }"
+              >{{ actionLabel(action) }}</span>
+              <jh-icon name="chevron-right" :size="16" class="jh-mobile-actions-more-chevron"></jh-icon>
+            </button>
+          </div>
+        </v-card>
+      </v-bottom-sheet>
+    </template>
   </div>
 </script>
 
+<style>
+.jh-mobile-actions-more-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 12px;
+  border: 1px solid #eef0f2;
+  border-radius: 12px;
+  background: #f8faf9;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.jh-mobile-actions-more-item:active:not(.is-disabled):not(.is-loading) {
+  background: #eef7f2;
+  border-color: #d7ebe0;
+  transform: scale(0.985);
+}
+.jh-mobile-actions-more-item.is-disabled,
+.jh-mobile-actions-more-item.is-loading {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.jh-mobile-actions-more-icon {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.jh-mobile-actions-more-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.jh-mobile-actions-more-chevron {
+  flex: 0 0 auto;
+  color: #c0c4c8;
+}
+</style>
+
 <script>
 (function () {
+  const COLOR_MAP = {
+    primary: 'var(--v-primary-base, #1976D2)',
+    success: 'var(--v-success-base, #4CAF50)',
+    error: 'var(--v-error-base, #F44336)',
+    warning: 'var(--v-warning-base, #FB8C00)',
+    info: 'var(--v-info-base, #2196F3)',
+  };
+  const TINT_MAP = {
+    primary: 'rgba(25, 118, 210, 0.10)',
+    success: 'rgba(76, 175, 80, 0.12)',
+    error: 'rgba(244, 67, 54, 0.10)',
+    warning: 'rgba(251, 140, 0, 0.12)',
+    info: 'rgba(33, 150, 243, 0.10)',
+  };
+  const ICON_MAP = {
+    update: 'pencil',
+    edit: 'pencil',
+    delete: 'trash',
+    remove: 'trash',
+    refresh: 'refresh',
+    getTableData: 'refresh',
+    create: 'plus',
+    startCreateItem: 'plus',
+    detail: 'eye',
+  };
+
   const MobileActions = {
     inheritAttrs: false,
     template: '#jh-mobile-actions-template',
@@ -67,6 +180,13 @@
       initialData: { type: Object, default: () => ({}) },
       scope: { type: Object, default: null },
       resolveScope: { type: String, default: '' },
+      moreSheetTitle: { type: String, default: '操作' },
+      moreSheetZIndex: { type: [Number, String], default: 360 },
+    },
+    data() {
+      return {
+        isMoreSheetShown: false,
+      };
     },
     computed: {
       normalizedActions() {
@@ -84,12 +204,40 @@
       actionLabel(action) {
         return (action && (action.label || action.text)) || '';
       },
+      actionToken(action) {
+        return this.actionUiToken(action) || (action && (action.id || action.uiAction)) || '';
+      },
+      isMdiIcon(icon) {
+        if (!icon) return false;
+        return String(icon).startsWith('mdi-') || String(icon).includes(':');
+      },
+      resolveActionIcon(action) {
+        if (action && action.icon && !this.isMdiIcon(action.icon)) return action.icon;
+        const token = this.actionToken(action);
+        return ICON_MAP[token] || 'point';
+      },
+      resolveActionColor(action) {
+        const c = (action && action.color) || 'success';
+        return COLOR_MAP[c] || c;
+      },
+      resolveActionTint(action) {
+        const c = (action && action.color) || 'success';
+        return TINT_MAP[c] || 'rgba(76, 175, 80, 0.10)';
+      },
+      openMoreSheet() {
+        this.isMoreSheetShown = true;
+      },
       emitAction(action) {
         if (!action || this.isActionDisabled(action) || this.isActionLoading(action)) return;
         const opts = this.resolveScope ? { scope: this.resolveScope } : undefined;
         const actionId = this.resolveDoUiActionId(action, null, opts);
         if (!actionId) return;
         this.$emit('action', actionId);
+      },
+      handleMoreAction(action) {
+        if (!action || this.isActionDisabled(action) || this.isActionLoading(action)) return;
+        this.isMoreSheetShown = false;
+        this.emitAction(action);
       },
     },
   };

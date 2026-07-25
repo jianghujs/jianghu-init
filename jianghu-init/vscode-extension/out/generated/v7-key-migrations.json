@@ -345,6 +345,10 @@
                 "to": "icon"
             },
             {
+                "from": "icon-name",
+                "to": "icon"
+            },
+            {
                 "from": "iconRight",
                 "to": "iconPosition"
             }

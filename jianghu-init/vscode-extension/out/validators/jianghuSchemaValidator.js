@@ -32,12 +32,13 @@ const ajv_1 = __importDefault(require("ajv"));
 const ajv_formats_1 = __importDefault(require("ajv-formats"));
 const ajv_errors_1 = __importDefault(require("ajv-errors"));
 const acorn = __importStar(require("acorn"));
-const walk = __importStar(require("acorn-walk"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 // 组合入口（v6 | legacy oneOf），供 $id 解析与文档工具
 const jianghu_config_schema_json_1 = __importDefault(require("../schemas/jianghu-config.schema.json"));
 const jianghu_config_legacy_schema_json_1 = __importDefault(require("../schemas/jianghu-config-legacy.schema.json"));
+// 子schema文件
+const basic_types_schema_json_1 = __importDefault(require("../schemas/components/basic-types.schema.json"));
 const include_list_schema_json_1 = __importDefault(require("../schemas/components/include-list.schema.json"));
 const resource_list_schema_json_1 = __importDefault(require("../schemas/components/resource-list.schema.json"));
 const v6_page_tree_schema_json_1 = __importDefault(require("../schemas/components/v6-page-tree.schema.json"));
@@ -172,12 +173,14 @@ class JianghuSchemaValidator {
         this.validateFn = this.ajv.compile(jianghu_config_legacy_schema_json_1.default);
         const ajvV6 = new ajv_1.default({ allErrors: true, strict: false, logger: false });
         (0, ajv_formats_1.default)(ajvV6);
+        ajvV6.addSchema(basic_types_schema_json_1.default);
         ajvV6.addSchema(v6_page_tree_schema_json_1.default);
         ajvV6.addSchema(resource_list_schema_json_1.default);
         ajvV6.addSchema(include_list_schema_json_1.default);
         this.validateV6Fn = ajvV6.compile(jianghu_config_v6_schema_json_1.default);
         const ajvV7 = new ajv_1.default({ allErrors: true, strict: false, logger: false });
         (0, ajv_formats_1.default)(ajvV7);
+        ajvV7.addSchema(basic_types_schema_json_1.default);
         ajvV7.addSchema(resource_list_schema_json_1.default);
         ajvV7.addSchema(include_list_schema_json_1.default);
         this.validateV7Fn = ajvV7.compile(jianghu_config_v7_schema_json_1.default);
@@ -436,7 +439,31 @@ class JianghuSchemaValidator {
         return /\/(page-template-json|init-json)\/.*\.js$/.test(filePath);
     }
     /**
-     * 从JS文件中提取模块导出的配置对象
+     * 安全求值配置对象字面量。
+     * 对象内可能引用文件顶层变量（如 html 模板），缺失时用 undefined 占位，避免整段解析失败。
+     */
+    evalConfigObjectLiteral(objectContent) {
+        try {
+            // eslint-disable-next-line no-eval
+            return eval(`(${objectContent})`);
+        }
+        catch {
+            const sandbox = new Proxy({}, {
+                has: () => true,
+                get: (_target, prop) => {
+                    if (prop === Symbol.unscopables) {
+                        return undefined;
+                    }
+                    return undefined;
+                },
+            });
+            // eslint-disable-next-line no-new-func
+            return Function('sandbox', `with (sandbox) { return (${objectContent}); }`)(sandbox);
+        }
+    }
+    /**
+     * 从JS文件中提取模块导出的配置对象。
+     * 只认顶层 `module.exports = ...`（或它引用的顶层变量），不把方法内的 `const map = {}` 当成配置根。
      */
     extractModuleExports(content) {
         try {
@@ -444,63 +471,72 @@ class JianghuSchemaValidator {
                 ecmaVersion: 2020,
                 sourceType: 'module'
             });
-            let configObject = null;
-            let location = null;
-            let variableName = null;
-            // 第一步：查找变量声明
-            walk.simple(ast, {
-                VariableDeclaration(node) {
-                    if (node.declarations.length === 1) {
-                        const declaration = node.declarations[0];
-                        if (declaration.init && declaration.init.type === 'ObjectExpression') {
-                            try {
-                                const objectContent = content.slice(declaration.init.start, declaration.init.end);
-                                configObject = eval(`(${objectContent})`);
-                                location = {
-                                    start: declaration.init.start,
-                                    end: declaration.init.end,
-                                    node: declaration.init
-                                };
-                                variableName = declaration.id.name;
-                            }
-                            catch (e) {
-                                console.error('解析变量对象失败:', e);
-                            }
+            const topLevelObjectVars = new Map();
+            // 只收集 Program 顶层的对象变量，忽略 methods/computed 内的局部对象
+            for (const node of ast.body) {
+                if (node.type !== 'VariableDeclaration' || node.declarations.length !== 1) {
+                    continue;
+                }
+                const declaration = node.declarations[0];
+                if (!declaration.id ||
+                    declaration.id.type !== 'Identifier' ||
+                    !declaration.init ||
+                    declaration.init.type !== 'ObjectExpression') {
+                    continue;
+                }
+                try {
+                    const objectContent = content.slice(declaration.init.start, declaration.init.end);
+                    topLevelObjectVars.set(declaration.id.name, {
+                        configObject: this.evalConfigObjectLiteral(objectContent),
+                        location: {
+                            start: declaration.init.start,
+                            end: declaration.init.end,
+                            node: declaration.init
                         }
+                    });
+                }
+                catch (e) {
+                    console.error('解析变量对象失败:', e);
+                }
+            }
+            // 只查找顶层 module.exports 赋值，避免误匹配嵌套代码
+            for (const node of ast.body) {
+                if (node.type !== 'ExpressionStatement' || node.expression.type !== 'AssignmentExpression') {
+                    continue;
+                }
+                const expr = node.expression;
+                if (expr.left.type !== 'MemberExpression' ||
+                    expr.left.object.type !== 'Identifier' ||
+                    expr.left.object.name !== 'module' ||
+                    expr.left.property.type !== 'Identifier' ||
+                    expr.left.property.name !== 'exports') {
+                    continue;
+                }
+                if (expr.right.type === 'ObjectExpression') {
+                    try {
+                        const objectContent = content.slice(expr.right.start, expr.right.end);
+                        return {
+                            configObject: this.evalConfigObjectLiteral(objectContent),
+                            location: {
+                                start: expr.right.start,
+                                end: expr.right.end,
+                                node: expr.right
+                            }
+                        };
+                    }
+                    catch (e) {
+                        console.error('解析导出对象失败:', e);
+                        return { configObject: null, location: null };
                     }
                 }
-            });
-            // 第二步：查找 module.exports 赋值
-            walk.simple(ast, {
-                AssignmentExpression(node) {
-                    if (node.left.type === 'MemberExpression' &&
-                        node.left.object.name === 'module' &&
-                        node.left.property.name === 'exports') {
-                        if (node.right.type === 'ObjectExpression') {
-                            // 直接赋值对象的情况
-                            try {
-                                const objectContent = content.slice(node.right.start, node.right.end);
-                                configObject = eval(`(${objectContent})`);
-                                location = {
-                                    start: node.right.start,
-                                    end: node.right.end,
-                                    node: node.right
-                                };
-                            }
-                            catch (e) {
-                                console.error('解析导出对象失败:', e);
-                            }
-                        }
-                        else if (node.right.type === 'Identifier' &&
-                            variableName &&
-                            node.right.name === variableName) {
-                            // 使用已定义变量的情况
-                            // 此时 configObject 和 location 已经在第一步中设置
-                        }
+                if (expr.right.type === 'Identifier') {
+                    const exported = topLevelObjectVars.get(expr.right.name);
+                    if (exported) {
+                        return exported;
                     }
                 }
-            });
-            return { configObject, location };
+            }
+            return { configObject: null, location: null };
         }
         catch (error) {
             console.error('解析JS文件失败:', error);

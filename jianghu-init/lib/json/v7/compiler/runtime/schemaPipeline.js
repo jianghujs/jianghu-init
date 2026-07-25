@@ -926,6 +926,12 @@ function parseSchema(schema, options = {}) {
   const createFields = (
     (createFormConfig && (createFormConfig.fieldList || createFormConfig.fields)) || []
   );
+  const createFormDefaults = {};
+  createFields.forEach(f => {
+    if (f && f.key != null && f.default !== undefined) {
+      createFormDefaults[f.key] = f.default;
+    }
+  });
   const autoIdField  = createFields.find(f => f.autoId);
   const autoId       = autoIdField ? {
     type:       autoIdField.autoId.type || 'idSequence',
@@ -1018,6 +1024,8 @@ function parseSchema(schema, options = {}) {
       forms: {
         create: createFormConfig,
         update: updateFormConfig,
+        /** fields.*.form.default → prepareCreateFormData 初值 */
+        createDefaults: createFormDefaults,
       },
     },
     common: common,

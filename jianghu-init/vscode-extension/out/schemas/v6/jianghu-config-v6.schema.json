@@ -143,6 +143,8 @@
         "includeList": {
             "$ref": "../components/include-list.schema.json#/definitions/includeListArray"
         },
-        "style": {}
+        "style": {
+            "$ref": "../components/basic-types.schema.json#/definitions/style"
+        }
     }
 }

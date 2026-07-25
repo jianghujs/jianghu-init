@@ -381,6 +381,7 @@
                 "text": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "label" },
                 "icon": { "type": "string" },
                 "iconName": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "icon" },
+                "icon-name": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "icon" },
                 "iconPosition": { "type": "string", "enum": ["left", "right"] },
                 "iconRight": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "iconPosition" },
                 "alignSub": { "type": "boolean", "x-jianghu-deprecated": true, "x-jianghu-replacement": "固定组件样式" }
@@ -640,12 +641,12 @@
                 "label": { "type": "string", "minLength": 1 },
                 "type": {
                     "type": "string",
-                    "enum": ["text", "select", "date", "number", "textarea", "custom", "section", "divider", "tip"]
+                    "enum": ["text", "select", "autocomplete", "date", "number", "textarea", "custom", "section", "divider", "tip"]
                 },
                 "required": { "type": "boolean" },
                 "readonly": { "type": "boolean" },
                 "options": {
-                    "description": "select 下拉：静态数组，或状态路径字符串（编译为 __expr__ → NJK options:变量路径）"
+                    "description": "select/autocomplete 选项：静态数组，或状态路径字符串（编译为 __expr__ → NJK options:变量路径）"
                 },
                 "placeholder": { "type": "string" },
                 "hint": { "type": "string" },

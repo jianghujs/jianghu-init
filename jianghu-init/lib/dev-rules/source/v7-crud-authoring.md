@@ -56,22 +56,23 @@ title: V7 CRUD Authoring
 
 ## mobileItemAction（mobile List 专用）
 
-控制移动端 `jh-list` item 行的点击行为，**仅 mobile List 生效，PC Table 忽略**。
+控制移动端 `jh-list` item **整行点击**（PC Table 忽略）。
 
 | 值 | 行为 |
 |---|---|
-| `'sheet'`（默认） | 点击 item 弹出中继 ActionSheet，展示 rowActionList |
-| `false` 或 `'none'` | item 整行点击不响应；不影响 `action` slot / 右侧操作区渲染 |
-| 其他字符串 | 跳过中继弹窗，直接 `doUiAction(mobileItemAction, item)` |
+| **省略** 或 **`'sheet'`** | **组件内置预设**：弹出 ActionSheet 展示 `rowActionList`（**不是** doUiAction case） |
+| **`false`** / **`'none'`** | 整行点击不响应；`action` slot / 右侧操作区仍可用 |
+| **其他字符串** | **`doUiAction` 方法名**，如 `'viewDetail'` → `doUiAction('viewDetail', item)`，跳过 ActionSheet |
 
 ```js
 views: {
   list: {
     rowActionList: [{ uiAction: 'update', label: '编辑' }, { uiAction: 'delete', label: '删除' }],
-    mobileItemAction: false,          // 关闭 item 整行点击；自定义 action slot 仍可独立触发
-    // mobileItemAction: 'viewDetail', // 点击直接触发 doUiAction('viewDetail', item)
+    // 默认省略即可，等价 sheet 预设
+    mobileItemAction: false,
+    // mobileItemAction: 'viewDetail',
   },
-}
+},
 ```
 
 ## Sheet 叠层行为（仅 Sheet，不含 Drawer）

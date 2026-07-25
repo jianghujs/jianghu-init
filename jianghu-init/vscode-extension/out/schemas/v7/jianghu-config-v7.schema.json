@@ -79,6 +79,9 @@
         "includeList": {
             "$ref": "../components/include-list.schema.json#/definitions/includeListArray"
         },
+        "style": {
+            "$ref": "../components/basic-types.schema.json#/definitions/style"
+        },
         "resourceList": {
             "$ref": "../components/resource-list.schema.json#/definitions/resourceListArray"
         },
@@ -143,11 +146,12 @@
     "definitions": {
         "pageMeta": {
             "type": "object",
-            "additionalProperties": true,
+            "additionalProperties": false,
             "required": ["id"],
             "properties": {
                 "id": { "type": "string", "minLength": 1 },
                 "name": { "type": "string" },
+                "title": { "type": "string", "description": "页面标题（可选，覆盖 name）" },
                 "hook": {},
                 "menu": {
                     "description": "false=无顶栏；true/省略→jh-menu；字符串=自定义 kebab-case 组件名",
@@ -265,7 +269,7 @@
                 "label": { "type": "string" },
                 "type": {
                     "type": "string",
-                    "enum": ["text", "select", "number", "textarea", "date", "custom", "section", "divider", "tip"]
+                    "enum": ["text", "select", "autocomplete", "number", "textarea", "date", "custom", "section", "divider", "tip"]
                 },
                 "column": { "$ref": "#/definitions/fieldColumnConfig" },
                 "search": { "$ref": "#/definitions/fieldSearchConfig" },
@@ -397,14 +401,21 @@
                 "selectable": { "type": "boolean" },
                 "layout": {
                     "type": "object",
+                    "x-jianghu-deprecated": true,
+                    "x-jianghu-replacement": "platform.pc.list / platform.mobile.list（或 layout 字符串 token Table|List）",
+                    "description": "遗留兜底：list 呈现模式 table|card。新配置请写 platform.[pc|mobile].list，勿再使用",
                     "properties": {
-                        "type": { "type": "string", "enum": ["table", "card"] }
+                        "type": {
+                            "type": "string",
+                            "enum": ["table", "card"]
+                        }
                     }
                 },
+                "tableKey": { "type": "string", "description": "列表 block key，默认 mainTable" },
                 "mobileSearchTitle": { "type": "string", "x-jianghu-deprecated": true, "x-jianghu-replacement": "search.mobileSheet.title" },
                 "searchSheet": { "$ref": "#/definitions/sheetOverlay", "x-jianghu-deprecated": true, "x-jianghu-replacement": "search.mobileSheet" },
                 "mobileItemAction": {
-                    "description": "移动端 jh-list item 行点击行为（PC Table 忽略）：'sheet'（默认，弹中继 ActionSheet）| false | 'none'（不响应）| 其他字符串（直接触发对应 doUiAction，跳过中继弹窗）",
+                    "description": "Mobile List item 整行点击。省略或 'sheet'=内置 ActionSheet 预设（非 doUiAction）；false|'none'=不响应；其他字符串=doUiAction 方法名",
                     "oneOf": [
                         { "type": "boolean", "enum": [false] },
                         { "type": "string" }

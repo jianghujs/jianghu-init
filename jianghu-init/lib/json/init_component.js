@@ -100,20 +100,47 @@ module.exports = class InitComponent extends CommandBase {
       throw new Error('jh-component: componentPath 未设置，请配置 component.path 或 componentPath');
     }
     const tableCamelCase = _.camelCase(table);
-    const filepath = `./app/view/component/${componentPath}.html`;
 
-    const componentList = this.getConfigComponentList(jsonConfig);
-    const htmlGenerate = nunjucksEnv.render(templateTargetPath, Object.assign({ tableCamelCase }, jsonConfig, { componentList }));
-    console.log('componentPath', componentPath);
-    // fs.writeFileSync(filepath, htmlUser);
-    const componentPathArr = componentPath.split('/');
-    if (componentPathArr.length > 1) {
-      const componentDir = componentPathArr.slice(0, componentPathArr.length - 1).join('/');
-      fs.mkdirSync(`./app/view/component/${componentDir}`, { recursive: true });
+    const renderComponent = (renderConfig, outputComponentPath) => {
+      const componentList = this.getConfigComponentList(renderConfig);
+      const htmlGenerate = nunjucksEnv.render(
+        templateTargetPath,
+        Object.assign({ tableCamelCase }, renderConfig, {
+          componentList,
+          componentPath: outputComponentPath,
+        }),
+      );
+      const filepath = `./app/view/component/${outputComponentPath}.html`;
+      const componentPathArr = outputComponentPath.split('/');
+      if (componentPathArr.length > 1) {
+        const componentDir = componentPathArr.slice(0, componentPathArr.length - 1).join('/');
+        fs.mkdirSync(`./app/view/component/${componentDir}`, { recursive: true });
+      }
+      fs.writeFileSync(filepath, htmlGenerate);
+      console.log('componentPath', outputComponentPath);
+    };
+
+    renderComponent(jsonConfig, componentPath);
+
+    if (jsonConfig.mobileStandardConfig) {
+      const mobileComponentPath = componentPath.startsWith('mobile/')
+        ? componentPath
+        : `mobile/${componentPath}`;
+      const mobileRenderConfig = Object.assign(
+        {},
+        jsonConfig,
+        jsonConfig.mobileLegacyConfig || {},
+        {
+          componentPath,
+          standardConfig: jsonConfig.mobileStandardConfig,
+          mobileStandardConfig: null,
+          mobileLegacyConfig: null,
+          basicUiActionConfig:
+            jsonConfig.mobileBasicUiActionConfig || jsonConfig.basicUiActionConfig,
+        },
+      );
+      renderComponent(mobileRenderConfig, mobileComponentPath);
     }
-
-    // fs.writeFileSync(filepath, htmlUser);
-    fs.writeFileSync(filepath, htmlGenerate);
     return true;
   }
 

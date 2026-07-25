@@ -3,7 +3,6 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import addErrors from 'ajv-errors';
 import * as acorn from 'acorn';
-import * as walk from 'acorn-walk';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -179,6 +178,7 @@ export class JianghuSchemaValidator {
 
     const ajvV6 = new Ajv({ allErrors: true, strict: false, logger: false });
     addFormats(ajvV6);
+    ajvV6.addSchema(basicTypesSchema);
     ajvV6.addSchema(v6PageTreeSchema);
     ajvV6.addSchema(resourceListSchema);
     ajvV6.addSchema(includeListSchema);
@@ -186,6 +186,7 @@ export class JianghuSchemaValidator {
 
     const ajvV7 = new Ajv({ allErrors: true, strict: false, logger: false });
     addFormats(ajvV7);
+    ajvV7.addSchema(basicTypesSchema);
     ajvV7.addSchema(resourceListSchema);
     ajvV7.addSchema(includeListSchema);
     this.validateV7Fn = ajvV7.compile(v7Schema);
@@ -271,6 +272,7 @@ export class JianghuSchemaValidator {
       const deprecatedDiagnostics = isV7
         ? this.createDeprecatedDiagnostics(document, collectV7DeprecatedKeys(configObject), location)
         : [];
+
       if (!valid && validateFn.errors) {
         let errors = validateFn.errors;
         if (isV7) {
@@ -476,76 +478,115 @@ export class JianghuSchemaValidator {
   }
 
   /**
-   * 从JS文件中提取模块导出的配置对象
+   * 安全求值配置对象字面量。
+   * 对象内可能引用文件顶层变量（如 html 模板），缺失时用 undefined 占位，避免整段解析失败。
+   */
+  private evalConfigObjectLiteral(objectContent: string): any {
+    try {
+      // eslint-disable-next-line no-eval
+      return eval(`(${objectContent})`);
+    } catch {
+      const sandbox = new Proxy(
+        {},
+        {
+          has: () => true,
+          get: (_target, prop) => {
+            if (prop === Symbol.unscopables) {
+              return undefined;
+            }
+            return undefined;
+          },
+        }
+      );
+      // eslint-disable-next-line no-new-func
+      return Function('sandbox', `with (sandbox) { return (${objectContent}); }`)(sandbox);
+    }
+  }
+
+  /**
+   * 从JS文件中提取模块导出的配置对象。
+   * 只认顶层 `module.exports = ...`（或它引用的顶层变量），不把方法内的 `const map = {}` 当成配置根。
    */
   private extractModuleExports(content: string): { configObject: any, location: any } {
     try {
-      const ast = acorn.parse(content, {
+      const ast: any = acorn.parse(content, {
         ecmaVersion: 2020,
         sourceType: 'module'
       });
 
-      let configObject = null;
-      let location = null;
-      let variableName: string | null = null;
+      const topLevelObjectVars = new Map<string, { configObject: any, location: any }>();
 
-      // 第一步：查找变量声明
-      walk.simple(ast, {
-        VariableDeclaration(node: any) {
-          if (node.declarations.length === 1) {
-            const declaration = node.declarations[0];
-            if (declaration.init && declaration.init.type === 'ObjectExpression') {
-              try {
-                const objectContent = content.slice(declaration.init.start, declaration.init.end);
-                configObject = eval(`(${objectContent})`);
-                location = {
-                  start: declaration.init.start,
-                  end: declaration.init.end,
-                  node: declaration.init
-                };
-                variableName = declaration.id.name;
-              } catch (e) {
-                console.error('解析变量对象失败:', e);
-              }
+      // 只收集 Program 顶层的对象变量，忽略 methods/computed 内的局部对象
+      for (const node of ast.body) {
+        if (node.type !== 'VariableDeclaration' || node.declarations.length !== 1) {
+          continue;
+        }
+        const declaration = node.declarations[0];
+        if (
+          !declaration.id ||
+          declaration.id.type !== 'Identifier' ||
+          !declaration.init ||
+          declaration.init.type !== 'ObjectExpression'
+        ) {
+          continue;
+        }
+        try {
+          const objectContent = content.slice(declaration.init.start, declaration.init.end);
+          topLevelObjectVars.set(declaration.id.name, {
+            configObject: this.evalConfigObjectLiteral(objectContent),
+            location: {
+              start: declaration.init.start,
+              end: declaration.init.end,
+              node: declaration.init
             }
+          });
+        } catch (e) {
+          console.error('解析变量对象失败:', e);
+        }
+      }
+
+      // 只查找顶层 module.exports 赋值，避免误匹配嵌套代码
+      for (const node of ast.body) {
+        if (node.type !== 'ExpressionStatement' || node.expression.type !== 'AssignmentExpression') {
+          continue;
+        }
+        const expr = node.expression;
+        if (
+          expr.left.type !== 'MemberExpression' ||
+          expr.left.object.type !== 'Identifier' ||
+          expr.left.object.name !== 'module' ||
+          expr.left.property.type !== 'Identifier' ||
+          expr.left.property.name !== 'exports'
+        ) {
+          continue;
+        }
+
+        if (expr.right.type === 'ObjectExpression') {
+          try {
+            const objectContent = content.slice(expr.right.start, expr.right.end);
+            return {
+              configObject: this.evalConfigObjectLiteral(objectContent),
+              location: {
+                start: expr.right.start,
+                end: expr.right.end,
+                node: expr.right
+              }
+            };
+          } catch (e) {
+            console.error('解析导出对象失败:', e);
+            return { configObject: null, location: null };
           }
         }
-      });
 
-      // 第二步：查找 module.exports 赋值
-      walk.simple(ast, {
-        AssignmentExpression(node: any) {
-          if (
-            node.left.type === 'MemberExpression' &&
-            node.left.object.name === 'module' &&
-            node.left.property.name === 'exports'
-          ) {
-            if (node.right.type === 'ObjectExpression') {
-              // 直接赋值对象的情况
-              try {
-                const objectContent = content.slice(node.right.start, node.right.end);
-                configObject = eval(`(${objectContent})`);
-                location = {
-                  start: node.right.start,
-                  end: node.right.end,
-                  node: node.right
-                };
-              } catch (e) {
-                console.error('解析导出对象失败:', e);
-              }
-            } else if (
-              node.right.type === 'Identifier' &&
-              variableName &&
-              node.right.name === variableName
-            ) {
-              // 使用已定义变量的情况
-              // 此时 configObject 和 location 已经在第一步中设置
-            }
+        if (expr.right.type === 'Identifier') {
+          const exported = topLevelObjectVars.get(expr.right.name);
+          if (exported) {
+            return exported;
           }
         }
-      });
+      }
 
-      return { configObject, location };
+      return { configObject: null, location: null };
     } catch (error) {
       console.error('解析JS文件失败:', error);
       return { configObject: null, location: null };

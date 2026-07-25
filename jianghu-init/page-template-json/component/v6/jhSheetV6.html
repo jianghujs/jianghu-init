@@ -160,7 +160,6 @@ Vue.component('jh-sheet-menu-grid', {
     :attach="attachTarget"
     :persistent="persistent"
     :z-index="stackZIndex"
-    :lazy="lazy"
     v-bind="bottomSheetAttrs"
   >
     <v-card :class="mergedCardClass" class="border-none !rounded-t-lg bottom-sheet-card">
@@ -239,7 +238,6 @@ Vue.component("jh-sheet", {
     shown:        { type: Boolean, default: null },
     stackZIndex:  { type: [Number, String], default: 340 },
     attach:       { type: [Boolean, String], default: false },
-    lazy:         { type: Boolean, default: false },
     title:        { type: String,  default: "" },
     // 标题栏按钮（与 FormSheet / Drawer 统一）
     actionList:   { type: Array,   default: () => [] },
@@ -421,10 +419,10 @@ Vue.component("jh-sheet", {
         <jh-form
           class="overflow-hidden overflow-y-auto pb-4"
           :style="formScrollStyle"
-          :ref="_formRefName(tab)"
+          :ref="formRefName(tab)"
           :field-list="tab.fieldList"
           :initialData="initialData"
-          :origin-data="_originSnapshot"
+          :origin-data="originSnapshot"
           :cols="tab.cols"
           :gap="tab.gap"
           :label-mode="tab.labelMode"
@@ -445,10 +443,10 @@ Vue.component("jh-sheet", {
       v-else
       class="overflow-hidden overflow-y-auto pb-4"
       :style="formScrollStyle"
-      :ref="_formRefName(resolvedTabList[0])"
+      :ref="formRefName(resolvedTabList[0])"
       :field-list="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
       :initialData="initialData"
-      :origin-data="_originSnapshot"
+      :origin-data="originSnapshot"
       :cols="resolvedTabList[0] ? resolvedTabList[0].cols : cols"
       :gap="resolvedTabList[0] ? resolvedTabList[0].gap : gap"
       :label-mode="resolvedTabList[0] ? resolvedTabList[0].labelMode : labelMode"
@@ -513,14 +511,14 @@ Vue.component("jh-form-sheet", {
   data() {
     return {
       activeTab: 0,
-      _originSnapshot: {},
+      originSnapshot: {},
       _isHandlingClose: false,
     };
   },
   watch: {
     resolvedValue(val, oldVal) {
       if (val && !oldVal) {
-        this._originSnapshot = _.cloneDeep(this.initialData || {});
+        this.originSnapshot = _.cloneDeep(this.initialData || {});
         this.activeTab = 0;
       }
     },
@@ -640,7 +638,7 @@ Vue.component("jh-form-sheet", {
       const keys = this.getCurrentTabFieldKeys();
       if (!keys.length) return true;
       const current = this.pickItemByKeys(this.initialData || {}, keys);
-      const origin = this.pickItemByKeys(this._originSnapshot || {}, keys);
+      const origin = this.pickItemByKeys(this.originSnapshot || {}, keys);
       if (JSON.stringify(current) === JSON.stringify(origin)) return true;
       if (!window.jhConfirmDialog) return true;
       const res = await window.jhConfirmDialog({
@@ -698,14 +696,14 @@ Vue.component("jh-form-sheet", {
       if (!str) return '';
       return str.charAt(0).toUpperCase() + str.slice(1);
     },
-    _formRefName(tab) {
+    formRefName(tab) {
       const prefix = this.formKey || '';
       const tabSuffix = (tab && tab.key && tab.key !== 'default') ? this._capitalize(tab.key) : '';
       return prefix + tabSuffix + 'Form';
     },
     getActiveFormRef() {
       const tab = this.resolvedTabList[this.activeTab] || this.resolvedTabList[0];
-      const refName = this._formRefName(tab);
+      const refName = this.formRefName(tab);
       const ref = this.$refs[refName];
       return Array.isArray(ref) ? ref[0] : ref;
     },

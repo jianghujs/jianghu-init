@@ -13,7 +13,7 @@
       fields      Array   字段配置列表，每项支持以下属性（formItem 规范）：
                     key          String   字段 key（必填，结构性 type 可用 label 代替）
                     label        String   显示标签
-                    type         String   'text'|'number'|'select'|'textarea'|'date'|'custom'
+                    type         String   'text'|'number'|'select'|'autocomplete'|'textarea'|'date'|'custom'
                                           结构性（不绑定数据）：
                                             'section'  分组标题，渲染一行标题文字
                                             'divider'  水平分割线
@@ -26,7 +26,10 @@
                                           · 省略 + required:true → 自动生成非空校验
                     disabled     Boolean  禁用
                     readonly     Boolean  只读
-                    options      Array/String  下拉选项（type='select'）
+                    options      Array/String  下拉选项（type='select'|'autocomplete'）
+                                          · Array：直接使用
+                                          · String 路径：从 scope 解析，如 "courseList" / "constantObj.xxx"
+                                          · 也可写 attrs[':items']='courseList'（运行时解析）
                     placeholder  String   输入框 placeholder
                     hint         String   输入框下方提示文字
                     html         String   type='tip' 时的 HTML 内容
@@ -40,6 +43,7 @@
                     ── Vuetify 组件透传（不影响 jh-form 内部逻辑）──
                     attrs        Object   键值型 Vuetify prop，直接透传给底层组件
                                           例：{ "item-text": "netName", "item-value": "memberId" }
+                                          · 以 ":" 开头的键视为 scope 路径绑定，如 { ":loading": "isLoading" }
                     quickAttrs   Array|String  布尔型 Vuetify prop（无需写 true），
                                           支持数组 ["clearable","small-chips"] 或空格字符串 "clearable small-chips"
       initialData Object  表单当前值，外部变更自动同步到本地 formData
@@ -177,7 +181,7 @@
   box-sizing: border-box;
 }
 .jh-form--inline .jh-form-inline-row.is-bordered {
-  border-bottom: 1px solid #eee;
+  border-top: 1px solid #eee;
 }
 .jh-form--inline .jh-form-inline-label {
   max-width: 120px;
@@ -361,12 +365,34 @@ Vue.component('jh-input-label', {
             :readonly="field.readonly"
             dense single-line filled
             :class="fieldInputClass(field)"
-            @change="handleChange(field.key, formData[field.key])"
+            @change="handleChange(field.key, $event)"
           >
             <template v-if="labelMode === 'float' && isFieldChanged(field.key)" v-slot:append-outer>
               <jh-field-change-dot></jh-field-change-dot>
             </template>
           </v-select>
+
+          <!-- ── autocomplete（可搜索长列表）── -->
+          <v-autocomplete
+            v-else-if="field.type === 'autocomplete'"
+            v-model="formData[field.key]"
+            v-bind="field.extraAttrs"
+            :label="fieldInputLabel(field)"
+            :placeholder="field.placeholder"
+            :hint="field.hint"
+            :persistent-hint="!!field.hint"
+            :items="field.options || []"
+            :rules="field.rules"
+            :disabled="field.disabled"
+            :readonly="field.readonly"
+            dense single-line filled
+            :class="fieldInputClass(field)"
+            @change="handleChange(field.key, $event)"
+          >
+            <template v-if="labelMode === 'float' && isFieldChanged(field.key)" v-slot:append-outer>
+              <jh-field-change-dot></jh-field-change-dot>
+            </template>
+          </v-autocomplete>
 
           <!-- ── textarea ── -->
           <v-textarea
@@ -580,11 +606,12 @@ Vue.component('jh-form', {
         }
 
         const type =
-          field.type === 'select'   ? 'select'   :
-          field.type === 'date'     ? 'date'     :
-          field.type === 'textarea' ? 'textarea' :
-          field.type === 'number'   ? 'number'   :
-          field.type === 'custom'   ? 'custom'   : 'text';
+          field.type === 'select'       ? 'select'       :
+          field.type === 'autocomplete' ? 'autocomplete' :
+          field.type === 'date'         ? 'date'         :
+          field.type === 'textarea'     ? 'textarea'     :
+          field.type === 'number'       ? 'number'       :
+          field.type === 'custom'       ? 'custom'       : 'text';
 
         const required = !!field.required;
 
@@ -600,32 +627,44 @@ Vue.component('jh-form', {
               ? [v => (v !== null && v !== undefined && v !== '') || `${field.label || field.key || '此字段'} 不能为空`]
               : [];
 
-        // options 支持三种写法：
+        // options 支持：
         //   Array          → 直接使用
         //   String 路径    → _resolveByPath 解析（支持 $root. 前缀）
-        //   attrs.items    → 向下兼容旧格式
-        const options = Array.isArray(field.options)
+        //   attrs[':items'] / attrs.items → 兼容旧格式
+        let options = Array.isArray(field.options)
           ? field.options
           : typeof field.options === 'string' && field.options
             ? this._resolveByPath(field.options) || []
-            : (field.attrs && field.attrs.items) || [];
+            : [];
+        if ((!options || !options.length) && field.attrs) {
+          const itemsPath = field.attrs[':items'] != null ? field.attrs[':items'] : field.attrs.items;
+          if (typeof itemsPath === 'string' && itemsPath) {
+            options = this._resolveByPath(itemsPath) || [];
+          } else if (Array.isArray(itemsPath)) {
+            options = itemsPath;
+          }
+        }
 
-        const disabled = (field.disabled || !!(field.attrs && field.attrs.disabled))
+        const hasQuickAttr = (qa, name) => {
+          if (Array.isArray(qa)) return qa.map(a => String(a).trim()).includes(name);
+          if (typeof qa === 'string' && qa.trim()) return qa.trim().split(/\s+/).includes(name);
+          return false;
+        };
+        const disabled = (field.disabled
+          || !!(field.attrs && field.attrs.disabled)
+          || hasQuickAttr(field.quickAttrs, 'disabled'))
           || this.evaluateWhen(field.disabledWhen, false);
-        const readonly = (field.readonly || !!(field.attrs && field.attrs.readonly))
+        const readonly = (field.readonly
+          || !!(field.attrs && field.attrs.readonly)
+          || hasQuickAttr(field.quickAttrs, 'readonly'))
           || this.evaluateWhen(field.readonlyWhen, false);
         const visible = this.evaluateWhen(field.visibleWhen, true);
 
         // extraAttrs：透传给底层 Vuetify 组件（v-bind，放在显式绑定前，低优先级）
         //   attrs      → 键值型 Vuetify prop，如 { "item-text": "netName" }
+        //   attrs[':x'] → 运行时从 scope 解析路径（如 { ":loading": "isLoading" }）
         //   quickAttrs → 布尔型，支持数组 ["clearable"] 或空格字符串 "clearable small-chips"
-        const extraAttrs = Object.assign({}, field.attrs || {});
-        const qa = field.quickAttrs;
-        if (Array.isArray(qa)) {
-          qa.forEach(a => { if (a) extraAttrs[String(a).trim()] = true; });
-        } else if (typeof qa === 'string' && qa.trim()) {
-          qa.trim().split(/\s+/).forEach(a => { extraAttrs[a] = true; });
-        }
+        const extraAttrs = this.resolveExtraAttrs(field.attrs, field.quickAttrs);
 
         const placeholder = field.placeholder || (this.isInlineLayout
           ? this.resolveInlinePlaceholder(field, type, disabled, readonly)
@@ -658,6 +697,33 @@ Vue.component('jh-form', {
     },
   },
   methods: {
+    /**
+     * 解析 attrs / quickAttrs → 可 v-bind 的对象。
+     * 以 ":" 开头的键视为 scope 路径绑定；items 由 field.options 承担，不重复透传。
+     */
+    resolveExtraAttrs(rawAttrs, quickAttrs) {
+      const extraAttrs = {};
+      const src = rawAttrs && typeof rawAttrs === 'object' ? rawAttrs : {};
+      Object.keys(src).forEach((key) => {
+        if (!key || key === 'items' || key === ':items') return;
+        const val = src[key];
+        if (key.charAt(0) === ':') {
+          const prop = key.slice(1);
+          if (!prop || prop === 'items') return;
+          extraAttrs[prop] = typeof val === 'string' ? this._resolveByPath(val) : val;
+          return;
+        }
+        if (key.charAt(0) === '@') return;
+        extraAttrs[key] = val;
+      });
+      const qa = quickAttrs;
+      if (Array.isArray(qa)) {
+        qa.forEach(a => { if (a) extraAttrs[String(a).trim()] = true; });
+      } else if (typeof qa === 'string' && qa.trim()) {
+        qa.trim().split(/\s+/).forEach(a => { extraAttrs[a] = true; });
+      }
+      return extraAttrs;
+    },
     fieldInputLabel(field) {
       if (this.isInlineLayout || this.labelMode === 'above') return '';
       return field.label || '';
@@ -688,8 +754,8 @@ Vue.component('jh-form', {
         if (prev.visible === false) continue;
         return true;
       }
-      // 第一项也需底部分隔线（否则第一、二行之间无线）
-      return true;
+      // 隐式首组的第一个可见字段不需要顶部分隔线
+      return false;
     },
     textareaBindAttrs(field) {
       const raw = Object.assign({}, (field && field.extraAttrs) || {});
@@ -712,7 +778,19 @@ Vue.component('jh-form', {
     _resolveByPath(path) {
       if (!path || typeof path !== 'string') return undefined;
       const raw = path.startsWith('$root.') ? path.slice(6) : path;
-      const root = (this.scope && typeof this.scope === 'object') ? this.scope : (this.$parent || {});
+      let root = this.scope;
+      if (!root || typeof root !== 'object') {
+        // 未显式传 scope 时，向上找到页面根（带 pageId / doUiAction）
+        let p = this.$parent;
+        while (p) {
+          if (p.pageId != null || typeof p.doUiAction === 'function') {
+            root = p;
+            break;
+          }
+          p = p.$parent;
+        }
+        root = root || this.$parent || {};
+      }
       return raw.split('.').reduce((o, k) => (o != null ? o[k] : undefined), root);
     },
     _interactionContext() {
@@ -730,7 +808,7 @@ Vue.component('jh-form', {
       if (!field || !field.label || disabled || readonly) return '';
       const plain = String(field.label).replace(/（.*）|\(.*\)|{{.*}}/g, '').replace(/<.*?>/g, '').trim();
       if (!plain) return '';
-      const prefix = type === 'select' ? '请选择' : '请输入';
+      const prefix = (type === 'select' || type === 'autocomplete' || type === 'date') ? '请选择' : '请输入';
       return prefix + plain;
     },
     handleChange(key, value) {

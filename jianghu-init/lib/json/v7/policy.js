@@ -259,11 +259,12 @@ const applyPageContentFlexLayout = (payload, { rootHeightClass = 'h-full' } = {}
       } else if (node.component === 'Table') {
         mergeNodeClass(node, 'flex-1 min-h-0 min-w-0 flex flex-col');
       } else if (node.component === 'HStack' && node !== root) {
-        // 顶栏 pageHeader / composeToolbar：flex-none，禁止与 Table 平分高度（勿加 Tailwind `flex`，其为 flex:1 1 0%）
-        if (hasFlexNoneOrShrink(node) || !containsListDescendant(node)) {
+        // 顶栏 pageHeader / composeToolbar：flex-none，禁止与 Table/List 平分高度（勿加 Tailwind `flex`，其为 flex:1 1 0%）
+        // 注意：必须同时识别 Table 与 List；仅判断 List 时 PC 树表行会误标 flex-none，表格无法靠 flex 撑满
+        if (hasFlexNoneOrShrink(node) || !containsCollectionComponent(node)) {
           mergeNodeClass(node, 'flex-none min-w-0');
         } else {
-          // 树表等：HStack 行容器包住 List，需占满剩余高度
+          // 树表等：HStack 行容器包住 Table/List，需占满剩余高度
           mergeNodeClass(node, 'flex-1 min-h-0 min-w-0');
         }
       } else if (node.component === 'Box') {
@@ -321,6 +322,7 @@ module.exports = {
   adaptCrudPagePc,
   adaptCrudPageMobile,
   adaptCrudComponent,
+  applyMobilePageFlexLayout,
   TOKEN_MAP,
   expandPlatformToken,
   DEFAULT_POLICY,

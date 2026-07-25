@@ -63,7 +63,7 @@ const VIEWS_LIST_TO_PROPS = {
   'views.list.search': 'Search / SearchSheet via fieldList + keywordConfig',
   'views.list.filter|filters': 'Table.filterList → jh-table-filter (PC only)',
   'views.list.search.mobileSheet': 'SearchSheet props.persistent|maxBodyHeight|bodyHeightMode',
-  'views.list.mobileItemAction': 'props.mobileItemAction (mobile List only)：\'sheet\'|false|\'none\'|doUiAction 名',
+  'views.list.mobileItemAction': 'props.mobileItemAction (mobile List)：省略|sheet=ActionSheet 预设；false|none=禁用；其他=doUiAction 方法名',
 };
 
 /**

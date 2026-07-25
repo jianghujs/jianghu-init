@@ -77,6 +77,8 @@ const fieldKeyToFormField = (fieldsDict, key, target = 'pc', mode) => {
   if (f.required) out.required = true;
   if (f.labelRequired != null) out.labelRequired = !!f.labelRequired;
   if (f.readonly) out.readonly = true;
+  if (f.disabled) out.disabled = true;
+  if (f.default !== undefined) out.default = f.default;
   if (f.options != null) out.options = f.options;
   if (f.autoId) out.autoId = f.autoId;
   if (f.rules != null) out.rules = f.rules;

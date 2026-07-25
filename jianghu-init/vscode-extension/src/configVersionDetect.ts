@@ -2,11 +2,13 @@ import * as vscode from 'vscode';
 
 export type ConfigVersion = 'v6' | 'v7';
 
-/** 从文件头部解析 version: 'v6' | 'v7'（v7 优先检测，避免混写时误判） */
-export function detectConfigVersion(text: string, maxLines = 60): ConfigVersion | null {
-  const head = text.split('\n').slice(0, maxLines).join('\n');
-  if (/version\s*:\s*['"]v7['"]/.test(head)) return 'v7';
-  if (/version\s*:\s*['"]v6['"]/.test(head)) return 'v6';
+/**
+ * 从完整文件文本解析 version: 'v6' | 'v7'（v7 优先）。
+ * 已持有全文时直接正则查找，不做行数截断。
+ */
+export function detectConfigVersion(text: string): ConfigVersion | null {
+  if (/version\s*:\s*['"]v7['"]/.test(text)) return 'v7';
+  if (/version\s*:\s*['"]v6['"]/.test(text)) return 'v6';
   return null;
 }
 
@@ -16,12 +18,12 @@ export function isJsConfigDocument(document: vscode.TextDocument): boolean {
 
 export function isV6ConfigDocument(document: vscode.TextDocument): boolean {
   if (!isJsConfigDocument(document)) return false;
-  return detectConfigVersion(document.getText(), 40) === 'v6';
+  return detectConfigVersion(document.getText()) === 'v6';
 }
 
 export function isV7ConfigDocument(document: vscode.TextDocument): boolean {
   if (!isJsConfigDocument(document)) return false;
-  return detectConfigVersion(document.getText(), 40) === 'v7';
+  return detectConfigVersion(document.getText()) === 'v7';
 }
 
 /** v6 / v7 语义或 pageContent 配置：不走 v4 md-doc / json 模板 hover */

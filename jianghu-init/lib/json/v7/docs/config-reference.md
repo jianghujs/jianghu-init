@@ -62,7 +62,7 @@ lib/json/v7/
 | 属性 | 说明 |
 |------|------|
 | **`label`** | 展示名 |
-| **`type`** | `text`、`select`、`textarea`、`number`… |
+| **`type`** | `text`、`select`、`autocomplete`、`textarea`、`number`、`date`、`custom`…；短枚举用 `select`，可搜索长列表用 `autocomplete` |
 | **`column`** | `{ width, align, class, cellClass }` 列配置 |
 | **`search`** | `{ op }` 搜索配置 |
 | **`form`** | 通用表单配置：`type/component/options/required/readonly/rules/attrs/pcAttrs/mobileAttrs` 等 |

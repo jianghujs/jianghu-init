@@ -129,6 +129,7 @@ const RUNTIME_PROP_MIGRATIONS = {
   TextBtn: [
     { from: 'text', to: 'label' },
     { from: 'iconName', to: 'icon' },
+    { from: 'icon-name', to: 'icon' },
     { from: 'iconRight', to: 'iconPosition' },
   ],
 };

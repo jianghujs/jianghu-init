@@ -180,12 +180,13 @@
       <v-progress-circular light indeterminate color="primary"></v-progress-circular>
     </v-overlay>
 
-    <!-- 行操作中继 Sheet -->
+    <!-- 行操作中继 Sheet（bodyHeightMode: content，随操作项收缩，不用 fill 撑满视口） -->
     <jh-sheet
       v-if="hasActions"
       :shown="isActionSheetShown"
       :rounded="true"
       :title="actionSheetTitle"
+      body-height-mode="content"
       :action-list="resolvedSheetActions"
       @update:shown="isActionSheetShown = $event"
       @action="handleSheetAction"
@@ -240,11 +241,10 @@ Vue.component('jh-list', {
     rightArrow:       { type: Boolean, default: false },
     rightArrowText:   { type: String,  default: '详情' },
     /**
-     * 移动端 item 行点击行为（移动端 jh-list 专用）：
-     *   'sheet'（默认）→ 弹出中继 ActionSheet
-     *   'none' 或 false → item 整行点击不响应；不影响 action slot / 右侧操作区渲染
-     *   其他字符串      → 直接 $emit('action', mobileItemAction, item)，跳过中继弹窗
-     *                     字符串值即宿主页面 doUiAction 的 case id
+     * 移动端 item 行点击（jh-list 专用）：
+     *   省略或 'sheet' → 内置预设：弹出 ActionSheet 展示 rowActionList（不是 doUiAction case）
+     *   false / 'none' → 整行点击不响应；action slot / 右侧操作区不受影响
+     *   其他字符串     → doUiAction 方法名，$emit('action', id, item) 跳过 ActionSheet
      */
     mobileItemAction: { type: [String, Boolean], default: 'sheet' },
   },

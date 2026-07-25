@@ -52,6 +52,7 @@ const V6_PATH_DOCS = {
     resourceList: { description: '资源列表（接口资源定义数组）。每项声明一个后端资源：`sql`（对表做 select/jhInsert/jhUpdate/jhDelete）或 `service`（调用 service/serviceFunction）。' },
     common: { description: '扩展 Vue 实例：data / computed / methods / watch / doUiAction' },
     includeList: { description: '引入资源列表。支持字符串或对象数组；常用于额外注入 css/js/html/include 或注册 Vue 插件/组件（vueUse/vueComponent）。' },
+    style: { type: 'string', description: '页面内嵌 CSS，NJK 模板 `<style>` 输出；推荐 `/*css*/` 模板字符串', example: '/*css*/`\n  .my-page { padding: 8px; }\n`' },
     // ── resourceList item（资源定义）──────────────────────────────────────────
     'resourceList|actionId': { type: 'string', description: '资源操作唯一标识（会被 doUiAction 引用），建议用小驼峰或带路径的命名', example: '"selectItemList"' },
     'resourceList|desc': { type: 'string', description: '资源描述信息（用于文档/可读性）' },
@@ -429,12 +430,12 @@ const V6_PATH_DOCS = {
     // ── fieldList / fields item（jh-form 字段）────────────────────────────────
     'fieldList|key': { type: 'string', description: '字段唯一标识，绑定到 `createItem` / `updateItem` 对应属性', example: '"projectName"' },
     'fieldList|label': { type: 'string', description: '字段显示标签', example: '"项目名称"' },
-    'fieldList|type': { type: 'string', description: '字段组件：`"text"` `"number"` `"select"` `"date"` `"textarea"` `"custom"` ｜ 结构性（不绑数据）：`"section"` `"divider"` `"tip"`' },
+    'fieldList|type': { type: 'string', description: '字段组件：`"text"` `"number"` `"select"` `"autocomplete"` `"date"` `"textarea"` `"custom"` ｜ 结构性（不绑数据）：`"section"` `"divider"` `"tip"`' },
     'fieldList|required': { type: 'boolean', description: '是否必填（labelMode=`"above"` 时显示红星，未传 rules 时自动生成 required 校验）' },
     'fieldList|rules': { type: 'array', description: 'Vuetify 校验规则数组（未传时按 required 自动生成）' },
     'fieldList|readonly': { type: 'boolean', description: '是否只读' },
     'fieldList|disabled': { type: 'boolean', description: '是否禁用' },
-    'fieldList|options': { type: 'array | string', description: '下拉（type=`select`）：数组或状态路径 `"constantObj.xxx"`；字符串编译为 __expr__ → NJK `options:constantObj.xxx`' },
+    'fieldList|options': { type: 'array | string', description: '下拉（type=`select`|`autocomplete`）：数组或状态路径 `"constantObj.xxx"`；字符串编译为 __expr__ → NJK `options:constantObj.xxx`' },
     'fieldList|placeholder': { type: 'string', description: '输入框占位文字' },
     'fieldList|hint': { type: 'string', description: '输入框下方提示文字' },
     'fieldList|cls': { type: 'string', description: '字段容器 CSS class，如 `"jh-col-span-full"` 跨全列、`"jh-col-span-2"` 跨 2 列', example: '"jh-col-span-full"' },

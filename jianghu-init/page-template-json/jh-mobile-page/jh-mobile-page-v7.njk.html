@@ -428,8 +428,9 @@ new Vue({
     // startCreateItem 原子方法链
     // ─────────────────────────────────────────────
     async prepareCreateFormData() {
-      this.createItem       = {};
-      this.createItemOrigin = {};
+      //===// <=% set createDefaults = (standardConfig.blocks.forms and standardConfig.blocks.forms.createDefaults) or {} %=>
+      this.createItem       = _.cloneDeep(<=$ createDefaults | dump | safe $=>);
+      this.createItemOrigin = _.cloneDeep(this.createItem);
       this.createActionData = null;
     },
     async openCreateDrawer() {

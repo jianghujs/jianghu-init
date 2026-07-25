@@ -11,10 +11,10 @@
     rightArrowText: '', // 右侧箭头文本 默认空
     rightArrow: true, // 是否显示右侧箭头 默认true
     /**
-     * mobileItemAction：item 行点击行为（移动端专用）
-     *   'sheet'（默认）→ 弹出中继 ActionSheet 展示 rowActionList
-     *   false 或 'none' → item 整行点击不响应；不影响 action slot / 右侧操作区渲染
-     *   其他字符串      → 直接触发 doUiAction(mobileItemAction, item)，跳过中继弹窗
+     * mobileItemAction：item 整行点击（移动端专用）
+     *   省略或 'sheet' → 内置 ActionSheet 预设（非 doUiAction case）
+     *   false / 'none' → 整行点击不响应
+     *   其他字符串     → doUiAction 方法名
      */
     mobileItemAction: false,
   },

@@ -80,7 +80,11 @@ Vue.component('jh-text-btn', {
       return this.label != null ? this.label : (this.text || '');
     },
     resolvedIcon() {
-      return this.icon != null ? this.icon : (this.iconName || '');
+      const canonical = this.icon;
+      if (canonical != null && canonical !== '') return canonical;
+      const legacy = this.iconName;
+      if (legacy != null && legacy !== '') return legacy;
+      return '';
     },
     resolvedIconRight() {
       if (this.iconPosition != null) return this.iconPosition === true || this.iconPosition === 'right';

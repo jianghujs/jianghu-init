@@ -49,6 +49,12 @@ assert.strictEqual(rawProps.toolbarActionList, undefined);
 assert.ok(diagnostics.some(item => item.path.endsWith('.columns')));
 assert.ok(diagnostics.some(item => item.path.endsWith('.toolbarActionList')));
 
+const textBtnProps = { 'icon-name': 'edit', label: '详情' };
+const { desc: textBtnDesc } = resolveDescriptor('TextBtn');
+applyPropPreprocess(textBtnProps, textBtnDesc, { diagnostics: [], path: 'pageContent[0].props' });
+assert.strictEqual(textBtnProps.icon, 'edit');
+assert.strictEqual(textBtnProps['icon-name'], undefined);
+
 assert.strictEqual(
   SEMANTIC_STRUCTURAL_MIGRATIONS.listIntoSearch.find(item => item.from === 'mobileSearchKey').to,
   '内部稳定 key',
