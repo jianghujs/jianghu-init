@@ -1,8 +1,10 @@
 <!-- Vuetify CSS 覆盖 >>>>>>>>>>>>> -->
+{% set jhUiCfg = ctx.app.config.jianghuUi or {} %}
 <style>
     /* 全局 >>>>>> */
     body {
-        --cPrimaryColor: <$ ctx.app.config.primaryColor $>;
+        --cPrimaryColor: <$ jhUiCfg.primaryColor or ctx.app.config.primaryColor or '#4caf50' $>;
+        --cPrimaryColorA80: <$ jhUiCfg.primaryColorA80 or ctx.app.config.primaryColorA80 or '#EEF7EE' $>;
         --shadow-sm: 0px 1px 2px rgba(25, 39, 52, .05), 0px 0px 4px rgba(25, 39, 52, .1);
         --gray-900: #1F272E;
         --gray-800: #333C44;

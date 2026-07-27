@@ -45,6 +45,8 @@ fields / views / platform / layout / dataSource  (authoring)
 | `type` | 同上 | `text`/`select`/… | 控件类型 |
 | `form.options` | 同上 | 字符串路径或数组 | select |
 | `form.required` / `form.readonly` | fieldKeyToFormField | boolean | 表单 |
+| `form.hideLabel` | fieldKeyToFormField | boolean | inline 模式隐藏 label；control 全宽 |
+| `form.inlineFullWidth` | fieldKeyToFormField | boolean | inline 模式保留 label 时 control 换行全宽 |
 | `autoId` | fieldKeyToFormField | object | 自动生成 ID |
 | `column.width` | columnEntryToHeader | number | 列宽（可被 columnList 覆盖） |
 | `column.align` | columnEntryToHeader | string | 列对齐 `start` / `center` / `end`（可被 columnList 覆盖）→ `headers[].align` |

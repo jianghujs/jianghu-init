@@ -61,13 +61,24 @@ lib/json/v7/
 
 | 属性 | 说明 |
 |------|------|
-| **`label`** | 展示名 |
+| **`label`** | 展示名；省略时编译为字段 key；显式 `""` 为空 label；inline 下完全隐藏 label 用 **`form.hideLabel`** |
 | **`type`** | `text`、`select`、`autocomplete`、`textarea`、`number`、`date`、`custom`…；短枚举用 `select`，可搜索长列表用 `autocomplete` |
 | **`column`** | `{ width, align, class, cellClass }` 列配置 |
 | **`search`** | `{ op }` 搜索配置 |
-| **`form`** | 通用表单配置：`type/component/options/required/readonly/rules/attrs/pcAttrs/mobileAttrs` 等 |
+| **`form`** | 通用表单配置：`type/component/options/required/readonly/rules/attrs/pcAttrs/mobileAttrs`、**`hideLabel`**、**`inlineFullWidth`** 等 |
 | **`createForm` / `updateForm`** | 新增/编辑专属表单覆写 |
 | **`autoId`** | 业务 ID 自动生成配置 |
+
+### `form.hideLabel` / `form.inlineFullWidth`（inline 表单）
+
+适用于 **`labelMode: 'inline'`**（Mobile FormSheet 默认）。
+
+| 键 | 说明 |
+|----|------|
+| **`hideLabel`** | 不渲染左侧 label 列；control 独占整行。custom 区块、标题在 slot 内自定义时使用。**已含 inline 全宽，不必再写 `inlineFullWidth`。** |
+| **`inlineFullWidth`** | 保留 label 时 control 换行占满整行（如 textarea）。`textarea` / `date` 自动全宽。 |
+
+编译：`fieldKeyToFormField` → `fieldList[].hideLabel` / `inlineFullWidth` → `jh-form` `inlineControlFullWidth()`。
 
 ## 4. `views.list`
 

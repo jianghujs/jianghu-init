@@ -123,7 +123,13 @@ exports.V7_PATH_DOCS = {
             + '  },\n'
             + '}',
     },
-    'fields|label': { type: 'string', description: '展示标签；缺省为字段 key；`type:"section"` 时为分组标题' },
+    'fields|label': {
+        type: 'string',
+        description: '展示标签；**省略时编译为字段 key**（不是空标签）。\n'
+            + '- 显式 `label: ""` → 空字符串 label\n'
+            + '- **`form.hideLabel: true`** → inline 模式不渲染左侧 label 列（custom 区块等；标题放 slot）\n'
+            + '- `type:"section"` 时为分组标题',
+    },
     'fields|type': {
         type: 'string',
         description: '控件：`text` | `select` | `autocomplete` | `number` | `textarea` | `date` | `custom`；\n'
@@ -134,7 +140,7 @@ exports.V7_PATH_DOCS = {
     'fields|search': { type: 'object', description: '搜索配置：`{ op? }`', example: '{ op: "eq" }' },
     'fields|form': {
         type: 'object',
-        description: '通用表单配置；支持 type/component/options/rules/attrs/pcAttrs/mobileAttrs',
+        description: '通用表单配置；支持 type/component/options/rules/attrs/pcAttrs/mobileAttrs/hideLabel/inlineFullWidth',
         example: '{ required: true, placeholder: "请输入项目名称", attrs: { clearable: true } }',
     },
     'fields|createForm': { type: 'object', description: '新增表单专属覆写，merge 于通用 form', example: '{ attrs: { readonly: true } }' },
@@ -169,6 +175,20 @@ exports.V7_PATH_DOCS = {
     'form|rules': { type: 'string | array', description: '校验规则；字符串 → __expr__' },
     'form|placeholder': { type: 'string', description: '表单 placeholder → fieldList[].placeholder' },
     'form|hint': { type: 'string', description: '表单 hint → fieldList[].hint' },
+    'form|hideLabel': {
+        type: 'boolean',
+        description: '**labelMode=`inline`**（FormSheet 默认）时隐藏左侧 label 列；control 独占整行。\n'
+            + '编译为 `fieldList[].hideLabel`；标题可在 `slots.*.field-{key}` 自定义。\n'
+            + '**`hideLabel: true` 已含 inline 全宽，无需再写 `inlineFullWidth`。**',
+        example: 'true',
+    },
+    'form|inlineFullWidth': {
+        type: 'boolean',
+        description: '**labelMode=`inline`** 且**保留 label** 时，control 换行并占满整行（如 textarea）。\n'
+            + '编译为 `fieldList[].inlineFullWidth`。\n'
+            + '`textarea` / `date` 自动全宽；`hideLabel: true` 时不必重复配置。',
+        example: 'true',
+    },
     'form|quickAttrs': { description: '布尔型 Vuetify 属性：`["clearable"]` 或 `"clearable small-chips"`' },
     'form|attrs': {
         type: 'object',

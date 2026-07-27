@@ -1,0 +1,989 @@
+<!-- jhMenuSidebarV4.html >>>>>>>>>>>>> -->
+<script type="text/html" id="jh-menu-sidebar-tpl">
+  <div class="jh-sidebar-layout">
+    <v-navigation-drawer
+      app
+      permanent
+      :width="sidebarWidth"
+      class="jh-sidebar-nav"
+      :class="{ 'jh-sidebar-nav--collapsed': isSidebarCollapsed }"
+    >
+      <div class="jh-sidebar-inner">
+        <div class="jh-sidebar-header">
+          <span
+            v-if="!isSidebarCollapsed"
+            class="jh-sidebar-app-title"
+          >{{ appTitle }}</span>
+          <span
+            v-else
+            class="jh-sidebar-app-title jh-sidebar-app-title--collapsed"
+            :title="appTitle"
+          >{{ getAbbr(appTitle, 2) }}</span>
+          <button
+            type="button"
+            class="jh-sidebar-collapse-btn"
+            :aria-label="isSidebarCollapsed ? '展开侧边栏' : '收缩侧边栏'"
+            :title="isSidebarCollapsed ? '展开侧边栏' : '收缩侧边栏'"
+            @click="toggleSidebarCollapsed"
+          >
+            <span
+              class="mdi"
+              :class="isSidebarCollapsed ? 'mdi-chevron-double-right' : 'mdi-chevron-double-left'"
+              aria-hidden="true"
+            ></span>
+          </button>
+        </div>
+
+        <div class="jh-sidebar-body">
+          <button
+            v-if="showDirectoryLink"
+            type="button"
+            class="jh-sidebar-directory-link primary--text"
+            :class="{ 'jh-sidebar-directory-link--collapsed': isSidebarCollapsed }"
+            tabindex="0"
+            aria-label="回到目录"
+            @mouseenter="handleCollapsedTipEnter($event, '回到目录')"
+            @focus="handleCollapsedTipEnter($event, '回到目录')"
+            @mouseleave="handleCollapsedTipLeave"
+            @blur="handleCollapsedTipLeave"
+            @click="openUrl(appDirectoryLink)"
+            @keydown.enter="openUrl(appDirectoryLink)"
+          >
+            <v-icon size="14" class="jh-sidebar-directory-link__icon">mdi-apps</v-icon>
+            <span v-if="!isSidebarCollapsed" class="jh-sidebar-directory-link__text">回到目录</span>
+          </button>
+ 
+
+          <template v-if="!isSidebarCollapsed">
+            <div v-for="section in sidebarSections" :key="section.key" class="jh-sidebar-section">
+              <div v-if="section.showTitle" class="jh-sidebar-section-title">{{ section.title }}</div>
+              <button
+                v-for="item in section.items"
+                :key="item.pageId"
+                type="button"
+                class="jh-sidebar-item"
+                :class="{ 'jh-sidebar-item--active': currentPageId === item.pageId }"
+                :aria-current="currentPageId === item.pageId ? 'page' : null"
+                tabindex="0"
+                @click="openUrl(item.path, item.query)"
+                @keydown.enter="openUrl(item.path, item.query)"
+              >
+                {{ item.title }}
+              </button>
+            </div>
+          </template>
+
+          <template v-else>
+            <div
+              v-for="section in sidebarSections"
+              :key="'collapsed-' + section.key"
+              class="jh-sidebar-section jh-sidebar-section--collapsed"
+            >
+              <template v-if="section.showTitle">
+                <button
+                  type="button"
+                  class="jh-sidebar-collapsed-trigger"
+                  :class="{ 'jh-sidebar-collapsed-trigger--active': isSectionActive(section) }"
+                  :aria-label="section.title"
+                  @mouseenter="openFlyout($event, section)"
+                  @focus="openFlyout($event, section)"
+                  @mouseleave="scheduleHideFlyout"
+                  @blur="scheduleHideFlyout"
+                >
+                  {{ getAbbr(section.title, 2) }}
+                </button>
+              </template>
+              <template v-else>
+                <button
+                  v-for="item in section.items"
+                  :key="item.pageId"
+                  type="button"
+                  class="jh-sidebar-collapsed-trigger"
+                  :class="{ 'jh-sidebar-collapsed-trigger--active': currentPageId === item.pageId }"
+                  :aria-current="currentPageId === item.pageId ? 'page' : null"
+                  :aria-label="item.title"
+                  @mouseenter="handleCollapsedTipEnter($event, item.title)"
+                  @focus="handleCollapsedTipEnter($event, item.title)"
+                  @mouseleave="handleCollapsedTipLeave"
+                  @blur="handleCollapsedTipLeave"
+                  @click="openUrl(item.path, item.query)"
+                  @keydown.enter="openUrl(item.path, item.query)"
+                >
+                  {{ getAbbr(item.title, 2) }}
+                </button>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <div
+          class="jh-sidebar-footer"
+          :class="{ 'jh-sidebar-footer--collapsed': isSidebarCollapsed }"
+        >
+          <div
+            class="jh-sidebar-user"
+            :class="{ 'jh-sidebar-user--interactive': isSidebarCollapsed }"
+            :tabindex="isSidebarCollapsed ? 0 : -1"
+            :aria-label="userDisplayName"
+            @mouseenter="handleUserTipEnter"
+            @focus="handleUserTipEnter"
+            @mouseleave="handleCollapsedTipLeave"
+            @blur="handleCollapsedTipLeave"
+          >
+            <v-icon size="28" color="grey lighten-1">mdi-account-circle</v-icon>
+            <div v-if="!isSidebarCollapsed" class="jh-sidebar-user-meta">
+              <span class="jh-sidebar-user-name">{{ userInfo.user.username }}</span>
+              <span v-if="userInfo.user.userId" class="jh-sidebar-user-id">ID: {{ userInfo.user.userId }}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="jh-sidebar-logout-btn"
+            :class="{ 'jh-sidebar-logout-btn--collapsed': isSidebarCollapsed }"
+            tabindex="0"
+            aria-label="退出登录"
+            @mouseenter="handleCollapsedTipEnter($event, '退出登录')"
+            @focus="handleCollapsedTipEnter($event, '退出登录')"
+            @mouseleave="handleCollapsedTipLeave"
+            @blur="handleCollapsedTipLeave"
+            @click="logout"
+            @keydown.enter="logout"
+          >
+            <span v-if="isSidebarCollapsed" class="mdi mdi-logout" aria-hidden="true"></span>
+            <span v-else class="jh-sidebar-logout-btn__text">退出</span>
+          </button>
+        </div>
+      </div>
+    </v-navigation-drawer>
+
+    <div
+      v-if="isSidebarCollapsed && flyoutSection"
+      class="jh-sidebar-flyout jh-sidebar-bubble"
+      :style="flyoutStyle"
+      @mouseenter="cancelHideFlyout"
+      @mouseleave="scheduleHideFlyout"
+    >
+      <div class="jh-sidebar-bubble__arrow" :style="flyoutArrowStyle"></div>
+      <div class="jh-sidebar-flyout__title">{{ flyoutSection.title }}</div>
+      <button
+        v-for="item in flyoutSection.items"
+        :key="'flyout-' + item.pageId"
+        type="button"
+        class="jh-sidebar-flyout__item"
+        :class="{ 'jh-sidebar-flyout__item--active': currentPageId === item.pageId }"
+        @click="handleFlyoutItemClick(item)"
+      >
+        {{ item.title }}
+      </button>
+    </div>
+
+    <div
+      v-if="isSidebarCollapsed && collapsedTip"
+      class="jh-sidebar-tip jh-sidebar-bubble"
+      :class="{ 'jh-sidebar-tip--with-desc': collapsedTip.desc }"
+      :style="collapsedTipStyle"
+      role="tooltip"
+    >
+      <div class="jh-sidebar-bubble__arrow jh-sidebar-bubble__arrow--center"></div>
+      <span class="jh-sidebar-tip__label">{{ collapsedTip.label }}</span>
+      <span v-if="collapsedTip.desc" class="jh-sidebar-tip__desc">{{ collapsedTip.desc }}</span>
+    </div>
+  </div>
+</script>
+
+<script>
+  Vue.component('jh-menu-sidebar', {
+    template: '#jh-menu-sidebar-tpl',
+    vueComponent: 'jh-menu-sidebar',
+    props: {
+      showAvatar: { type: Boolean, default: true },
+    },
+    data() {
+      return {
+        sidebarExpandedWidth: 256,
+        sidebarCollapsedWidth: 56,
+        collapsedOverlayHideDelay: 120,
+        isSidebarCollapsed: false,
+        flyoutSection: null,
+        flyoutTop: 0,
+        flyoutLeft: 0,
+        flyoutAnchorCenterY: 0,
+        flyoutHideTimer: null,
+        collapsedTip: null,
+        collapsedTipTop: 0,
+        collapsedTipLeft: 0,
+        collapsedTipHideTimer: null,
+        appTitle: '<$ ctx.app.config.appTitle $>',
+        appDirectoryLink: '<$ ctx.app.config.appDirectoryLink $>',
+        userInfo: window.userInfo,
+        currentPageId: '',
+        currentPageTitle: '',
+        sidebarSections: [],
+      };
+    },
+    computed: {
+      sidebarWidth() {
+        return this.isSidebarCollapsed ? this.sidebarCollapsedWidth : this.sidebarExpandedWidth;
+      },
+      allowPageList() {
+        const pageList = (this.userInfo && this.userInfo.allowPageList) || [];
+        if (pageList.some(e => e.pageId.startsWith('mobile/'))) {
+          return pageList.filter(e => !e.pageId.startsWith('mobile/'));
+        }
+        return pageList;
+      },
+      userDisplayName() {
+        const user = this.userInfo && this.userInfo.user;
+        return (user && user.username) || '用户';
+      },
+      showDirectoryLink() {
+        if (!window.appInfo || window.appInfo.appId === 'directory') return false;
+        const appType = '<$ ctx.app.config.appType $>';
+        return appType === 'multiApp' && !!this.appDirectoryLink;
+      },
+      flyoutStyle() {
+        return {
+          top: this.flyoutTop + 'px',
+          left: this.flyoutLeft + 'px',
+        };
+      },
+      flyoutArrowStyle() {
+        var arrowTop = this.flyoutAnchorCenterY - this.flyoutTop - 6;
+        return {
+          top: Math.max(12, arrowTop) + 'px',
+        };
+      },
+      collapsedTipStyle() {
+        return {
+          top: this.collapsedTipTop + 'px',
+          left: this.collapsedTipLeft + 'px',
+        };
+      },
+    },
+    created() {
+      this.loadSidebarCollapsedState();
+      this.syncCurrentPageId();
+      this.buildSidebarSections();
+      this.setCurrentMenuItem();
+    },
+    mounted() {
+      this.updateApplicationLayout();
+    },
+    beforeDestroy() {
+      this.cancelHideFlyout();
+      this.cancelHideCollapsedTip();
+    },
+    methods: {
+      sidebarCollapsedStorageKey() {
+        return (window.appInfo && window.appInfo.appId ? window.appInfo.appId : 'app') + '_sidebarCollapsed';
+      },
+      loadSidebarCollapsedState() {
+        try {
+          this.isSidebarCollapsed = localStorage.getItem(this.sidebarCollapsedStorageKey()) === '1';
+        } catch (e) {
+          this.isSidebarCollapsed = false;
+        }
+      },
+      saveSidebarCollapsedState() {
+        try {
+          localStorage.setItem(this.sidebarCollapsedStorageKey(), this.isSidebarCollapsed ? '1' : '0');
+        } catch (e) {
+          // ignore
+        }
+      },
+      toggleSidebarCollapsed() {
+        this.isSidebarCollapsed = !this.isSidebarCollapsed;
+        this.flyoutSection = null;
+        this.collapsedTip = null;
+        this.saveSidebarCollapsedState();
+        this.updateApplicationLayout();
+        this.scheduleTableLayoutRefresh();
+      },
+      scheduleTableLayoutRefresh() {
+        this.$nextTick(function () {
+          setTimeout(function () {
+            if (typeof window.resetTableMaxHeight === 'function') {
+              window.resetTableMaxHeight();
+            }
+            if (typeof window.reFixedTableCol === 'function') {
+              window.reFixedTableCol();
+            }
+          }, 300);
+        });
+      },
+      getAbbr(text, maxLen) {
+        var value = String(text || '').trim();
+        if (!value) return '·';
+        return value.slice(0, maxLen || 1);
+      },
+      isSectionActive(section) {
+        if (!section || !section.items) return false;
+        return section.items.some(item => item.pageId === this.currentPageId);
+      },
+      openFlyout(event, section) {
+        if (!section || !section.showTitle) return;
+        this.cancelHideFlyout();
+        this.cancelHideCollapsedTip();
+        this.collapsedTip = null;
+        this.flyoutSection = section;
+        var rect = event.currentTarget.getBoundingClientRect();
+        this.flyoutTop = rect.top;
+        this.flyoutLeft = rect.right + 8;
+        this.flyoutAnchorCenterY = rect.top + rect.height / 2;
+        this.$nextTick(this.adjustFlyoutPosition);
+      },
+      adjustFlyoutPosition() {
+        var flyoutEl = this.$el && this.$el.querySelector('.jh-sidebar-flyout');
+        if (!flyoutEl) return;
+        var rect = flyoutEl.getBoundingClientRect();
+        var maxBottom = window.innerHeight - 12;
+        if (rect.bottom > maxBottom) {
+          this.flyoutTop = Math.max(12, this.flyoutTop - (rect.bottom - maxBottom));
+        }
+      },
+      scheduleHideFlyout() {
+        this.cancelHideFlyout();
+        var self = this;
+        this.flyoutHideTimer = setTimeout(function () {
+          self.flyoutSection = null;
+        }, this.collapsedOverlayHideDelay);
+      },
+      cancelHideFlyout() {
+        if (this.flyoutHideTimer) {
+          clearTimeout(this.flyoutHideTimer);
+          this.flyoutHideTimer = null;
+        }
+      },
+      handleFlyoutItemClick(item) {
+        this.flyoutSection = null;
+        this.openUrl(item.path, item.query);
+      },
+      handleCollapsedTipEnter(event, label, desc) {
+        if (!this.isSidebarCollapsed || !label) return;
+        this.openCollapsedTip(event, label, desc);
+      },
+      handleCollapsedTipLeave() {
+        if (!this.isSidebarCollapsed) return;
+        this.scheduleHideCollapsedTip();
+      },
+      handleUserTipEnter(event) {
+        if (!this.isSidebarCollapsed) return;
+        const user = this.userInfo && this.userInfo.user;
+        if (!user) return;
+        const desc = user.userId ? ('ID: ' + user.userId) : '';
+        this.openCollapsedTip(event, user.username || '用户', desc);
+      },
+      openCollapsedTip(event, label, desc) {
+        if (!label) return;
+        this.cancelHideCollapsedTip();
+        this.cancelHideFlyout();
+        this.flyoutSection = null;
+        const rect = event.currentTarget.getBoundingClientRect();
+        this.collapsedTip = {
+          label: label,
+          desc: desc || '',
+        };
+        this.collapsedTipTop = rect.top + rect.height / 2;
+        this.collapsedTipLeft = rect.right + 8;
+      },
+      scheduleHideCollapsedTip() {
+        this.cancelHideCollapsedTip();
+        const self = this;
+        this.collapsedTipHideTimer = setTimeout(function () {
+          self.collapsedTip = null;
+        }, this.collapsedOverlayHideDelay);
+      },
+      cancelHideCollapsedTip() {
+        if (this.collapsedTipHideTimer) {
+          clearTimeout(this.collapsedTipHideTimer);
+          this.collapsedTipHideTimer = null;
+        }
+      },
+      updateApplicationLayout() {
+        this.$nextTick(() => {
+          const application = this.$root && this.$root.$vuetify && this.$root.$vuetify.application;
+          if (!application || typeof application.update !== 'function') return;
+          if (!application.locations || typeof application.locations !== 'object') return;
+          try {
+            application.update();
+          } catch (err) {
+            // v-app 尚未完成注册时忽略
+          }
+        });
+      },
+      syncCurrentPageId() {
+        const urlPathList = window.location.pathname.split('/page/');
+        this.currentPageId = urlPathList[urlPathList.length - 1] || '';
+      },
+      buildSidebarSections() {
+        const menuListResource = _
+          .chain(this.allowPageList)
+          .filter(page => _.includes(['showInMenu', 'link'], page.pageType)
+            || (_.includes(['dynamicInMenu', 'avatarInMenu'], page.pageType) && this.currentPageId === page.pageId))
+          .orderBy([page => parseInt(page.sort, 10) || 0], ['asc'])
+          .value();
+
+        const sectionMap = {};
+        const ungroupedItems = [];
+
+        menuListResource.forEach(page => {
+          const pageSort = parseInt(page.sort, 10) || 0;
+          const item = {
+            path: page.pageType === 'link' ? page.pageFile : `/${window.appInfo.appId}/page/${page.pageId}`,
+            pageId: page.pageId,
+            title: page.pageName,
+            query: null,
+            sort: pageSort,
+          };
+
+          if (page.pageName.startsWith('[')) {
+            const inner = page.pageName.substring(1);
+            const splitIndex = inner.indexOf(']');
+            if (splitIndex > 0) {
+              const sectionTitle = inner.substring(0, splitIndex);
+              item.title = inner.substring(splitIndex + 1) || page.pageName;
+
+              if (!sectionMap[sectionTitle]) {
+                sectionMap[sectionTitle] = {
+                  key: `group-${sectionTitle}`,
+                  title: sectionTitle,
+                  showTitle: true,
+                  items: [],
+                  minSort: Infinity,
+                };
+              }
+              sectionMap[sectionTitle].minSort = Math.min(sectionMap[sectionTitle].minSort, pageSort);
+              sectionMap[sectionTitle].items.push(item);
+              return;
+            }
+          }
+
+          ungroupedItems.push(item);
+        });
+
+        const sections = Object.values(sectionMap);
+
+        if (ungroupedItems.length > 0) {
+          ungroupedItems.sort((a, b) => a.sort - b.sort);
+          sections.push({
+            key: 'flat-menu',
+            title: '',
+            showTitle: false,
+            items: ungroupedItems,
+            minSort: Math.min(...ungroupedItems.map(item => item.sort)),
+          });
+        }
+
+        this.sidebarSections = sections.sort((a, b) => a.minSort - b.minSort);
+      },
+      setCurrentMenuItem() {
+        let foundTitle = '';
+        this.sidebarSections.forEach(section => {
+          section.items.forEach(item => {
+            if (item.pageId === this.currentPageId) {
+              foundTitle = item.title;
+            }
+          });
+        });
+        this.currentPageTitle = foundTitle;
+        document.title = this.appTitle + (foundTitle ? ` - ${foundTitle}` : '');
+      },
+      openUrl(url, queryParams) {
+        if (queryParams) {
+          const queryStrings = Object.keys(queryParams)
+            .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k])}`)
+            .join('&');
+          window.location.href = `${url}?${queryStrings}`;
+          return;
+        }
+        if (url.split('/page/')[1] === this.currentPageId) {
+          const page = this.userInfo.allowPageList.find(item => item.pageId === this.currentPageId);
+          if (page && page.pageType === 'dynamicInMenu') {
+            location.reload();
+            return;
+          }
+        }
+        window.location.href = url;
+      },
+      async logout() {
+        try {
+          await window.jianghuAxios({ data: { appData: { pageId: 'allPage', actionId: 'logout' } } });
+          vtoast.success('注销成功');
+          this.routeToLoginPage();
+        } catch (error) {
+          vtoast.fail(error.errorReason);
+          this.routeToLoginPage();
+        }
+      },
+      routeToLoginPage() {
+        localStorage.removeItem(`${window.appInfo.authTokenKey}_authToken`);
+        setTimeout(() => { location.href = '<$ ctx.app.config.loginPage $>'; }, 700);
+      },
+    },
+  });
+</script>
+
+<style>
+  .jh-sidebar-layout {
+    display: contents;
+  }
+
+  @media (min-width: 600px) {
+    html.jh-layout-sidebar .v-application--wrap {
+      min-height: 100vh;
+    }
+
+    html.jh-layout-sidebar .v-main {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+    }
+
+    html.jh-layout-sidebar .v-main.mt-13 {
+      margin-top: 0 !important;
+    }
+
+    html.jh-layout-sidebar .v-main .h-\[calc\(100vh-52px\)\] {
+      height: 100vh !important;
+      min-height: 100vh !important;
+    }
+  }
+
+  .jh-sidebar-nav {
+    background: #fff !important;
+    box-shadow: none !important;
+    transition: width 0.2s ease;
+    overflow: hidden;
+  }
+
+  .jh-sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .jh-sidebar-header {
+    flex: none;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 12px 14px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .jh-sidebar-nav--collapsed .jh-sidebar-header {
+    flex-direction: column;
+    padding: 14px 8px 12px;
+    gap: 10px;
+  }
+
+  .jh-sidebar-app-title {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .jh-sidebar-app-title--collapsed {
+    flex: none;
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .jh-sidebar-collapse-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #fff;
+    color: #6b7280;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .jh-sidebar-collapse-btn:hover,
+  .jh-sidebar-collapse-btn:focus-visible {
+    color: var(--cPrimaryColor);
+    border-color: var(--cPrimaryColor);
+    background: var(--cPrimaryColorA80);
+    outline: none;
+  }
+
+  .jh-sidebar-collapse-btn .mdi {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .jh-sidebar-directory-link {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    overflow: hidden;
+    border: 1px solid var(--cPrimaryColor);
+    background: transparent;
+    font-size: 13px;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: color 0.15s ease;
+    border-radius: 8px;
+    padding: 6px 8px;
+    margin-bottom: 12px;
+  }
+
+  .jh-sidebar-directory-link--collapsed {
+    padding: 8px 0;
+  }
+
+  .jh-sidebar-directory-link:hover,
+  .jh-sidebar-directory-link:focus-visible {
+    color: var(--cPrimaryColor);
+    border-color: var(--cPrimaryColor);
+    background: var(--cPrimaryColorA80);
+    outline: none;
+  }
+
+  .jh-sidebar-directory-link__icon {
+    margin-left: -2px;
+    color: inherit !important;
+    flex: none;
+  }
+
+  .jh-sidebar-directory-link__text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .jh-sidebar-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+  }
+
+  .jh-sidebar-nav--collapsed .jh-sidebar-body {
+    padding: 10px 6px;
+  }
+
+  .jh-sidebar-section + .jh-sidebar-section {
+    margin-top: 16px;
+  }
+
+  .jh-sidebar-section--collapsed + .jh-sidebar-section--collapsed {
+    margin-top: 8px;
+  }
+
+  .jh-sidebar-section-title {
+    padding: 0 10px 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #9ca3af;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .jh-sidebar-item {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    text-align: left;
+    border: none;
+    background: transparent;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 9px 12px;
+    padding-left: 24px;
+    margin-bottom: 2px;
+    border-radius: 6px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .jh-sidebar-item:hover,
+  .jh-sidebar-item:focus-visible {
+    background: #f3f4f6;
+    outline: none;
+  }
+
+  .jh-sidebar-item--active {
+    background: var(--cPrimaryColorA80) !important;
+    color: var(--cPrimaryColor) !important;
+    box-shadow: inset 3px 0 0 var(--cPrimaryColor);
+    font-weight: 600;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .jh-sidebar-collapsed-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+    margin-bottom: 4px;
+    padding: 0 2px;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    background: transparent;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .jh-sidebar-collapsed-trigger:hover,
+  .jh-sidebar-collapsed-trigger:focus-visible {
+    background: #f3f4f6;
+    color: var(--cPrimaryColor);
+    outline: none;
+  }
+
+  .jh-sidebar-collapsed-trigger--active {
+    background: var(--cPrimaryColorA80) !important;
+    color: var(--cPrimaryColor) !important;
+    box-shadow: inset 2px 0 0 var(--cPrimaryColor);
+  }
+
+  .jh-sidebar-flyout {
+    position: fixed;
+    z-index: 1006;
+    min-width: 168px;
+    max-width: 240px;
+    padding: 8px 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  }
+
+  .jh-sidebar-bubble {
+    position: fixed;
+    z-index: 1006;
+  }
+
+  .jh-sidebar-bubble__arrow {
+    position: absolute;
+    left: -6px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid #fff;
+    filter: drop-shadow(-1px 0 0 #e5e7eb);
+    pointer-events: none;
+  }
+
+  .jh-sidebar-bubble__arrow--center {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .jh-sidebar-tip {
+    z-index: 1007;
+    max-width: 220px;
+    padding: 7px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.35;
+    white-space: nowrap;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .jh-sidebar-tip .jh-sidebar-bubble__arrow {
+    border-right-color: #fff;
+  }
+
+  .jh-sidebar-tip__label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .jh-sidebar-tip__desc {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 400;
+    color: #9ca3af;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .jh-sidebar-tip--with-desc {
+    white-space: normal;
+  }
+
+  .jh-sidebar-flyout__title {
+    padding: 4px 14px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    border-bottom: 1px solid #f3f4f6;
+    margin-bottom: 4px;
+  }
+
+  .jh-sidebar-flyout__item {
+    display: block;
+    width: 100%;
+    padding: 9px 14px;
+    border: none;
+    background: transparent;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .jh-sidebar-flyout__item:hover,
+  .jh-sidebar-flyout__item:focus-visible {
+    background: #f3f4f6;
+    outline: none;
+  }
+
+  .jh-sidebar-flyout__item--active {
+    background: var(--cPrimaryColorA80) !important;
+    color: var(--cPrimaryColor) !important;
+    font-weight: 600;
+  }
+
+  .jh-sidebar-footer {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 12px 16px;
+    border-top: 1px solid #f0f0f0;
+    background: #fff;
+  }
+
+  .jh-sidebar-footer--collapsed {
+    flex-direction: column;
+    padding: 10px 6px 14px;
+  }
+
+  .jh-sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .jh-sidebar-user--interactive {
+    cursor: default;
+    border-radius: 8px;
+    outline: none;
+  }
+
+  .jh-sidebar-user--interactive:hover,
+  .jh-sidebar-user--interactive:focus-visible {
+    background: #f3f4f6;
+  }
+
+  .jh-sidebar-footer--collapsed .jh-sidebar-user {
+    justify-content: center;
+  }
+
+  .jh-sidebar-user-name {
+    display: block;
+    font-size: 13px;
+    color: #374151;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .jh-sidebar-user-meta {
+    min-width: 0;
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .jh-sidebar-user-id {
+    display: block;
+    margin-top: 1px;
+    font-size: 11px;
+    color: #9ca3af;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .jh-sidebar-logout-btn {
+    flex: none;
+    min-width: 0;
+    max-width: 100%;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    font-size: 13px;
+    cursor: pointer;
+    transition: color 0.15s ease;
+    overflow: hidden;
+  }
+
+  .jh-sidebar-logout-btn__text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .jh-sidebar-logout-btn--collapsed {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .jh-sidebar-logout-btn--collapsed:hover,
+  .jh-sidebar-logout-btn--collapsed:focus-visible {
+    background: #f3f4f6;
+  }
+
+  .jh-sidebar-logout-btn:hover,
+  .jh-sidebar-logout-btn:focus-visible {
+    color: var(--cPrimaryColor);
+    outline: none;
+  }
+
+  .jh-sidebar-logout-btn .mdi {
+    font-size: 18px;
+    line-height: 1;
+  }
+</style>
+<!-- <<<<<<<<<<<<< jhMenuSidebarV4.html -->

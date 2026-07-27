@@ -1,0 +1,86 @@
+<!-- jhMenuHostV4.html >>>>>>>>>>>>> -->
+<script type="text/html" id="jh-menu-host-tpl">
+  <jh-menu-sidebar v-if="isSidebar" :show-avatar="showAvatar" />
+  <jh-menu-top v-else :show-avatar="showAvatar">
+    <template v-if="$slots.title" v-slot:title>
+      <slot name="title"></slot>
+    </template>
+    <template v-if="$slots.action" v-slot:action>
+      <slot name="action"></slot>
+    </template>
+  </jh-menu-top>
+</script>
+
+<style>
+  @media (min-width: 600px) {
+    html:not(.jh-layout-sidebar) .v-main.mt-13 {
+      padding-top: 0 !important;
+      padding-left: 0 !important;
+    }
+  }
+</style>
+
+<script>
+  Vue.component('jh-menu', {
+    template: '#jh-menu-host-tpl',
+    vueComponent: 'jh-menu',
+    props: {
+      showAvatar: { type: Boolean, default: true },
+    },
+    data() {
+      return {
+        pcMenuLayout: this.resolvePcMenuLayout(),
+      };
+    },
+    computed: {
+      isSidebar() {
+        return this.pcMenuLayout === 'sidebar';
+      },
+    },
+    watch: {
+      isSidebar() {
+        this.syncLayout();
+      },
+    },
+    created() {
+      this.handleUiPrefsChanged = () => {
+        this.pcMenuLayout = this.resolvePcMenuLayout();
+        this.syncLayout();
+      };
+      window.addEventListener('jh-ui-prefs-changed', this.handleUiPrefsChanged);
+    },
+    mounted() {
+      this.syncLayout();
+    },
+    beforeDestroy() {
+      window.removeEventListener('jh-ui-prefs-changed', this.handleUiPrefsChanged);
+    },
+    methods: {
+      resolvePcMenuLayout() {
+        if (typeof window.getPcMenuLayout === 'function') {
+          return window.getPcMenuLayout();
+        }
+        var jhUi = window.appInfo && window.appInfo.jianghuUi;
+        return (jhUi && jhUi.pcMenuLayout) || 'top';
+      },
+      syncLayout() {
+        document.documentElement.classList.toggle('jh-layout-sidebar', this.isSidebar);
+        this.$nextTick(() => {
+          this.updateApplicationLayout();
+        });
+      },
+      updateApplicationLayout() {
+        const application = this.$root && this.$root.$vuetify && this.$root.$vuetify.application;
+        if (!application || typeof application.update !== 'function') {
+          return;
+        }
+        try {
+          application.update();
+        } catch (err) {
+          // v-app 尚未完成注册时忽略
+        }
+      },
+    },
+  });
+</script>
+<!-- <<<<<<<<<<<<< jhMenuHostV4.html -->

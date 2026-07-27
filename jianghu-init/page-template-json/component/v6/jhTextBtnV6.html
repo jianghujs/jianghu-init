@@ -15,7 +15,7 @@
       :size="iconSize"
       :width="2"
       class="jh-text-btn__icon mr-1"
-      :color="colorMap[color] || color"
+      :style="{ color: colorMap[color] || color }"
     ></v-progress-circular>
     <template v-if="!resolvedIconRight && !loading">
       <jh-icon
@@ -64,7 +64,7 @@ Vue.component('jh-text-btn', {
   data() {
     return {
       colorMap: {
-        primary: '<$ ctx.app.config.primaryColor $>',
+        primary: 'var(--cPrimaryColor)',
         warning: '#ff9800',
         error:   '#f44336',
         success: '#4caf50',

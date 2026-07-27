@@ -27,7 +27,7 @@
     <template v-slot:actions>
       <template v-if="resolvedShowBtn">
         <v-btn class="elevation-0" @click="handleResetLocal">重置</v-btn>
-        <v-btn class="elevation-0 ml-2" color="success" @click="handleSearchSubmit">
+        <v-btn class="elevation-0 ml-2" color="primary" @click="handleSearchSubmit">
           <jh-icon v-if="btnIcon" :name="btnIcon" size="16" class="mr-1"></jh-icon>{{ btnText }}
         </v-btn>
       </template>
@@ -83,7 +83,7 @@
             />
           </template>
           <v-date-picker
-            color="success" elevation="20" no-title
+            color="primary" elevation="20" no-title
             v-model="localWhere[field.key]"
           />
         </v-menu>

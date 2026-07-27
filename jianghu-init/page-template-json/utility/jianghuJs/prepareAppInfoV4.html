@@ -1,0 +1,27 @@
+<!-- prepareAppInfoV4.html >>>>>>>>>>> -->
+<!-- 设置 window.appInfo；UI 配置统一放在 jianghuUi（优先读 config.jianghuUi，回退旧版顶层字段） -->
+{% set jhUiCfg = ctx.app.config.jianghuUi or {} %}
+<script type="text/javascript">
+window.appInfo = {
+    appId: '<$ ctx.app.config.appId $>',
+    authTokenKey: '<$ ctx.app.config.authTokenKey $>',
+    pageId: '<$ ctx.packagePage.pageId $>',
+    jianghuUi: {
+        primaryColor: '<$ jhUiCfg.primaryColor or ctx.app.config.primaryColor or "#4caf50" $>',
+        primaryColorA80: '<$ jhUiCfg.primaryColorA80 or ctx.app.config.primaryColorA80 or "#EEF7EE" $>',
+        pcMenuLayout: '<$ jhUiCfg.pcMenuLayout or ctx.app.config.pcMenuLayout or "top" $>',
+        enableUiSetting: '<$ jhUiCfg.enableUiSetting $>' === 'true',
+    },
+    appTitle: '<$ ctx.app.config.appTitle $>',
+    upload: '/<$ ctx.app.config.appId $>/upload',
+    public: '/<$ ctx.app.config.appId $>/public',
+    userAgent: navigator.userAgent ? navigator.userAgent : '',
+}
+if (!window.appInfo.jianghuUi.pcMenuLayout) {
+    window.appInfo.jianghuUi.pcMenuLayout = 'top';
+}
+if (window.appInfo.userAgent.length > 127) {
+    window.appInfo.userAgent = window.appInfo.userAgent.substring(0, 126);
+}
+</script>
+<!-- prepareAppInfoV4.html<<<<<<<<<<<< -->

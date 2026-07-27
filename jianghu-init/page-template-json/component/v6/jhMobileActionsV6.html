@@ -22,7 +22,7 @@
       v-if="primaryAction"
       small
       class="elevation-0 !rounded-xl px-2"
-      :color="primaryAction.color || 'success'"
+      :color="primaryAction.color || 'primary'"
       :disabled="isActionDisabled(primaryAction)"
       :loading="isActionLoading(primaryAction)"
       @click="emitAction(primaryAction)"
@@ -68,10 +68,10 @@
                   indeterminate
                   size="18"
                   width="2"
-                  :color="action.color || 'success'"
+                  :color="action.color || 'primary'"
                 ></v-progress-circular>
                 <template v-else>
-                  <v-icon v-if="isMdiIcon(action.icon)" size="20" :color="action.color || 'success'">
+                  <v-icon v-if="isMdiIcon(action.icon)" size="20" :color="action.color || 'primary'">
                     {{ action.icon }}
                   </v-icon>
                   <jh-icon
@@ -112,8 +112,8 @@
   -webkit-tap-highlight-color: transparent;
 }
 .jh-mobile-actions-more-item:active:not(.is-disabled):not(.is-loading) {
-  background: #eef7f2;
-  border-color: #d7ebe0;
+  background: var(--cPrimaryColorA80);
+  border-color: var(--cPrimaryColor);
   transform: scale(0.985);
 }
 .jh-mobile-actions-more-item.is-disabled,
@@ -146,14 +146,14 @@
 <script>
 (function () {
   const COLOR_MAP = {
-    primary: 'var(--v-primary-base, #1976D2)',
-    success: 'var(--v-success-base, #4CAF50)',
+    primary: 'var(--cPrimaryColor)',
+    success: '#4caf50',
     error: 'var(--v-error-base, #F44336)',
     warning: 'var(--v-warning-base, #FB8C00)',
     info: 'var(--v-info-base, #2196F3)',
   };
   const TINT_MAP = {
-    primary: 'rgba(25, 118, 210, 0.10)',
+    primary: 'var(--cPrimaryColorA80)',
     success: 'rgba(76, 175, 80, 0.12)',
     error: 'rgba(244, 67, 54, 0.10)',
     warning: 'rgba(251, 140, 0, 0.12)',
@@ -217,12 +217,12 @@
         return ICON_MAP[token] || 'point';
       },
       resolveActionColor(action) {
-        const c = (action && action.color) || 'success';
+        const c = (action && action.color) || 'primary';
         return COLOR_MAP[c] || c;
       },
       resolveActionTint(action) {
-        const c = (action && action.color) || 'success';
-        return TINT_MAP[c] || 'rgba(76, 175, 80, 0.10)';
+        const c = (action && action.color) || 'primary';
+        return TINT_MAP[c] || 'var(--cPrimaryColorA80)';
       },
       openMoreSheet() {
         this.isMoreSheetShown = true;

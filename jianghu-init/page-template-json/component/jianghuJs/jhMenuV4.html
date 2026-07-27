@@ -65,7 +65,7 @@
   
       <!-- 抽屉关闭按钮 -->
       <v-btn
-        elevation="0" color="success" fab absolute top left small tile class="jh-menu-drawer-close-float-btn"
+        elevation="0" color="primary" fab absolute top left small tile class="jh-menu-drawer-close-float-btn"
         @click="isMobileMenuDrawerShown = !isMobileMenuDrawerShown">
         <v-icon>mdi-close</v-icon>
       </v-btn>
@@ -87,9 +87,9 @@
           <!-- 页面标题 -->
           <v-toolbar-title ref="toolbarTitle" class="px-4 !min-h-[110px] flex-1">
             <div text class="flex flex-col pt-3 gap-3 items-start">
-              <div class="success--text text-xs text-center" @click="isMobileUserMenuDrawerShown = false">
-                <v-icon size="22" class="success--text">mdi-window-close</v-icon>
-                <div class="success--text mt-[-2px]">关闭</div>
+              <div class="primary--text text-xs text-center" @click="isMobileUserMenuDrawerShown = false">
+                <v-icon size="22" class="primary--text">mdi-window-close</v-icon>
+                <div class="primary--text mt-[-2px]">关闭</div>
               </div>
               <div class="flex w-full items-start mb-2 gap-1 items-center">
                 <v-icon :size="36">mdi-account-circle</v-icon>
@@ -145,9 +145,9 @@
       flat
     >
       <!-- 手机端左侧菜单开启按钮 -->
-      <div color="success" @click.stop="isMobileMenuDrawerShown = !isMobileMenuDrawerShown" class="hidden-md-and-up flex-col justify-center items-start w-[60px]">
-        <span class="success--text text-caption">
-          <v-icon size="24" class="success--text">mdi-menu</v-icon>
+      <div color="primary" @click.stop="isMobileMenuDrawerShown = !isMobileMenuDrawerShown" class="hidden-md-and-up flex-col justify-center items-start w-[60px]">
+        <span class="primary--text text-caption">
+          <v-icon size="24" class="primary--text">mdi-menu</v-icon>
           <div class="-mt-0.5 text-xs">目录</div>
         </span>
       </div>
@@ -171,7 +171,7 @@
         class="hidden-sm-and-down"
         show-arrows
         slider-size="0"
-        color="success"
+        color="primary"
         style="white-space: nowrap; overflow: hidden;"
       >
         <template v-for="(item, index) in inMenuList">
@@ -243,9 +243,9 @@
           <!-- 移动端右上角用户信息 -->
           <div text @click.stop="isMobileUserMenuDrawerShown = !isMobileUserMenuDrawerShown" class="jh-avatar-menu-btn flex-col justify-center items-end sm:!hidden">
             <div class="text-center">
-              <v-icon :size="24" color="success">mdi-account-circle</v-icon>
+              <v-icon :size="24" color="primary">mdi-account-circle</v-icon>
               <div class="-mt-0.5">
-                <p class="text-xs success--text mb-0 max-w-[60px] truncate">{{ userInfo.user.username }}</p>
+                <p class="text-xs primary--text mb-0 max-w-[60px] truncate">{{ userInfo.user.username }}</p>
               </div>
             </div>
           </div>
@@ -596,7 +596,7 @@
   /* <<<<< 侧边栏菜单 */
 
   .second-active .v-list-item__title {
-    color: #4caf50 !important;
+    color: var(--cPrimaryColor) !important;
   }
 
   .jh-avatar-menu-btn {
@@ -612,8 +612,8 @@
   }
 
   .second-active {
-    caret-color: #4caf50 !important;
-    background-color: rgba(76, 175, 80, 0.1) !important;
+    caret-color: var(--cPrimaryColor) !important;
+    background-color: var(--cPrimaryColorA80) !important;
   }
 
   .jh-toolbar-title {
@@ -634,7 +634,7 @@
   }
 
   .jh-header-tab.jh-header-tab-active {
-    color: #4caf50 !important;
+    color: var(--cPrimaryColor) !important;
   }
 
   /* 右上角菜单 */

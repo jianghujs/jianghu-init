@@ -309,6 +309,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     fs.mkdirSync('./app/view/component/jianghuJs', { recursive: true });
     fs.mkdirSync('./app/view/component/v6', { recursive: true });
     fs.mkdirSync('./app/view/template', { recursive: true });
+    fs.mkdirSync('./app/view/utility/jianghuJs', { recursive: true });
     fs.mkdirSync('./app/public/lib', { recursive: true });
 
     const initConfig = this.getInitConfig();
@@ -316,6 +317,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     let isComponentOverwrite = true;
     let isV6ComponentOverwrite = true;
     let isTemplateOverwrite = true;
+    let isUtilityOverwrite = true;
     let isPublicwrite = true;
     if (initConfig && initConfig.initJsonOverwrite) {
       const isFalse = (key) => {
@@ -333,6 +335,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
       if (isFalse('template')) {
         isTemplateOverwrite = false;
       }
+      if (isFalse('utility')) {
+        isUtilityOverwrite = false;
+      }
       if (isFalse('publicStatic')) {
         isPublicwrite = false;
       }
@@ -342,6 +347,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
     const copyConfigs = [
       { flag: isComponentOverwrite, name: 'component', desc: 'component' },
       { flag: isCommonOverwrite, name: 'common', desc: 'common' },
+      { flag: isUtilityOverwrite, name: 'utility', desc: 'utility' },
       { flag: isPublicwrite, name: 'publicStatic', desc: 'public' },
       { flag: isTemplateOverwrite, name: 'template', desc: 'template' },
       { flag: isV6ComponentOverwrite, name: 'v6Component', desc: 'v6Component' }
@@ -359,6 +365,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
     }
     if (isCommonOverwrite) {
       this.copyDir(`${path.join(__dirname, '../')}page-template-json/common/jianghuJs`, './app/view/common/jianghuJs');
+    }
+    if (isUtilityOverwrite) {
+      this.copyDir(`${path.join(__dirname, '../')}page-template-json/utility/jianghuJs`, './app/view/utility/jianghuJs');
     }
     if (isV6ComponentOverwrite) {
       this.copyDir(`${path.join(__dirname, '../')}page-template-json/component/v6`, './app/view/component/v6');

@@ -109,7 +109,7 @@
                 />
               </template>
               <v-date-picker
-                color="success" elevation="20" no-title
+                color="primary" elevation="20" no-title
                 v-model="localWhere[field.key]"
               />
             </v-menu>
@@ -129,7 +129,7 @@
                     <div v-bind="attrs" v-on="on" class="text-no-wrap pt-[3px] pr-1" style="cursor:pointer">
                       {{ field.label || '搜索' }}
                       <span
-                        class="bg-[<$ ctx.app.config.primaryColor $>] text-white px-1 rounded text-xs align-text-bottom"
+                        class="jh-theme-badge px-1 rounded text-xs align-text-bottom"
                       >{{ localKeywordFieldList.length }}</span>
                     </div>
                   </template>
@@ -188,7 +188,7 @@
           <!-- 查询按钮 -->
           <div v-if="resolvedShowBtn" class="jh-backend-search-btn ml-2 d-flex align-center">
             <v-btn
-              class="elevation-0" color="success" small
+              class="elevation-0" color="primary" small
               @click="handleSearch()"
             ><jh-icon v-if="btnIcon" :name="btnIcon" size="16" class="mr-1"></jh-icon>{{ btnText }}</v-btn>
           </div>
@@ -207,7 +207,7 @@
       class="elevation-24"
     >
       <v-btn
-        elevation="0" color="success"
+        elevation="0" color="primary"
         fab absolute top left small tile
         class="drawer-close-float-btn"
         @click="isHelpDrawerShown = false"

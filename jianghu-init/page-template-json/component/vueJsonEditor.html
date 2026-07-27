@@ -4,8 +4,6 @@
   </div>
 </script>
 
-<link href="/<$ ctx.app.config.appId $>/public/plugin/jsoneditor/jsoneditor.css" rel="stylesheet">
-<script src="/<$ ctx.app.config.appId $>/public/plugin/jsoneditor/jsoneditor.js"></script>
 <script>
   Vue.component("vue-json-editor", {
     template: "#vue-json-editor",
@@ -28,7 +26,7 @@
       // Add the totalHeight prop
       height: {
         type: String,
-        default: 'calc(100dvh - 240px)'
+        default: 'calc(100vh - 240px)'
       },
     },
     watch: {
@@ -137,17 +135,17 @@
     display: none !important;
   }
   .jsoneditor-menu {
-    background-color: #4caf50 !important;
-    border-bottom: 1px solid #4caf50 !important;
+    background-color: var(--cPrimaryColor) !important;
+    border-bottom: 1px solid var(--cPrimaryColor) !important;
   }
   .jsoneditor {
-    border: thin solid #4caf50 !important;
+    border: thin solid var(--cPrimaryColor) !important;
   }
   .jsoneditor-modal .pico-modal-header {
-    background: #4caf50 !important;
+    background: var(--cPrimaryColor) !important;
   }
   .jsoneditor-modal .jsoneditor-button-group.jsoneditor-button-group-value-asc input.jsoneditor-button-asc, .jsoneditor-modal .jsoneditor-button-group.jsoneditor-button-group-value-desc input.jsoneditor-button-desc {
-      background: #4caf50 !important;
-      border-color: #4caf50 !important;
+      background: var(--cPrimaryColor) !important;
+      border-color: var(--cPrimaryColor) !important;
   }
 </style>

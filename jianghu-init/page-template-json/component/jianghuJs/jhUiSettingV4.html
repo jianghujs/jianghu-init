@@ -1,0 +1,731 @@
+<!-- jhUiSettingV4.html >>>>>>>>>>>>> -->
+<script type="text/html" id="jh-ui-setting-tpl">
+  <div class="jh-ui-setting">
+    <button
+      v-show="!drawerOpen && isReady"
+      type="button"
+      class="jh-ui-setting-trigger"
+      :style="{ backgroundColor: currentPrimaryColor }"
+      aria-label="界面设置"
+      title="界面设置"
+      @click="openDrawer"
+    >
+      <span class="mdi mdi-cog jh-ui-setting-trigger__icon" aria-hidden="true"></span>
+    </button>
+
+    <transition name="jh-ui-setting-fade">
+      <div
+        v-if="drawerOpen"
+        class="jh-ui-setting-overlay"
+        @click.self="drawerOpen = false"
+      >
+        <transition name="jh-ui-setting-slide">
+          <aside
+            v-if="drawerOpen"
+            class="jh-ui-setting-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="界面设置"
+          >
+            <button
+              type="button"
+              class="jh-ui-setting-close"
+              :style="{ backgroundColor: draftPrimaryColor }"
+              aria-label="关闭"
+              @click="drawerOpen = false"
+            >
+              <span class="mdi mdi-close jh-ui-setting-close__icon" aria-hidden="true"></span>
+            </button>
+
+            <div class="jh-ui-setting-panel__inner">
+              <header class="jh-ui-setting-header">
+                <div
+                  class="jh-ui-setting-header__icon"
+                  :style="{ backgroundColor: tintColor(draftPrimaryColor, 0.1), color: draftPrimaryColor }"
+                >
+                  <span class="mdi mdi-tune-variant" aria-hidden="true"></span>
+                </div>
+                <div class="jh-ui-setting-header__text">
+                  <div class="jh-ui-setting-header__title">界面设置</div>
+                  <div class="jh-ui-setting-header__desc">主题色与菜单布局保存在本浏览器，刷新后仍生效</div>
+                </div>
+              </header>
+
+              <div class="jh-ui-setting-body">
+                <section class="jh-ui-setting-section">
+                  <div class="jh-ui-setting-section__head">
+                    <h3 class="jh-ui-setting-section__label">主题色</h3>
+                    <span
+                      class="jh-ui-setting-color-badge"
+                      :style="{ backgroundColor: draftPrimaryColor }"
+                    >{{ draftPrimaryColor }}</span>
+                  </div>
+
+                  <div class="jh-ui-setting-swatches">
+                    <button
+                      v-for="preset in themePresets"
+                      :key="preset.primary"
+                      type="button"
+                      class="jh-ui-setting-swatch"
+                      :class="{ 'jh-ui-setting-swatch--active': draftPrimaryColor === preset.primary }"
+                      :style="draftPrimaryColor === preset.primary ? activeRingStyle(preset.primary) : {}"
+                      :aria-label="preset.label"
+                      :title="preset.label"
+                      @click="selectThemePreset(preset)"
+                    >
+                      <span
+                        class="jh-ui-setting-swatch__color"
+                        :style="{ backgroundColor: preset.primary }"
+                      >
+                        <span
+                          v-if="draftPrimaryColor === preset.primary"
+                          class="mdi mdi-check jh-ui-setting-swatch__check"
+                          aria-hidden="true"
+                        ></span>
+                      </span>
+                      <span
+                        class="jh-ui-setting-swatch__label"
+                        :class="{ 'jh-ui-setting-swatch__label--active': draftPrimaryColor === preset.primary }"
+                      >{{ preset.label }}</span>
+                    </button>
+                  </div>
+
+                  <!-- <div class="jh-ui-setting-custom">
+                    <input
+                      v-model="draftPrimaryColor"
+                      type="color"
+                      class="jh-ui-setting-custom__picker"
+                      aria-label="自定义主题色"
+                    />
+                    <div class="jh-ui-setting-custom__field-wrap">
+                      <label class="jh-ui-setting-custom__label" for="jh-ui-setting-hex">自定义色值</label>
+                      <input
+                        id="jh-ui-setting-hex"
+                        v-model="draftPrimaryColor"
+                        type="text"
+                        class="jh-ui-setting-custom__input"
+                        placeholder="#4caf50"
+                        spellcheck="false"
+                      />
+                    </div>
+                  </div> -->
+                </section>
+
+                <section class="jh-ui-setting-section">
+                  <h3 class="jh-ui-setting-section__label jh-ui-setting-section__label--solo">菜单布局</h3>
+                  <div class="jh-ui-setting-layouts">
+                    <button
+                      type="button"
+                      class="jh-ui-setting-layout"
+                      :class="{ 'jh-ui-setting-layout--active': draftPcMenuLayout === 'top' }"
+                      :style="draftPcMenuLayout === 'top' ? activeRingStyle(draftPrimaryColor) : {}"
+                      @click="draftPcMenuLayout = 'top'"
+                    >
+                      <span
+                        class="jh-ui-setting-layout__icon"
+                        :class="{ 'jh-ui-setting-layout__icon--active': draftPcMenuLayout === 'top' }"
+                        :style="draftPcMenuLayout === 'top' ? { backgroundColor: draftPrimaryColor, color: '#ffffff' } : {}"
+                      >
+                        <span class="mdi mdi-view-headline" aria-hidden="true"></span>
+                      </span>
+                      <span class="jh-ui-setting-layout__title">顶部菜单</span>
+                      <span class="jh-ui-setting-layout__desc">横向 Tab，适合宽屏</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="jh-ui-setting-layout"
+                      :class="{ 'jh-ui-setting-layout--active': draftPcMenuLayout === 'sidebar' }"
+                      :style="draftPcMenuLayout === 'sidebar' ? activeRingStyle(draftPrimaryColor) : {}"
+                      @click="draftPcMenuLayout = 'sidebar'"
+                    >
+                      <span
+                        class="jh-ui-setting-layout__icon"
+                        :class="{ 'jh-ui-setting-layout__icon--active': draftPcMenuLayout === 'sidebar' }"
+                        :style="draftPcMenuLayout === 'sidebar' ? { backgroundColor: draftPrimaryColor, color: '#ffffff' } : {}"
+                      >
+                        <span class="mdi mdi-dock-left" aria-hidden="true"></span>
+                      </span>
+                      <span class="jh-ui-setting-layout__title">侧边栏菜单</span>
+                      <span class="jh-ui-setting-layout__desc">纵向导航，适合多页面</span>
+                    </button>
+                  </div>
+                </section>
+              </div>
+
+              <footer class="jh-ui-setting-footer">
+                <button
+                  type="button"
+                  class="jh-ui-setting-btn jh-ui-setting-btn--primary"
+                  :style="{ backgroundColor: draftPrimaryColor }"
+                  @click="applySettings"
+                >应用设置</button>
+                <button
+                  type="button"
+                  class="jh-ui-setting-btn jh-ui-setting-btn--ghost"
+                  @click="resetSettings"
+                >恢复默认</button>
+              </footer>
+            </div>
+          </aside>
+        </transition>
+      </div>
+    </transition>
+  </div>
+</script>
+
+<style>
+  #jh-ui-setting-root {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  #jh-ui-setting-root.is-ready {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .jh-ui-setting-trigger {
+    position: fixed;
+    right: -10px;
+    top: 25%;
+    transform: translateY(-50%);
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding-right: 10px;
+    border: none;
+    border-radius: 12px 0 0 12px;
+    box-shadow: -3px 4px 14px rgba(15, 23, 42, 0.18);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .jh-ui-setting-trigger:hover,
+  .jh-ui-setting-trigger:focus-visible {
+    transform: translateY(-50%) translateX(-4px);
+    box-shadow: -5px 6px 18px rgba(15, 23, 42, 0.24);
+    outline: none;
+  }
+
+  .jh-ui-setting-trigger__icon {
+    color: #ffffff;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .jh-ui-setting-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1002;
+    background: rgba(15, 23, 42, 0.35);
+  }
+
+  .jh-ui-setting-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 380px;
+    max-width: 100vw;
+    background: #f8fafc;
+    box-shadow: -8px 0 32px rgba(15, 23, 42, 0.14);
+  }
+
+  .jh-ui-setting-panel__inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .jh-ui-setting-close {
+    position: absolute;
+    top: 100px;
+    left: 8px;
+    transform: translateX(calc(-100% - 8px));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.16);
+  }
+
+  .jh-ui-setting-close__icon {
+    color: #ffffff;
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .jh-ui-setting-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .jh-ui-setting-header__icon {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
+    font-size: 22px;
+    line-height: 1;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  }
+
+  .jh-ui-setting-header__text {
+    min-width: 0;
+    padding-top: 2px;
+  }
+
+  .jh-ui-setting-header__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: -0.01em;
+  }
+
+  .jh-ui-setting-header__desc {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #94a3b8;
+  }
+
+  .jh-ui-setting-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .jh-ui-setting-section + .jh-ui-setting-section {
+    margin-top: 24px;
+  }
+
+  .jh-ui-setting-section__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .jh-ui-setting-section__label {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+
+  .jh-ui-setting-section__label--solo {
+    margin-bottom: 12px;
+  }
+
+  .jh-ui-setting-color-badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+  }
+
+  .jh-ui-setting-swatches {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .jh-ui-setting-swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+
+  .jh-ui-setting-swatch:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  }
+
+  .jh-ui-setting-swatch--active {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+  }
+
+  .jh-ui-setting-swatch__color {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.18);
+  }
+
+  .jh-ui-setting-swatch__check {
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .jh-ui-setting-swatch__label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
+  }
+
+  .jh-ui-setting-swatch__label--active {
+    color: #334155;
+  }
+
+  .jh-ui-setting-custom {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+
+  .jh-ui-setting-custom__picker {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    padding: 2px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .jh-ui-setting-custom__field-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .jh-ui-setting-custom__label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+  }
+
+  .jh-ui-setting-custom__input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+    outline: none;
+    box-sizing: border-box;
+  }
+
+  .jh-ui-setting-custom__input:focus {
+    border-color: #94a3b8;
+  }
+
+  .jh-ui-setting-layouts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .jh-ui-setting-layout {
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .jh-ui-setting-layout:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  }
+
+  .jh-ui-setting-layout--active {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+  }
+
+  .jh-ui-setting-layout__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .jh-ui-setting-layout__title {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  .jh-ui-setting-layout__desc {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #94a3b8;
+  }
+
+  .jh-ui-setting-footer {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #ffffff;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .jh-ui-setting-btn {
+    flex: 1;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .jh-ui-setting-btn--primary {
+    border: none;
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+  }
+
+  .jh-ui-setting-btn--primary:hover {
+    opacity: 0.92;
+  }
+
+  .jh-ui-setting-btn--ghost {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+
+  .jh-ui-setting-btn--ghost:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+
+  .jh-ui-setting-fade-enter-active,
+  .jh-ui-setting-fade-leave-active {
+    transition: opacity 0.2s ease;
+  }
+
+  .jh-ui-setting-fade-enter,
+  .jh-ui-setting-fade-leave-to {
+    opacity: 0;
+  }
+
+  .jh-ui-setting-slide-enter-active,
+  .jh-ui-setting-slide-leave-active {
+    transition: transform 0.24s ease;
+  }
+
+  .jh-ui-setting-slide-enter,
+  .jh-ui-setting-slide-leave-to {
+    transform: translateX(100%);
+  }
+</style>
+
+<script>
+  Vue.component('jh-ui-setting', {
+    template: '#jh-ui-setting-tpl',
+    vueComponent: 'jh-ui-setting',
+    data() {
+      return {
+        isReady: false,
+        drawerOpen: false,
+        draftPcMenuLayout: 'top',
+        draftPrimaryColor: '#4caf50',
+        draftPrimaryColorA80: '#EEF7EE',
+        currentPrimaryColor: '#4caf50',
+        themePresets: [
+          { label: '绿色', primary: '#4caf50', primaryA80: '#EEF7EE' },
+          { label: '蓝色', primary: '#1976d2', primaryA80: '#E3F2FD' },
+          { label: '紫色', primary: '#7c3aed', primaryA80: '#EDE9FE' },
+          { label: '橙色', primary: '#f97316', primaryA80: '#FFF7ED' },
+          { label: '红色', primary: '#ef4444', primaryA80: '#FEE2E2' },
+          { label: '青色', primary: '#009688', primaryA80: '#E0F2F1' },
+        ],
+      };
+    },
+    created() {
+      this.syncFromPrefs();
+      this.handleUiPrefsChanged = () => {
+        this.syncFromPrefs();
+      };
+      window.addEventListener('jh-ui-prefs-changed', this.handleUiPrefsChanged);
+    },
+    mounted() {
+      this.isReady = true;
+      var root = document.getElementById('jh-ui-setting-root');
+      if (root) {
+        root.classList.add('is-ready');
+      }
+    },
+    beforeDestroy() {
+      window.removeEventListener('jh-ui-prefs-changed', this.handleUiPrefsChanged);
+    },
+    methods: {
+      tintColor(hex, alpha) {
+        var value = String(hex || '').replace('#', '');
+        if (value.length === 3) {
+          value = value.split('').map(function (c) { return c + c; }).join('');
+        }
+        if (value.length !== 6) {
+          return 'rgba(76, 175, 80, ' + alpha + ')';
+        }
+        var r = parseInt(value.slice(0, 2), 16);
+        var g = parseInt(value.slice(2, 4), 16);
+        var b = parseInt(value.slice(4, 6), 16);
+        return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+      },
+      activeRingStyle(color) {
+        return {
+          borderColor: color,
+          boxShadow: '0 0 0 2px #ffffff, 0 0 0 4px ' + color,
+        };
+      },
+      syncFromPrefs() {
+        this.currentPrimaryColor = typeof window.getPrimaryColor === 'function'
+          ? window.getPrimaryColor()
+          : '#4caf50';
+        this.draftPrimaryColor = this.currentPrimaryColor;
+        this.draftPrimaryColorA80 = typeof window.getPrimaryColorA80 === 'function'
+          ? window.getPrimaryColorA80()
+          : '#EEF7EE';
+        this.draftPcMenuLayout = typeof window.getPcMenuLayout === 'function'
+          ? window.getPcMenuLayout()
+          : 'top';
+      },
+      openDrawer() {
+        this.syncFromPrefs();
+        this.drawerOpen = true;
+      },
+      selectThemePreset(preset) {
+        this.draftPrimaryColor = preset.primary;
+        this.draftPrimaryColorA80 = preset.primaryA80;
+      },
+      resolvePrimaryColorA80(primaryColor) {
+        var matched = this.themePresets.find(function (item) {
+          return item.primary.toLowerCase() === String(primaryColor || '').toLowerCase();
+        });
+        if (matched) {
+          return matched.primaryA80;
+        }
+        if (typeof window.computePrimaryColorA80 === 'function') {
+          return window.computePrimaryColorA80(primaryColor);
+        }
+        return this.draftPrimaryColorA80 || '#EEF7EE';
+      },
+      applySettings() {
+        if (typeof window.saveUiPrefs !== 'function') {
+          return;
+        }
+        var previousMenuLayout = typeof window.getPcMenuLayout === 'function'
+          ? window.getPcMenuLayout()
+          : this.draftPcMenuLayout;
+        var primaryColor = this.draftPrimaryColor || this.currentPrimaryColor;
+        window.saveUiPrefs({
+          pcMenuLayout: this.draftPcMenuLayout,
+          primaryColor: primaryColor,
+          primaryColorA80: this.resolvePrimaryColorA80(primaryColor),
+        });
+        this.currentPrimaryColor = primaryColor;
+        this.drawerOpen = false;
+        if (previousMenuLayout !== this.draftPcMenuLayout) {
+          this.scheduleTableLayoutRefresh();
+        }
+      },
+      scheduleTableLayoutRefresh() {
+        // 菜单 top/sidebar 切换后 v-main 高度会变，需等 DOM 布局稳定再重算表格高度
+        this.$nextTick(function () {
+          setTimeout(function () {
+            if (typeof window.resetTableMaxHeight === 'function') {
+              window.resetTableMaxHeight();
+            }
+            if (typeof window.reFixedTableCol === 'function') {
+              window.reFixedTableCol();
+            }
+          }, 300);
+        });
+      },
+      resetSettings() {
+        if (typeof window.resetUiPrefs !== 'function') {
+          return;
+        }
+        window.resetUiPrefs();
+        this.drawerOpen = false;
+        window.location.reload();
+      },
+    },
+  });
+
+  function mountJhUiSetting() {
+    if (document.getElementById('jh-ui-setting-root')) {
+      return;
+    }
+    var mountEl = document.createElement('div');
+    mountEl.id = 'jh-ui-setting-root';
+    document.body.appendChild(mountEl);
+    new Vue({
+      el: '#jh-ui-setting-root',
+      template: '<jh-ui-setting />',
+    });
+  }
+
+  function scheduleMountJhUiSetting() {
+    if (typeof window.isUiSettingEnabled === 'function' && !window.isUiSettingEnabled()) {
+      return;
+    }
+    if (document.readyState === 'complete') {
+      mountJhUiSetting();
+      return;
+    }
+    window.addEventListener('load', mountJhUiSetting, { once: true });
+  }
+
+  scheduleMountJhUiSetting();
+</script>
+<!-- <<<<<<<<<<<<< jhUiSettingV4.html -->

@@ -25,7 +25,8 @@ const resolveFieldDefForTarget = (raw, target, mode) => {
   const platformKey = target === 'mobile' ? 'mobile' : 'pc';
   const platformAttrsKey = target === 'mobile' ? 'mobileAttrs' : 'pcAttrs';
   const root = {};
-  for (const key of ['label', 'type', 'html', 'cls', 'autoId']) {
+  if ('label' in raw) root.label = raw.label;
+  for (const key of ['type', 'html', 'cls', 'autoId']) {
     if (raw[key] != null) root[key] = raw[key];
   }
 
@@ -73,7 +74,13 @@ const resolveFieldDefForTarget = (raw, target, mode) => {
 /** fields.{key} → form fieldList 项（含 attrs / placeholder / hint / quickAttrs） */
 const fieldKeyToFormField = (fieldsDict, key, target = 'pc', mode) => {
   const f = resolveFieldDefForTarget(fieldsDict && fieldsDict[key], target, mode);
-  const out = { key, label: f.label || key, type: f.type || 'text' };
+  const out = {
+    key,
+    label: f.hideLabel ? '' : ('label' in f ? f.label : key),
+    type: f.type || 'text',
+  };
+  if (f.hideLabel) out.hideLabel = true;
+  if (f.inlineFullWidth) out.inlineFullWidth = true;
   if (f.required) out.required = true;
   if (f.labelRequired != null) out.labelRequired = !!f.labelRequired;
   if (f.readonly) out.readonly = true;

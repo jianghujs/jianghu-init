@@ -1,0 +1,106 @@
+<!-- jhUiPrefsV4.html >>>>>>>>>>> -->
+<script type="text/javascript">
+(function () {
+  var appId = '<$ ctx.app.config.appId $>';
+  var storageKey = appId + '_uiPrefs';
+
+  function getAppJianghuUi() {
+    return (window.appInfo && window.appInfo.jianghuUi) || {};
+  }
+
+  function loadUiPrefs() {
+    try {
+      return JSON.parse(localStorage.getItem(storageKey) || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function syncJianghuUiFromPrefs() {
+    if (!window.appInfo) return;
+    if (!window.appInfo.jianghuUi) {
+      window.appInfo.jianghuUi = {};
+    }
+    window.appInfo.jianghuUi.pcMenuLayout = window.getPcMenuLayout();
+    window.appInfo.jianghuUi.primaryColor = window.getPrimaryColor();
+    window.appInfo.jianghuUi.primaryColorA80 = window.getPrimaryColorA80();
+  }
+
+  window.jhUiPrefs = loadUiPrefs();
+
+  window.getPcMenuLayout = function () {
+    return window.jhUiPrefs.pcMenuLayout
+      || getAppJianghuUi().pcMenuLayout
+      || 'top';
+  };
+
+  window.getPrimaryColor = function () {
+    return window.jhUiPrefs.primaryColor
+      || getAppJianghuUi().primaryColor
+      || '#4caf50';
+  };
+
+  window.getPrimaryColorA80 = function () {
+    return window.jhUiPrefs.primaryColorA80
+      || getAppJianghuUi().primaryColorA80
+      || '#EEF7EE';
+  };
+
+  window.isUiSettingEnabled = function () {
+    return !!getAppJianghuUi().enableUiSetting;
+  };
+
+  window.computePrimaryColorA80 = function (primaryColor) {
+    var hex = String(primaryColor || '').replace('#', '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(function (c) { return c + c; }).join('');
+    }
+    if (hex.length !== 6) {
+      return getAppJianghuUi().primaryColorA80 || '#EEF7EE';
+    }
+    var r = parseInt(hex.slice(0, 2), 16);
+    var g = parseInt(hex.slice(2, 4), 16);
+    var b = parseInt(hex.slice(4, 6), 16);
+    var ratio = 0.12;
+    var mix = function (channel) {
+      return Math.round(255 * (1 - ratio) + channel * ratio);
+    };
+    var toHex = function (n) {
+      var s = n.toString(16);
+      return s.length === 1 ? '0' + s : s;
+    };
+    return '#' + toHex(mix(r)) + toHex(mix(g)) + toHex(mix(b));
+  };
+
+  window.applyThemeColors = function () {
+    var primary = window.getPrimaryColor();
+    var primaryA80 = window.getPrimaryColorA80();
+    document.body.style.setProperty('--cPrimaryColor', primary);
+    document.body.style.setProperty('--cPrimaryColorA80', primaryA80);
+  };
+
+  window.saveUiPrefs = function (patch) {
+    window.jhUiPrefs = Object.assign({}, window.jhUiPrefs, patch || {});
+    localStorage.setItem(storageKey, JSON.stringify(window.jhUiPrefs));
+    syncJianghuUiFromPrefs();
+    window.applyThemeColors();
+    window.dispatchEvent(new CustomEvent('jh-ui-prefs-changed'));
+  };
+
+  window.resetUiPrefs = function () {
+    window.jhUiPrefs = {};
+    localStorage.removeItem(storageKey);
+    syncJianghuUiFromPrefs();
+    window.applyThemeColors();
+    window.dispatchEvent(new CustomEvent('jh-ui-prefs-changed'));
+  };
+
+  syncJianghuUiFromPrefs();
+  window.applyThemeColors();
+
+  if (window.getPcMenuLayout() === 'sidebar') {
+    document.documentElement.classList.add('jh-layout-sidebar');
+  }
+})();
+</script>
+<!-- jhUiPrefsV4.html <<<<<<<<<<<<< -->

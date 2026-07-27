@@ -346,6 +346,14 @@
                 "rules": {},
                 "placeholder": { "type": "string" },
                 "hint": { "type": "string" },
+                "hideLabel": {
+                    "type": "boolean",
+                    "description": "labelMode=inline 时隐藏左侧 label；control 独占整行（jh-form 自动全宽）"
+                },
+                "inlineFullWidth": {
+                    "type": "boolean",
+                    "description": "labelMode=inline 且保留 label 时 control 换行占满整行；textarea/date 自动；hideLabel 时不必写"
+                },
                 "quickAttrs": {},
                 "attrs": { "type": "object", "additionalProperties": true },
                 "pcAttrs": { "type": "object", "additionalProperties": true },

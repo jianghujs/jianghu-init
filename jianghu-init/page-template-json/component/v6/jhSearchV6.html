@@ -85,7 +85,7 @@
           ></v-text-field>
         </template>
         <v-date-picker
-          color="success" elevation="20" no-title
+          color="primary" elevation="20" no-title
           v-model="localValues[field.key]"
           @input="!resolvedShowBtn && handleSearch()"
         ></v-date-picker>
@@ -107,7 +107,7 @@
     </template>
 
     <!-- 查询按钮 -->
-    <v-btn v-if="resolvedShowBtn" class="elevation-0" color="success" small @click="handleSearch">
+    <v-btn v-if="resolvedShowBtn" class="elevation-0" color="primary" small @click="handleSearch">
       <jh-icon v-if="btnIcon" :name="btnIcon" size="16" class="mr-1"></jh-icon>{{ btnText }}
     </v-btn>
 

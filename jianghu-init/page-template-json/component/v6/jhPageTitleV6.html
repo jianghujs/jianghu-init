@@ -20,7 +20,7 @@
       v-model="isHelpDrawerShown"
       fixed temporary right width="80%" class="elevation-24"
     >
-      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpDrawerShown = false">
+      <v-btn elevation="0" color="primary" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpDrawerShown = false">
         <v-icon>mdi-close</v-icon>
       </v-btn>
       <iframe style="border:0; display:block" :src="resolvedHelpSrc" width="100%" height="100%"></iframe>

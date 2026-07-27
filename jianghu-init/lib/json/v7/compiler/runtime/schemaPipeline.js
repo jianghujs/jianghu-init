@@ -730,7 +730,7 @@ function buildTableNode(tableProps) {
       const token = action.uiAction || action.intent;
       return {
       text:  action.label,
-      color: token === 'delete' ? 'error' : 'success',
+      color: token === 'delete' ? 'error' : 'primary',
       click: token === 'update'
         ? 'doUiAction("startUpdateItem", item)'
         : token === 'delete'
@@ -745,7 +745,7 @@ function buildTableNode(tableProps) {
         tag: 'v-btn',
         value: action.label,
         attrs: {
-          color: 'success', small: true, class: 'mr-2',
+          color: 'primary', small: true, class: 'mr-2',
           '@click': token === 'create'
             ? "doUiAction('startCreateItem')"
             : `doUiAction('${action.id || token}')`,
@@ -795,7 +795,7 @@ function buildDrawerByForm(formKey, formSchema) {
         tag: 'v-btn',
         value: isCreate ? '新增' : '编辑',
         attrs: {
-          color: 'success',
+          color: 'primary',
           ':small': true,
           '@click': isCreate ? "doUiAction('createItem')" : "doUiAction('updateItem')",
         },

@@ -46,6 +46,9 @@
                                           · 以 ":" 开头的键视为 scope 路径绑定，如 { ":loading": "isLoading" }
                     quickAttrs   Array|String  布尔型 Vuetify prop（无需写 true），
                                           支持数组 ["clearable","small-chips"] 或空格字符串 "clearable small-chips"
+                    hideLabel    Boolean  labelMode='inline' 时隐藏左侧 label；control 独占整行（含全宽）
+                    inlineFullWidth Boolean  labelMode='inline' 且保留 label 时 control 换行占满整行
+                                          （textarea/date 自动；hideLabel 时不必写）
       initialData Object  表单当前值，外部变更自动同步到本地 formData
       originData  Object  打开表单时的快照（如 updateItemOrigin）；与 formData 比对时在 label 旁显示橙色变更点
       showFieldChange Boolean  是否显示字段变更指示，默认 true（需 originData）
@@ -175,7 +178,7 @@
 .jh-form--inline .jh-form-inline-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: start;
   padding: 8px var(--jh-form-inline-px);
   width: 100%;
   box-sizing: border-box;
@@ -189,6 +192,7 @@
   padding-right: 8px;
   flex-shrink: 0;
   line-height: 20px;
+  padding-top: 6px
 }
 .jh-form--inline .jh-form-inline-control {
   flex: 1 1 0;
@@ -327,7 +331,7 @@ Vue.component('jh-input-label', {
 
           <!-- labelMode='inline'：标签左（对齐 v4 mobileFormItemFormat + colAttrs） -->
           <span
-            v-if="isInlineLayout && field.label"
+            v-if="isInlineLayout && inlineFieldShowLabel(field)"
             class="jh-input-label jh-form-inline-label"
           >
             <span v-if="field.required" class="red--text text--accent-2 mr-1">*</span>{{ field.label }}
@@ -449,7 +453,7 @@ Vue.component('jh-input-label', {
             </template>
             <v-date-picker
               v-model="formData[field.key]"
-              color="success"
+              color="primary"
               elevation="20"
               no-title scrollable
               @input="handleChange(field.key, formData[field.key]); $set(datePickerOpen, field.key, false)"
@@ -684,8 +688,11 @@ Vue.component('jh-form', {
           hint:        field.hint        || '',
           // span → spanClass：数字/字符串/对象均转为 CSS 类名，inline style 无法响应式
           spanClass:   resolveSpanClass(field.span),
-          cls:         field.cls         || '',
-          component:   field.component   || '',
+          cls:             field.cls             || '',
+          component:       field.component       || '',
+          hideLabel:       !!field.hideLabel,
+          inlineFullWidth: !!field.inlineFullWidth,
+          span:            field.span,
           extraAttrs,
         };
       });
@@ -741,8 +748,15 @@ Vue.component('jh-form', {
       if (fullWidth || (this.isInlineLayout && this.inlineControlFullWidth(field))) cls.push('w-full');
       return cls.join(' ');
     },
+    inlineFieldShowLabel(field) {
+      return !!(field && !field.hideLabel && field.label);
+    },
     inlineControlFullWidth(field) {
-      return field && [ 'textarea', 'date' ].includes(field.type);
+      if (!field) return false;
+      // hideLabel：无左侧 label 列，control 独占整行
+      if (field.hideLabel) return true;
+      if (field.inlineFullWidth || field.span === 'full') return true;
+      return [ 'textarea', 'date' ].includes(field.type);
     },
     inlineFieldHasBorder(fieldIdx) {
       if (!this.isInlineLayout) return false;

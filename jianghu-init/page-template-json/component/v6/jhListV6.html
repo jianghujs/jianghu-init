@@ -41,7 +41,7 @@
         <v-btn
           v-else-if="isActionVisible(action)"
           :key="action.id || actionUiToken(action) || idx"
-          :color="action.color || 'success'"
+          :color="action.color || 'primary'"
           :disabled="isActionDisabled(action)"
           :loading="isActionLoading(action)"
           small
@@ -104,7 +104,7 @@
               <slot name="action" :item="item">
                 <div
                   v-if="showRightArrow"
-                  class="ml-2 shrink-0 inline-flex items-center font-medium success--text"
+                  class="ml-2 shrink-0 inline-flex items-center font-medium primary--text"
                   style="border-bottom:1px dashed currentColor"
                 >
                   <span class="text-xs">{{ rightArrowText }}</span>
@@ -159,7 +159,7 @@
           <jh-icon v-else name="chevron-left" :size="20" style="color:#eaeaea"></jh-icon>
 
           <span class="mx-1 text-caption">
-            <span class="success--text font-weight-medium">{{ currentPage }}</span>
+            <span class="primary--text font-weight-medium">{{ currentPage }}</span>
             / {{ totalPages }}
           </span>
 

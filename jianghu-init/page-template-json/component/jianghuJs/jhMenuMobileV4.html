@@ -47,7 +47,7 @@
                         @click="openUrl(menu.path, menu.query)"
                         class="flex items-center pl-6 pr-4 py-2 mb-0 cursor-pointer rounded transition-all"
                         :class="{
-                          'second-active !bg-amber-50 border border-[<$ ctx.app.config.primaryColor $>]/20 text-blcak': currentSecondMenuPageId === menu.pageId && currentMenuTabIndex === index,
+                          'second-active jh-mobile-menu-item--active text-blcak': currentSecondMenuPageId === menu.pageId && currentMenuTabIndex === index,
                           'hover:bg-gray-100': !(currentSecondMenuPageId === menu.pageId && currentMenuTabIndex === index)
                         }"
                       >
@@ -66,7 +66,7 @@
                 @click="openUrl(item.path, item.query)"
                 class="flex flex-none items-center px-3 py-2.5 cursor-pointer rounded-[10px] transition-all"
                 :class="{
-                  'second-active !bg-amber-50 border border-[<$ ctx.app.config.primaryColor $>]/20 text-blcak': currentMenuTabIndex === index,
+                  'second-active jh-mobile-menu-item--active text-blcak': currentMenuTabIndex === index,
                   'hover:bg-gray-100': currentMenuTabIndex !== index
                 }"
               >
@@ -151,9 +151,9 @@
     </v-navigation-drawer>
 
     <v-app-bar app clipped-left height="52" class="jh-page-header px-3 relative" style="z-index: 50;" flat>
-      <div color="success" @click.stop="isMobileMenuDrawerShown = !isMobileMenuDrawerShown" class="flex-col justify-center items-start w-[60px] absolute left-0">
-        <span class="success--text text-caption">
-          <v-icon size="24" class="success--text">mdi-menu</v-icon>
+      <div color="primary" @click.stop="isMobileMenuDrawerShown = !isMobileMenuDrawerShown" class="flex-col justify-center items-start w-[60px] absolute left-0">
+        <span class="primary--text text-caption">
+          <v-icon size="24" class="primary--text">mdi-menu</v-icon>
           <div class="-mt-0.5 text-xs">目录</div>
         </span>
       </div>
@@ -170,9 +170,9 @@
       <template v-if="showAvatar">
         <div text @click.stop="isMobileUserMenuDrawerShown = !isMobileUserMenuDrawerShown" class="jh-avatar-menu-btn flex-col justify-center items-end absolute right-0">
           <div class="text-center">
-            <v-icon :size="24" color="success">mdi-account-circle</v-icon>
+            <v-icon :size="24" color="primary">mdi-account-circle</v-icon>
             <div class="-mt-0.5">
-              <p class="text-xs success--text mb-0 max-w-[60px] truncate">{{ userInfo.user.username }}</p>
+              <p class="text-xs primary--text mb-0 max-w-[60px] truncate">{{ userInfo.user.username }}</p>
             </div>
           </div>
         </div>
@@ -200,8 +200,6 @@
         inAvatarMenuList: [],
         currentMenuTabIndex: -1,
         currentSecondMenuPageId: null,
-        primaryColor: '<$ ctx.app.config.primaryColor $>',
-        primaryColorA80: '<$ ctx.app.config.primaryColorA80 $>',
       };
     },
     computed: {
@@ -353,8 +351,8 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.03);
   }
   .jh-page-nav-bar .v-list-group__header .v-list-item { border-bottom: none; }
-  .second-active .v-list-item__title { color: #4caf50 !important; }
-  .second-active { caret-color: #4caf50 !important; background-color: rgba(76, 175, 80, 0.1) !important; }
+  .second-active .v-list-item__title { color: var(--cPrimaryColor) !important; }
+  .second-active { caret-color: var(--cPrimaryColor) !important; background-color: var(--cPrimaryColorA80) !important; }
   .jh-avatar-menu-btn { display: flex; align-items: center; cursor: pointer; transition: all .3s; border-radius: 5px; }
   .jh-avatar-menu-btn:hover { opacity: 0.8; }
   .jh-toolbar-title { height: 51px; line-height: 51px; }

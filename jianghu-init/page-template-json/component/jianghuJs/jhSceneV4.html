@@ -3,7 +3,7 @@
 <div class="jh-scene">
 <v-row class="ma-0">
   <!-- 场景列表 -->
-  <v-btn-toggle :value="currentSceneIndex" mandatory dense :class="{'mr-md-2': showActionBtn}" color="success" @change="doUiAction('useScene', sceneList[$event])" > 
+  <v-btn-toggle :value="currentSceneIndex" mandatory dense :class="{'mr-md-2': showActionBtn}" color="primary" @change="doUiAction('useScene', sceneList[$event])" > 
     <v-btn small v-for="scene, index in sceneList" :key="index"> {{scene.name}} </v-btn> 
   </v-btn-toggle>
   <!-- 新增场景按钮 -->
@@ -17,15 +17,15 @@
     </template>
     <v-list dense class="pb-0">
       <v-list-item @click="doUiAction('openCreateSceneDialog')">
-        <v-list-item-title class="success--text">
-          <v-icon small class="success--text">mdi-plus</v-icon>
-          <span class="success--text">新建场景</span>
+        <v-list-item-title class="primary--text">
+          <v-icon small class="primary--text">mdi-plus</v-icon>
+          <span class="primary--text">新建场景</span>
         </v-list-item-title>
       </v-list-item>
       <v-list-item @click="doUiAction('openSceneListDialog')">
-        <v-list-item-title class="success--text">
-          <v-icon small class="success--text">mdi-cog-outline</v-icon>
-          <span class="success--text">场景管理</span>
+        <v-list-item-title class="primary--text">
+          <v-icon small class="primary--text">mdi-cog-outline</v-icon>
+          <span class="primary--text">场景管理</span>
         </v-list-item-title>
       </v-list-item>
     </v-list>
@@ -62,7 +62,7 @@
       </v-card-text>
       <v-card-action class="pb-4">
         <v-row class="ma-0 pa-6 pt-2 justify-end">
-          <v-btn class="ml-2" @click="doUiAction('doCreateScene')" small color="success">保存</v-btn>
+          <v-btn class="ml-2" @click="doUiAction('doCreateScene')" small color="primary">保存</v-btn>
           <v-btn class="ml-2" @click="doUiAction('closeCreateSceneDialog')" small>取消</v-btn>
         </v-row>
       </v-card-action>
@@ -109,7 +109,7 @@
       </v-card-text>
       <v-card-action class="pb-4">
         <v-row class="ma-0 pa-6 pt-2 justify-end">
-          <v-btn class="ml-2" @click="doUiAction('changeToCreateDialog')" small color="success">新建场景</v-btn>
+          <v-btn class="ml-2" @click="doUiAction('changeToCreateDialog')" small color="primary">新建场景</v-btn>
           <v-btn class="ml-2" @click="doUiAction('closeSceneListDialog')" small>取消</v-btn>
         </v-row>
       </v-card-action>

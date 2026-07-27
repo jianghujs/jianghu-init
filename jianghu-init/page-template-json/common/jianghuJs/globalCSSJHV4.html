@@ -1,5 +1,22 @@
 <!-- JH CSS >>>>>>>>>>>>> -->
 <style>
+    /* 主题色工具类（跟随 --cPrimaryColor / --cPrimaryColorA80，支持 UI Setting 运行时切换） */
+    .jh-theme-text { color: var(--cPrimaryColor); }
+    .jh-theme-bg { background-color: var(--cPrimaryColor); }
+    .jh-theme-border { border-color: var(--cPrimaryColor); }
+    .jh-theme-link-arrow {
+        color: var(--cPrimaryColor);
+        border-bottom: 1px dashed var(--cPrimaryColor);
+    }
+    .jh-theme-badge {
+        background-color: var(--cPrimaryColor);
+        color: #ffffff;
+    }
+    .jh-mobile-menu-item--active {
+        background-color: var(--cPrimaryColorA80) !important;
+        border: 1px solid color-mix(in srgb, var(--cPrimaryColor) 20%, transparent) !important;
+    }
+
     /* 表单 >>>>>> */
     .jh-input-label {
         color: var(--gray-800);

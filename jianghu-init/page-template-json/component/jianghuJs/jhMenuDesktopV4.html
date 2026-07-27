@@ -8,7 +8,7 @@
         </span>
       </v-toolbar-title>
       <div style="flex-grow: 1; flex-shrink: 1"></div>
-      <v-tabs show-arrows slider-size="0" color="success" class="pl-4" style="white-space: nowrap; overflow: hidden;">
+      <v-tabs show-arrows slider-size="0" color="primary" class="pl-4" style="white-space: nowrap; overflow: hidden;">
         <template v-for="(item, index) in inMenuList">
           <template v-if="item.pageId && !item.children">
             <v-tab
@@ -123,10 +123,9 @@
 </script>
 
 <script>
-  Vue.component('jh-menu', {
+  Vue.component('jh-menu-top', {
     template: "#jh-menu-desktop",
-    vueComponent: 'jh-menu-desktop',
-    vuetify: new Vuetify(),
+    vueComponent: 'jh-menu-top',
     props: { showAvatar: { type: Boolean, default: true } },
     data() {
       return {
@@ -171,6 +170,19 @@
       this.computedRightMenuList();
       this.computedAvatarMenuList();
       this.setCurrentMenuItem();
+    },
+    mounted() {
+      this.$nextTick(() => {
+        const application = this.$root && this.$root.$vuetify && this.$root.$vuetify.application;
+        if (!application || typeof application.update !== 'function') {
+          return;
+        }
+        try {
+          application.update();
+        } catch (err) {
+          // v-app 尚未完成注册时忽略
+        }
+      });
     },
     methods: {
       computedPageId() {
@@ -319,12 +331,12 @@
 </script>
 
 <style>
-  .second-active .v-list-item__title { color: #4caf50 !important; }
-  .second-active { caret-color: #4caf50 !important; background-color: rgba(76, 175, 80, 0.1) !important; }
+  .second-active .v-list-item__title { color: var(--cPrimaryColor) !important; }
+  .second-active { caret-color: var(--cPrimaryColor) !important; background-color: var(--cPrimaryColorA80) !important; }
   .jh-avatar-menu-btn { display: flex; align-items: center; cursor: pointer; transition: all .3s; border-radius: 5px; }
   .jh-avatar-menu-btn:hover { opacity: 0.8; }
   .jh-header-tab.v-tab--active { color: var(--gray-900) !important; }
-  .jh-header-tab.jh-header-tab-active { color: #4caf50 !important; }
+  .jh-header-tab.jh-header-tab-active { color: var(--cPrimaryColor) !important; }
   .jh-right-menu svg { width: 28px; height: 28px; vertical-align: middle; }
 </style>
 <!-- <<<<<<<<<<<<< jhMenuDesktopV4.html -->

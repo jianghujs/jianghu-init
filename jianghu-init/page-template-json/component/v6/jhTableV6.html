@@ -9,7 +9,7 @@
                       · visible(item)  → Boolean  条件渲染（隐藏/显示）
                       · disabled(item) → Boolean  条件禁用（显示但禁止点击，opacity 变灰）
                       · color          语义色：'primary'|'success'|'error'|'warning'|'info'|'gray'
-                                       默认：delete → error，其余 → success
+                                       默认：delete → error，其余 → primary
                       · icon           jh-icon name（可选，显示在文字左侧）
                       · 操作列宽自动计算：中文 12px/字 + icon 16px + icon 与文字间距 2px（0.2em@12px）+ 按钮间距 8px
     headActionList     工具栏数组，顺序即布局顺序（toolbarActionList 为旧 prop）：
@@ -97,7 +97,7 @@
         <v-btn
           v-else-if="isActionVisible(action)"
           :key="action.id || actionUiToken(action) || idx"
-          :color="action.color || 'success'"
+          :color="action.color || 'primary'"
           :disabled="isActionDisabled(action)"
           :loading="isActionLoading(action)"
           small
@@ -137,7 +137,7 @@
       :server-items-length="serverPagination ? syncedOptions.totalCount : -1"
       :footer-props="footerProps"
       mobile-breakpoint="0"
-      checkbox-color="success"
+      checkbox-color="primary"
       :class="{ zebraLine: true }"
       fixed-header
     >
@@ -489,10 +489,10 @@ Vue.component('jh-table', {
       if (!actionId) return;
       this.$emit('action', actionId, item);
     },
-    // resolveActionColor：action.color 优先；无配置时 delete→error，其余→success
+    // resolveActionColor：action.color 优先；无配置时 delete→error，其余→primary
     resolveActionColor(action) {
       if (action.color) return action.color;
-      return this.actionUiToken(action) === 'delete' ? 'error' : 'success';
+      return this.actionUiToken(action) === 'delete' ? 'error' : 'primary';
     },
   },
 });
