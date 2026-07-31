@@ -23,6 +23,28 @@ const RULE_PACKS = {
       { dest: 'v7-crud-full-structure.md', source: 'docs/v7-crud-full-structure.md' },
       { dest: 'jh-component.md', source: 'source/jh-component.md' },
       { dest: 'v7-app-authoring.md', source: 'docs/v7-app-authoring.md' },
+      { dest: 'agent-workflow.md', source: 'packs/jianghu-init-json-app/quality/agent-workflow.md' },
+      { dest: 'coding-standards.md', source: 'packs/jianghu-init-json-app/quality/coding-standards.md' },
+      { dest: 'review-prompt-template.md', source: 'packs/jianghu-init-json-app/quality/review-prompt-template.md' },
+      { dest: 'config-reference.md', source: '../json/v7/docs/config-reference.md' },
+      { dest: 'authoring-guide.md', source: '../json/v7/docs/authoring-guide.md' },
+      { dest: 'semantic-to-component-mapping.md', source: '../json/v7/docs/semantic-to-component-mapping.md' },
+      { dest: 'bind-slots-and-targets.md', source: '../json/v7/docs/bind-slots-and-targets.md' },
+      {
+        dest: 'examples-guide.md',
+        source: '../json/v7/docs/examples-guide.md',
+        transform: body => body.replace(
+          'lib/json/v7/pages/examples/',
+          '.ai-rules/jianghu-init-json-app/examples/',
+        ),
+      },
+      { dest: 'examples/projectManagement.v7.sample.js', source: '../json/v7/pages/examples/projectManagement.v7.sample.js' },
+      { dest: 'examples/fullCrudPage.v7.example.js', source: '../json/v7/pages/examples/fullCrudPage.v7.example.js' },
+      { dest: 'examples/fullUiPage.v7.example.js', source: '../json/v7/pages/examples/fullUiPage.v7.example.js' },
+      { dest: 'examples/taskSubTable.v7.component.crud.sample.js', source: '../json/v7/pages/examples/taskSubTable.v7.component.crud.sample.js' },
+      { dest: 'examples/projectSummaryCard.v7.component.ui.sample.js', source: '../json/v7/pages/examples/projectSummaryCard.v7.component.ui.sample.js' },
+      { dest: 'examples/fullComponentCrud.v7.example.js', source: '../json/v7/pages/examples/fullComponentCrud.v7.example.js' },
+      { dest: 'examples/fullComponentUi.v7.example.js', source: '../json/v7/pages/examples/fullComponentUi.v7.example.js' },
     ],
   },
   'jianghu-seo-app': {
@@ -46,6 +68,11 @@ const RULE_PACKS = {
   },
 };
 
+const PROJECT_TEMPLATE_DIR = 'packs/jianghu-init-json-app/project';
+const PROJECT_TEMPLATE_FILES = [
+  'README.md',
+];
+
 const normalizeRuleId = id => {
   if (id === 'init-json-app' || id === 'app' || id === 'jianghu-app') return 'jianghu-init-json-app';
   if (id === 'seo-app' || id === 'openjianghu-seo') return 'jianghu-seo-app';
@@ -68,10 +95,11 @@ const listRulePacks = () => Object.values(RULE_PACKS).map(({ id, label, descript
 
 const getRulePack = id => RULE_PACKS[normalizeRuleId(id)];
 
-const readSourceBody = (templateRoot, source) => {
+const readSourceBody = (templateRoot, source, transform) => {
   const filePath = path.join(templateRoot, source);
   const raw = fs.readFileSync(filePath, 'utf8');
-  return parseFrontmatter(raw).body;
+  const body = parseFrontmatter(raw).body;
+  return transform ? transform(body) : body;
 };
 
 const buildPackReadme = (pack, body) => [
@@ -83,11 +111,24 @@ const buildPackReadme = (pack, body) => [
   '',
 ].join('\n');
 
+const ensureProjectTemplates = ({ cwd, templateRoot, ruleIds }) => {
+  if (!(ruleIds || []).includes('jianghu-init-json-app')) return;
+  const projectDir = path.join(cwd, '.ai-rules', 'project');
+  ensureDir(projectDir);
+  for (const file of PROJECT_TEMPLATE_FILES) {
+    const dest = path.join(projectDir, file);
+    if (fs.existsSync(dest)) continue;
+    const source = path.join(templateRoot, PROJECT_TEMPLATE_DIR, file);
+    fs.copyFileSync(source, dest);
+  }
+};
+
 const syncRulePacks = ({ cwd, ruleIds, templateRoot, force, managedFiles }) => {
   const baseDir = path.join(cwd, '.ai-rules');
   ensureDir(baseDir);
   const result = createSyncResult();
   const selected = ruleIds.map(getRulePack).filter(Boolean);
+  const hasInitJsonPack = ruleIds.includes('jianghu-init-json-app');
 
   const indexFile = path.join(baseDir, 'index.md');
   const lines = [
@@ -105,6 +146,11 @@ const syncRulePacks = ({ cwd, ruleIds, templateRoot, force, managedFiles }) => {
   lines.push('## Usage');
   lines.push('');
   lines.push('- Project entry files should stay concise and route AI tools here for detailed workflows.');
+  if (hasInitJsonPack) {
+    lines.push('- Read `.ai-rules/project/README.md` for project-owned business knowledge; it is never overwritten by dev-rules.');
+    lines.push('- Before init-json changes, read `.ai-rules/jianghu-init-json-app/coding-standards.md`; follow `.ai-rules/jianghu-init-json-app/agent-workflow.md` for L0/L1/L2/L3 quality boundaries.');
+    lines.push('- For a page task, also read `.ai-rules/project/pages/<pageId>.md` when it exists.');
+  }
   lines.push('- Use the rule pack that matches the task. Do not load unrelated packs by default.');
   lines.push('- Update with `jianghu-init dev-rules --force`.');
   const skills = getSkillsForRuleIds(templateRoot, ruleIds);
@@ -118,13 +164,14 @@ const syncRulePacks = ({ cwd, ruleIds, templateRoot, force, managedFiles }) => {
   }
   lines.push('');
   syncTextFile({ cwd, filePath: indexFile, content: lines.join('\n'), force, managedFiles, result });
+  ensureProjectTemplates({ cwd, templateRoot, ruleIds });
 
   for (const pack of selected) {
     const packDir = path.join(baseDir, pack.id);
     ensureDir(packDir);
     for (const file of pack.files) {
       const outFile = path.join(packDir, file.dest);
-      const body = readSourceBody(templateRoot, file.source);
+      const body = readSourceBody(templateRoot, file.source, file.transform);
       const content = file.dest === 'README.md' ? buildPackReadme(pack, body) : `${body}\n`;
       syncTextFile({ cwd, filePath: outFile, content, force, managedFiles, result });
     }

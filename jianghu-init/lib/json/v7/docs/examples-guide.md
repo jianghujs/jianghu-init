@@ -23,7 +23,7 @@
 
 | 文件 | 命令 | 作用 |
 |------|------|------|
-| **validate-examples.js** | `node lib/json/v7/pages/examples/validate-examples.js` | 对每个 `*.example.js` / `*.sample.js` 跑 `buildPage`（pc + 必要时 mobile） |
+| **validate-examples.js** | `node lib/json/v7/pages/examples/validate-examples.js` | 对每个 `*.example.js` / `*.sample.js` 跑 `buildPage`（pc + 必要时 mobile），并拒绝 deprecated key 与旧 `dataSource` 写法 |
 | **smoke-platform-layout.js** | 同上路径 | 平台/layout/slots 回归断言（改编译器后必跑） |
 
 ## 在业务 App 中使用

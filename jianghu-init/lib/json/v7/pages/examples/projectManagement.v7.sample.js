@@ -18,10 +18,12 @@ const content = {
     projectId: {
       label: '项目ID',
       type: 'text',
-      width: 200,
-      align: 'center',
-      class: 'fixed',
-      cellClass: 'fixed',
+      column: {
+        width: 200,
+        align: 'center',
+        class: 'fixed',
+        cellClass: 'fixed',
+      },
     },
 
     projectName: {
@@ -32,13 +34,13 @@ const content = {
     projectType: {
       label: '项目类型',
       type: 'select',
-      options: 'constantObj.projectType'
+      form: { options: 'constantObj.projectType' }
     },
 
     status: {
       label: '状态',
       type: 'select',
-      options: 'constantObj.projectStatus'
+      form: { options: 'constantObj.projectStatus' }
     }
   },
 
@@ -217,9 +219,6 @@ const content = {
     computed: {
     },
     watch: {
-    },
-    doUiAction: {
-      open: ['doUiAction.viewDetail']
     },
     methods: {
     },

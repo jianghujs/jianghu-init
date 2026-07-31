@@ -185,7 +185,7 @@ Schema **`component`** 枚举见 `semantic-mapping.js`。常用：
 
 ## 10. `dataSource`
 
-扁平推荐：
+新配置只使用扁平 canonical 写法：
 
 ```js
 dataSource: {
@@ -198,10 +198,11 @@ dataSource: {
 }
 ```
 
-嵌套（`normalizeDataSource` 会扁平化）：
+以下嵌套写法仅用于兼容历史配置，Agent、生成器和正式示例禁止产生：
 
 ```js
 resource: { list: 'getX', create: 'createX', update: 'updateX', delete: 'deleteX' }
+actions: { list: 'getX', create: 'createX', update: 'updateX', delete: 'deleteX' }
 ```
 
 ## 11. `includeList`

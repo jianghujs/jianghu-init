@@ -21,21 +21,19 @@ const content = {
   dataSource: {
     table: 't_task',
     primaryKey: 'taskId',
-    resource: {
-      list: 'selectTaskList',
-      create: 'insertTask',
-      update: 'updateTask',
-      delete: 'deleteTask',
-    },
+    listResource: 'selectTaskList',
+    createResource: 'insertTask',
+    updateResource: 'updateTask',
+    deleteResource: 'deleteTask',
   },
 
   fields: {
-    taskId: { label: '任务ID', type: 'text', width: 120 },
-    taskName: { label: '任务名', type: 'text', required: true },
+    taskId: { label: '任务ID', type: 'text', column: { width: 120 } },
+    taskName: { label: '任务名', type: 'text', form: { required: true } },
     status: {
       label: '状态',
       type: 'select',
-      options: 'constantObj.taskStatus',
+      form: { options: 'constantObj.taskStatus' },
     },
     assignee: { label: '负责人', type: 'text' },
     dueDate: { label: '截止日期', type: 'text' },

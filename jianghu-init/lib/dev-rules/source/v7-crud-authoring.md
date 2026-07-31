@@ -47,7 +47,8 @@ title: V7 CRUD Authoring
 
 - 必填 `table` 或 `model`；常用 `primaryKey`
 - 扁平：`listResource` / `createResource` / `updateResource` / `deleteResource`
-- 兼容嵌套：`resource: { list, create, update, delete }` 或 `actions: { list, create, update, delete }`
+- 新配置、生成器和正式示例只允许使用上述扁平 `*Resource`
+- `resource: { list, create, update, delete }`、`actions: { list, create, update, delete }` 和 `*ActionId` 仅用于读取历史配置，禁止在新代码中产生
 
 ## 列表滚动（mobile）
 

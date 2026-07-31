@@ -13,6 +13,11 @@ const { getAdapter, listAdapters, syncTargets } = require('./dev-rules/adapters'
 
 const PACKAGE_JSON = path.join(__dirname, '..', 'package.json');
 const TEMPLATE_ROOT = path.join(__dirname, 'dev-rules');
+const LEGACY_PROJECT_QUALITY_FILES = [
+  '.ai-rules/project/agent-workflow.md',
+  '.ai-rules/project/coding-standards.md',
+  '.ai-rules/project/review-prompt-template.md',
+];
 
 const buildLegacyGeneratedFiles = manifest => {
   const files = [ '.ai-rules/index.md' ];
@@ -113,7 +118,7 @@ const showHelp = () => {
   AGENTS.md + .agents/skills/     Codex
   .cursor/rules/*.mdc             Cursor
   CLAUDE.md + .claude/skills/     Claude Code
-  .kiro/steering/*.md             Kiro
+  .kiro/steering/*.md + .kiro/skills/  Kiro
 
 规则模板来源:
   jianghu-init/lib/dev-rules/
@@ -166,7 +171,15 @@ module.exports = class InitDevRulesCommand extends CommandBase {
     }
 
     const jianghuInitVersion = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')).version;
-    const previousManifest = readManifest(cwd);
+    let previousManifest;
+    try {
+      previousManifest = readManifest(cwd);
+    } catch (error) {
+      this.error(error.message);
+      this.error('请修复或移走损坏的 manifest 后重试；本次未同步任何规则文件。');
+      process.exitCode = 1;
+      return;
+    }
     const manifest = await this.resolveManifest(opts, jianghuInitVersion, previousManifest);
     if (!manifest) return;
     const managedFiles = new Set(
@@ -224,8 +237,11 @@ module.exports = class InitDevRulesCommand extends CommandBase {
       || opts.force
       || !skippedFiles.length;
     if (canUpgradeLegacyManifest) {
+      const desiredFileSet = new Set(desiredFiles);
       const previousGenerated = previousManifest && Array.isArray(previousManifest.generatedFiles)
-        ? previousManifest.generatedFiles
+        ? previousManifest.generatedFiles.filter(file =>
+          desiredFileSet.has(String(file).replace(/\\/g, '/')),
+        )
         : [];
       const generatedFiles = opts.force || !skippedFiles.length
         ? desiredFiles
@@ -257,6 +273,7 @@ module.exports = class InitDevRulesCommand extends CommandBase {
     }
 
     this.printResults(manifest, results);
+    this.printLegacyProjectQualityWarning(cwd);
   }
 
   async resolveManifest(opts, jianghuInitVersion, previousManifest) {
@@ -357,5 +374,13 @@ module.exports = class InitDevRulesCommand extends CommandBase {
 
     this.notice('\n规则模板来源: jianghu-init/lib/dev-rules/');
     this.notice('更新命令: jianghu-init dev-rules --rule=' + manifest.ruleIds.join(',') + ' --target=' + manifest.targets.join(',') + ' --force');
+  }
+
+  printLegacyProjectQualityWarning(cwd) {
+    const legacyFiles = LEGACY_PROJECT_QUALITY_FILES.filter(file => fs.existsSync(path.join(cwd, file)));
+    if (!legacyFiles.length) return;
+    this.warning(
+      `检测到旧版 project 质量文档，请确认内容已迁移后手动删除，避免双路径规则冲突: ${legacyFiles.join(', ')}`,
+    );
   }
 };

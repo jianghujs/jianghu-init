@@ -2,33 +2,64 @@
   jh-mobile-filter-btn
 
   移动端中继触发按钮（parse_schema：MobileOrder / MobileFilter / MobileAction / MobileSearch 共用）：
-  · showActive 且（activeDisplay 有值 或 #active-display 插槽）→ 双行摘要块；否则 → 圆角 v-btn。
-  · 富文本第二行：children 内 <template v-slot:active-display>…</template>（与 Table 插槽写法一致）。
+  · 始终使用统一圆角 v-btn；showActive 且有摘要时，在按钮内追加单行摘要。
+  · 摘要超过统一视觉宽度后自动省略；富文本摘要仍使用 #active-display 插槽。
   · 点击 $emit('click')，例如：@click="isMobileOrderDrawerShown = true"
 ───────────────────────────────────────────────────────────────────── -->
 
 <script type="text/html" id="jh-mobile-filter-btn-v6-template">
   <span class="jh-mobile-filter-btn inline-flex items-center">
-    <div
-      v-if="showSummaryBlock"
-      class="inline-flex flex-col bg-white h-8 leading-8 text-gray-400"
-      role="button"
-      tabindex="0"
+    <v-btn
+      small
+      :class="['jh-mobile-filter-btn__button', btnClass]"
       @click="handleClick"
-      @keydown.enter.prevent="handleClick"
-      @keydown.space.prevent="handleClick"
     >
-      <div class="text-xs">{{ label }}</div>
-      <div class="font-bold text-black text-sm">
-        <slot name="active-display">{{ activeDisplay }}</slot>
-      </div>
-    </div>
-    <v-btn v-else small :class="btnClass" @click="handleClick">
-      <jh-icon v-if="icon" size="16" class="-ml-0.5 mr-1" :name="icon"></jh-icon>
-      {{ label }}
+      <jh-icon v-if="icon" size="16" class="-ml-0.5 mr-1 flex-shrink-0" :name="icon"></jh-icon>
+      <span class="jh-mobile-filter-btn__label">{{ label }}</span>
+      <template v-if="showSummaryBlock">
+        <span v-if="label" class="jh-mobile-filter-btn__divider">·</span>
+        <span class="jh-mobile-filter-btn__active">
+          <slot name="active-display">{{ activeDisplay }}</slot>
+        </span>
+      </template>
     </v-btn>
   </span>
 </script>
+
+<style>
+.jh-mobile-filter-btn {
+  min-width: 0;
+  max-width: 100%;
+}
+.jh-mobile-filter-btn__button.v-btn {
+  max-width: 180px;
+}
+.jh-mobile-filter-btn__button .v-btn__content {
+  min-width: 0;
+  max-width: 100%;
+}
+.jh-mobile-filter-btn__label,
+.jh-mobile-filter-btn__divider {
+  flex: 0 0 auto;
+}
+.jh-mobile-filter-btn__divider {
+  margin: 0px;
+  opacity: 0.45;
+}
+.jh-mobile-filter-btn__active {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 70px;
+  overflow: hidden;
+  color: inherit;
+  font-weight: 500;
+  line-height: 1.2;
+  opacity: 0.72;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>
 
 <script>
 Vue.component('jh-mobile-filter-btn', {

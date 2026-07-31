@@ -11,10 +11,10 @@ Treat this as an Egg/Jianghu service-to-Nunjucks rendering application, not an i
 
 1. Read `.ai-rules/jianghu-seo-app/README.md` and inspect nearby project code before choosing an extension point.
 2. Classify the task and load only the matching reference:
-   - Route, page data, metadata, template, or category navigation: [references/render-pipeline.md](references/render-pipeline.md)
-   - Article HTML, visibility, or custom tags: [references/article-and-tags.md](references/article-and-tags.md)
-   - Meilisearch indexing or frontend search: [references/search-and-index.md](references/search-and-index.md)
-   - Review, audit, or regression investigation: [references/review-checklist.md](references/review-checklist.md), plus the affected domain reference
+   - Route, page data, metadata, template, or category navigation: `.ai-rules/skills/jianghu-seo-development/references/render-pipeline.md`
+   - Article HTML, visibility, or custom tags: `.ai-rules/skills/jianghu-seo-development/references/article-and-tags.md`
+   - Meilisearch indexing or frontend search: `.ai-rules/skills/jianghu-seo-development/references/search-and-index.md`
+   - Review, audit, or regression investigation: `.ai-rules/skills/jianghu-seo-development/references/review-checklist.md`, plus the affected domain reference
 3. Trace the complete affected path from configuration or route through controller/service data to final HTML or search output.
 4. Extend the nearest existing pattern. Keep changes narrow and avoid introducing a parallel rendering or routing mechanism.
 5. Preserve appId-prefixed URLs, route-map ownership, article visibility, parser behavior, and metadata defaults.

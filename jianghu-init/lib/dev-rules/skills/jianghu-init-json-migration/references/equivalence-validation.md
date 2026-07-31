@@ -19,6 +19,8 @@ Failure blocks generation.
 
 ## 2. Compiler gate
 
+Run `jianghu-init json --validate --file=<pageId|componentPath>` for the V7 replacement. It must pass every requested target without deprecated-key diagnostics. This gate does not proactively generate HTML or synchronize database metadata, but it loads and executes top-level code from the trusted init-json module. It does not replace comparison with generated HTML.
+
 For each requested target, compare:
 
 - Generated file path and page/component identity.
@@ -32,7 +34,7 @@ For each requested target, compare:
 
 Recheck scoped version-control status after writing the source. A running watcher may regenerate HTML even when no generation command was invoked; such output is part of the migration diff and must be reviewed.
 
-Use a dry or isolated environment when available. Explain before running `jianghu-init json` because generation may update HTML and synchronize `_page` or `_resource`. Do not skip rendered-output validation merely to avoid generated diffs: either run the safe available generation path and review the output, or classify the result as a structural conversion with the compiler gate incomplete.
+Use a dry or isolated environment when available. Check `jianghu-init json --dev-status` first: an active watcher owns generation and must not be followed by a duplicate compile. When dev mode is inactive, explain before running `jianghu-init json` because generation may update HTML and synchronize `_page` or `_resource`. Do not skip rendered-output validation merely to avoid generated diffs: either use the safe available generation path and review the output, or classify the result as a structural conversion with the compiler gate incomplete.
 
 ## 3. Data and permission gate
 

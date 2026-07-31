@@ -19,6 +19,7 @@ Select only the sections matching the file under review. Do not apply v7-only re
 - Verify visible columns are not assumed to be all writable fields.
 - Verify search/filter operators, pagination, primary key, and resource behavior against project evidence.
 - Verify every business action has non-empty `label + uiAction` and no semantic `intent/id/actionId`.
+- Trace each `uiAction` to its runtime method and required resource actions. Frontend visibility is user guidance only; backend resource authorization remains mandatory. Do not invent a permission key or directive when the project has not established one.
 - Verify new v7 source uses canonical keys (`columnList`, `headActionList`, `rowActionList`, `fieldList`, `actionList`, `tabList`, `mobileSheet`) and report deprecated-key warnings.
 - Verify slots and PC/mobile overrides use supported locations.
 - Verify targets and platform policy produce the intended route and layout.
@@ -30,6 +31,7 @@ Select only the sections matching the file under review. Do not apply v7-only re
 - Verify component names, props, bindings, events, children, and action content against compiler examples or project usage.
 - Resolve includes, child components, methods, computed state, watchers, and injected/provided values.
 - Verify resource/service actions used by custom methods are registered and permission-safe.
+- For slot or hand-written buttons, trace the invoked method and resource authorization even when no standard action object exists. Do not treat a hidden button as backend permission enforcement.
 - Validate target-specific composition independently.
 
 ## 4. V7 Component CRUD
@@ -67,6 +69,7 @@ Select only the sections matching the file under review. Do not apply v7-only re
 
 ## 8. Targets and generated output
 
+- For V7, run `jianghu-init json --validate --file=<pageId|componentPath> --format=json`, record the result, and resolve or retain every `unknown` explicitly.
 - Compile or inspect every requested target when non-mutating validation is available.
 - Compare page IDs, routes, list/form structure, actions, slots, methods, and includes.
 - Check mobile list/card fields, sheet behavior, page height, scrolling, and touch interaction.

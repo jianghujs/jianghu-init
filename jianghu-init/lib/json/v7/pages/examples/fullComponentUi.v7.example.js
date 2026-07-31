@@ -22,7 +22,7 @@ const content = {
     children: [
       {
         component: 'PageTitle',
-        props: { title: '项目概览', helpBtn: false },
+        props: { title: '项目概览', showHelp: false },
       },
       {
         component: 'HStack',

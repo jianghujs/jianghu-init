@@ -173,7 +173,7 @@ mobile: (views, blocks) => ({
 | `slots.create.pc/mobile.children` | `createFormChildren` → 节点 `children` | | |
 | `slots.update.pc/mobile.children` | `updateFormChildren` → 节点 `children` | | |
 | `slots.update.{tabKey}.pc/mobile.children` | 合并进 `updateFormChildren` | | |
-| platform UpdateSheet | `updateFormComponent=FormSheet` | `rounded: true` | `isUpdateDrawerShown` / `updateItem` |
+| platform UpdateSheet | `updateFormComponent=FormSheet` | 不再生成 `rounded`；视觉由组件默认值负责 | `isUpdateDrawerShown` / `updateItem` |
 
 ---
 

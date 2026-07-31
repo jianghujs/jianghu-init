@@ -480,7 +480,9 @@ export const V7_PATH_DOCS: Record<string, DocEntry> = {
       '插槽 HTML 字符串。\n\n'
       + '**统一写法**：`slots.{list|create|update}.{pc|mobile}.children: string[]`，每项为完整 `<template v-slot:…>…</template>`。\n'
       + '- list → Table/List\n'
-      + '- create/update → CreateDrawer|FormSheet|UpdateDrawer 子节点（field-*/label-*/after-*）',
+      + '- create/update → CreateDrawer|FormSheet|UpdateDrawer 子节点\n'
+      + '  - **字段级**：`field-*` / `label-*` / `after-*`（经 jh-form 转发）\n'
+      + '  - **Tab 级**：`tab-{tabKey}` 接管整 Tab body；单表单无 tabList 时用 `tab-default`',
     example:
       '{\n'
       + '  list: {\n'
@@ -490,11 +492,15 @@ export const V7_PATH_DOCS: Record<string, DocEntry> = {
   },
   'slots|list': { description: '列表相关插槽' },
   'slots|create': {
-    description: '新增表单插槽。使用 `pc/mobile.children`，每项为完整 `<template v-slot:field-…>` 字符串。',
+    description:
+      '新增表单插槽。使用 `pc/mobile.children`。\n'
+      + '- 字段：`v-slot:field-{key}`\n'
+      + '- 整 Tab：`v-slot:tab-{tabKey}` 或单表单 `v-slot:tab-default`',
   },
   'slots|update': {
     description:
-      '编辑表单插槽。使用 `pc/mobile.children`；多 Tab 时使用 `{tabKey}.pc.children` 追加 template。',
+      '编辑表单插槽。使用 `pc/mobile.children`；多 Tab 时使用 `{tabKey}.pc.children` 追加 template。\n'
+      + 'Tab 级 body 用 `v-slot:tab-{tabKey}`（有则跳过 jh-form）。',
   },
   'slots|create|pc': {
     description:
@@ -503,7 +509,8 @@ export const V7_PATH_DOCS: Record<string, DocEntry> = {
   'slots|create|mobile': { description: 'Mobile FormSheet create 插槽 children' },
   'slots|update|pc': {
     description:
-      'PC UpdateDrawer 子节点：`children: string[]`（field-/label-/after- 插槽，经 jh-form 转发）',
+      'PC UpdateDrawer 子节点：`children: string[]`。\n'
+      + 'field-/label-/after- 经 jh-form 转发；tab-{tabKey} 接管整 Tab body。',
   },
   'slots|update|mobile': { description: 'Mobile FormSheet update 插槽 children' },
   'slots|list|pc': {

@@ -11,19 +11,30 @@ const readManifest = cwd => {
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (error) {
-    return null;
+    const manifestError = new Error(`无法解析 ${MANIFEST_PATH}: ${error.message}`);
+    manifestError.code = 'INVALID_DEV_RULES_MANIFEST';
+    throw manifestError;
   }
 };
 
 const normalizeRelativePath = filePath => String(filePath || '').replace(/\\/g, '/').replace(/^\.\//, '');
 
+const isSafeRelativePath = filePath => {
+  const relativePath = normalizeRelativePath(filePath);
+  if (!relativePath || relativePath.includes('\0')) return false;
+  if (path.posix.isAbsolute(relativePath) || /^[A-Za-z]:\//.test(relativePath)) return false;
+  return !relativePath.split('/').includes('..');
+};
+
 const isGeneratedPath = (filePath, knownRuleIds, knownSkillIds) => {
+  if (!isSafeRelativePath(filePath)) return false;
   const relativePath = normalizeRelativePath(filePath);
   if ([
     'AGENTS.md',
     'CLAUDE.md',
     '.ai-rules/index.md',
     '.cursor/rules/ai-rules-index.mdc',
+    '.kiro/steering/ai-rules-index.md',
   ].includes(relativePath)) return true;
 
   for (const ruleId of knownRuleIds) {
@@ -36,7 +47,9 @@ const isGeneratedPath = (filePath, knownRuleIds, knownSkillIds) => {
     if (relativePath.startsWith(`.ai-rules/skills/${skillId}/`)) return true;
     if (relativePath.startsWith(`.agents/skills/${skillId}/`)) return true;
     if (relativePath.startsWith(`.claude/skills/${skillId}/`)) return true;
+    if (relativePath.startsWith(`.kiro/skills/${skillId}/`)) return true;
     if (relativePath === `.cursor/rules/${skillId}.mdc`) return true;
+    // 兼容清理旧版 adapter 生成的 Steering Skill 指针。
     if (relativePath === `.kiro/steering/${skillId}.md`) return true;
   }
   return false;
@@ -58,6 +71,9 @@ const removeGeneratedFile = (cwd, relativePath, knownRuleIds, knownSkillIds) => 
   const root = path.resolve(cwd);
   if (!filePath.startsWith(root + path.sep) || !fs.existsSync(filePath)) return false;
   if (!fs.statSync(filePath).isFile()) return false;
+  const realRoot = fs.realpathSync(root);
+  const realFilePath = fs.realpathSync(filePath);
+  if (!realFilePath.startsWith(realRoot + path.sep)) return false;
   fs.unlinkSync(filePath);
   removeEmptyParents(cwd, path.dirname(filePath));
   return true;
@@ -79,5 +95,6 @@ const cleanupGeneratedFiles = ({ cwd, previousManifest, desiredFiles, knownRuleI
 module.exports = {
   MANIFEST_PATH,
   readManifest,
+  isGeneratedPath,
   cleanupGeneratedFiles,
 };

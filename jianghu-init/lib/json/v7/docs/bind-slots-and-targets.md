@@ -58,6 +58,43 @@ props: {
 | **`slots.update.pc.children`** | UpdateDrawer / FormSheet |
 | **`slots.update.{tabKey}.pc.children`** | 多 Tab 按 tab 追加 |
 
+### 3.1 Tab 级插槽 `tab-{tabKey}`
+
+CreateDrawer / UpdateDrawer / FormSheet 支持 **整 Tab 自定义 body**（类似 List 的 `body`）：
+
+| 插槽名 | 作用 |
+|--------|------|
+| **`tab-{tabKey}`** | 接管该 Tab 整块内容（不再渲染 `jh-form`） |
+| **`field-{key}`** | 单字段插槽（经 `jh-form` 转发） |
+| **`tab-default`** | 无 `tabList` 时的单表单 Tab |
+
+```js
+views: {
+  update: {
+    tabList: [
+      { key: 'basic', title: '基本信息', fieldList: ['name'] },
+      { key: 'class', title: '班级绑定' }, // 无 fieldList，纯 tab body
+    ],
+  },
+},
+slots: {
+  update: {
+    class: {
+      mobile: {
+        children: [/*html*/ `
+          <template v-slot:tab-class="{ tab, item }">
+            <!-- 整 Tab 内容，item 即 initialData -->
+          </template>
+        `],
+      },
+    },
+  },
+},
+```
+
+- 存在 `tab-{key}` 时，该 Tab **跳过** `jh-form` 与内置校验（`validate()` 返回 true）。
+- 仍可与同 Tab 的 `field-*` 混用：有 `tab-*` 时以 Tab body 为准。
+
 ## 4. `page.targets` vs `includeList[].targets`
 
 | 字段 | 层级 | 含义 |

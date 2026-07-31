@@ -34,6 +34,22 @@
     initialData Object   当前编辑数据
   inject: jhPage.doUiAction / jhPage.state
 ───────────────────────────────────────────────────────────────────── -->
+<style>
+  .jh-drawer-body-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: calc(100vh - 52px);
+  }
+  .jh-drawer-tabs-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fff;
+  }
+  .jh-drawer-tabs-sticky > .v-tabs-bar {
+    background: #fff;
+  }
+</style>
 
 <!-- ══════════════════════════════════════════════════════════════
   jh-drawer  基础抽屉容器
@@ -135,11 +151,12 @@ Vue.component('jh-drawer', {
         @click="handleTabAction(action)"
       >{{ action.label }}</v-btn>
     </template>
+    <div class="jh-drawer-body-scroll">
     <v-tabs
       v-if="resolvedTabList.length > 1"
       v-model="activeTab"
       color="primary"
-      class="px-4"
+      class="px-4 jh-drawer-tabs-sticky"
     >
       <v-tab
         v-for="(tab, idx) in resolvedTabList"
@@ -151,9 +168,19 @@ Vue.component('jh-drawer', {
         v-for="(tab, idx) in resolvedTabList"
         :key="'create-tab-item-' + (tab.key || idx)"
       >
+        <div
+          v-if="hasTabBodySlot(tab, idx)"
+          class="px-4 py-4"
+        >
+          <slot
+            :name="tabBodySlotName(tab, idx)"
+            :tab="tab"
+            :item="initialData"
+          ></slot>
+        </div>
         <jh-form
-          class="px-4 py-4 overflow-hidden overflow-y-auto"
-          :class="resolvedTabList.length > 1 ? 'h-[calc(100vh-100px)]' : 'h-[calc(100vh-52px)]'"
+          v-else
+          class="px-4 py-4"
           :ref="'createForm_' + idx"
           :field-list="tab.fieldList"
           :initialData="initialData"
@@ -175,9 +202,19 @@ Vue.component('jh-drawer', {
         </jh-form>
       </v-tab-item>
     </v-tabs-items>
+    <div
+      v-else-if="hasTabBodySlot(resolvedTabList[0], 0)"
+      class="px-4 py-4"
+    >
+      <slot
+        :name="tabBodySlotName(resolvedTabList[0], 0)"
+        :tab="resolvedTabList[0]"
+        :item="initialData"
+      ></slot>
+    </div>
     <jh-form
       v-else
-      class="px-4 py-4 overflow-hidden overflow-y-auto h-[calc(100vh-52px)]"
+      class="px-4 py-4"
       ref="createForm_0"
       :field-list="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
       :initialData="initialData"
@@ -196,6 +233,7 @@ Vue.component('jh-drawer', {
         <slot :name="slotN" v-bind="slotProps || {}"></slot>
       </template>
     </jh-form>
+    </div>
   </jh-drawer>
 </script>
 <script>
@@ -349,16 +387,28 @@ Vue.component('jh-create-drawer', {
       }
       this.$emit('action', actionId);
     },
+    tabBodySlotName(tab, idx) {
+      const key = tab && tab.key != null && tab.key !== '' ? tab.key : idx;
+      return 'tab-' + key;
+    },
+    hasTabBodySlot(tab, idx) {
+      const slots = this.$scopedSlots || {};
+      return !!slots[this.tabBodySlotName(tab, idx)];
+    },
     getActiveFormRef() {
       const refName = `createForm_${this.activeTab}`;
       const ref = this.$refs[refName];
       return Array.isArray(ref) ? ref[0] : ref;
     },
     validate() {
+      const tab = this.currentTabConfig || {};
+      if (this.hasTabBodySlot(tab, this.activeTab)) return true;
       const formRef = this.getActiveFormRef();
       return formRef && formRef.validate ? formRef.validate() : true;
     },
     resetValidation() {
+      const tab = this.currentTabConfig || {};
+      if (this.hasTabBodySlot(tab, this.activeTab)) return undefined;
       const formRef = this.getActiveFormRef();
       return formRef && formRef.resetValidation ? formRef.resetValidation() : undefined;
     },
@@ -390,11 +440,12 @@ Vue.component('jh-create-drawer', {
         @click="handleTabAction(action)"
       >{{ action.label }}</v-btn>
     </template>
+    <div class="jh-drawer-body-scroll">
     <v-tabs
       v-if="resolvedTabList.length > 1"
       v-model="activeTab"
       color="primary"
-      class="px-4"
+      class="px-4 jh-drawer-tabs-sticky"
     >
       <v-tab
         v-for="(tab, idx) in resolvedTabList"
@@ -406,9 +457,19 @@ Vue.component('jh-create-drawer', {
         v-for="(tab, idx) in resolvedTabList"
         :key="'update-tab-item-' + (tab.key || idx)"
       >
+        <div
+          v-if="hasTabBodySlot(tab, idx)"
+          class="px-4 py-4"
+        >
+          <slot
+            :name="tabBodySlotName(tab, idx)"
+            :tab="tab"
+            :item="initialData"
+          ></slot>
+        </div>
         <jh-form
-          class="px-4 py-4 overflow-hidden overflow-y-auto"
-          :class="resolvedTabList.length > 1 ? 'h-[calc(100vh-100px)]' : 'h-[calc(100vh-52px)]'"
+          v-else
+          class="px-4 py-4"
           :ref="'updateForm_' + idx"
           :field-list="tab.fieldList"
           :initialData="initialData"
@@ -429,6 +490,16 @@ Vue.component('jh-create-drawer', {
         </jh-form>
       </v-tab-item>
     </v-tabs-items>
+    <div
+      v-else-if="hasTabBodySlot(resolvedTabList[0], 0)"
+      class="px-4 py-4"
+    >
+      <slot
+        :name="tabBodySlotName(resolvedTabList[0], 0)"
+        :tab="resolvedTabList[0]"
+        :item="initialData"
+      ></slot>
+    </div>
     <jh-form
       v-else
       class="px-4 py-4"
@@ -450,6 +521,7 @@ Vue.component('jh-create-drawer', {
         <slot :name="slotN" v-bind="slotProps || {}"></slot>
       </template>
     </jh-form>
+    </div>
   </jh-drawer>
 </script>
 <script>
@@ -603,16 +675,28 @@ Vue.component('jh-update-drawer', {
       }
       this.$emit('action', actionId);
     },
+    tabBodySlotName(tab, idx) {
+      const key = tab && tab.key != null && tab.key !== '' ? tab.key : idx;
+      return 'tab-' + key;
+    },
+    hasTabBodySlot(tab, idx) {
+      const slots = this.$scopedSlots || {};
+      return !!slots[this.tabBodySlotName(tab, idx)];
+    },
     getActiveFormRef() {
       const refName = `updateForm_${this.activeTab}`;
       const ref = this.$refs[refName];
       return Array.isArray(ref) ? ref[0] : ref;
     },
     validate() {
+      const tab = this.currentTabConfig || {};
+      if (this.hasTabBodySlot(tab, this.activeTab)) return true;
       const formRef = this.getActiveFormRef();
       return formRef && formRef.validate ? formRef.validate() : true;
     },
     resetValidation() {
+      const tab = this.currentTabConfig || {};
+      if (this.hasTabBodySlot(tab, this.activeTab)) return undefined;
       const formRef = this.getActiveFormRef();
       return formRef && formRef.resetValidation ? formRef.resetValidation() : undefined;
     },
@@ -661,11 +745,12 @@ Vue.component('jh-update-drawer', {
         @click="handleTabAction(action)"
       >{{ action.label }}</v-btn>
     </template>
+    <div class="jh-drawer-body-scroll">
     <v-tabs
       v-if="resolvedTabList.length > 1"
       v-model="activeTab"
       color="primary"
-      class="px-4"
+      class="px-4 jh-drawer-tabs-sticky"
     >
       <v-tab
         v-for="(tab, idx) in resolvedTabList"
@@ -677,9 +762,19 @@ Vue.component('jh-update-drawer', {
         v-for="(tab, idx) in resolvedTabList"
         :key="'form-tab-item-' + (tab.key || idx)"
       >
+        <div
+          v-if="hasTabBodySlot(tab, idx)"
+          class="px-4 py-4"
+        >
+          <slot
+            :name="tabBodySlotName(tab, idx)"
+            :tab="tab"
+            :item="initialData"
+          ></slot>
+        </div>
         <jh-form
-          class="px-4 py-4 overflow-hidden overflow-y-auto"
-          :class="resolvedTabList.length > 1 ? 'h-[calc(100vh-100px)]' : 'h-[calc(100vh-52px)]'"
+          v-else
+          class="px-4 py-4"
           :ref="formRefName(tab)"
           :field-list="tab.fieldList"
           :initialData="initialData"
@@ -700,9 +795,19 @@ Vue.component('jh-update-drawer', {
         </jh-form>
       </v-tab-item>
     </v-tabs-items>
+    <div
+      v-else-if="hasTabBodySlot(resolvedTabList[0], 0)"
+      class="px-4 py-4"
+    >
+      <slot
+        :name="tabBodySlotName(resolvedTabList[0], 0)"
+        :tab="resolvedTabList[0]"
+        :item="initialData"
+      ></slot>
+    </div>
     <jh-form
       v-else
-      class="px-4 py-4 overflow-hidden overflow-y-auto h-[calc(100vh-52px)]"
+      class="px-4 py-4"
       :ref="formRefName(resolvedTabList[0])"
       :field-list="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
       :initialData="initialData"
@@ -721,6 +826,7 @@ Vue.component('jh-update-drawer', {
         <slot :name="slotN" v-bind="slotProps || {}"></slot>
       </template>
     </jh-form>
+    </div>
   </jh-drawer>
 </script>
 <script>
@@ -880,6 +986,14 @@ Vue.component('jh-form-drawer', {
       const tabSuffix = (tab && tab.key && tab.key !== 'default') ? this._capitalize(tab.key) : '';
       return prefix + tabSuffix + 'Form';
     },
+    tabBodySlotName(tab, idx) {
+      const key = tab && tab.key != null && tab.key !== '' ? tab.key : idx;
+      return 'tab-' + key;
+    },
+    hasTabBodySlot(tab, idx) {
+      const slots = this.$scopedSlots || {};
+      return !!slots[this.tabBodySlotName(tab, idx)];
+    },
     getActiveFormRef() {
       const tab = this.resolvedTabList[this.activeTab] || this.resolvedTabList[0];
       const refName = this.formRefName(tab);
@@ -887,10 +1001,14 @@ Vue.component('jh-form-drawer', {
       return Array.isArray(ref) ? ref[0] : ref;
     },
     validate() {
+      const tab = this.currentTabConfig || {};
+      if (this.hasTabBodySlot(tab, this.activeTab)) return true;
       const formRef = this.getActiveFormRef();
       return formRef && formRef.validate ? formRef.validate() : true;
     },
     resetValidation() {
+      const tab = this.currentTabConfig || {};
+      if (this.hasTabBodySlot(tab, this.activeTab)) return undefined;
       const formRef = this.getActiveFormRef();
       return formRef && formRef.resetValidation ? formRef.resetValidation() : undefined;
     },

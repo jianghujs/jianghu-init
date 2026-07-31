@@ -16,6 +16,10 @@ const dayjs = require('dayjs');
 const _ = require('lodash');
 const chalk = require('chalk');
 const { attachProvideStringFromSource } = require('./json/mixin/extract_provide_source');
+const {
+  inspectChangedInitJsonFiles,
+  inspectInitJsonFile,
+} = require('./json/validate_init_json');
 
 const resolveConfigPageId = (item) => {
   if (!item || typeof item !== 'object') return undefined;
@@ -65,11 +69,83 @@ const pageTypeList = [
 module.exports = class InitByJsonCommand extends CommandBase {
 
   async run(cwd, args) {
-
-    this.notice('Starting json initialization...');
-
     this.argv = this.getParser().parse(args || []);
     this.cwd = cwd;
+    const jsonOutput = this.argv.format === 'json';
+    if (!jsonOutput) this.notice('Starting json initialization...');
+    if (this.argv.devStatus) {
+      const active = await this.isDevModeActive(cwd);
+      console.log(active ? 'active' : 'inactive');
+      return;
+    }
+    if (this.argv.validate || this.argv.validateChanged) {
+      let report;
+      const capturedOutput = [];
+      const originalConsole = {};
+      if (jsonOutput) {
+        for (const method of ['log', 'warn', 'error']) {
+          originalConsole[method] = console[method];
+          console[method] = (...values) => capturedOutput.push({
+            stream: method,
+            message: values.map(value => String(value)).join(' '),
+          });
+        }
+      }
+      try {
+        if (this.argv.validate && this.argv.validateChanged) {
+          throw new Error('--validate 与 --validate-changed 不能同时使用');
+        }
+        report = this.argv.validateChanged
+          ? inspectChangedInitJsonFiles(cwd)
+          : inspectInitJsonFile({
+            cwd,
+            file: this.argv.file,
+            pageType: this.argv.pageType,
+          });
+      } catch (error) {
+        report = {
+          result: 'failed',
+          errors: [{ code: 'VALIDATION_COMMAND_ERROR', message: error.message }],
+          warnings: [],
+          unknowns: [],
+        };
+      } finally {
+        if (jsonOutput) {
+          for (const method of ['log', 'warn', 'error']) {
+            console[method] = originalConsole[method];
+          }
+        }
+      }
+      if (capturedOutput.length) {
+        report.warnings = report.warnings || [];
+        report.warnings.push({
+          code: 'VALIDATION_STDIO_CAPTURED',
+          message: '加载 init-json 时捕获到控制台输出',
+          output: capturedOutput,
+        });
+      }
+
+      if (jsonOutput) {
+        console.log(JSON.stringify(report, null, 2));
+      } else if (this.argv.validateChanged) {
+        for (const fileReport of report.files || []) {
+          this.printValidationReport(fileReport);
+        }
+        if (report.result === 'passed') {
+          this.success(`changed init-json validation passed: ${(report.summary && report.summary.total) || 0} file(s)`);
+        } else {
+          for (const error of report.errors || []) this.error(error.message);
+          this.error('changed init-json validation failed');
+        }
+      } else {
+        this.printValidationReport(report);
+      }
+
+      if (report.result !== 'passed') {
+        process.exitCode = 1;
+      }
+      return;
+    }
     this.jhComponent = new InitComponent();
     this.jhPage = new InitPage();
     this.jhMobilePage = new InitMobilePage();
@@ -220,7 +296,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
    */
   getParser() {
     return yargs
-      .usage('🚀 init init-json page .\n🔧 Generate config: jianghu-init json --generateType=json --pageType=jh-page --table=class --pageId=classManagement')
+      .usage('🚀 init init-json page .\n🔧 Validate config: jianghu-init json --validate --file=pageId\n🔧 Validate changes: jianghu-init json --validate-changed --format=json\n🔧 Generate config: jianghu-init json --generateType=json --pageType=jh-page --table=class --pageId=classManagement')
       .options(this.getParserOptions())
       .help(false)
       .version(false)
@@ -256,7 +332,48 @@ module.exports = class InitByJsonCommand extends CommandBase {
         type: 'string',
         description: 'Generate pageId',
       },
+      force: {
+        type: 'boolean',
+        description: 'Allow overwriting an existing init-json source file',
+      },
+      devStatus: {
+        type: 'boolean',
+        description: 'Check whether json dev mode is active',
+      },
+      validate: {
+        type: 'boolean',
+        description: 'Validate one trusted V7 init-json module without proactively generating HTML or writing database metadata; module top-level code executes',
+      },
+      validateChanged: {
+        type: 'boolean',
+        description: 'Validate changed V7 init-json files reported by Git',
+      },
+      format: {
+        type: 'string',
+        choices: ['text', 'json'],
+        default: 'text',
+        description: 'Validation output format',
+      },
     };
+  }
+
+  printValidationReport(report) {
+    const file = report.file || '<unknown>';
+    for (const error of report.errors || []) {
+      this.error(`[${error.code}] ${file}${error.path ? `:${error.path}` : ''} ${error.message}`);
+    }
+    for (const warning of report.warnings || []) {
+      this.warning(`[${warning.code}] ${file}${warning.path ? `:${warning.path}` : ''} ${warning.message}`);
+    }
+    for (const unknown of report.unknowns || []) {
+      this.warning(`[${unknown.code}] ${file}${unknown.path ? `:${unknown.path}` : ''} ${unknown.message}`);
+    }
+    if (report.result === 'passed') {
+      for (const target of report.targets || []) {
+        this.success(`[validate] ${file} -> ${target}`);
+      }
+      this.success(`init-json validation passed: ${file}; unknowns=${(report.unknowns || []).length}`);
+    }
   }
 
   /**
@@ -389,9 +506,9 @@ module.exports = class InitByJsonCommand extends CommandBase {
    */
   async enableDevMode(dev) {
     if (!dev) return;
-    const lockFilePath = path.join('./', 'jianghu-init.dev.lock');
+    const lockFilePath = path.join(this.cwd || process.cwd(), 'jianghu-init.dev.lock');
     if (!fs.existsSync(lockFilePath)) fs.writeFileSync(lockFilePath, '');
-    if (await lockfile.check(lockFilePath)) {
+    if (await this.isDevModeActive(this.cwd || process.cwd())) {
       console.log('项目已开启 dev 模式');
       // this.error('项目已开启 dev 模式');
       return;
@@ -447,7 +564,7 @@ module.exports = class InitByJsonCommand extends CommandBase {
       depth: 3,
     });
     watcher.on('all', async (event, pathStr) => {
-      if (event === 'change') {
+      if (event === 'change' || event === 'add') {
         console.log(chalk.gray(`File ${pathStr.replace('app/view/init-json', '')} change ${dayjs().format('HH:mm:ss')}`));
         let fileObj = {};
         try {
@@ -493,6 +610,12 @@ module.exports = class InitByJsonCommand extends CommandBase {
 
     // 在监控文件时保持进程运行
     return new Promise(() => {});
+  }
+
+  async isDevModeActive(cwd) {
+    const lockFilePath = path.join(cwd, 'jianghu-init.dev.lock');
+    if (!fs.existsSync(lockFilePath)) return false;
+    return lockfile.check(lockFilePath);
   }
 
   /**

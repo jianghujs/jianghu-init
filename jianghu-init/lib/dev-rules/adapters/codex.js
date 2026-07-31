@@ -7,6 +7,7 @@ const { createSyncResult, mergeSyncResult, syncTextFile } = require('../util');
 
 const buildAgentsMd = ({ manifest, skills = [] }) => {
   const packs = (manifest.ruleIds || []).map(getRulePack).filter(Boolean);
+  const hasInitJsonPack = (manifest.ruleIds || []).includes('jianghu-init-json-app');
   const lines = [
     '# JianghuJS Codex Instructions',
     '',
@@ -14,7 +15,6 @@ const buildAgentsMd = ({ manifest, skills = [] }) => {
     '',
     `- Rule packs: ${packs.map(p => `\`${p.id}\``).join(', ')}`,
     `- Targets: ${manifest.targets.map(t => `\`${t}\``).join(', ')}`,
-    `- Last sync: ${manifest.lastSyncAt}`,
     '',
     '## Project Rules',
     '',
@@ -23,6 +23,15 @@ const buildAgentsMd = ({ manifest, skills = [] }) => {
     '- Do not introduce unrelated frameworks or broad rewrites unless explicitly requested.',
     '- Treat generated files as generated output unless the task explicitly asks to edit them.',
     '',
+    ...(hasInitJsonPack ? [
+      '## Project quality workflow',
+      '',
+      '- Read `.ai-rules/project/README.md` for project-owned business rules and `.ai-rules/project/pages/<pageId>.md` when it exists.',
+      '- Read `.ai-rules/jianghu-init-json-app/coding-standards.md` before init-json changes.',
+      '- Follow `.ai-rules/jianghu-init-json-app/agent-workflow.md` for L0 rules, L1 self-check, L2 review, and L3 acceptance boundaries.',
+      '- Use `.ai-rules/jianghu-init-json-app/review-prompt-template.md` for separate L2 review sessions.',
+      '',
+    ] : []),
     '## Rule Pack Routing',
     '',
     'Read `.ai-rules/index.md` first, then load only the rule pack that matches the task:',

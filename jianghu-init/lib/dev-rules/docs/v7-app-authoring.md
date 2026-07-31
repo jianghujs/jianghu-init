@@ -15,7 +15,7 @@
 | 页面文档 | `app/view/pageDoc/*.md` |
 | AI 规范 | `AGENTS.md`、`.cursor/rules/`、`.kiro/steering/`、`.claude/rules/` |
 
-**工作流**：编辑 `app/view/init-json/**/*.js` → 运行 `jianghu-init json` → 生成/更新 `app/view/**/*.html`
+**工作流**：编辑 `app/view/init-json/**/*.js` → 先运行 `jianghu-init json --dev-status` 判断生成责任 → 由 watcher 或获授权的单页命令生成/更新 `app/view/**/*.html`
 
 不要长期手改 `.html` 生成物；改 init-json 后重新编译。
 
@@ -113,10 +113,15 @@ V7 CRUD 须显式 `mode: 'crud'`（或由生成器写入）。
 ## 8. 常用命令（全局 CLI）
 
 ```bash
-jianghu-init json          # 编译 init-json → html
+jianghu-init json --dev-status
+jianghu-init json --validate --file=<pageId|componentPath>
+jianghu-init json --generateType=page --pageType=page --file=<filename> -y
+jianghu-init json --generateType=json --pageType=jh-component --table=<table> --componentPath=<componentPath>
 jianghu-init dev-rules --force          # 更新 AI 规则
 jianghu-init vscode        # 安装 Hover / Schema 扩展
 ```
+
+`--validate` 不主动生成 HTML 或同步 `_page/_resource`，但会加载并执行可信 init-json 模块的顶层代码。单页生成可能更新 HTML 和数据库元数据，仅在已授权且 dev watcher 未运行时执行。
 
 ---
 

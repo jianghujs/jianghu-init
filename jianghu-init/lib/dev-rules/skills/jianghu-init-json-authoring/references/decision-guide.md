@@ -8,7 +8,7 @@ Use this guide to choose the authoring shape before reading detailed field docum
 |---|---|
 | Target init-json already exists | Read and edit it; never run table generation over it |
 | New table-driven CRUD Page | Run `jianghu-init json --generateType=json --pageType=jh-page --table=<table> --pageId=<pageId>` |
-| New table-driven CRUD Component | Run the same generator with `--pageType=jh-component` and the approved component path |
+| New table-driven CRUD Component | Run `jianghu-init json --generateType=json --pageType=jh-component --table=<table> --componentPath=<componentPath>` |
 | New custom dashboard, workspace, or workflow | Author a minimal UI-mode source; do not force a CRUD table generator |
 | Existing legacy page needs conversion | Stop and use `jianghu-init-json-migration` |
 
@@ -28,7 +28,15 @@ Stop once the required fact is confirmed. Scope searches to relevant business so
 
 For database inspection, reuse the project's configured connection and database name. Read only the required connection settings rather than printing the whole local config. Do not hard-code credentials or database names, and do not perform writes while discovering schema.
 
-For non-interactive generation of a page file, use:
+After editing a V7 source, run the non-generating machine gate:
+
+```bash
+jianghu-init json --validate --file=<pageId|componentPath>
+```
+
+This loads the selected trusted init-json module, executes its top-level code, and compiles every requested target in memory. The validator does not proactively generate HTML or synchronize `_page` / `_resource`. Passing it proves structural/compiler validity only; it does not replace generated-output or runtime checks.
+
+Before non-interactive generation, run `jianghu-init json --dev-status`. If it reports `active`, save the source and let the watcher generate; verify the expected output and do not start a duplicate compile. If it reports `inactive`, use:
 
 ```bash
 jianghu-init json --generateType=page --pageType=page --file=<filename> -y
@@ -86,8 +94,11 @@ Do not switch the whole page to UI mode for one custom column. Do not embed larg
 
 ## 6. Decide what to read next
 
-- Read `.ai-rules/jianghu-init-json-app/v7-crud-authoring.md` for CRUD fields, views, actions, data sources, slots, and target overrides.
+- Read `.ai-rules/jianghu-init-json-app/v7-crud-authoring.md` for the ordinary CRUD authoring boundary.
+- Read `.ai-rules/jianghu-init-json-app/config-reference.md` when an exact field, type, default, condition, include, or data-source contract is needed.
+- Read `.ai-rules/jianghu-init-json-app/semantic-to-component-mapping.md` when tracing semantic configuration into generated component props.
+- Read `.ai-rules/jianghu-init-json-app/bind-slots-and-targets.md` for Bind, slot-scope, or target behavior.
 - Read `.ai-rules/jianghu-init-json-app/v7-crud-full-structure.md` only for complex CRUD requiring tabs, slots, layout, platform policy, or PC/mobile composition overrides.
-- Read `.ai-rules/jianghu-init-json-app/v7-app-authoring.md` for full page/component structure and current field names.
+- Read `.ai-rules/jianghu-init-json-app/v7-app-authoring.md` only as a concise page/component summary; it is not the Full Reference.
 - Read `.ai-rules/jianghu-init-json-app/jh-component.md` for any component task.
 - Read [common-recipes.md](common-recipes.md) only when a matching recipe helps establish the minimal structure.

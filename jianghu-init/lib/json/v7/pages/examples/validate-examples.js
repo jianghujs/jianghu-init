@@ -8,6 +8,10 @@
 const path = require('path');
 const fs = require('fs');
 const v7 = require('../../index');
+const {
+  analyzeStaticContracts,
+  validateV7Config,
+} = require('../../../validate_init_json');
 
 const dir = __dirname;
 const files = fs.readdirSync(dir).filter(name =>
@@ -21,6 +25,22 @@ const platformsFor = semantic => {
   const t = resolveV7BuildTargets(semantic);
   if (t === 'both') return ['pc', 'mobile'];
   return [t];
+};
+
+const validateCanonicalDataSource = semantic => {
+  const dataSource = semantic && semantic.dataSource;
+  if (!dataSource || typeof dataSource !== 'object') return;
+  const legacyKeys = [
+    'resource',
+    'actions',
+    'listActionId',
+    'createActionId',
+    'updateActionId',
+    'deleteActionId',
+  ].filter(key => Object.prototype.hasOwnProperty.call(dataSource, key));
+  if (legacyKeys.length) {
+    throw new Error(`dataSource 使用旧 key：${legacyKeys.join(', ')}；正式示例只允许扁平 *Resource`);
+  }
 };
 
 let failed = 0;
@@ -45,8 +65,19 @@ for (const file of files) {
   try {
     const { validateActionUiActionSyntax } = require('../../actionIntent');
     validateActionUiActionSyntax(semantic);
+    validateCanonicalDataSource(semantic);
+    const resolvedType = semantic.pageType === 'jh-component' ? 'component' : 'page';
+    const structural = validateV7Config(semantic, resolvedType);
+    const contracts = analyzeStaticContracts({
+      cwd: path.resolve(dir, '../../../../..'),
+      config: semantic,
+      generatedUiActions: structural.generatedUiActions,
+    });
+    if (contracts.errors.length) {
+      throw new Error(contracts.errors.map(item => `${item.code}: ${item.message}`).join('; '));
+    }
   } catch (e) {
-    console.error(`[FAIL] ${file} action syntax: ${e.message}`);
+    console.error(`[FAIL] ${file} canonical syntax: ${e.message}`);
     failed += 1;
     continue;
   }
@@ -54,9 +85,14 @@ for (const file of files) {
   const targets = platformsFor(semantic);
   for (const targetPlatform of targets) {
     try {
-      const { standardConfig } = v7.buildPage(Object.assign({}, semantic, { targetPlatform }));
+      const { standardConfig, diagnostics } = v7.buildPage(Object.assign({}, semantic, { targetPlatform }));
       if (!standardConfig || !standardConfig.pageContent) {
         throw new Error('standardConfig.pageContent missing');
+      }
+      const deprecatedDiagnostics = (diagnostics || []).filter(item => item.code === 'V7_DEPRECATED_KEY');
+      if (deprecatedDiagnostics.length) {
+        const paths = deprecatedDiagnostics.map(item => item.path).join(', ');
+        throw new Error(`正式示例包含旧写法：${paths}`);
       }
       console.log(`[OK] ${file} → ${targetPlatform} (${standardConfig.v7Meta && standardConfig.v7Meta.mode})`);
     } catch (e) {

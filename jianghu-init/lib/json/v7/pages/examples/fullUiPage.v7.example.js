@@ -5,6 +5,7 @@
  */
 const content = {
   version: 'v7',
+  pageType: 'jh-page',
   page: {
     id: 'fullUiPageExample',
     name: 'V7 UI 页面示例',
@@ -26,7 +27,7 @@ const content = {
         component: 'PageHeader',
         props: {
           title: '自定义仪表盘',
-          helpBtn: true,
+          showHelp: true,
           helpSrc: 'https://openjianghu.org/',
         },
       },
@@ -82,8 +83,6 @@ const content = {
       key: 'filter',
       props: {
         title: '筛选',
-        rounded: true,
-        hiddenBtn: false,
         fieldList: [
           { key: 'keyword', label: '关键词', type: 'text' },
           { key: 'status', label: '状态', type: 'select', options: 'constantObj.statusList' },
@@ -95,7 +94,6 @@ const content = {
       key: 'org',
       props: {
         title: '选择组织',
-        rounded: true,
         actionList: [
           { label: '确定', uiAction: 'confirmOrg', color: 'primary' },
         ],

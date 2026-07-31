@@ -190,5 +190,10 @@ New and modified configuration must use canonical keys:
 | `tabList` | `tabs` |
 | `beforeCloseConfirm` | `saveTipBeforeClose` |
 | `mobileSheet` | `sheet` |
+| `fields.*.column.{width,align,class,cellClass}` | field-level `width` / `align` / `class` / `cellClass` |
+| `fields.*.search.op` | field-level `op` |
+| `fields.*.form.*` | field-level `component` / `options` / `required` / `readonly` / `rules` / `placeholder` / `hint` / `quickAttrs` / `attrs` |
+| `dataSource.*Resource` | `dataSource.resource` / `dataSource.actions` / `dataSource.*ActionId` |
+| action `uiAction` | action `intent` / `id` / `actionId` |
 
 The compiler may normalize legacy keys and emit compact diagnostics, but generators, rules, examples, and AI-authored changes must not produce them.

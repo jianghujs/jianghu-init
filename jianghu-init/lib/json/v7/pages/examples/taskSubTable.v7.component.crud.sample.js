@@ -23,7 +23,7 @@ const content = {
     status: {
       label: '状态',
       type: 'select',
-      options: 'constantObj.taskStatus',
+      form: { options: 'constantObj.taskStatus' },
     },
   },
 

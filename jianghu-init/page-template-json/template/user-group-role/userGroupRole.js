@@ -1,6 +1,12 @@
 /* eslint-disable */
 const content = {
-  pageType: "jh-page", pageId: "userGroupRole", table: "course", pageName: "用户权限管理",
+  version: 'v7',
+  pageType: 'jh-page',
+  page: {
+    id: 'userGroupRole',
+    name: '用户权限管理',
+    targets: 'pc',
+  },
   resourceList: [
     {
       actionId: "selectItemList",
@@ -97,13 +103,27 @@ const content = {
       desc: "✅权限管理页-更新角色",
       resourceType: "sql",
       resourceData: { table: "_role", operation: "jhUpdate" }
+    },
+    {
+      actionId: "selectTargetPermission",
+      desc: "✅权限管理页-查询目标页面与资源权限",
+      resourceType: "service",
+      resourceData: { service: "userGroupRole", serviceFunction: "selectTargetPermission" }
+    },
+    {
+      actionId: "updateTargetPermission",
+      desc: "✅权限管理页-保存目标页面与资源权限",
+      resourceType: "service",
+      resourceData: { service: "userGroupRole", serviceFunction: "updateTargetPermission" }
     }
   ],
   includeList: [],
   headContent: [
 
   ],
-  pageContent: [
+  pageContent: {
+    component: 'Box',
+    children: [
     /*html*/`
     <!-- 用户、组织、角色 切换抽屉 >>>>>>>>>>>>> -->
     <v-navigation-drawer app left width="270" style="z-index: 80" :style="{'top': isMobile ? 0 : '60px'}" v-model="showLeftMenu">
@@ -236,6 +256,9 @@ const content = {
                   <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateRelationDataItem', item)">
                     <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
                   </span>
+                  <span role="button" class="primary--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startTargetPermission', { targetType: 'groupRole', item })">
+                    <v-icon size="16" class="primary--text">mdi-shield-key-outline</v-icon>权限
+                  </span>
                   <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('deleteRelationDataItem', item)">
                     <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>删除
                   </span>
@@ -251,6 +274,9 @@ const content = {
                   <v-list dense>
                     <v-list-item @click="doUiAction('startUpdateRelationDataItem', item)">
                       <v-list-item-title>修改</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="doUiAction('startTargetPermission', { targetType: 'groupRole', item })">
+                      <v-list-item-title>配置权限</v-list-item-title>
                     </v-list-item>
                     <v-list-item @click="doUiAction('deleteRelationDataItem', item)">
                       <v-list-item-title>删除</v-list-item-title>
@@ -299,6 +325,9 @@ const content = {
             <!-- <<<<<<<<<<< 右侧信息表单 -->
             <!-- 右侧信息表单 操作按钮 -->
             <v-row class="justify-end ma-0 py-2">
+              <v-btn color="primary" small outlined @click="doUiAction('startCurrentTargetPermission')" class="mr-4">
+                <v-icon left size="16">mdi-shield-key-outline</v-icon>配置权限
+              </v-btn>
               <v-btn color="error" small @click="doUiAction('deleteCurrentDataTypeItem')" class="mr-4">删除</v-btn>
               <v-btn color="success" small @click="doUiAction('updateCurrentDataTypeItem')">修改</v-btn>
             </v-row>
@@ -332,6 +361,7 @@ const content = {
             </v-card-text>
             <!-- 弹窗操作按钮 >>>>>>>>>>>>> -->
             <v-card-actions class="justify-end py-4">
+              <v-btn color="primary" small outlined @click.stop="doUiAction('startCurrentTargetPermission')">配置权限</v-btn>
               <v-btn color="success" small @click.stop="doUiAction('updateCurrentDataTypeItem')"> 保存</v-btn>
               <v-btn color="error" small @click.stop="doUiAction('deleteCurrentDataTypeItem')">删除</v-btn>
               <v-btn class="elevation-0 mr-2" small @click.stop="isUpdateCurrentDataTypeDialog = false">取消</v-btn>
@@ -416,6 +446,103 @@ const content = {
       </v-btn>
     </v-navigation-drawer>
     <!-- <<<<<<<<<<< 编辑relationData抽屉 -->
+
+    <!-- 页面与资源权限配置抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer
+      v-model="isPermissionDrawerShown"
+      fixed temporary right
+      width="min(760px, 92vw)"
+      class="elevation-24"
+    >
+      <div class="d-flex flex-column permission-drawer">
+        <div class="pa-5 pb-3">
+          <div class="d-flex align-center">
+            <div>
+              <div class="text-h6 font-weight-bold">配置权限</div>
+              <div class="text-caption grey--text mt-1">{{ permissionTargetLabel }}</div>
+            </div>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="isPermissionDrawerShown = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </div>
+          <v-alert dense text type="info" class="mt-4 mb-3">
+            页面节点控制是否允许进入页面；展开后的操作节点控制对应 resource 请求权限。
+          </v-alert>
+          <v-alert v-if="deniedPermissionNodeIdList.length" dense text type="warning" class="mb-3">
+            当前对象还有 {{ deniedPermissionNodeIdList.length }} 项 deny 规则；deny 优先，且本页面保存时不会修改这些规则。
+          </v-alert>
+          <v-text-field
+            v-model="permissionSearch"
+            dense filled single-line clearable hide-details
+            prepend-inner-icon="mdi-magnify"
+            placeholder="搜索页面、操作名称或 actionId"
+          ></v-text-field>
+          <div class="d-flex align-center mt-3">
+            <v-chip small color="primary" outlined class="mr-2">页面 {{ selectedPagePermissionCount }}</v-chip>
+            <v-chip small color="success" outlined>操作 {{ selectedResourcePermissionCount }}</v-chip>
+            <v-spacer></v-spacer>
+            <v-btn text small color="primary" @click="doUiAction('selectAllPermission')">全部选择</v-btn>
+            <v-btn text small color="grey darken-1" @click="doUiAction('clearAllPermission')">清空</v-btn>
+          </div>
+        </div>
+        <v-divider></v-divider>
+
+        <div class="permission-tree-container px-4 py-2">
+          <div v-if="isPermissionLoading" class="d-flex align-center justify-center py-12">
+            <v-progress-circular :size="24" indeterminate color="primary"></v-progress-circular>
+            <span class="grey--text ml-3">权限加载中</span>
+          </div>
+          <v-treeview
+            v-else
+            v-model="selectedPermissionNodeIdList"
+            :items="permissionTree"
+            :open.sync="openedPermissionNodeIdList"
+            :search="permissionSearch"
+            item-key="id"
+            item-text="name"
+            item-children="children"
+            selectable
+            selection-type="independent"
+            open-on-click
+            hoverable
+            dense
+          >
+            <template v-slot:prepend="{ item, open }">
+              <v-icon v-if="item.type === 'page'" color="primary" size="19">
+                {{ open ? 'mdi-folder-open-outline' : 'mdi-folder-outline' }}
+              </v-icon>
+              <v-icon v-else color="success" size="17">mdi-api</v-icon>
+            </template>
+            <template v-slot:label="{ item }">
+              <div class="d-flex align-center permission-tree-label">
+                <span>{{ item.name }}</span>
+                <span v-if="item.code" class="text-caption grey--text ml-2">{{ item.code }}</span>
+              </div>
+            </template>
+            <template v-slot:append="{ item }">
+              <v-btn
+                v-if="item.type === 'page' && item.children && item.children.length"
+                text x-small color="primary"
+                @click.stop="doUiAction('togglePageAllPermission', item)"
+              >
+                {{ isPageAllPermissionSelected(item) ? '取消本页' : '选择本页全部' }}
+              </v-btn>
+            </template>
+          </v-treeview>
+          <div v-if="!isPermissionLoading && permissionTree.length === 0" class="jh-no-data py-12">暂无页面与资源数据</div>
+        </div>
+
+        <v-divider></v-divider>
+        <div class="d-flex align-center justify-end pa-4">
+          <v-btn text class="mr-2" @click="isPermissionDrawerShown = false">取消</v-btn>
+          <v-btn color="primary" depressed :loading="isPermissionSaving" @click="doUiAction('saveTargetPermission')">
+            保存权限
+          </v-btn>
+        </div>
+      </div>
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<< 页面与资源权限配置抽屉 -->
 
     <!-- 添加新用户弹窗 >>>>>>>>>>>>> -->
     <v-dialog v-model="isCreateUserDialogShow" width="800px">
@@ -543,7 +670,8 @@ const content = {
   </div>
   </div>
   `
-  ],
+    ],
+  },
   "actionContent": [
   ],
   "common": {
@@ -587,6 +715,17 @@ const content = {
       // 左侧抽屉选中数据
       currentDataTypeItem: {},
       isUpdateCurrentDataTypeDialog: false,
+      // 页面与资源权限
+      isPermissionDrawerShown: false,
+      isPermissionLoading: false,
+      isPermissionSaving: false,
+      permissionSearch: null,
+      permissionTarget: {},
+      permissionTargetLabel: '',
+      permissionTree: [],
+      selectedPermissionNodeIdList: [],
+      deniedPermissionNodeIdList: [],
+      openedPermissionNodeIdList: [],
 
       relationDataTableHeader: [
         { text: "用户Id", value: "userId", width: 120 },
@@ -594,7 +733,7 @@ const content = {
         { text: "角色ID", value: "roleId", width: 120 },
         { text: "操作人", value: "operationByUser", width: 90 },
         { text: "操作时间", value: "operationAt", width: 150 },
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 'window.innerWidth < 500 ? 80 : 120', class: 'fixed', cellClass: 'fixed' },
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 'window.innerWidth < 500 ? 80 : 200', class: 'fixed', cellClass: 'fixed' },
       ],
 
       userKeys: [
@@ -621,6 +760,14 @@ const content = {
       dataTypeName: '用户',
       dataTypeFieldList: [],
       dataTypeData: []
+    },
+    computed: {
+      selectedPagePermissionCount() {
+        return this.selectedPermissionNodeIdList.filter(id => id.startsWith('page:')).length;
+      },
+      selectedResourcePermissionCount() {
+        return this.selectedPermissionNodeIdList.filter(id => id.startsWith('resource:')).length;
+      },
     },
     watch: {
       // description: ✅响应左侧抽屉数据类型的切换
@@ -655,96 +802,202 @@ const content = {
       await this.doUiAction('getBasicDataFromBackend');
       this.isDataTypeLoading = false;
     },
+    doUiAction: {
+      getRelationDataList: [ 'getRelationDataList' ],
+      getBasicDataFromBackend: [
+        'getUserList',
+        'getGroupList',
+        'getRoleList',
+        'buildDataTypeData',
+        'setCurrentItemInfo',
+        'getRelationDataList',
+      ],
+      startCreateRelationDataItem: [ 'prepareCreateRelationDataForm', 'openCreateRelationDataDrawer' ],
+      createRelationDataItem: [
+        'prepareCreateRelationDataFormValidate',
+        'confirmCreateItemDialog',
+        'doCreateRelationDataItem',
+        'getRelationDataList',
+        'closeDrawerShow',
+      ],
+      startUpdateRelationDataItem: [ 'prepareUpdateRelationDataForm', 'openUpdateRelationDataDrawer' ],
+      updateRelationDataItem: [
+        'prepareUpdateRelationDataFormValidate',
+        'confirmUpdateItemDialog',
+        'doUpdateRelationDataItem',
+        'getRelationDataList',
+        'closeDrawerShow',
+      ],
+      deleteRelationDataItem: [ 'confirmDeleteItemDialog', 'doDeleteRelationDataItem', 'getRelationDataList' ],
+      startCurrentTargetPermission: [ 'startCurrentTargetPermission' ],
+      startTargetPermission: [ 'preparePermissionTarget', 'openPermissionDrawer', 'getTargetPermission' ],
+      selectAllPermission: [ 'selectAllPermission' ],
+      clearAllPermission: [ 'clearAllPermission' ],
+      togglePageAllPermission: [ 'togglePageAllPermission' ],
+      saveTargetPermission: [ 'saveTargetPermission' ],
+      startCreateDataTypeItem: [ 'prepareDataTypeFormData', 'openDataTypeFormDialog' ],
+      createUserItem: [
+        'prepareUserFormValidate',
+        'doCreateUserItem',
+        'getUserList',
+        'buildDataTypeData',
+        'closeFormDialog',
+      ],
+      createGroupItem: [
+        'prepareGroupFormValidate',
+        'doCreateGroupItem',
+        'getGroupList',
+        'buildDataTypeData',
+        'closeFormDialog',
+      ],
+      createRoleItem: [
+        'prepareRoleFormValidate',
+        'doCreateRoleItem',
+        'getRoleList',
+        'buildDataTypeData',
+        'closeFormDialog',
+      ],
+      startUpdateDataTypeItem: [ 'prepareCurrentDataTypeForm', 'openCurrentDataTypeDialog' ],
+      updateCurrentDataTypeItem: [
+        'prepareCurrentDataTypeFormValidate',
+        'doUpdateCurrentDataTypeDataItem',
+        'closeCurrentDataTypeDialog',
+        'getDataTypeList',
+        'buildDataTypeData',
+      ],
+      deleteCurrentDataTypeItem: [
+        'confirmDeleteDataItemDialog',
+        'doDeleteCurrentDataTypeItem',
+        'closeCurrentDataTypeDialog',
+        'getDataTypeList',
+        'buildDataTypeData',
+      ],
+    },
     methods: {
-      async doUiAction(uiActionId, uiActionData) {
-        switch (uiActionId) {
-          case 'getRelationDataList':
-            await this.getRelationDataList(uiActionData);
-            break;
-          case 'getBasicDataFromBackend':
-            await this.getUserList();
-            await this.getGroupList();
-            await this.getRoleList();
-            await this.buildDataTypeData();
-            await this.setCurrentItemInfo();
-            await this.getRelationDataList(uiActionData);
-            break;
-          // description: ✅中间表格操作
-          case 'startCreateRelationDataItem':
-            await this.prepareCreateRelationDataForm(uiActionData);
-            await this.openCreateRelationDataDrawer(uiActionData);
-            break;
-          case 'createRelationDataItem':
-            await this.prepareCreateRelationDataFormValidate(uiActionData);
-            await this.confirmCreateItemDialog(uiActionData);
-            await this.doCreateRelationDataItem(uiActionData);
-            await this.getRelationDataList(uiActionData);
-            await this.closeDrawerShow(uiActionData);
-            break;
-          case 'startUpdateRelationDataItem':
-            await this.prepareUpdateRelationDataForm(uiActionData);
-            await this.openUpdateRelationDataDrawer(uiActionData);
-            break;
-          case 'updateRelationDataItem':
-            await this.prepareUpdateRelationDataFormValidate(uiActionData);
-            await this.confirmUpdateItemDialog(uiActionData);
-            await this.doUpdateRelationDataItem(uiActionData);
-            await this.getRelationDataList(uiActionData);
-            await this.closeDrawerShow(uiActionData);
-            break;
-          case 'deleteRelationDataItem':
-            await this.confirmDeleteItemDialog(uiActionData);
-            await this.doDeleteRelationDataItem(uiActionData);
-            await this.getRelationDataList(uiActionData);
-            break;
-          // description: ✅左侧抽屉数据操作（用户、组织、角色）
-          case 'startCreateDataTypeItem':
-            await this.prepareDataTypeFormData(uiActionData);
-            await this.openDataTypeFormDialog(uiActionData);
-            break;
-          case 'createUserItem':
-            await this.prepareUserFormValidate();
-            await this.doCreateUserItem();
-            await this.getUserList();
-            await this.buildDataTypeData();
-            await this.closeFormDialog();
-            break;
-          case 'createGroupItem':
-            await this.prepareGroupFormValidate();
-            await this.doCreateGroupItem();
-            await this.getGroupList();
-            await this.buildDataTypeData();
-            await this.closeFormDialog();
-            break;
-          case 'createRoleItem':
-            await this.prepareRoleFormValidate();
-            await this.doCreateRoleItem();
-            await this.getRoleList();
-            await this.buildDataTypeData();
-            await this.closeFormDialog();
-            break;
-          // description: ✅表格右侧表单操作
-          case 'startUpdateDataTypeItem':
-            await this.prepareCurrentDataTypeForm(uiActionData);
-            await this.openCurrentDataTypeDialog(uiActionData);
-            break;
-          case 'updateCurrentDataTypeItem':
-            await this.prepareCurrentDataTypeFormValidate(uiActionData);
-            await this.doUpdateCurrentDataTypeDataItem(uiActionData);
-            await this.closeCurrentDataTypeDialog();
-            await this.getDataTypeList(uiActionData);
-            await this.buildDataTypeData();
-            break;
-          case 'deleteCurrentDataTypeItem':
-            await this.confirmDeleteDataItemDialog(uiActionData);
-            await this.doDeleteCurrentDataTypeItem(uiActionData);
-            await this.closeCurrentDataTypeDialog();
-            await this.getDataTypeList(uiActionData);
-            await this.buildDataTypeData();
-            break;
-          default:
-            console.error("[doUiAction] uiActionId not find", { uiActionId });
-            break;
+      // description: ✅从当前用户、组织或角色准备授权对象
+      async startCurrentTargetPermission() {
+        const targetType = ['user', 'group', 'role'][this.dataType];
+        await this.preparePermissionTarget({ targetType, item: this.currentDataTypeItem });
+        await this.openPermissionDrawer();
+        await this.getTargetPermission();
+      },
+      // description: ✅构造现有权限规则表使用的 user/group/role 三元组
+      async preparePermissionTarget({ targetType, item }) {
+        const targetMap = {
+          user: {
+            target: { user: item.userId, group: '*', role: '*' },
+            label: `用户：${item.username || item.userId}（${item.userId}）`,
+          },
+          group: {
+            target: { user: '*', group: item.groupId, role: '*' },
+            label: `组织：${item.groupName || item.groupId}（${item.groupId}）`,
+          },
+          role: {
+            target: { user: '*', group: '*', role: item.roleId },
+            label: `角色：${item.roleName || item.roleId}（${item.roleId}）`,
+          },
+          groupRole: {
+            target: { user: '*', group: item.groupId, role: item.roleId },
+            label: `组内角色：${item.groupId} / ${item.roleId}`,
+          },
+        };
+        const targetConfig = targetMap[targetType];
+        if (!targetConfig || Object.values(targetConfig.target).some(value => !value)) {
+          throw new Error('[preparePermissionTarget] 授权对象不完整');
+        }
+        this.permissionTarget = targetConfig.target;
+        this.permissionTargetLabel = targetConfig.label;
+      },
+      async openPermissionDrawer() {
+        this.permissionSearch = null;
+        this.permissionTree = [];
+        this.selectedPermissionNodeIdList = [];
+        this.deniedPermissionNodeIdList = [];
+        this.openedPermissionNodeIdList = [];
+        this.isPermissionDrawerShown = true;
+      },
+      // description: ✅加载页面-resource树及当前目标已有直接授权
+      async getTargetPermission() {
+        this.isPermissionLoading = true;
+        try {
+          const result = await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'userGroupRole',
+                actionId: 'selectTargetPermission',
+                actionData: { target: this.permissionTarget },
+              }
+            }
+          });
+          const resultData = result.data.appData.resultData;
+          this.permissionTree = resultData.permissionTree || [];
+          this.selectedPermissionNodeIdList = resultData.selectedNodeIdList || [];
+          this.deniedPermissionNodeIdList = resultData.deniedNodeIdList || [];
+          this.openedPermissionNodeIdList = this.permissionTree
+            .filter(item => item.children && item.children.some(child => this.selectedPermissionNodeIdList.includes(child.id)))
+            .map(item => item.id);
+        } finally {
+          this.isPermissionLoading = false;
+        }
+      },
+      getAllPermissionNodeIdList() {
+        return this.permissionTree.reduce((result, pageItem) => {
+          result.push(pageItem.id);
+          (pageItem.children || []).forEach(resourceItem => result.push(resourceItem.id));
+          return result;
+        }, []);
+      },
+      async selectAllPermission() {
+        this.selectedPermissionNodeIdList = this.getAllPermissionNodeIdList();
+        this.openedPermissionNodeIdList = this.permissionTree.map(item => item.id);
+      },
+      async clearAllPermission() {
+        this.selectedPermissionNodeIdList = [];
+      },
+      isPageAllPermissionSelected(pageItem) {
+        const pageNodeIdList = [pageItem.id, ...(pageItem.children || []).map(item => item.id)];
+        return pageNodeIdList.every(id => this.selectedPermissionNodeIdList.includes(id));
+      },
+      async togglePageAllPermission(pageItem) {
+        const pageNodeIdList = [pageItem.id, ...(pageItem.children || []).map(item => item.id)];
+        const selectedNodeIdSet = new Set(this.selectedPermissionNodeIdList);
+        if (this.isPageAllPermissionSelected(pageItem)) {
+          pageNodeIdList.forEach(id => selectedNodeIdSet.delete(id));
+        } else {
+          pageNodeIdList.forEach(id => selectedNodeIdSet.add(id));
+          if (!this.openedPermissionNodeIdList.includes(pageItem.id)) {
+            this.openedPermissionNodeIdList = [...this.openedPermissionNodeIdList, pageItem.id];
+          }
+        }
+        this.selectedPermissionNodeIdList = Array.from(selectedNodeIdSet);
+      },
+      // description: ✅页面节点保存到_page授权，resource节点保存到_resource授权
+      async saveTargetPermission() {
+        this.isPermissionSaving = true;
+        try {
+          const pageIdList = this.selectedPermissionNodeIdList
+            .filter(id => id.startsWith('page:'))
+            .map(id => id.slice('page:'.length));
+          const resourceIdList = this.selectedPermissionNodeIdList
+            .filter(id => id.startsWith('resource:'))
+            .map(id => id.slice('resource:'.length));
+          await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'userGroupRole',
+                actionId: 'updateTargetPermission',
+                actionData: {
+                  target: this.permissionTarget,
+                  pageIdList,
+                  resourceIdList,
+                },
+              }
+            }
+          });
+          await window.vtoast.success('权限保存成功');
+          this.isPermissionDrawerShown = false;
+        } finally {
+          this.isPermissionSaving = false;
         }
       },
       // description: ✅用户、组织、角色数据重建
@@ -1165,6 +1418,27 @@ const content = {
     }
   },
   style: `
+    .permission-drawer {
+      height: 100vh;
+      min-height: 0;
+    }
+
+    .permission-tree-container {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    .permission-tree-label {
+      min-width: 0;
+    }
+
+    .permission-tree-label .text-caption {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     @media (min-width: 600px) {
 
       .v-application .px-sm-8 {

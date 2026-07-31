@@ -1,6 +1,6 @@
 {
   "name": "@jianghujs/jianghu-init",
-  "version": "3.2.35",
+  "version": "3.2.36",
   "description": "Init jianghu app helper tools.",
   "main": "lib/entry.js",
   "scripts": {
@@ -22,9 +22,8 @@
     "!lib/**/*.test.js",
     "!lib/json/v6/*.md",
     "!lib/json/v7/README.md",
-    "!lib/json/v7/docs",
     "!lib/json/v7/design-drafts",
-    "!lib/json/v7/pages/examples",
+    "!lib/json/v7/pages/examples/design-drafts",
     "page-template",
     "page-template-json",
     "page-template-component",

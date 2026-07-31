@@ -24,6 +24,17 @@
   .jh-sheet-menu-icon-bg {
     background-color: var(--cPrimaryColorA80);
   }
+
+  .jh-sheet-tabs-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fff;
+  }
+
+  .jh-sheet-tabs-sticky > .v-tabs-bar {
+    background: #fff;
+  }
 </style>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -408,7 +419,8 @@ Vue.component("jh-sheet", {
       v-if="resolvedTabList.length > 1"
       v-model="activeTab"
       color="primary"
-      class="px-4"
+      class="px-4 jh-sheet-tabs-sticky"
+      height="36"
     >
       <v-tab
         v-for="(tab, idx) in resolvedTabList"
@@ -420,9 +432,19 @@ Vue.component("jh-sheet", {
         v-for="(tab, idx) in resolvedTabList"
         :key="'form-tab-item-' + (tab.key || idx)"
       >
+        <div
+          v-if="hasTabBodySlot(tab, idx)"
+          class="pb-4"
+        >
+          <slot
+            :name="tabBodySlotName(tab, idx)"
+            :tab="tab"
+            :item="initialData"
+          ></slot>
+        </div>
         <jh-form
-          class="overflow-hidden overflow-y-auto pb-4"
-          :style="formScrollStyle"
+          v-else
+          class="pb-4"
           :ref="formRefName(tab)"
           :field-list="tab.fieldList"
           :initialData="initialData"
@@ -443,10 +465,19 @@ Vue.component("jh-sheet", {
         </jh-form>
       </v-tab-item>
     </v-tabs-items>
+    <div
+      v-else-if="hasTabBodySlot(resolvedTabList[0], 0)"
+      class="pb-4"
+    >
+      <slot
+        :name="tabBodySlotName(resolvedTabList[0], 0)"
+        :tab="resolvedTabList[0]"
+        :item="initialData"
+      ></slot>
+    </div>
     <jh-form
       v-else
-      class="overflow-hidden overflow-y-auto pb-4"
-      :style="formScrollStyle"
+      class="pb-4"
       :ref="formRefName(resolvedTabList[0])"
       :field-list="resolvedTabList[0] ? resolvedTabList[0].fieldList : []"
       :initialData="initialData"
@@ -705,6 +736,14 @@ Vue.component("jh-form-sheet", {
       const tabSuffix = (tab && tab.key && tab.key !== 'default') ? this._capitalize(tab.key) : '';
       return prefix + tabSuffix + 'Form';
     },
+    tabBodySlotName(tab, idx) {
+      const key = tab && tab.key != null && tab.key !== '' ? tab.key : idx;
+      return 'tab-' + key;
+    },
+    hasTabBodySlot(tab, idx) {
+      const slots = this.$scopedSlots || {};
+      return !!slots[this.tabBodySlotName(tab, idx)];
+    },
     getActiveFormRef() {
       const tab = this.resolvedTabList[this.activeTab] || this.resolvedTabList[0];
       const refName = this.formRefName(tab);
@@ -712,10 +751,14 @@ Vue.component("jh-form-sheet", {
       return Array.isArray(ref) ? ref[0] : ref;
     },
     validate() {
+      const tab = this.currentTabConfig || {};
+      if (this.hasTabBodySlot(tab, this.activeTab)) return true;
       const formRef = this.getActiveFormRef();
       return formRef && formRef.validate ? formRef.validate() : true;
     },
     resetValidation() {
+      const tab = this.currentTabConfig || {};
+      if (this.hasTabBodySlot(tab, this.activeTab)) return undefined;
       const formRef = this.getActiveFormRef();
       return formRef && formRef.resetValidation ? formRef.resetValidation() : undefined;
     },

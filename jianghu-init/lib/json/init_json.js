@@ -50,7 +50,8 @@ module.exports = class InitJson extends CommandBase {
     this.app = this.dbSetting.database;
     await this.getKnex(this.dbSetting);
     const config = await this.promptConfig();
-    await this.buildJson(config);
+    const generated = await this.buildJson(config);
+    if (!generated) return;
     this.success('生成配置文件成功！');
   }
 
@@ -193,13 +194,14 @@ module.exports = class InitJson extends CommandBase {
     let content;
     if (![ 'jh-component', 'jh-page', 'jh-mobile-page' ].includes(pageType)) {
       this.error('pageType 只能是 jh-component、jh-page、jh-mobile-page');
+      return false;
     }
     if (pageType === 'jh-component') {
       if (chartType) {
         if (chartType === 'all') {
           content = await this.getAllChartContent();
           this.checkStaticChartFile();
-          return;
+          return true;
         } else {
           content = this.getChartContent({ table, pageId, pageType, chartType });
         }
@@ -219,13 +221,18 @@ module.exports = class InitJson extends CommandBase {
       content = this.getV7CustomContent({ pageId, pageName, pageType, filename: fileName });
     }
 
-    if (fileName.includes('/')) {
-      const dir = fileName.split('/').slice(0, -1).join('/');
-      fs.mkdirSync(`${generateFileDir}/${dir}`, { recursive: true });
+    const generateRoot = path.resolve(generateFileDir);
+    const generateFilePath = path.resolve(generateRoot, `${fileName}.js`);
+    if (!generateFilePath.startsWith(generateRoot + path.sep)) {
+      this.error(`非法输出路径: ${fileName}`);
+      return false;
+    }
+    if (fs.existsSync(generateFilePath) && !this.argv.force) {
+      this.error(`文件 ${path.relative(process.cwd(), generateFilePath)} 已存在；请直接编辑，或显式使用 --force 覆盖。`);
+      return false;
     }
 
-    // 生成文件
-    const generateFilePath = `${generateFileDir}/${fileName}.js`;
+    fs.mkdirSync(path.dirname(generateFilePath), { recursive: true });
     fs.writeFileSync(generateFilePath, content);
 
     // eslint-disable-next-line no-eval
@@ -255,6 +262,7 @@ module.exports = class InitJson extends CommandBase {
     <${tag} />
       `);
     }
+    return true;
   }
 
   /**
