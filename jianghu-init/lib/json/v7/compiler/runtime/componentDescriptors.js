@@ -41,6 +41,18 @@ const upperFirst = s => _.upperFirst(s);
 const lowerFirst = s => _.lowerFirst(s);
 const aliasesFor = (...names) => Object.assign({}, ...names.map(name => toAliasMap(RUNTIME_PROP_MIGRATIONS[name])));
 
+/** 配置侧写 computed 变量名时，提取为 Vue 绑定（Form 抽屉/Sheet 族共用） */
+const FORM_DRAWER_BINDING_EXTRACT = {
+  fieldList: ':field-list',
+  actionList: ':action-list',
+  scope: ':scope',
+};
+
+/** 纯内容 Drawer：仅需 actionList 动态绑定 */
+const DRAWER_BINDING_EXTRACT = {
+  actionList: ':action-list',
+};
+
 // ─── Descriptor 表 ─────────────────────────────────────────────────────────────
 const COMPONENT_DESCRIPTORS = {
 
@@ -202,6 +214,7 @@ const COMPONENT_DESCRIPTORS = {
     exprFieldProps: ['fieldList'],
     exprActionProps: ['actionList'],
     exprTabList: true,
+    bindingExtract: FORM_DRAWER_BINDING_EXTRACT,
     bindings: {
       'v-model':       'isCreateDrawerShown',
       ':initialData':  'createItem',
@@ -217,6 +230,7 @@ const COMPONENT_DESCRIPTORS = {
     exprFieldProps: ['fieldList'],
     exprActionProps: ['actionList'],
     exprTabList: true,
+    bindingExtract: FORM_DRAWER_BINDING_EXTRACT,
     bindings: {
       'v-model':       'isUpdateDrawerShown',
       ':initialData':  'updateItem',
@@ -232,6 +246,7 @@ const COMPONENT_DESCRIPTORS = {
   Drawer: {
     tag: 'jh-drawer',
     exprActionProps: ['actionList'],
+    bindingExtract: DRAWER_BINDING_EXTRACT,
     keyedBindings: (key) => ({
       'v-model':      `is${upperFirst(key)}DrawerShown`,
       ':initialData': `${lowerFirst(key)}Item`,
@@ -246,6 +261,7 @@ const COMPONENT_DESCRIPTORS = {
     exprFieldProps: ['fieldList'],
     exprActionProps: ['actionList'],
     exprTabList: true,
+    bindingExtract: FORM_DRAWER_BINDING_EXTRACT,
     keyedBindings: (key) => ({
       'v-model':       `is${upperFirst(key)}DrawerShown`,
       ':initialData':  `${lowerFirst(key)}Item`,
@@ -265,6 +281,7 @@ const COMPONENT_DESCRIPTORS = {
     // actionList = 标题栏（与 FormSheet/Drawer 一致）；内容网格已外置为 jh-sheet-menu-grid
     exprActionProps: ['actionList'],
     exprTabList: true,
+    bindingExtract: FORM_DRAWER_BINDING_EXTRACT,
     sheetHeightCompat: true,
     sheetActionCompat: true,
     retainedDeprecatedProps: SHEET_RETAINED_DEPRECATED_PROPS,
@@ -283,6 +300,7 @@ const COMPONENT_DESCRIPTORS = {
     exprFieldProps: ['fieldList'],
     exprActionProps: ['actionList'],
     exprTabList: true,
+    bindingExtract: FORM_DRAWER_BINDING_EXTRACT,
     sheetHeightCompat: true,
     retainedDeprecatedProps: SHEET_RETAINED_DEPRECATED_PROPS,
     keyedBindings: (key) => ({

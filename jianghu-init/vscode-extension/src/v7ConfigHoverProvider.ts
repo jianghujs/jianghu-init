@@ -338,6 +338,7 @@ export const V7_PATH_DOCS: Record<string, DocEntry> = {
   headActionList: { description: '列表头部操作项', example: '[{ label: "新增", uiAction: "create" }]' },
   'headActionList|label': { type: 'string', description: '**必填**。按钮文案' },
   'headActionList|uiAction': { type: 'string', description: '**必填**。标准 token（`create` 等）或 doUiAction 方法名' },
+  'headActionList|permission': { type: 'string', description: '按钮显示所需 resource；actionId 简写自动补当前运行时 pageId，也可写完整 pageId.actionId' },
   'headActionList|color': { type: 'string', description: '按钮颜色' },
   'headActionList|visibleWhen': { type: 'string | object', description: '显示条件 → __expr__' },
   'headActionList|disabledWhen': { type: 'string | object', description: '禁用条件 → __expr__' },
@@ -346,6 +347,7 @@ export const V7_PATH_DOCS: Record<string, DocEntry> = {
   rowActionList: { description: '行操作按钮项', example: '[{ label: "编辑", uiAction: "update" }]' },
   'rowActionList|label': { type: 'string', description: '**必填**。按钮文案' },
   'rowActionList|uiAction': { type: 'string', description: '**必填**。`update` | `delete` | `detail` 或自定义 doUiAction 名' },
+  'rowActionList|permission': { type: 'string', description: '按钮显示所需 resource；actionId 简写自动补当前运行时 pageId，也可写完整 pageId.actionId' },
   'rowActionList|key': { type: 'string', description: '行内唯一 key' },
   'rowActionList|color': { type: 'string', description: '语义色或 hex' },
   'rowActionList|icon': { type: 'string', description: 'jh-icon 名；省略时用 uiAction 默认 icon' },
@@ -871,6 +873,7 @@ export const V7_PATH_DOCS: Record<string, DocEntry> = {
   'tabList|cols': { type: 'number', description: '覆盖根级 cols' },
   'actionList|label': { type: 'string', description: '按钮文字', example: '"保存"' },
   'actionList|uiAction': { type: 'string', description: '**必填**。标准 token 或 doUiAction 方法名' },
+  'actionList|permission': { type: 'string', description: '按钮显示所需 resource；actionId 简写自动补当前运行时 pageId，也可写完整 pageId.actionId' },
   'actionList|color': { type: 'string', description: 'Vuetify color' },
   'actionList|visibleWhen': {
     type: 'string | boolean | object',

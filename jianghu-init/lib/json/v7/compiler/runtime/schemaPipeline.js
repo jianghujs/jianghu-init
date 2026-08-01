@@ -249,6 +249,15 @@ function resolveNode(schema, node, options = {}) {
   }
   const resolvedAttrs = resolveAttrsObject(schema, rawAttrs);
 
+  // attrs 中的事件绑定覆盖框架默认 resolvedBindings，避免模板里重复声明
+  for (const [attrKey, attrVal] of Object.entries(resolvedAttrs)) {
+    if (!attrKey.startsWith('@') && !attrKey.startsWith('v-on:')) continue;
+    if (typeof attrVal === 'string' && attrVal.trim()) {
+      resolvedBindings[attrKey] = attrVal.trim();
+      delete resolvedAttrs[attrKey];
+    }
+  }
+
   // hoistCls：props.cls → resolvedAttrs.class
   if (desc && desc.hoistCls) {
     hoistPropsClsIntoAttrs(component, resolvedProps, resolvedAttrs);
@@ -365,6 +374,7 @@ function findFirstResolvedTable(nodeList) {
 
 function searchableUsesKeywordWidget(node) {
   const list = (node.resolvedProps && node.resolvedProps.fieldList) || [];
+  if (!Array.isArray(list)) return false;
   return list.some(f => f && (f.type === 'keyword'));
 }
 

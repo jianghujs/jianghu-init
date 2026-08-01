@@ -21,6 +21,7 @@ assert(normalizeAction({ intent: 'create', label: '新增' }, 'toolbar', 't').ui
 assert(normalizeAction({ intent: 'createItem', label: '保存' }, 'formCreate', 'c').uiAction === 'createItem', 'createItem stays createItem');
 assert(normalizeAction({ intent: 'createItem', label: '保存' }, 'formCreate', 'c').id === undefined, 'createItem not split to save+id');
 assert(normalizeAction({ uiAction: 'doBatchX', label: '批' }, 'toolbar', 'l').uiAction === 'doBatchX', 'custom uiAction');
+assert(normalizeAction({ uiAction: 'publish', label: '发布', permission: 'publishItem' }, 'toolbar', 'l').permission === 'publishItem', 'permission preserved');
 assert(!normalizeAction({ intent: 'create', label: 'x' }, 'toolbar', 't').intent, 'intent stripped from output');
 
 const rowVis = normalizeAction(

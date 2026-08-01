@@ -545,6 +545,12 @@
       "properties": {
         "label": { "type": "string", "minLength": 1 },
         "uiAction": { "type": "string", "minLength": 1 },
+        "permission": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
+          "description": "按钮显示所需 resource；actionId 简写自动补当前运行时 pageId，也可写完整 pageId.actionId"
+        },
         "color": { "type": "string" },
         "key": { "type": "string" },
         "icon": { "type": "string" },

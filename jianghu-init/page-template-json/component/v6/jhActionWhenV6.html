@@ -44,8 +44,18 @@
           this,
         );
       },
+      hasActionPermission(action) {
+        if (!action || !Object.prototype.hasOwnProperty.call(action, 'permission')) return true;
+        const pageVm = this._findPageVm();
+        const pageId = pageVm && pageVm.pageId;
+        return !!(
+          window.jhPermissionUtil
+          && window.jhPermissionUtil.hasPermission(action.permission, pageId)
+        );
+      },
       isActionVisible(action, item) {
         if (!action) return false;
+        if (!this.hasActionPermission(action)) return false;
         if (item != null && typeof action.visible === 'function') {
           return !!action.visible(item);
         }
@@ -70,7 +80,8 @@
         return this.evaluateActionWhen(action.loadingWhen, false, item);
       },
       filterVisibleActions(list, item) {
-        return (list || []).filter(a => this.isActionVisible(a, item));
+        if (!Array.isArray(list)) return [];
+        return list.filter(a => this.isActionVisible(a, item));
       },
     },
   };

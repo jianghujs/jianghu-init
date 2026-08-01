@@ -303,6 +303,60 @@ const analyzeStaticContracts = ({ cwd, config, generatedUiActions = new Set() })
     }
   });
 
+  const currentPageId = config.page && config.page.id ? String(config.page.id) : '';
+  for (const { action, loc } of collectSemanticActions(config)) {
+    if (!Object.prototype.hasOwnProperty.call(action, 'permission')) continue;
+    if (typeof action.permission !== 'string' || !action.permission.trim()) {
+      errors.push(issue(
+        'ACTION_PERMISSION_INVALID',
+        'action.permission 必须是非空字符串',
+        `${loc}.permission`,
+      ));
+      continue;
+    }
+    const permission = action.permission.trim();
+    const separatorIndex = permission.lastIndexOf('.');
+    if (separatorIndex === -1) {
+      if (config.pageType === 'jh-component') {
+        unknowns.push(issue(
+          'ACTION_PERMISSION_HOST_RESOURCE_NOT_PROVEN',
+          `组件 permission=${permission} 需由宿主 Page 的 resourceList 提供`,
+          `${loc}.permission`,
+        ));
+      } else if (!resourceByActionId.has(permission)) {
+        errors.push(issue(
+          'ACTION_PERMISSION_RESOURCE_NOT_FOUND',
+          `permission=${permission} 未在当前 resourceList 中声明`,
+          `${loc}.permission`,
+        ));
+      }
+      continue;
+    }
+    const permissionPageId = permission.slice(0, separatorIndex);
+    const permissionActionId = permission.slice(separatorIndex + 1);
+    if (!permissionPageId || !permissionActionId) {
+      errors.push(issue(
+        'ACTION_PERMISSION_INVALID',
+        `permission=${permission} 必须是 actionId 简写或完整 pageId.actionId`,
+        `${loc}.permission`,
+      ));
+    } else if (currentPageId && permissionPageId === currentPageId) {
+      if (!resourceByActionId.has(permissionActionId)) {
+        errors.push(issue(
+          'ACTION_PERMISSION_RESOURCE_NOT_FOUND',
+          `permission=${permission} 未在当前 resourceList 中声明`,
+          `${loc}.permission`,
+        ));
+      }
+    } else {
+      unknowns.push(issue(
+        'ACTION_PERMISSION_CROSS_PAGE_NOT_PROVEN',
+        `跨页面 permission=${permission} 无法由当前 init-json 静态证明`,
+        `${loc}.permission`,
+      ));
+    }
+  }
+
   if (config.mode === 'crud' && config.pageType === 'jh-page') {
     const dataSource = config.dataSource || {};
     const requiredResources = [

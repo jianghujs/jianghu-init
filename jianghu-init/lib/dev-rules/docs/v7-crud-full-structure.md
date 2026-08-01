@@ -161,6 +161,7 @@ module.exports = {
 - `views.list.filter` filters already loaded PC rows and does not replace server search.
 - `views.create` and `views.update` use `fieldList` for a single form. Use `tabList` only when the update view genuinely has multiple groups.
 - Each business action requires a non-empty `label` and `uiAction`. Standard CRUD tokens are `create`, `update`, and `delete`; a custom token must resolve through `doUiAction`.
+- Use `permission: 'actionId'` for action visibility based on the current page resource, or a full `pageId.actionId` for a cross-page resource. In custom HTML or slots, use `v-permission="'actionId'"`. This is UI visibility only; backend `_resource` authorization remains mandatory.
 - Structural action entries with `type: 'spacer' | 'slot' | 'filter'` are the only action-list entries exempt from `label` and `uiAction`.
 
 ## Optional advanced structure

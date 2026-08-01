@@ -89,8 +89,8 @@ lib/json/v7/
 | **`search`** | `{ keyword: { fields, placeholder }, fieldList: [], btnText?, btnIcon?, mobileBtnText?, mobileBtnIcon?, mobileSheet? }` |
 | **`filter`** | 对象 → 客户端 `filterList`；字符串 `'inline'|'sheet'` → 仅布局 |
 | **`filters`** | 声明型筛选项数组 |
-| **`headActionList`** | `[{ label, uiAction, visibleWhen?, disabledWhen?, loadingWhen? }]`；标准 uiAction：`create` / `delete` / `batchDelete`；自定义 uiAction 即 doUiAction 方法名 |
-| **`rowActionList`** | 行操作；标准 uiAction：`update` / `delete` / `detail`；支持 **`visibleWhen` / `disabledWhen` / `loadingWhen`**（上下文含 **`item`**） |
+| **`headActionList`** | `[{ label, uiAction, permission?, visibleWhen?, disabledWhen?, loadingWhen? }]`；标准 uiAction：`create` / `delete` / `batchDelete`；自定义 uiAction 即 doUiAction 方法名 |
+| **`rowActionList`** | 行操作；标准 uiAction：`update` / `delete` / `detail`；支持 **`permission` / `visibleWhen` / `disabledWhen` / `loadingWhen`**（条件上下文含 **`item`**） |
 | **`orderBy` / `serverPagination` / `pageSize` / `selectable`** | 列表行为 |
 | **`dataTableProps`** | 仅 PC `Table`：透传给内部 Vuetify `v-data-table` 的非托管 props；例如 `{ groupBy: ['coursewareId'] }`。`headers`、`items`、`loading`、`options` 等由 `jh-table` 托管并覆盖。 |
 | **`layout.type` / `filter`** | 参与 platform 解析（优先级见 §6） |
@@ -104,11 +104,19 @@ lib/json/v7/
 | **`title`** | 抽屉/Sheet 标题 |
 | **`tabList`** | `[{ key, title, fieldList, interaction, actionList }]` |
 | **`interaction`** | `{ fieldKey: { visibleWhen, readonlyWhen, disabledWhen } }` |
-| **`actionList`** | `[{ label, uiAction, color, visibleWhen?, disabledWhen?, loadingWhen? }]`；**`intent` / `id` / `actionId` 不属于 canonical 写法** |
+| **`actionList`** | `[{ label, uiAction, permission?, color, visibleWhen?, disabledWhen?, loadingWhen? }]`；**`intent` / `id` / `actionId` 不属于 canonical 写法** |
 | **`beforeCloseConfirm`** | 关闭前脏检查 |
 | **`mobileSheet`** | **仅 FormSheet**：`persistent`、`maxBodyHeight`、`bodyHeightMode: 'fill'|'content'`（**默认 `fill`**，可省略） |
 
 抽屉 **`key`** 固定：`create`、`update`。
+
+### action 权限与 `v-permission`
+
+- action 可写 `permission: 'publishItem'`，运行时解析为当前页面的 `pageId.publishItem`；也可写完整的 `permission: 'taskManagement.publishItem'`。
+- V7 jh-component 的简写同样使用宿主 Page 的运行时 pageId，resource 应声明在宿主 Page，而不是组件内新增 resourceList。
+- 自定义 slot、原生 HTML、Vuetify 或普通 Vue 组件统一使用 `v-permission="'publishItem'"`；不要求改成 JianghuJS 专用组件。
+- `permission` 只根据 `window.userInfo.allowResourceList` 控制前端显隐；后端 `_resource` 鉴权仍是安全边界，不能因按钮隐藏而省略 resource。
+- 第一版仅接受非空字符串，不支持数组或动态权限表达式，以便静态检查。
 
 ## 6. `platform`
 

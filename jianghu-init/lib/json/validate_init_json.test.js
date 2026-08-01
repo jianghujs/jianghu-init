@@ -169,6 +169,98 @@ const run = async () => {
     /禁止 action 旧语义 key actionId/,
   );
 
+  const permissionResource = {
+    actionId: 'publishItem',
+    resourceType: 'sql',
+    resourceData: { table: 'task', operation: 'update' },
+  };
+  const permissionPage = Object.assign({}, validPage, {
+    page: { id: 'permissionPage', targets: 'pc' },
+    resourceList: [...validPage.resourceList, permissionResource],
+    views: {
+      list: {
+        columnList: ['taskId'],
+        rowActionList: [{ label: '发布', uiAction: 'delete', permission: 'publishItem' }],
+      },
+    },
+  });
+  writeModule(path.join(pageDir, 'permissionPage.js'), permissionPage);
+  const permissionReport = inspectInitJsonFile({ cwd: appDir, file: 'permissionPage' });
+  assert.strictEqual(permissionReport.result, 'passed');
+  assert(!permissionReport.errors.some(item => item.code.startsWith('ACTION_PERMISSION')));
+
+  writeModule(path.join(pageDir, 'invalidPermission.js'), Object.assign({}, permissionPage, {
+    page: { id: 'invalidPermission', targets: 'pc' },
+    views: {
+      list: {
+        columnList: ['taskId'],
+        rowActionList: [{ label: '发布', uiAction: 'delete', permission: [] }],
+      },
+    },
+  }));
+  const invalidPermissionReport = inspectInitJsonFile({ cwd: appDir, file: 'invalidPermission' });
+  assert(invalidPermissionReport.errors.some(item => item.code === 'ACTION_PERMISSION_INVALID'));
+
+  writeModule(path.join(pageDir, 'missingPermission.js'), Object.assign({}, permissionPage, {
+    page: { id: 'missingPermission', targets: 'pc' },
+    views: {
+      list: {
+        columnList: ['taskId'],
+        rowActionList: [{ label: '发布', uiAction: 'delete', permission: 'missingItem' }],
+      },
+    },
+  }));
+  const missingPermissionReport = inspectInitJsonFile({ cwd: appDir, file: 'missingPermission' });
+  assert(missingPermissionReport.errors.some(item => item.code === 'ACTION_PERMISSION_RESOURCE_NOT_FOUND'));
+
+  writeModule(path.join(pageDir, 'fullPermission.js'), Object.assign({}, permissionPage, {
+    page: { id: 'fullPermission', targets: 'pc' },
+    views: {
+      list: {
+        columnList: ['taskId'],
+        rowActionList: [{ label: '发布', uiAction: 'delete', permission: 'fullPermission.publishItem' }],
+      },
+    },
+  }));
+  const fullPermissionReport = inspectInitJsonFile({ cwd: appDir, file: 'fullPermission' });
+  assert.strictEqual(fullPermissionReport.result, 'passed');
+  assert(!fullPermissionReport.unknowns.some(item => item.code === 'ACTION_PERMISSION_CROSS_PAGE_NOT_PROVEN'));
+
+  writeModule(path.join(pageDir, 'crossPagePermission.js'), Object.assign({}, permissionPage, {
+    page: { id: 'crossPagePermission', targets: 'pc' },
+    views: {
+      list: {
+        columnList: ['taskId'],
+        rowActionList: [{ label: '发布', uiAction: 'delete', permission: 'otherPage.publishItem' }],
+      },
+    },
+  }));
+  const crossPagePermissionReport = inspectInitJsonFile({ cwd: appDir, file: 'crossPagePermission' });
+  assert.strictEqual(crossPagePermissionReport.result, 'passed');
+  assert(crossPagePermissionReport.unknowns.some(item => item.code === 'ACTION_PERMISSION_CROSS_PAGE_NOT_PROVEN'));
+
+  writeModule(path.join(componentDir, 'permissionComponent.js'), {
+    version: 'v7',
+    mode: 'crud',
+    pageType: 'jh-component',
+    component: { path: 'permissionComponent', targets: 'pc' },
+    dataSource: { table: 'task', primaryKey: 'taskId', listResource: 'selectTaskList' },
+    fields: { taskId: { label: '任务ID', type: 'text' } },
+    views: {
+      list: {
+        columnList: ['taskId'],
+        rowActionList: [{ label: '发布', uiAction: 'delete', permission: 'publishItem' }],
+      },
+    },
+  });
+  const permissionComponentReport = inspectInitJsonFile({
+    cwd: appDir,
+    file: 'permissionComponent',
+    pageType: 'component',
+  });
+  assert.strictEqual(permissionComponentReport.result, 'passed');
+  assert(permissionComponentReport.unknowns.some(item => item.code === 'ACTION_PERMISSION_HOST_RESOURCE_NOT_PROVEN'));
+
   const unresolvedActionFile = path.join(pageDir, 'unresolvedAction.js');
   writeModule(unresolvedActionFile, Object.assign({}, validPage, {
     page: { id: 'unresolvedAction', targets: 'pc' },

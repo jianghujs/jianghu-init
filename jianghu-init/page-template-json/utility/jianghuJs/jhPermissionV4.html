@@ -1,0 +1,62 @@
+<!-- jhPermissionV4.html >>>>>>>>>>> -->
+<script type="text/javascript">
+(function () {
+  const normalizeResourceId = (permission, pageId) => {
+    if (typeof permission !== 'string') return '';
+    const value = permission.trim();
+    if (!value) return '';
+    if (value.includes('.')) return value;
+    const currentPageId = String(pageId || (window.appInfo && window.appInfo.pageId) || '').trim();
+    return currentPageId ? `${currentPageId}.${value}` : '';
+  };
+
+  const getAllowResourceIdSet = () => {
+    const allowResourceList = window.userInfo && window.userInfo.allowResourceList;
+    if (!Array.isArray(allowResourceList)) return new Set();
+    return new Set(allowResourceList.map(resource => {
+      if (typeof resource === 'string') return resource;
+      return resource && resource.resourceId;
+    }).filter(Boolean));
+  };
+
+  const hasPermission = (permission, pageId) => {
+    const resourceId = normalizeResourceId(permission, pageId);
+    return !!resourceId && getAllowResourceIdSet().has(resourceId);
+  };
+
+  const applyElementPermission = (el, permission, pageId) => {
+    if (!el || !el.style) return;
+    const isAllowed = hasPermission(permission, pageId);
+    if (!Object.prototype.hasOwnProperty.call(el, '__jhPermissionDisplay')) {
+      el.__jhPermissionDisplay = el.style.display;
+    }
+    if (isAllowed) {
+      el.style.display = el.__jhPermissionDisplay;
+      el.removeAttribute('aria-hidden');
+    } else {
+      el.style.display = 'none';
+      el.setAttribute('aria-hidden', 'true');
+    }
+  };
+
+  window.jhPermissionUtil = {
+    normalizeResourceId,
+    getAllowResourceIdSet,
+    hasPermission,
+    applyElementPermission,
+  };
+
+  if (window.Vue && typeof window.Vue.directive === 'function') {
+    const updatePermission = (el, binding) => {
+      applyElementPermission(el, binding && binding.value);
+    };
+    window.Vue.directive('permission', {
+      bind: updatePermission,
+      inserted: updatePermission,
+      update: updatePermission,
+      componentUpdated: updatePermission,
+    });
+  }
+})();
+</script>
+<!-- jhPermissionV4.html <<<<<<<<<<<< -->

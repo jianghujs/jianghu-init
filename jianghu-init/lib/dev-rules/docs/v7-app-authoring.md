@@ -72,6 +72,10 @@ V7 CRUD 须显式 `mode: 'crud'`（或由生成器写入）。
 - 业务 action 必须写对象，且必填 `label` + `uiAction`
 - 覆盖位置：`views.list.headActionList` / `rowActionList`、`views.create.actionList`、`views.update.actionList`、`views.update.tabList[].actionList`
 - `uiAction` 写标准 token（如 `create` / `update` / `delete`）或自定义 `doUiAction` 方法名
+- 按钮需要 resource 权限时写 `permission: 'actionId'`，简写自动补当前运行时 pageId；跨页面可写完整 `pageId.actionId`
+- V7 jh-component 的简写 permission 同样按宿主运行时 pageId 解析；resource 必须声明在宿主 Page，组件内不新增 resourceList
+- 自定义 slot、原生 HTML、Vuetify 或普通 Vue 组件使用 `v-permission="'actionId'"`，无需改成 JianghuJS 专用组件
+- `permission` / `v-permission` 只负责前端显隐，后端仍必须声明并执行 `_resource` 鉴权；第一版 permission 只使用非空字符串
 - 不要用 `intent` / `id` / `actionId`；结构项 `{ type: 'spacer' | 'slot' | 'filter' }` 例外
 
 ---
