@@ -424,7 +424,7 @@
           .value();
 
         const sectionMap = {};
-        const ungroupedItems = [];
+        const sections = [];
 
         menuListResource.forEach(page => {
           const pageSort = parseInt(page.sort, 10) || 0;
@@ -451,6 +451,7 @@
                   items: [],
                   minSort: Infinity,
                 };
+                sections.push(sectionMap[sectionTitle]);
               }
               sectionMap[sectionTitle].minSort = Math.min(sectionMap[sectionTitle].minSort, pageSort);
               sectionMap[sectionTitle].items.push(item);
@@ -458,21 +459,14 @@
             }
           }
 
-          ungroupedItems.push(item);
-        });
-
-        const sections = Object.values(sectionMap);
-
-        if (ungroupedItems.length > 0) {
-          ungroupedItems.sort((a, b) => a.sort - b.sort);
           sections.push({
-            key: 'flat-menu',
+            key: `page-${page.pageId}`,
             title: '',
             showTitle: false,
-            items: ungroupedItems,
-            minSort: Math.min(...ungroupedItems.map(item => item.sort)),
+            items: [item],
+            minSort: pageSort,
           });
-        }
+        });
 
         this.sidebarSections = sections.sort((a, b) => a.minSort - b.minSort);
       },

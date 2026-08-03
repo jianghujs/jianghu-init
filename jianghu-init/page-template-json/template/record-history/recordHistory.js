@@ -1,331 +1,717 @@
 /* eslint-disable */
+
 const content = {
-  pageType: "jh-page", pageId: "recordHistoryManagement", table: '_user', pageName: "数据历史", version: 'v3',
+  version: 'v7',
+  mode: 'crud',
+  pageType: 'jh-page',
+  page: {
+    id: 'recordHistoryManagement',
+    name: '数据历史',
+    targets: 'pc',
+  },
+  platform: {
+    pc: { list: 'Table' },
+  },
   resourceList: [
     {
-      actionId: "selectOnUseItemListByTable",
-      resourceType: "service",
-      desc: "✅获取指定表的使用中的数据列表",
-      resourceData: {service: "recordHistory", serviceFunction: "selectOnUseItemListByTable"}
+      actionId: 'selectTableList',
+      resourceType: 'service',
+      desc: '✅获取存在历史记录的数据表',
+      resourceData: { service: 'recordHistory', serviceFunction: 'selectTableList' },
     },
     {
-      actionId: "selectDeletedItemListByTable",
-      resourceType: "service",
-      desc: "✅获取指定表的已删除的数据列表",
-      resourceData: {service: "recordHistory", serviceFunction: "selectDeletedItemListByTable"}
+      actionId: 'selectOnUseItemListByTable',
+      resourceType: 'service',
+      desc: '✅获取指定表的使用中的数据列表',
+      resourceData: { service: 'recordHistory', serviceFunction: 'selectOnUseItemListByTable' },
     },
     {
-      actionId: "selectItemList",
-      resourceType: "sql",
-      desc: "✅获取数据历史表",
-      resourceData: {table: "_record_history", operation: "select"}
+      actionId: 'selectDeletedItemListByTable',
+      resourceType: 'service',
+      desc: '✅获取指定表的已删除数据列表',
+      resourceData: { service: 'recordHistory', serviceFunction: 'selectDeletedItemListByTable' },
     },
     {
-      actionId: "restoreRecordByRecordHistory",
-      resourceType: "service",
-      desc: "✅还原数据",
-      resourceData: {service: "recordHistory", serviceFunction: "restoreRecordByRecordHistory"}
-    }
-  ], // { actionId: '', resourceType: '', resourceData: {}, resourceHook: {}, desc: '' }
-  headContent: [
-    { tag: 'jh-page-title', value: "数据历史", attrs: { cols: 12, sm: 6, md:4 }, helpBtn: true, slot: [] },
-    { tag: 'v-spacer' },
+      actionId: 'selectItemList',
+      resourceType: 'service',
+      desc: '✅获取指定记录的历史版本',
+      resourceData: { service: 'recordHistory', serviceFunction: 'selectItemList' },
+    },
     {
-      tag: 'jh-search',
-      value: [
-        /**
-         * <v-col cols="12" xs="12" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-sm-2">
-              <v-select v-model="serverSearchInput.table" color="success" prefix="数据表：" class="jh-v-input bg-white" :items="constantObj.table" dense filled single-line hide-details></v-select>
-            </v-col>
-            <v-col cols="12" xs="12" sm="6" md="4" xl="3" class="pa-0 pr-0 pr-md-2 pt-2 pt-sm-0">
-              <v-select v-model="serverSearchInput.dataType" color="success" prefix="数据类型：" class="jh-v-input bg-white" :items="constantObj.dataType" dense filled single-line hide-details></v-select>
-            </v-col>
-            <div class="jh-backend-search-btn">
-              <v-btn class="elevation-0 float-right mt-2 mt-md-0" color="success" small @click="doUiAction('getTableData')">
-                查询
-              </v-btn>
-            </div>
-         */
-        { tag: 'v-select', model: 'serverSearchInput.table', attrs: { prefix: '数据表：', class: 'jh-v-input bg-white', ':items': 'constantObj.table' } },
-        { tag: 'v-select', model: 'serverSearchInput.dataType', attrs: { prefix: '数据类型：', class: 'jh-v-input bg-white', ':items': 'constantObj.dataType' } },
-      ],
-      searchBtn: true,
-      data: {
-        serverSearchInput: {
-          table: '_user',
-          dataType: 'onUse'
-        },
-      }
-    }
+      actionId: 'restoreRecordByRecordHistory',
+      resourceType: 'service',
+      desc: '✅还原指定历史版本',
+      resourceData: { service: 'recordHistory', serviceFunction: 'restoreRecordByRecordHistory' },
+    },
   ],
-  pageContent: [
-    {
-      tag: 'jh-table',
-      attrs: {  },
-      colAttrs: { clos: 12 },
-      cardAttrs: { class: 'rounded-lg elevation-0' },
-      headActionList: [
-        { tag: 'v-spacer' },
-        // 默认筛选
-        {
-          tag: 'v-col',
-          attrs: { cols: '12', sm: '6', md: '3', xs: 8, class: 'pa-0' },
-          value: [
-            { tag: 'v-text-field', attrs: {prefix: '筛选', 'v-model': 'searchInput', class: 'jh-v-input', ':dense': true, ':filled': true, ':single-line': true} },
-          ],
-        }
-      ],
-      headers: [
-      ],
-      value: [
-        // vuetify table custom slot
-      ],
+  includeList: [
+    { type: 'html', path: 'common/jianghuJs/fixedTableHeightV4.html' },
+  ],
+  fields: {
+    id: { label: '数据ID', type: 'text', column: { width: 90 } },
+    operation: { label: '操作类型', type: 'text', column: { width: 110 } },
+    operationByUser: { label: '操作者', type: 'text', column: { width: 130 } },
+    operationAt: { label: '操作时间', type: 'text', column: { width: 175 } },
+    count: { label: '版本数', type: 'text', column: { width: 90, align: 'center' } },
+  },
+  views: {
+    list: {
+      columnList: ['id', 'operation', 'operationByUser', 'operationAt', 'count'],
       rowActionList: [
-        { text: '查看数据版本<span v-if="item.count > 0" class="success--text">({{item.count}})</span>', icon: 'mdi-eye-outline', color: 'success', click: 'doUiAction("viewRecordHistory", item)' },
+        { uiAction: 'viewRecordHistory', label: '查看版本', key: 'history' },
       ],
-    }
-  ],
-  actionContent: [
-    {
-      tag: 'jh-drawer',
-      key: 'historyDetail',
-      title: '数据历史详情',
-      contentList: [
-        {
-          tag: 'div',
-          attrs: { class: 'pa-4' },
-          value: `
-          <v-data-table
-            :search="searchInputDrawer"
-            fixed-header
-            checkbox-color="success"
-            :headers="headers"
-            :loading="isDrawerTableLoading"
-            :items="recordHistoryDetailList"
-            item-key="classId"
-            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-            :items-per-page="20"
-            :data-bottom="-100"
-            mobile-breakpoint="0"
-            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4 zebraLine"
-          >
-            <!-- 表格操作按钮 -->
-            <template v-slot:item.action="{ item }">
-              <span role="button" class="success--text font-weight-medium font-size-2 text-no-wrap" @click="doUiAction('restoreRecordByRecordHistory', item)">
-                <v-icon size="16" class="success--text">mdi-history</v-icon>还原数据
-              </span>
-            </template>
-            <!-- 操作时间 -->
-            <template v-slot:item.operationAt="{ item }">
-              {{ item.operationAt && dayjs(item.operationAt).format('YYYY-MM-DD HH:mm:ss') }}
-            </template>
-            <!--没有数据-->
-            <template v-slot:loading>
-              <div class="jh-no-data">数据加载中</div>
-            </template>
-            <template v-slot:no-data>
-              <div class="jh-no-data">暂无数据</div>
-            </template>
-            <template v-slot:no-results>
-              <div class="jh-no-data">暂无数据</div>
-            </template>
-            <!-- 表格分页 -->
-            <template v-slot:footer.page-text="pagination">
-              <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
-              <span class="ml-1">共{{ pagination.itemsLength }}条</span>
-            </template>
-          </v-data-table>
-          `
-        }
-      ]
-    }
-  ],
-  includeList: [], // { type: < js | css | html | vueComponent >, path: ''}
-  common: { 
-    
-    data: {
-      validationRules: {
-        requireRules: [
-          v => !!v || '必填',
-        ],
-      },
-      serverSearchWhereLike: { className: '' }, // 服务端like查询
-      serverSearchWhere: { }, // 服务端查询
-      serverSearchWhereIn: { }, // 服务端 in 查询
-      filterMap: {}, // 结果筛选条件
-
-      // 可操作数据表
-      constantObj: {
-        table: ["_user"],
-        dataType: [
-          {"value": "onUse", "text": "使用中的数据"},
-          {"value": "deleted", "text": "已删除的数据"},
-        ],
-      },
-      recordHistoryActionId: null,
-      currentTable: null,
-
-      defaultHeaders: [
-        {text: "数据ID", value: "id", width: 80},
-        {text: "操作类型", value: "operation", width: 120},
-        {text: "操作人", value: "operationByUser", width: 120},
-        {text: "操作时间", value: "operationAt", width: 180},
-      ],
-      headers: [],
-      // 历史数据详情相关变量
-      currentRecordId: null,
-      isDrawerTableLoading: true,
-      isHistoryDetailDrawerShow: false,
-      recordHistoryDetailListBackend: [],
-      recordHistoryDetailList: [],
-      restoreId: null,
-      searchInputDrawer: null
+      serverPagination: false,
+      pageSize: 20,
     },
-    dataExpression: {
-      isMobile: 'window.innerWidth < 500'
-    }, // data 表达式
-    watch: {},
+  },
+  slots: {
+    list: {
+      pc: {
+        children: [
+          /*html*/`<template v-slot:item.operation="{ item }">
+            <v-chip x-small label :color="getOperationColor(item.operation)" text-color="white">
+              {{ getOperationText(item.operation) }}
+            </v-chip>
+          </template>
+          <template v-slot:item.operationAt="{ item }">
+            <span class="text-no-wrap">{{ formatDateTime(item.operationAt) }}</span>
+          </template>
+          <template v-slot:item.count="{ item }">
+            <v-chip x-small outlined color="primary">{{ Number(item.count) || 0 }}</v-chip>
+          </template>
+          <template v-slot:item.action="{ item }">
+            <jh-text-btn
+              v-permission="'selectItemList'"
+              @click="doUiAction('viewRecordHistory', item)"
+              icon="history"
+              color="primary"
+            >
+              查看版本<span v-if="Number(item.count)">（{{ Number(item.count) }}）</span>
+            </jh-text-btn>
+          </template>`,
+        ],
+      },
+    },
+  },
+  dataSource: {
+    table: '_user',
+    primaryKey: 'id',
+    listResource: 'selectOnUseItemListByTable',
+  },
+  pc: (views, blocks) => {
+    const list = blocks.list ? {
+      ...blocks.list,
+      props: {
+        ...(blocks.list.props || {}),
+        headersBinding: 'headers',
+        primaryKey: '_rowKey',
+      },
+      attrs: {
+        class: 'rh-main-table w-full',
+      },
+    } : null;
+
+    return {
+      pageContent: {
+        component: 'VStack',
+        props: { gap: 0 },
+        children: [
+          {
+            component: 'Box',
+            children: [/*html*/`
+              <div class="record-history-page">
+                <div class="jh-page-second-bar rh-page-header">
+                  <div>
+                    <div class="rh-page-title">数据历史</div>
+                    <div class="rh-page-subtitle">按数据表查看当前记录、已删除记录及历史版本，并可恢复指定版本。</div>
+                  </div>
+                </div>
+                <div class="rh-page-body">
+                  <div class="rh-filter-form">
+                    <div class="grid grid-cols-12 gap-2 items-center">
+                      <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                        <v-autocomplete
+                          v-model="serverSearchInput.table"
+                          :items="tableOptionList"
+                          item-value="value"
+                          item-text="text"
+                          label="数据表"
+                          placeholder="选择有历史记录的数据表"
+                          prepend-inner-icon="mdi-table"
+                          class="jh-v-input"
+                          dense filled single-line clearable hide-details
+                        ></v-autocomplete>
+                      </div>
+                      <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                        <v-select
+                          v-model="serverSearchInput.dataType"
+                          :items="constantObj.dataType"
+                          item-value="value"
+                          item-text="text"
+                          label="数据范围"
+                          prepend-inner-icon="mdi-database-search"
+                          class="jh-v-input"
+                          dense filled single-line hide-details
+                        ></v-select>
+                      </div>
+                      <div class="col-span-12 sm:col-span-8 md:col-span-4">
+                        <v-text-field
+                          v-model="filterInput.keyword"
+                          label="关键词"
+                          placeholder="搜索当前结果中的任意字段"
+                          prepend-inner-icon="mdi-magnify"
+                          class="jh-v-input"
+                          dense filled single-line clearable hide-details
+                        ></v-text-field>
+                      </div>
+                      <div class="col-span-12 sm:col-span-4 md:col-span-2 flex items-center justify-end">
+                        <v-btn color="primary" depressed small block @click="doUiAction('queryRecordList')">
+                          <v-icon left size="17">mdi-magnify</v-icon>查询
+                        </v-btn>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-12 gap-2 items-center mt-1">
+                      <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                        <v-select
+                          v-model="filterInput.operation"
+                          :items="constantObj.operation"
+                          item-value="value"
+                          item-text="text"
+                          label="操作类型"
+                          prepend-inner-icon="mdi-source-branch"
+                          class="jh-v-input"
+                          dense filled single-line clearable hide-details
+                        ></v-select>
+                      </div>
+                      <div class="col-span-12 sm:col-span-6 md:col-span-3">
+                        <v-text-field
+                          v-model="filterInput.operator"
+                          label="操作者"
+                          placeholder="姓名或用户ID"
+                          prepend-inner-icon="mdi-account-search-outline"
+                          class="jh-v-input"
+                          dense filled single-line clearable hide-details
+                        ></v-text-field>
+                      </div>
+                      <div class="col-span-12 sm:col-span-6 md:col-span-2">
+                        <v-text-field
+                          v-model="filterInput.dateStart"
+                          type="date"
+                          label="开始日期"
+                          class="jh-v-input"
+                          dense filled single-line clearable hide-details
+                        ></v-text-field>
+                      </div>
+                      <div class="col-span-12 sm:col-span-6 md:col-span-2">
+                        <v-text-field
+                          v-model="filterInput.dateEnd"
+                          type="date"
+                          label="结束日期"
+                          class="jh-v-input"
+                          dense filled single-line clearable hide-details
+                        ></v-text-field>
+                      </div>
+                      <div class="col-span-12 md:col-span-2 flex items-center justify-end">
+                        <v-btn text block color="grey darken-1" @click="doUiAction('resetClientFilters')">
+                          <v-icon left size="17">mdi-filter-off-outline</v-icon>清空筛选
+                        </v-btn>
+                      </div>
+                    </div>
+                    <div v-if="availableFieldOptionList.length" class="grid grid-cols-12 gap-2 mt-1">
+                      <div class="col-span-12">
+                        <v-autocomplete
+                          v-model="selectedFieldList"
+                          :items="availableFieldOptionList"
+                          item-value="value"
+                          item-text="text"
+                          label="显示业务字段"
+                          prepend-inner-icon="mdi-table-column"
+                          class="jh-v-input"
+                          multiple small-chips deletable-chips
+                          dense filled single-line clearable hide-details
+                        ></v-autocomplete>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="rh-table-toolbar">
+                      <div class="d-flex align-start flex-wrap gap-2">
+                        <v-chip small outlined color="primary">{{ currentTable || '未选择数据表' }}</v-chip>
+                        <v-chip small outlined>结果 {{ tableDataComputed.length }}</v-chip>
+                        <v-chip small outlined>历史版本 {{ totalHistoryVersionCount }}</v-chip>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>`],
+          },
+          list,
+        ].filter(Boolean),
+      },
+      actionContent: [
+        {
+          component: 'Drawer',
+          key: 'historyDetail',
+          props: {
+            title: '数据历史详情',
+            width: '92vw',
+          },
+          attrs: { class: 'rh-history-drawer' },
+          children: [/*html*/`
+            <div class="d-flex flex-column rh-history-drawer-body jh-drawer-body-scroll px-4">
+              <div class="rh-history-summary">
+                <div>
+                  <div class="font-weight-medium">{{ currentTable }} / 记录 {{ currentRecordId }}</div>
+                  <div class="rh-muted-text">共 {{ recordHistoryDetailList.length }} 个历史版本；恢复前请确认该版本内容。</div>
+                </div>
+                <v-text-field
+                  v-model="historyKeyword"
+                  placeholder="搜索历史版本"
+                  prepend-inner-icon="mdi-magnify"
+                  class="jh-v-input rh-history-search"
+                  dense filled single-line clearable hide-details
+                ></v-text-field>
+              </div>
+              <v-data-table
+                fixed-header
+                :headers="historyHeaders"
+                :items="filteredHistoryDetailList"
+                :loading="isDrawerTableLoading"
+                item-key="recordHistoryId"
+                :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有' }"
+                :items-per-page="20"
+                mobile-breakpoint="0"
+                class="elevation-0 jh-fixed-table-height zebraLine rh-history-table"
+              >
+                <template v-slot:item.operation="{ item }">
+                  <v-chip x-small label :color="getOperationColor(item.operation)" text-color="white">
+                    {{ getOperationText(item.operation) }}
+                  </v-chip>
+                </template>
+                <template v-slot:item.changedFieldText="{ item }">
+                  <span v-if="item.changedFieldCount" :title="item.changedFieldText">
+                    {{ item.changedFieldCount }} 项：{{ item.changedFieldText }}
+                  </span>
+                  <span v-else class="rh-muted-text">无字段变化</span>
+                </template>
+                <template v-slot:item.operationAt="{ item }">
+                  <span class="text-no-wrap">{{ formatDateTime(item.operationAt) }}</span>
+                </template>
+                <template v-slot:item.action="{ item }">
+                  <jh-text-btn
+                    v-permission="'restoreRecordByRecordHistory'"
+                    @click="doUiAction('restoreRecordByRecordHistory', item)"
+                    class="text-no-wrap font-weight-medium"
+                    color="warning"
+                    icon="restore"
+                  >
+                    恢复此版本
+                  </jh-text-btn>
+                </template>
+                <template v-slot:loading><div class="jh-no-data">历史版本加载中</div></template>
+                <template v-slot:no-data><div class="jh-no-data">暂无历史版本</div></template>
+                <template v-slot:no-results><div class="jh-no-data">没有匹配的历史版本</div></template>
+              </v-data-table>
+            </div>`],
+        },
+      ],
+    };
+  },
+  common: {
+    data: {
+      isDrawerTableLoading: false,
+      serverSearchInput: {
+        table: '',
+        dataType: 'onUse',
+      },
+      filterInput: {
+        keyword: '',
+        operation: '',
+        operator: '',
+        dateStart: '',
+        dateEnd: '',
+      },
+      constantObj: {
+        dataType: [
+          { value: 'onUse', text: '使用中的数据' },
+          { value: 'deleted', text: '已删除的数据' },
+        ],
+        operation: [
+          { value: 'jhInsert', text: '新增' },
+          { value: 'jhUpdate', text: '修改' },
+          { value: 'jhDelete', text: '删除' },
+          { value: 'jhRestore', text: '恢复' },
+          { value: 'insert', text: '新增（原生）' },
+          { value: 'update', text: '修改（原生）' },
+          { value: 'delete', text: '删除（原生）' },
+        ],
+      },
+      tableOptionList: [],
+      recordHistoryDetailList: [],
+      availableFieldOptionList: [],
+      selectedFieldList: [],
+      currentTable: '',
+      currentRecordId: null,
+      restoreRecordHistoryId: null,
+      historyKeyword: '',
+    },
     computed: {
       tableDataComputed() {
-        if(this.filterMap) {
-          return this.tableData.filter(row => {
-            for (const key in this.filterMap) {
-              if (this.filterMap[key] && row[key] !== this.filterMap[key]) {
-                return false;
-              }
-            }
-            return true;
-          });
-        } else {
-          return this.tableData;
-        }
+        return this.filterRecordList(this.tableData, this.filterInput);
+      },
+      filteredHistoryDetailList() {
+        const keyword = String(this.historyKeyword || '').trim().toLowerCase();
+        if (!keyword) return this.recordHistoryDetailList;
+        return this.recordHistoryDetailList.filter(item => this.isRowMatchedKeyword(item, keyword));
+      },
+      totalHistoryVersionCount() {
+        return (this.tableData || []).reduce((total, item) => total + (Number(item.count) || 0), 0);
+      },
+      headers() {
+        const fixedValueSet = new Set(['id', 'operation', 'operationByUser', 'operationAt', 'count', 'action']);
+        const businessHeaders = this.normalizeSelectedFieldList(this.selectedFieldList)
+          .filter(field => !fixedValueSet.has(field))
+          .map(field => ({ text: field, value: field, width: 150 }));
+        return [
+          { text: '数据ID', value: 'id', width: 90 },
+          ...businessHeaders,
+          { text: '操作类型', value: 'operation', width: 110 },
+          { text: '操作者', value: 'operationByUser', width: 130 },
+          { text: '操作时间', value: 'operationAt', width: 175 },
+          { text: '版本数', value: 'count', width: 90, align: 'center' },
+          { text: '操作', value: 'action', width: 130, sortable: false, class: 'fixed', cellClass: 'fixed' },
+        ];
+      },
+      historyHeaders() {
+        const fixedValueSet = new Set(['id', 'operation', 'operationByUser', 'operationAt', 'count', 'action']);
+        const businessHeaders = this.normalizeSelectedFieldList(this.selectedFieldList)
+          .filter(field => !fixedValueSet.has(field))
+          .map(field => ({ text: field, value: field, width: 150 }));
+        return [
+          { text: '版本ID', value: 'recordHistoryId', width: 90 },
+          { text: '操作类型', value: 'operation', width: 110 },
+          { text: '变化字段', value: 'changedFieldText', width: 220 },
+          ...businessHeaders,
+          { text: '操作者', value: 'operationByUser', width: 130 },
+          { text: '操作时间', value: 'operationAt', width: 175 },
+          { text: '操作', value: 'action', width: 130, sortable: false, class: 'fixed', cellClass: 'fixed' },
+        ];
       },
     },
     async created() {
-      this.doUiAction('initTableData');
+      await this.doUiAction('initRecordHistoryPage');
     },
     doUiAction: {
-      initTableData: ['doUiAction.getTableData', 'setSearchSummary', 'computeHeader'],
-      viewRecordHistory: ['prepareRecordHistoryItem', 'doUiAction.viewHistoryDetail', 'doGetRecordHistoryDetail', 'decodeRecordHistoryDetail'],
-      restoreRecordByRecordHistory: ['prepareRestoreItem', 'doRestoreRecordByRecordHistory', 'doGetRecordHistoryDetail', 'decodeRecordHistoryDetail', 'prepareGetTableData', 'doUiAction.initTableData', 'computeHeader'],
-    }, // 额外uiAction { [key]: [action1, action2]}
+      initRecordHistoryPage: ['getTableList', 'prepareTableParams', 'getTableData'],
+      queryRecordList: ['prepareTableParams', 'getTableData'],
+      resetClientFilters: ['resetClientFilters'],
+      viewRecordHistory: ['prepareRecordHistoryItem', 'openHistoryDetailDrawer', 'getRecordHistoryDetail'],
+      restoreRecordByRecordHistory: [
+        'prepareRestoreItem',
+        'confirmRestoreRecord',
+        'doRestoreRecordByRecordHistory',
+        'getRecordHistoryDetail',
+        'getTableData',
+      ],
+    },
     methods: {
-      //   --------------- 获取数据 uiAction >>>>>>>>>>  ---------------
-      prepareTableParams() {
-        // TODO 增加自定义复杂判断条件
-        const backendSearchData = _.pickBy(this.serverSearchInput, value => !!value && value !== '全部');
-        if (backendSearchData.dataType === 'onUse') {
-          this.recordHistoryActionId = 'selectOnUseItemListByTable';
-        }
-        if (backendSearchData.dataType === 'deleted') {
-          this.recordHistoryActionId = 'selectDeletedItemListByTable';
-        }
-        this.currentTable = backendSearchData.table;
+      normalizeSelectedFieldList(fieldList) {
+        return Array.from(new Set((fieldList || []).map(field => {
+          if (field == null) return '';
+          if (typeof field === 'object') return String(field.value || field.text || '').trim();
+          return String(field).trim();
+        }).filter(Boolean)));
       },
-      async getTableData() {
-        this.isTableLoading = true;
+      normalizeSearchValue(value) {
+        if (value == null) return '';
+        if (typeof value === 'object') return String(value.value || value.text || '').trim();
+        return String(value).trim();
+      },
+      async getTableList() {
         const result = await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'recordHistoryManagement',
-              actionId: this.recordHistoryActionId,
-              actionData: {
-                table: this.currentTable
-              }
-            }
-          }
+              pageId: this.pageId,
+              actionId: 'selectTableList',
+            },
+          },
         });
-        this.tableDataFromBackend = result.data.appData.resultData.rows;
-        this.isTableLoading = false;
-      },
-      setSearchSummary(){
-        const conditions = [];
-        if (this.serverSearchInput.table) {
-          conditions.push(`数据表为【${getDisplayText({displayObj: this.constantObj.table, displayValue: this.serverSearchInput.table})}】`);
-        }
-        if (this.serverSearchInput.dataType) {
-          conditions.push(`数据类型为【${getDisplayText({displayObj: this.constantObj.dataType, displayValue: this.serverSearchInput.dataType})}】`);
-        }
-        this.searchSummary = conditions.length > 0  ? `${conditions.join('，')}，共${this.tableData.length}条记录` : `共${this.tableData.length}条记录`;
-      },
-      computeHeader() {
-        if (this.tableData.length > 0) {
-          const headers = this.defaultHeaders.slice();
-          const recordData = this.tableData[0];
-          for (const key in recordData) {
-            if (['id', 'count', 'recordHistoryId', 'operation', 'operationByUserId', 'operationByUser', 'operationAt'].indexOf(key) > -1) {
-              continue;
-            }
-            headers.push({text: key, value: key, width: 120});
-          }
-          headers.push({text: '操作', value: 'action', align: 'left', sortable: false, width: 140, class: 'fixed', cellClass: 'fixed'});
-          this.headers = headers;
+        const rows = result.data.appData.resultData.rows || [];
+        this.tableOptionList = rows.map(item => ({
+          value: item.table,
+          text: `${item.table}（${Number(item.historyCount) || 0}）`,
+        }));
+        if (!this.serverSearchInput.table && this.tableOptionList.length) {
+          const defaultOption = this.tableOptionList.find(item => item.value === '_user') || this.tableOptionList[0];
+          this.serverSearchInput.table = defaultOption.value;
         }
       },
-      //   --------------- <<<<<<<<<< 获取数据 uiAction  ---------------
-      //   --------------- 查看详情 uiAction >>>>>>>>>>  ---------------
-      async prepareRecordHistoryItem(funObj) {
-        this.recordHistoryDetailListBackend = [];
-        this.recordHistoryDetailList = [];
-        this.currentRecordId = funObj.id;
+      prepareTableParams() {
+        const table = this.normalizeSearchValue(this.serverSearchInput.table);
+        if (!table) {
+          window.vtoast && window.vtoast.fail('请先选择数据表');
+          throw new Error('[prepareTableParams] table required');
+        }
+        this.currentTable = table;
+        this.serverSearchInput.dataType = this.normalizeSearchValue(this.serverSearchInput.dataType) || 'onUse';
       },
-
-      async doGetRecordHistoryDetail() {
-        this.isDrawerTableLoading = true;
-        this.recordHistoryDetailListBackend = (await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'recordHistoryManagement',
-              actionId: 'selectItemList',
-              where: {
-                recordId: this.currentRecordId,
-                table: this.currentTable
+      async getTableData() {
+        this.isTableLoading = true;
+        try {
+          const dataType = this.normalizeSearchValue(this.serverSearchInput.dataType) || 'onUse';
+          const actionId = dataType === 'deleted'
+            ? 'selectDeletedItemListByTable'
+            : 'selectOnUseItemListByTable';
+          const result = await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: this.pageId,
+                actionId,
+                actionData: { table: this.currentTable },
               },
-              orderBy: [{column: 'id', order: 'desc'}]
-            }
-          }
-        })).data.appData.resultData.rows;
+            },
+          });
+          const rows = result.data.appData.resultData.rows || [];
+          this.tableDataFromBackend = rows;
+          this.tableData = rows.map((item, index) => {
+            const recordId = item.id ?? item.recordId ?? index;
+            return {
+              ...item,
+              id: recordId,
+              _rowKey: `${this.currentTable}-${recordId}`,
+            };
+          });
+          this.buildAvailableFieldList(this.tableData);
+        } finally {
+          this.isTableLoading = false;
+        }
       },
-      async decodeRecordHistoryDetail() {
-        // 数据的格式转换
-        const rows = this.recordHistoryDetailListBackend.map(row => {
-          const {recordContent, id: recordHistoryId} = row;
-          let record = {};
-          try {
-            record = JSON.parse(recordContent);
-          } catch (err) {
-            console.error('[JSON pare error]', err);
-          }
-          record.recordHistoryId = recordHistoryId;
-          return record;
-        })
-        this.recordHistoryDetailList = rows;
-        this.isDrawerTableLoading = false;
+      buildAvailableFieldList(rows) {
+        const hiddenFieldSet = new Set([
+          '_rowKey', 'id', 'recordId', 'recordHistoryId', 'count', 'operation',
+          'operationByUserId', 'operationByUser', 'operationAt',
+          'changedFieldList', 'changedFieldCount', 'changedFieldText',
+        ]);
+        const fieldList = Array.from(new Set((rows || []).flatMap(item => Object.keys(item || {}))))
+          .filter(field => !hiddenFieldSet.has(field));
+        this.availableFieldOptionList = fieldList.map(field => ({ value: field, text: field }));
+        const selectedFieldSet = new Set(this.normalizeSelectedFieldList(this.selectedFieldList));
+        const retainedFieldList = fieldList.filter(field => selectedFieldSet.has(field));
+        this.selectedFieldList = retainedFieldList.length ? retainedFieldList : fieldList.slice(0, 8);
       },
-      //   --------------- <<<<<<<<<< 查看详情 uiAction  ---------------
-      //   --------------- 还原数据 uiAction >>>>>>>>>>  ---------------
-      async prepareRestoreItem(funObj) {
-        this.restoreId = funObj.recordHistoryId;
+      filterRecordList(rows, filterInput) {
+        const keyword = String(filterInput.keyword || '').trim().toLowerCase();
+        const operator = String(filterInput.operator || '').trim().toLowerCase();
+        const operationFilter = this.normalizeSearchValue(filterInput.operation);
+        return (rows || []).filter(item => {
+          if (keyword && !this.isRowMatchedKeyword(item, keyword)) return false;
+          if (
+            operationFilter
+            && !String(item.operation || '').startsWith(operationFilter)
+          ) return false;
+          if (operator) {
+            const operatorText = `${item.operationByUser || ''} ${item.operationByUserId || ''}`.toLowerCase();
+            if (!operatorText.includes(operator)) return false;
+          }
+          const operationDate = String(item.operationAt || '').slice(0, 10);
+          if (filterInput.dateStart && (!operationDate || operationDate < filterInput.dateStart)) return false;
+          if (filterInput.dateEnd && (!operationDate || operationDate > filterInput.dateEnd)) return false;
+          return true;
+        });
+      },
+      isRowMatchedKeyword(item, keyword) {
+        return Object.entries(item || {}).some(([key, value]) => {
+          if (key === '_rowKey' || value == null) return false;
+          const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
+          return text.toLowerCase().includes(keyword);
+        });
+      },
+      resetClientFilters() {
+        this.filterInput = {
+          keyword: '',
+          operation: '',
+          operator: '',
+          dateStart: '',
+          dateEnd: '',
+        };
+      },
+      async prepareRecordHistoryItem(item) {
+        this.currentRecordId = item.id ?? item.recordId;
+        this.historyKeyword = '';
+        this.recordHistoryDetailList = [];
+      },
+      async openHistoryDetailDrawer() {
+        this.isHistoryDetailDrawerShown = true;
+        this.$nextTick(() => {
+          resetTableMaxHeight()
+        });
+      },
+      async getRecordHistoryDetail() {
+        this.isDrawerTableLoading = true;
+        try {
+          const result = await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: this.pageId,
+                actionId: 'selectItemList',
+                actionData: {
+                  table: this.currentTable,
+                  recordId: this.currentRecordId,
+                },
+              },
+            },
+          });
+          const rows = result.data.appData.resultData.rows || [];
+          this.recordHistoryDetailList = rows.map(row => this.normalizeRecordHistoryDetailRow(row));
+        } finally {
+          this.isDrawerTableLoading = false;
+        }
+      },
+      normalizeRecordHistoryDetailRow(row) {
+        if (!row || typeof row !== 'object') return row;
+        if (row.recordHistoryId != null && !row.recordContent) return row;
+        if (!row.recordContent) return row;
+        let record = {};
+        try {
+          record = JSON.parse(row.recordContent);
+        } catch (err) {
+          console.error('[normalizeRecordHistoryDetailRow] JSON.parse error', err);
+        }
+        return {
+          ...record,
+          recordHistoryId: row.recordHistoryId ?? row.id ?? null,
+          operation: row.operation ?? record.operation,
+          operationByUserId: row.operationByUserId ?? record.operationByUserId,
+          operationByUser: row.operationByUser ?? record.operationByUser,
+          operationAt: row.operationAt ?? record.operationAt,
+          changedFieldText: row.changedFieldText,
+          changedFieldCount: row.changedFieldCount,
+          changedFieldList: row.changedFieldList,
+        };
+      },
+      async prepareRestoreItem(item) {
+        this.restoreRecordHistoryId = item.recordHistoryId;
+      },
+      async confirmRestoreRecord() {
+        const confirmed = await window.confirmDialog({
+          title: '确认恢复该历史版本？',
+          content: `数据表 ${this.currentTable} 的记录 ${this.currentRecordId} 将恢复到版本 ${this.restoreRecordHistoryId}。`,
+        });
+        if (confirmed === false) {
+          throw new Error('[confirmRestoreRecord] cancelled');
+        }
       },
       async doRestoreRecordByRecordHistory() {
-        window.vtoast.loading(`${this.currentTable}【${this.restoreId}】数据还原`);
+        window.vtoast.loading(`正在恢复版本 ${this.restoreRecordHistoryId}`);
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'recordHistoryManagement',
+              pageId: this.pageId,
               actionId: 'restoreRecordByRecordHistory',
-              actionData: {
-                recordHistoryId: this.restoreId
-              }
-            }
-          }
+              actionData: { recordHistoryId: this.restoreRecordHistoryId },
+            },
+          },
         });
-        window.vtoast.success(`${this.currentTable}【${this.restoreId}】数据还原成功`);
-        this.restoreId = null;
+        window.vtoast.success('数据恢复成功');
       },
-    }
+      getOperationText(operation) {
+        const normalizedOperation = String(operation || '').split(':')[0];
+        const item = this.constantObj.operation.find(option => option.value === normalizedOperation);
+        return item ? item.text : (operation || '未知');
+      },
+      getOperationColor(operation) {
+        const colorMap = {
+          insert: 'success',
+          jhInsert: 'success',
+          update: 'primary',
+          jhUpdate: 'primary',
+          delete: 'error',
+          jhDelete: 'error',
+          jhRestore: 'warning',
+        };
+        const normalizedOperation = String(operation || '').split(':')[0];
+        return colorMap[normalizedOperation] || 'grey';
+      },
+      formatDateTime(value) {
+        const dayjsFn = window.dayjs || dayjs;
+        return value && dayjsFn(value).isValid() ? dayjsFn(value).format('YYYY-MM-DD HH:mm:ss') : (value || '-');
+      },
+    },
   },
-  
+  style: /*css*/`
+    .record-history-page {
+      min-width: 0;
+    }
+    .rh-main-table {
+      width: 100%;
+    }
+    .rh-main-table.jh-table-v6-root {
+      min-width: 0;
+    }
+    .rh-page-header {
+      padding: 16px 0;
+    }
+    .rh-page-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.87);
+    }
+    .rh-page-subtitle,
+    .rh-muted-text {
+      margin-top: 3px;
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.5);
+    }
+    .rh-page-body {
+      padding: 0;
+    }
+    .rh-filter-card,
+    .rh-table-card {
+      border: 1px solid #edf0f3;
+      background: #fff;
+    }
+    .rh-filter-card {
+      padding: 0;
+    }
+    .rh-table-toolbar,
+    .rh-history-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+    }
+    .rh-data-table,
+    .rh-history-table {
+      border-top: 1px solid #f0f2f5;
+    }
+    .rh-history-drawer-body {
+      height: calc(100vh - 52px);
+      min-height: 0;
+    }
+    .rh-history-search {
+      flex: 0 1 320px;
+      max-width: 320px;
+    }
+    .rh-history-table {
+      flex: 1;
+      min-height: 0;
+    }
+    @media (max-width: 600px) {
+      .rh-page-header,
+      .rh-page-body {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+      .rh-history-summary {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      .rh-history-search {
+        max-width: none;
+      }
+    }
+  `,
 };
 
 module.exports = content;

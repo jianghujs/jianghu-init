@@ -237,12 +237,20 @@
             const pageNameArr = pageName.split("]");
             return `${pageNameArr[0]}`;
           }
-          return `${item.pageName}`;
+          return `page-${item.pageId}`;
         });
         for (let key in this.menuGroup) {
-          this.menuGroup[key] = _.orderBy(this.menuGroup[key], ['sort'], ['asc']);
+          this.menuGroup[key] = _.orderBy(
+            this.menuGroup[key],
+            [item => parseInt(item.sort, 10) || 0],
+            ['asc']
+          );
         }
-        this.menuSort = Object.keys(this.menuGroup).sort((a, b) => this.menuGroup[a][0].sort - this.menuGroup[b][0].sort);
+        this.menuSort = Object.keys(this.menuGroup).sort((a, b) => {
+          const groupAMinSort = parseInt(this.menuGroup[a][0].sort, 10) || 0;
+          const groupBMinSort = parseInt(this.menuGroup[b][0].sort, 10) || 0;
+          return groupAMinSort - groupBMinSort;
+        });
       },
       computedMenuList() {
         this.inMenuList = this.menuSort.map(key => {
