@@ -58,6 +58,9 @@ const permissionDrawerBody = /*html*/`
           <v-alert v-if="inheritedPermissionNodeIdList.length" dense text type="primary" class="ugr-alert-compact mb-2">
             已有 {{ inheritedPermissionNodeIdList.length }} 项权限由公开/登录规则继承。复选框只表示当前对象的直接授权；可重复勾选继承项，便于后续收回上级权限时继续保留。
           </v-alert>
+          <v-alert v-if="requiredPermissionNodeIdList.length" dense text type="warning" class="ugr-alert-compact mb-2">
+            标记为“必选”的 {{ requiredPermissionNodeIdList.length }} 项属于系统基础权限，保存时强制保留，不能取消。
+          </v-alert>
           <v-alert v-if="deniedPermissionNodeIdList.length" dense text type="warning" class="ugr-alert-compact mb-2">
             当前对象还有 {{ deniedPermissionNodeIdList.length }} 项 deny 规则；deny 优先，且本页面保存时不会修改这些规则。
           </v-alert>
@@ -113,6 +116,7 @@ const permissionDrawerBody = /*html*/`
                 <span>{{ item.name }}</span>
                 <span v-if="item.code" class="ugr-tree-code ml-2">{{ item.code }}</span>
                 <v-chip v-if="item.isWildcard" x-small outlined color="warning" class="ugr-chip ml-2">通配</v-chip>
+                <v-chip v-if="isRequiredPermissionNode(item.id)" x-small color="warning" class="ugr-chip ml-2">必选</v-chip>
                 <v-chip
                   v-if="inheritedPermissionSourceMap[item.id]"
                   x-small
@@ -231,7 +235,11 @@ const content = {
       actionId: "selectUser",
       desc: "✅查询用户",
       resourceType: "sql",
-      resourceData: { table: "_user", operation: "select" }
+      resourceData: {
+        table: "_view01_user",
+        operation: "select",
+        fieldList: [ "userId", "username", "userStatus" ]
+      }
     },
     {
       actionId: "selectGroup",
@@ -396,11 +404,11 @@ const content = {
             >
               <v-icon color="primary" :size="13">mdi-pencil-outline</v-icon>编辑
             </span>
-            <span v-permission="'selectTargetPermission'" role="button" class="ugr-table-action primary--text mr-2" @click.stop="doUiAction('startDataTypeItemPermission', item.data)">
+            <span v-if="isDataTypePermissionEnabled" v-permission="'selectTargetPermission'" role="button" class="ugr-table-action primary--text mr-2" @click.stop="doUiAction('startDataTypeItemPermission', item.data)">
               <v-icon color="primary" :size="13">mdi-shield-key-outline</v-icon>权限
             </span>
             <span
-              v-if="isDataTypeEditEnabled"
+              v-if="isDataTypeDeleteEnabled"
               v-permission="currentDataTypeDeletePermission"
               role="button" class="ugr-table-action red--text text--accent-2"
               @click.stop="doUiAction('deleteDataTypeItemFromList', item.data)"
@@ -667,9 +675,9 @@ const content = {
   common: {
     data: {
       pageFeatures: {
-        user: { enableCreate: true, enableEdit: true },
-        group: { enableCreate: true, enableEdit: true },
-        role: { enableCreate: true, enableEdit: true },
+        user: { enableCreate: true, enableEdit: true, enableDelete: true, enablePermission: true },
+        group: { enableCreate: true, enableEdit: true, enableDelete: true, enablePermission: true },
+        role: { enableCreate: true, enableEdit: true, enableDelete: true, enablePermission: true },
         /** 中间「组织·角色归属」表格：分配 / 修改 / 删除 */
         relation: { enableCreate: true, enableEdit: true, enableDelete: true },
       },
@@ -721,6 +729,7 @@ const content = {
       permissionTargetLabel: '',
       permissionTree: [],
       selectedPermissionNodeIdList: [],
+      requiredPermissionNodeIdList: [],
       inheritedPermissionNodeIdList: [],
       inheritedPermissionSourceMap: {},
       deniedPermissionNodeIdList: [],
@@ -787,6 +796,8 @@ const content = {
         return {
           enableCreate: config.enableCreate !== false,
           enableEdit: config.enableEdit !== false,
+          enableDelete: config.enableDelete !== false,
+          enablePermission: config.enablePermission !== false,
         };
       },
       isDataTypeCreateEnabled() {
@@ -794,6 +805,12 @@ const content = {
       },
       isDataTypeEditEnabled() {
         return this.currentPageFeature.enableEdit;
+      },
+      isDataTypeDeleteEnabled() {
+        return this.currentPageFeature.enableDelete;
+      },
+      isDataTypePermissionEnabled() {
+        return this.currentPageFeature.enablePermission;
       },
       relationPageFeature() {
         const config = (this.pageFeatures && this.pageFeatures.relation) || {};
@@ -822,11 +839,13 @@ const content = {
         return [ 'deleteUser', 'deleteGroup', 'deleteRole' ][this.dataType] || '';
       },
       currentDataTypeFormFieldList() {
+        const idKey = [ 'userId', 'groupId', 'roleId' ][this.dataType];
         return (this.dataTypeFieldList || []).map(item => ({
           key: item.value,
           label: item.text,
           type: item.type || 'text',
           required: item.require !== false,
+          disabled: item.value === idKey,
           options: item.type === 'select'
             ? ((this.constantObj && this.constantObj[item.value]) || [])
             : undefined,
@@ -840,13 +859,17 @@ const content = {
       },
       currentDataTypeDrawerActionList() {
         const typeKey = [ 'User', 'Group', 'Role' ][this.dataType];
-        if (!this.isDataTypeEditEnabled || !typeKey) {
+        if (!typeKey) {
           return [];
         }
-        return [
-          { label: '保存', uiAction: 'updateCurrentDataTypeItem', permission: this.currentDataTypeUpdatePermission, color: 'primary' },
-          { label: '删除', uiAction: 'deleteCurrentDataTypeItem', permission: this.currentDataTypeDeletePermission, color: 'error', outlined: true },
-        ];
+        const actionList = [];
+        if (this.isDataTypeEditEnabled) {
+          actionList.push({ label: '保存', uiAction: 'updateCurrentDataTypeItem', permission: this.currentDataTypeUpdatePermission, color: 'primary' });
+        }
+        if (this.isDataTypeDeleteEnabled) {
+          actionList.push({ label: '删除', uiAction: 'deleteCurrentDataTypeItem', permission: this.currentDataTypeDeletePermission, color: 'error', outlined: true });
+        }
+        return actionList;
       },
       relationCreateDrawerActionList() {
         return [
@@ -1050,9 +1073,9 @@ const content = {
         'closeFormDrawer',
       ],
       startUpdateDataTypeItem: [ 'assertDataTypeEditEnabled', 'prepareCurrentDataTypeForm', 'openCurrentDataTypeDrawer' ],
-      startDataTypeItemPermission: [ 'prepareCurrentDataTypeForm', 'startCurrentTargetPermission' ],
+      startDataTypeItemPermission: [ 'assertDataTypePermissionEnabled', 'prepareCurrentDataTypeForm', 'startCurrentTargetPermission' ],
       deleteDataTypeItemFromList: [
-        'assertDataTypeEditEnabled',
+        'assertDataTypeDeleteEnabled',
         'prepareCurrentDataTypeForm',
         'confirmDeleteDataItemDialog',
         'doDeleteCurrentDataTypeItem',
@@ -1068,7 +1091,7 @@ const content = {
         'buildDataTypeData',
       ],
       deleteCurrentDataTypeItem: [
-        'assertDataTypeEditEnabled',
+        'assertDataTypeDeleteEnabled',
         'confirmDeleteDataItemDialog',
         'doDeleteCurrentDataTypeItem',
         'closeCurrentDataTypeDrawer',
@@ -1087,6 +1110,18 @@ const content = {
         if (!this.isDataTypeEditEnabled) {
           window.vtoast && window.vtoast.fail('当前类型未开启编辑');
           throw new Error('[assertDataTypeEditEnabled] disabled');
+        }
+      },
+      assertDataTypeDeleteEnabled() {
+        if (!this.isDataTypeDeleteEnabled) {
+          window.vtoast && window.vtoast.fail('当前类型未开启删除');
+          throw new Error('[assertDataTypeDeleteEnabled] disabled');
+        }
+      },
+      assertDataTypePermissionEnabled() {
+        if (!this.isDataTypePermissionEnabled) {
+          window.vtoast && window.vtoast.fail('当前类型未开启权限配置');
+          throw new Error('[assertDataTypePermissionEnabled] disabled');
         }
       },
       assertRelationCreateEnabled() {
@@ -1161,6 +1196,7 @@ const content = {
         this.permissionSearch = null;
         this.permissionTree = [];
         this.selectedPermissionNodeIdList = [];
+        this.requiredPermissionNodeIdList = [];
         this.inheritedPermissionNodeIdList = [];
         this.inheritedPermissionSourceMap = {};
         this.deniedPermissionNodeIdList = [];
@@ -1178,12 +1214,46 @@ const content = {
       isDirectPermissionSelected(nodeId) {
         return this.selectedPermissionNodeIdList.includes(nodeId);
       },
+      isRequiredPermissionNode(nodeId) {
+        return this.requiredPermissionNodeIdList.includes(nodeId);
+      },
+      ensureRequiredPermissionNodeIdList(nodeIdList) {
+        return Array.from(new Set([
+          ...(nodeIdList || []),
+          ...this.requiredPermissionNodeIdList,
+        ]));
+      },
       handlePermissionSelectionChange(nextNodeIdList) {
         if (!this.canUpdateTargetPermission) return;
         // 勾通配时会禁用具体 action，treeview 可能同步再发一次旧选中态；同步窗口内忽略
         if (this._permissionSelectionSyncing) return;
         const previousNodeIdSet = new Set(this.selectedPermissionNodeIdList || []);
         const nextNodeIdSet = new Set(nextNodeIdList || []);
+        const changedWildcardPageItemList = (this.permissionTree || []).filter(pageItem => {
+          const wildcardItem = (pageItem.children || []).find(resourceItem => resourceItem.isWildcard);
+          return wildcardItem
+            && previousNodeIdSet.has(wildcardItem.id) !== nextNodeIdSet.has(wildcardItem.id);
+        });
+        if (changedWildcardPageItemList.length === 1) {
+          const changedPageItem = changedWildcardPageItemList[0];
+          // TreeView 切换通配节点时可能暂时丢失其他页面的父节点，本次操作只允许影响目标页。
+          (this.permissionTree || [])
+            .filter(pageItem => pageItem.id !== changedPageItem.id)
+            .forEach(pageItem => {
+              this.getPageAllPermissionNodeIdList(pageItem).forEach(nodeId => {
+                if (previousNodeIdSet.has(nodeId)) {
+                  nextNodeIdSet.add(nodeId);
+                } else {
+                  nextNodeIdSet.delete(nodeId);
+                }
+              });
+            });
+          const wildcardItem = (changedPageItem.children || []).find(resourceItem => resourceItem.isWildcard);
+          if (previousNodeIdSet.has(wildcardItem.id) && !nextNodeIdSet.has(wildcardItem.id)) {
+            // 取消本页通配权限时，同步取消本页进入权限。
+            nextNodeIdSet.delete(changedPageItem.id);
+          }
+        }
         (this.permissionTree || []).forEach(pageItem => {
           const wasPageSelected = previousNodeIdSet.has(pageItem.id);
           const isPageSelected = nextNodeIdSet.has(pageItem.id);
@@ -1208,7 +1278,7 @@ const content = {
           }
         });
         const normalizedNodeIdList = this.normalizeWildcardPermissionNodeIdList(
-          Array.from(nextNodeIdSet)
+          this.ensureRequiredPermissionNodeIdList(Array.from(nextNodeIdSet))
         );
         this.selectedPermissionNodeIdList = normalizedNodeIdList;
         this.syncPermissionSelectionState(normalizedNodeIdList);
@@ -1236,6 +1306,7 @@ const content = {
       },
       applyPermissionTreeState() {
         const canUpdate = this.canUpdateTargetPermission;
+        const requiredNodeIdSet = new Set(this.requiredPermissionNodeIdList);
         const setDisabled = (item, disabled) => {
           if (this.$set) {
             this.$set(item, 'disabled', disabled);
@@ -1250,11 +1321,13 @@ const content = {
             wildcardItem
             && this.selectedPermissionNodeIdList.includes(wildcardItem.id)
           );
-          setDisabled(pageItem, !canUpdate);
+          setDisabled(pageItem, !canUpdate || requiredNodeIdSet.has(pageItem.id));
           (pageItem.children || []).forEach(resourceItem => {
             setDisabled(
               resourceItem,
-              !canUpdate || (isDirectWildcardSelected && !resourceItem.isWildcard)
+              !canUpdate
+                || requiredNodeIdSet.has(resourceItem.id)
+                || (isDirectWildcardSelected && !resourceItem.isWildcard)
             );
           });
         });
@@ -1278,8 +1351,9 @@ const content = {
           });
           const resultData = result.data.appData.resultData;
           this.permissionTree = resultData.permissionTree || [];
+          this.requiredPermissionNodeIdList = resultData.requiredNodeIdList || [];
           this.selectedPermissionNodeIdList = this.normalizeWildcardPermissionNodeIdList(
-            resultData.selectedNodeIdList || []
+            this.ensureRequiredPermissionNodeIdList(resultData.selectedNodeIdList || [])
           );
           this.inheritedPermissionNodeIdList = resultData.inheritedNodeIdList || [];
           this.inheritedPermissionSourceMap = resultData.inheritedPermissionSourceMap || {};
@@ -1331,12 +1405,16 @@ const content = {
         ];
       },
       async selectAllPermission() {
-        this.selectedPermissionNodeIdList = this.getSelectablePermissionNodeIdList();
+        this.selectedPermissionNodeIdList = this.normalizeWildcardPermissionNodeIdList(
+          this.ensureRequiredPermissionNodeIdList(this.getSelectablePermissionNodeIdList())
+        );
         this.applyPermissionTreeState();
         this.openedPermissionNodeIdList = this.permissionTree.map(item => item.id);
       },
       async clearAllPermission() {
-        this.selectedPermissionNodeIdList = [];
+        this.selectedPermissionNodeIdList = this.normalizeWildcardPermissionNodeIdList(
+          this.ensureRequiredPermissionNodeIdList([])
+        );
         this.applyPermissionTreeState();
       },
       isPageAllPermissionSelected(pageItem) {
@@ -1363,7 +1441,9 @@ const content = {
             this.openedPermissionNodeIdList = [...this.openedPermissionNodeIdList, pageItem.id];
           }
         }
-        this.selectedPermissionNodeIdList = Array.from(selectedNodeIdSet);
+        this.selectedPermissionNodeIdList = this.normalizeWildcardPermissionNodeIdList(
+          this.ensureRequiredPermissionNodeIdList(Array.from(selectedNodeIdSet))
+        );
         this.applyPermissionTreeState();
       },
       // description: ✅页面节点保存到_page授权，resource节点保存到_resource授权
@@ -1570,13 +1650,13 @@ const content = {
       // description: ✅新增关系数据resource
       async doCreateRelationDataItem() {
         await window.vtoast.loading("保存中");
-        const { userId, groupId, roleId } = this.createRelationDataFormData;
+        const createItem = _.pick(this.createRelationDataFormData, [ 'userId', 'groupId', 'roleId' ]);
         await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'userGroupRole',
               actionId: 'insertItem',
-              actionData: { userId, groupId, roleId }
+              actionData: createItem
             }
           }
         });
@@ -1609,13 +1689,13 @@ const content = {
       async doUpdateRelationDataItem() {
         await window.vtoast.loading("保存中");
         const id = this.updateRelationDataFormData.id;
-        const { userId, groupId, roleId } = this.updateRelationDataFormData;
+        const updateItem = _.pick(this.updateRelationDataFormData, [ 'userId', 'groupId', 'roleId' ]);
         await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'userGroupRole',
               actionId: 'updateItem',
-              actionData: { userId, groupId, roleId },
+              actionData: updateItem,
               where: { id: id }
             }
           }
@@ -1681,12 +1761,13 @@ const content = {
        */
       async doCreateUserItem() {
         window.vtoast.loading("添加中")
+        const createItem = _.pick(this.createUserData, [ 'userId', 'username', 'userStatus', 'clearTextPassword' ]);
         await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'userGroupRole',
               actionId: 'insertUser',
-              actionData: this.createUserData
+              actionData: createItem
             }
           }
         })
@@ -1698,12 +1779,13 @@ const content = {
        */
       async doCreateGroupItem() {
         window.vtoast.loading("添加中")
+        const createItem = _.pick(this.createGroupData, [ 'groupId', 'groupName', 'groupDesc', 'groupAvatar', 'groupExtend' ]);
         await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'userGroupRole',
               actionId: 'insertGroup',
-              actionData: this.createGroupData
+              actionData: createItem
             }
           }
         })
@@ -1715,12 +1797,13 @@ const content = {
        */
       async doCreateRoleItem() {
         window.vtoast.loading("添加中")
+        const createItem = _.pick(this.createRoleData, [ 'roleId', 'roleName', 'roleDesc' ]);
         await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'userGroupRole',
               actionId: 'insertRole',
-              actionData: this.createRoleData
+              actionData: createItem
             }
           }
         })
@@ -1794,26 +1877,33 @@ const content = {
       // description: ✅更新修改用户、组织、角色
       async doUpdateCurrentDataTypeDataItem() {
         window.vtoast.loading("保存中");
-        const { id, userId, ...updateItem } = this.currentDataTypeItem;
-        let actionId;
+        let actionId, whereKey, updateFieldList;
         switch (this.dataType) {
           case 0:
             actionId = 'updateUser';
+            whereKey = 'userId';
+            updateFieldList = [ 'username', 'userStatus' ];
             break;
           case 1:
             actionId = 'updateGroup';
+            whereKey = 'groupId';
+            updateFieldList = [ 'groupName', 'groupDesc', 'groupAvatar', 'groupExtend' ];
             break;
           case 2:
             actionId = 'updateRole';
+            whereKey = 'roleId';
+            updateFieldList = [ 'roleName', 'roleDesc' ];
             break;
         }
+        const whereValue = this.currentDataTypeItem[whereKey];
+        const updateItem = _.pick(this.currentDataTypeItem, updateFieldList);
         await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'userGroupRole',
               actionId: actionId,
               actionData: updateItem,
-              where: { id }
+              where: { [whereKey]: whereValue }
             }
           }
         })

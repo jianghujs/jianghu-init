@@ -8,6 +8,16 @@ const _ = require('lodash');
 const TARGET_KEYS = [ 'user', 'group', 'role' ];
 const PUBLIC_TARGET = { user: '*', group: 'public', role: '*' };
 const LOGIN_TARGET = { user: '*', group: 'login', role: '*' };
+const REQUIRED_PERMISSION_MAP = {
+  public: {
+    pageIdList: [ 'login' ],
+    resourceIdList: [ 'login.*' ],
+  },
+  login: {
+    pageIdList: [ 'help' ],
+    resourceIdList: [ 'help.*' ],
+  },
+};
 
 class userGroupRoleService extends Service {
 
@@ -46,6 +56,8 @@ class userGroupRoleService extends Service {
     ]);
 
     const pageIdSet = new Set(pageList.map(item => item.pageId));
+    const requiredPermission = this.getRequiredPermission(target);
+    this.validateRequiredPermission(requiredPermission, pageIdSet);
     const resourceListByPageId = _.groupBy(
       resourceList.filter(item => pageIdSet.has(item.pageId)),
       'pageId'
@@ -87,8 +99,14 @@ class userGroupRoleService extends Service {
         .filter(item => pageIdSet.has(item.pageId))
         .map(item => `${item.pageId}.${item.actionId}`)
     );
-    const selectedPageIdList = this.expandRuleValueList(pageRuleList, 'page', allPageIdList);
-    const selectedResourceIdList = this.unpackRuleValueList(resourceRuleList, 'resource');
+    const selectedPageIdList = _.uniq([
+      ...this.expandRuleValueList(pageRuleList, 'page', allPageIdList),
+      ...requiredPermission.pageIdList,
+    ]);
+    const selectedResourceIdList = this.normalizeResourcePermissionList([
+      ...this.unpackRuleValueList(resourceRuleList, 'resource'),
+      ...requiredPermission.resourceIdList,
+    ]);
     const deniedPageIdList = this.expandRuleValueList(pageDenyRuleList, 'page', allPageIdList);
     const deniedResourceIdList = this.unpackRuleValueList(resourceDenyRuleList, 'resource');
     const isVisibleResourceRule = resourceId => (
@@ -119,6 +137,10 @@ class userGroupRoleService extends Service {
       ],
       inheritedNodeIdList: inherited.inheritedNodeIdList,
       inheritedPermissionSourceMap: inherited.inheritedPermissionSourceMap,
+      requiredNodeIdList: [
+        ...requiredPermission.pageIdList.map(pageId => `page:${pageId}`),
+        ...requiredPermission.resourceIdList.map(resourceId => `resource:${resourceId}`),
+      ],
     };
   }
 
@@ -137,15 +159,24 @@ class userGroupRoleService extends Service {
         .select(field))
     ));
 
-    const normalizedPageIdList = _.uniq(pageIdList.filter(item => typeof item === 'string' && item));
+    const submittedPageIdList = _.uniq(pageIdList.filter(item => typeof item === 'string' && item));
     const submittedResourceIdList = _.uniq(resourceIdList.filter(item => typeof item === 'string' && item));
-    const normalizedSubmittedResourceIdList = this.normalizeResourcePermissionList(submittedResourceIdList);
     const [ pageList, resourceList, existingResourceRuleList ] = await Promise.all([
       jianghuKnex('_page').select('pageId'),
       jianghuKnex('_resource').select('pageId', 'actionId'),
       selectRuleList('_user_group_role_resource', 'resource', 'allow'),
     ]);
     const validPageIdSet = new Set(pageList.map(item => item.pageId));
+    const requiredPermission = this.getRequiredPermission(target);
+    this.validateRequiredPermission(requiredPermission, validPageIdSet);
+    const normalizedPageIdList = _.uniq([
+      ...submittedPageIdList,
+      ...requiredPermission.pageIdList,
+    ]);
+    const normalizedSubmittedResourceIdList = this.normalizeResourcePermissionList([
+      ...submittedResourceIdList,
+      ...requiredPermission.resourceIdList,
+    ]);
     const allResourceIdList = resourceList.map(item => `${item.pageId}.${item.actionId}`);
     const validResourceIdSet = new Set(allResourceIdList);
     const visibleResourceIdSet = new Set(
@@ -275,6 +306,32 @@ class userGroupRoleService extends Service {
 
   isLoginTarget(target) {
     return target.user === '*' && target.group === 'login' && target.role === '*';
+  }
+
+  getRequiredPermission(target) {
+    const targetType = this.isPublicTarget(target)
+      ? 'public'
+      : this.isLoginTarget(target)
+        ? 'login'
+        : '';
+    const requiredPermission = REQUIRED_PERMISSION_MAP[targetType] || {};
+    return {
+      pageIdList: [ ...(requiredPermission.pageIdList || []) ],
+      resourceIdList: [ ...(requiredPermission.resourceIdList || []) ],
+    };
+  }
+
+  validateRequiredPermission(requiredPermission, pageIdSet) {
+    const requiredPageIdList = _.uniq([
+      ...(requiredPermission.pageIdList || []),
+      ...(requiredPermission.resourceIdList || [])
+        .filter(resourceId => resourceId.endsWith('.*'))
+        .map(resourceId => resourceId.slice(0, -2)),
+    ]);
+    const missingPageIdList = requiredPageIdList.filter(pageId => !pageIdSet.has(pageId));
+    if (missingPageIdList.length) {
+      throw new Error(`强制基础权限页面不存在: ${missingPageIdList.join(', ')}`);
+    }
   }
 
   getCompatiblePermissionTargetList(target) {
