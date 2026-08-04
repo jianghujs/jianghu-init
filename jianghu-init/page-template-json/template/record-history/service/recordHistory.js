@@ -227,6 +227,7 @@ class recordHistoryService extends Service {
     const ignoredFieldSet = new Set([
       'operation', 'operationByUserId', 'operationByUser', 'operationAt',
       'recordHistoryId', 'changedFieldList', 'changedFieldCount', 'changedFieldText',
+      'changedFieldDetailList', 'changedFieldDetailText',
     ]);
     recordList.forEach((record, index) => {
       const previousRecord = recordList[index + 1] || {};
@@ -237,11 +238,32 @@ class recordHistoryService extends Service {
         !ignoredFieldSet.has(field)
         && !_.isEqual(record[field], previousRecord[field])
       ));
+      const changedFieldDetailList = changedFieldList.map(field => ({
+        field,
+        before: previousRecord[field],
+        after: record[field],
+      }));
       record.changedFieldList = changedFieldList;
       record.changedFieldCount = changedFieldList.length;
       record.changedFieldText = changedFieldList.join(', ');
+      record.changedFieldDetailList = changedFieldDetailList;
+      record.changedFieldDetailText = changedFieldDetailList
+        .map(item => `${item.field}:${this.formatChangeValue(item.before)}->${this.formatChangeValue(item.after)}`)
+        .join(' | ');
     });
     return { rows: recordList, count: recordList.length };
+  }
+
+  formatChangeValue(value) {
+    if (value == null || value === '') return '';
+    if (typeof value === 'object') {
+      try {
+        return JSON.stringify(value);
+      } catch (err) {
+        return String(value);
+      }
+    }
+    return String(value);
   }
 
   sanitizeRecord(record) {

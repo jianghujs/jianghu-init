@@ -262,7 +262,7 @@ const content = {
               <div class="rh-history-summary">
                 <div>
                   <div class="font-weight-medium">{{ currentTable }} / 记录 {{ currentRecordId }}</div>
-                  <div class="rh-muted-text">共 {{ recordHistoryDetailList.length }} 个历史版本；恢复前请确认该版本内容。</div>
+                  <div class="rh-muted-text">共 {{ recordHistoryDetailList.length }} 个历史版本；点击「查看详情」或变化字段行可展开变更前后对比，恢复前请确认该版本内容。</div>
                 </div>
                 <v-text-field
                   v-model="historyKeyword"
@@ -274,14 +274,19 @@ const content = {
               </div>
               <v-data-table
                 fixed-header
+                show-expand
+                single-expand
+                :expanded.sync="expandedHistoryVersion"
                 :headers="historyHeaders"
                 :items="filteredHistoryDetailList"
                 :loading="isDrawerTableLoading"
                 item-key="recordHistoryId"
+                :item-class="historyRowClass"
                 :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有' }"
                 :items-per-page="20"
                 mobile-breakpoint="0"
                 class="elevation-0 jh-fixed-table-height zebraLine rh-history-table"
+                @click:row="handleHistoryRowClick"
               >
                 <template v-slot:item.operation="{ item }">
                   <v-chip x-small label :color="getOperationColor(item.operation)" text-color="white">
@@ -289,10 +294,86 @@ const content = {
                   </v-chip>
                 </template>
                 <template v-slot:item.changedFieldText="{ item }">
-                  <span v-if="item.changedFieldCount" :title="item.changedFieldText">
-                    {{ item.changedFieldCount }} 项：{{ item.changedFieldText }}
-                  </span>
+                  <div
+                    v-if="item.changedFieldCount"
+                    class="rh-change-summary rh-change-summary-clickable"
+                    role="button"
+                    tabindex="0"
+                    :title="'点击查看 ' + item.changedFieldCount + ' 项变动详情'"
+                    @click.stop="toggleHistoryVersionExpand(item)"
+                    @keydown.enter.stop="toggleHistoryVersionExpand(item)"
+                    @keydown.space.prevent.stop="toggleHistoryVersionExpand(item)"
+                  >
+                    <v-chip x-small outlined color="primary" class="mr-1 flex-shrink-0">{{ item.changedFieldCount }} 项</v-chip>
+                    <div class="min-width-0">
+                      <div class="rh-muted-text text-truncate" :title="item.changedFieldText">{{ item.changedFieldText }}</div>
+                      <div
+                        v-if="item.changedFieldDetailList && item.changedFieldDetailList[0]"
+                        class="rh-change-preview text-truncate"
+                        :title="formatChangePreview(item.changedFieldDetailList[0])"
+                      >
+                        {{ formatChangePreview(item.changedFieldDetailList[0]) }}
+                      </div>
+                    </div>
+                  </div>
                   <span v-else class="rh-muted-text">无字段变化</span>
+                </template>
+                <template v-slot:item.changeDetail="{ item }">
+                  <jh-text-btn
+                    v-if="item.changedFieldCount"
+                    @click.stop="toggleHistoryVersionExpand(item)"
+                    icon="file-diff"
+                    color="primary"
+                    class="text-no-wrap"
+                  >
+                    {{ isHistoryVersionExpanded(item) ? '收起详情' : '查看详情' }}
+                  </jh-text-btn>
+                  <span v-else class="rh-muted-text">-</span>
+                </template>
+                <template v-slot:item.data-table-expand="{ item, expand, isExpanded }">
+                  <v-btn
+                    v-if="item.changedFieldCount"
+                    icon
+                    x-small
+                    :title="isExpanded ? '收起变动详情' : '展开变动详情'"
+                    @click.stop="expand(!isExpanded)"
+                  >
+                    <v-icon size="18">{{ isExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+                  </v-btn>
+                </template>
+                <template v-slot:expanded-item="{ headers, item }">
+                  <td :colspan="headers.length" class="rh-change-detail-cell pa-0">
+                    <div class="rh-change-detail-panel">
+                      <div v-if="!(item.changedFieldDetailList || []).length" class="rh-muted-text px-4 py-3">
+                        暂无变动详情，请确认后端 service 已更新并重启服务。
+                      </div>
+                      <div v-else class="rh-change-detail-inner">
+                        <table class="rh-change-detail-table">
+                          <thead>
+                            <tr>
+                              <th class="rh-change-col-field">字段</th>
+                              <th class="rh-change-col-before">变更前</th>
+                              <th class="rh-change-col-after">变更后</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr
+                              v-for="change in (item.changedFieldDetailList || [])"
+                              :key="item.recordHistoryId + '-' + change.field"
+                            >
+                              <td class="rh-change-field-cell">{{ change.field }}</td>
+                              <td class="rh-change-value-cell rh-change-before">
+                                <pre class="rh-change-value-text">{{ formatChangeValue(change.before, true) }}</pre>
+                              </td>
+                              <td class="rh-change-value-cell rh-change-after">
+                                <pre class="rh-change-value-text">{{ formatChangeValue(change.after, true) }}</pre>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </td>
                 </template>
                 <template v-slot:item.operationAt="{ item }">
                   <span class="text-no-wrap">{{ formatDateTime(item.operationAt) }}</span>
@@ -354,6 +435,7 @@ const content = {
       currentRecordId: null,
       restoreRecordHistoryId: null,
       historyKeyword: '',
+      expandedHistoryVersion: [],
     },
     computed: {
       tableDataComputed() {
@@ -383,14 +465,15 @@ const content = {
         ];
       },
       historyHeaders() {
-        const fixedValueSet = new Set(['id', 'operation', 'operationByUser', 'operationAt', 'count', 'action']);
+        const fixedValueSet = new Set(['id', 'operation', 'operationByUser', 'operationAt', 'count', 'action', 'changeDetail']);
         const businessHeaders = this.normalizeSelectedFieldList(this.selectedFieldList)
           .filter(field => !fixedValueSet.has(field))
           .map(field => ({ text: field, value: field, width: 150 }));
         return [
           { text: '版本ID', value: 'recordHistoryId', width: 90 },
           { text: '操作类型', value: 'operation', width: 110 },
-          { text: '变化字段', value: 'changedFieldText', width: 220 },
+          { text: '变化字段', value: 'changedFieldText', width: 260 },
+          { text: '变动详情', value: 'changeDetail', width: 110, sortable: false },
           ...businessHeaders,
           { text: '操作者', value: 'operationByUser', width: 130 },
           { text: '操作时间', value: 'operationAt', width: 175 },
@@ -539,6 +622,7 @@ const content = {
         this.currentRecordId = item.id ?? item.recordId;
         this.historyKeyword = '';
         this.recordHistoryDetailList = [];
+        this.expandedHistoryVersion = [];
       },
       async openHistoryDetailDrawer() {
         this.isHistoryDetailDrawerShown = true;
@@ -562,20 +646,26 @@ const content = {
             },
           });
           const rows = result.data.appData.resultData.rows || [];
-          this.recordHistoryDetailList = rows.map(row => this.normalizeRecordHistoryDetailRow(row));
+          const baseRows = rows.map(row => this.parseRecordHistoryBaseRow(row));
+          this.recordHistoryDetailList = baseRows.map((row, index) => {
+            if (Array.isArray(row.changedFieldDetailList) && row.changedFieldDetailList.length) {
+              return row;
+            }
+            return this.attachHistoryChangeDetail(row, baseRows[index + 1] || null);
+          });
+          this.expandedHistoryVersion = [];
         } finally {
           this.isDrawerTableLoading = false;
         }
       },
-      normalizeRecordHistoryDetailRow(row) {
+      parseRecordHistoryBaseRow(row) {
         if (!row || typeof row !== 'object') return row;
-        if (row.recordHistoryId != null && !row.recordContent) return row;
-        if (!row.recordContent) return row;
+        if (!row.recordContent) return { ...row };
         let record = {};
         try {
           record = JSON.parse(row.recordContent);
         } catch (err) {
-          console.error('[normalizeRecordHistoryDetailRow] JSON.parse error', err);
+          console.error('[parseRecordHistoryBaseRow] JSON.parse error', err);
         }
         return {
           ...record,
@@ -584,9 +674,73 @@ const content = {
           operationByUserId: row.operationByUserId ?? record.operationByUserId,
           operationByUser: row.operationByUser ?? record.operationByUser,
           operationAt: row.operationAt ?? record.operationAt,
-          changedFieldText: row.changedFieldText,
-          changedFieldCount: row.changedFieldCount,
-          changedFieldList: row.changedFieldList,
+        };
+      },
+      isHistoryFieldValueEqual(left, right) {
+        if (typeof _ !== 'undefined' && typeof _.isEqual === 'function') {
+          return _.isEqual(left, right);
+        }
+        try {
+          return JSON.stringify(left) === JSON.stringify(right);
+        } catch (err) {
+          return left === right;
+        }
+      },
+      isHistoryVersionExpanded(item) {
+        const expandedItem = (this.expandedHistoryVersion || [])[0];
+        return !!(expandedItem && expandedItem.recordHistoryId === item.recordHistoryId);
+      },
+      toggleHistoryVersionExpand(item) {
+        if (!item || !item.changedFieldCount) return;
+        if (this.isHistoryVersionExpanded(item)) {
+          this.expandedHistoryVersion = [];
+          return;
+        }
+        this.expandedHistoryVersion = [item];
+      },
+      handleHistoryRowClick(item, slot) {
+        if (!item || !item.changedFieldCount) return;
+        if (slot && typeof slot.expand === 'function') {
+          slot.expand(!slot.isExpanded);
+          return;
+        }
+        this.toggleHistoryVersionExpand(item);
+      },
+      historyRowClass(item) {
+        return item && item.changedFieldCount ? 'rh-history-row-expandable' : '';
+      },
+      formatChangePreview(change) {
+        if (!change) return '';
+        return `${change.field}: ${this.formatChangeValue(change.before)} → ${this.formatChangeValue(change.after)}`;
+      },
+      attachHistoryChangeDetail(record, previousRecord) {
+        const ignoredFieldSet = new Set([
+          'operation', 'operationByUserId', 'operationByUser', 'operationAt',
+          'recordHistoryId', 'changedFieldList', 'changedFieldCount', 'changedFieldText',
+          'changedFieldDetailList', 'changedFieldDetailText', 'recordContent',
+        ]);
+        const previous = previousRecord || {};
+        const changedFieldList = Array.from(new Set([
+          ...Object.keys(record || {}),
+          ...Object.keys(previous),
+        ])).filter(field => (
+          !ignoredFieldSet.has(field)
+          && !this.isHistoryFieldValueEqual(record[field], previous[field])
+        ));
+        const changedFieldDetailList = changedFieldList.map(field => ({
+          field,
+          before: previous[field],
+          after: record[field],
+        }));
+        return {
+          ...record,
+          changedFieldList,
+          changedFieldCount: changedFieldList.length,
+          changedFieldText: changedFieldList.join(', '),
+          changedFieldDetailList,
+          changedFieldDetailText: changedFieldDetailList
+            .map(item => `${item.field}:${this.formatChangeValue(item.before)}->${this.formatChangeValue(item.after)}`)
+            .join(' | '),
         };
       },
       async prepareRestoreItem(item) {
@@ -631,6 +785,23 @@ const content = {
         };
         const normalizedOperation = String(operation || '').split(':')[0];
         return colorMap[normalizedOperation] || 'grey';
+      },
+      formatChangeValue(value, multiline) {
+        if (value == null || value === '') return '（空）';
+        let text = value;
+        if (typeof value === 'object') {
+          try {
+            text = JSON.stringify(value, null, multiline ? 2 : 0);
+          } catch (err) {
+            text = String(value);
+          }
+        } else {
+          text = String(value);
+        }
+        if (!multiline && text.length > 160) {
+          return `${text.slice(0, 160)}…`;
+        }
+        return text;
       },
       formatDateTime(value) {
         const dayjsFn = window.dayjs || dayjs;
@@ -696,6 +867,108 @@ const content = {
     .rh-history-table {
       flex: 1;
       min-height: 0;
+    }
+    .rh-change-summary {
+      display: flex;
+      align-items: flex-start;
+      min-width: 0;
+    }
+    .rh-change-summary-clickable {
+      cursor: pointer;
+      border-radius: 6px;
+      padding: 2px 4px;
+      margin: -2px -4px;
+    }
+    .rh-change-summary-clickable:hover {
+      background: rgba(25, 118, 210, 0.06);
+    }
+    .rh-change-preview {
+      margin-top: 2px;
+      font-size: 11px;
+      line-height: 1.4;
+      color: rgba(0, 0, 0, 0.55);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .rh-history-row-expandable {
+      cursor: pointer;
+    }
+    .rh-change-detail-cell {
+      background: #fafbfc;
+      border-top: 1px solid #edf0f3;
+    }
+    .rh-change-detail-panel {
+      padding: 12px 16px;
+    }
+    .rh-change-detail-inner {
+      width: min(760px, calc(100vw - 64px));
+      max-width: 760px;
+      position: sticky;
+      left: 16px;
+      z-index: 1;
+    }
+    .rh-change-detail-table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid #e6eaf0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .rh-change-detail-table thead th {
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: left;
+      color: rgba(0, 0, 0, 0.62);
+      background: #f3f5f8;
+      border-bottom: 1px solid #e6eaf0;
+    }
+    .rh-change-detail-table tbody td {
+      vertical-align: top;
+      border-bottom: 1px solid #edf0f3;
+    }
+    .rh-change-detail-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .rh-change-col-field {
+      width: 120px;
+    }
+    .rh-change-col-before,
+    .rh-change-col-after {
+      width: calc((100% - 120px) / 2);
+    }
+    .rh-change-field-cell {
+      padding: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.78);
+      word-break: break-word;
+      background: #fafbfc;
+    }
+    .rh-change-value-cell {
+      padding: 0;
+    }
+    .rh-change-value-cell.rh-change-before {
+      background: #fff8f8;
+      border-left: 3px solid #ffcdd2;
+    }
+    .rh-change-value-cell.rh-change-after {
+      background: #f7fff8;
+      border-left: 3px solid #c8e6c9;
+    }
+    .rh-change-value-text {
+      margin: 0;
+      padding: 10px;
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12px;
+      line-height: 1.5;
+      color: rgba(0, 0, 0, 0.82);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     @media (max-width: 600px) {
       .rh-page-header,
