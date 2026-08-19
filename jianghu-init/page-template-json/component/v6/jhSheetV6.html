@@ -206,7 +206,7 @@ Vue.component('jh-sheet-menu-grid', {
         <slot></slot>
       </v-card-text>
 
-      <v-card-actions :class="actionsClass">
+      <v-card-actions v-if="hasRenderableActionsSlot()" :class="actionsClass">
         <slot name="actions"></slot>
       </v-card-actions>
     </v-card>
@@ -364,6 +364,21 @@ Vue.component("jh-sheet", {
     },
   },
   methods: {
+    hasRenderableActionsSlot() {
+      const scopedSlot = this.$scopedSlots && this.$scopedSlots.actions;
+      const slotNodes = scopedSlot
+        ? scopedSlot({})
+        : (this.$slots && this.$slots.actions);
+      return this.hasRenderableSlotNodes(slotNodes);
+    },
+    hasRenderableSlotNodes(slotNodes) {
+      const nodes = Array.isArray(slotNodes) ? slotNodes : [slotNodes];
+      return nodes.some(node => {
+        if (!node || node.isComment) return false;
+        if (node.tag) return true;
+        return typeof node.text === 'string' && node.text.trim() !== '';
+      });
+    },
     closeSheet() {
       this.openProxy = false;
     },

@@ -67,13 +67,15 @@ const pageTypes = [
     filename: 'tableRecordHistory',
     path: 'table-record-history/',
     demo: `/**
-         * crud 操作记录组件
+         * crud 操作记录组件（V7）
          * table  {String} 关联表名
-         * pageId {String} pageId
-         * id     {String} 关联表id
+         * id     {String|Number} 关联表 id
+         * pageId 由宿主 Page 注入，resource 注册在宿主 pageId 上
+         *
+         * 前置：app/service/recordHistory.js 已部署；宿主 Page re-init 后含 tableRecordHistory-selectItemList resource
          */
-        <table-record-history table="class" :pageId="pageId" :id="updateItem.id" />
-        { label: "操作记录", type: "component", componentPath: "jhTableRecordHistory" }
+        <table-record-history :table="table" :id="updateItem.id" />
+        { label: "操作记录", type: "component", componentPath: "tableRecordHistory", bind: ["table", "id"] }
     `,
   },
   {

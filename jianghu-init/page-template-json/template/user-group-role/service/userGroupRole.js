@@ -99,16 +99,22 @@ class userGroupRoleService extends Service {
         .filter(item => pageIdSet.has(item.pageId))
         .map(item => `${item.pageId}.${item.actionId}`)
     );
+    const directPageRuleValueList = this.unpackRuleValueList(pageRuleList, 'page');
+    const directResourceRuleValueList = this.unpackRuleValueList(resourceRuleList, 'resource');
     const selectedPageIdList = _.uniq([
       ...this.expandRuleValueList(pageRuleList, 'page', allPageIdList),
       ...requiredPermission.pageIdList,
     ]);
     const selectedResourceIdList = this.normalizeResourcePermissionList([
-      ...this.unpackRuleValueList(resourceRuleList, 'resource'),
+      ...this.expandResourceRuleValueList(resourceRuleList, visibleResourceIdSet, pageIdSet),
       ...requiredPermission.resourceIdList,
     ]);
     const deniedPageIdList = this.expandRuleValueList(pageDenyRuleList, 'page', allPageIdList);
-    const deniedResourceIdList = this.unpackRuleValueList(resourceDenyRuleList, 'resource');
+    const deniedResourceIdList = this.expandResourceRuleValueList(
+      resourceDenyRuleList,
+      visibleResourceIdSet,
+      pageIdSet
+    );
     const isVisibleResourceRule = resourceId => (
       visibleResourceIdSet.has(resourceId)
       || this.isPageResourceWildcard(resourceId, pageIdSet)
@@ -120,6 +126,9 @@ class userGroupRoleService extends Service {
       pageIdSet,
       visibleResourceIdSet,
     });
+    const groupRoleOptionList = this.isActualGroupTarget(target)
+      ? await this.selectGroupRolePermissionOptionList(target.group)
+      : [];
 
     return {
       permissionTree,
@@ -141,6 +150,12 @@ class userGroupRoleService extends Service {
         ...requiredPermission.pageIdList.map(pageId => `page:${pageId}`),
         ...requiredPermission.resourceIdList.map(resourceId => `resource:${resourceId}`),
       ],
+      groupRoleOptionList,
+      appWildcardPermission: {
+        page: directPageRuleValueList.includes('*'),
+        resource: directResourceRuleValueList.includes('*'),
+        enabled: directPageRuleValueList.includes('*') && directResourceRuleValueList.includes('*'),
+      },
     };
   }
 
@@ -150,8 +165,12 @@ class userGroupRoleService extends Service {
       target,
       pageIdList = [],
       resourceIdList = [],
+      appWildcardMode = 'unchanged',
     } = this.ctx.request.body.appData.actionData;
     this.validatePermissionTarget(target);
+    if (![ 'unchanged', 'enabled', 'disabled' ].includes(appWildcardMode)) {
+      throw new Error('全应用权限状态不支持');
+    }
     const compatibleTargetList = this.getCompatiblePermissionTargetList(target);
     const selectRuleList = async (table, field, allowOrDeny) => _.flatten(await Promise.all(
       compatibleTargetList.map(compatibleTarget => jianghuKnex(table)
@@ -161,19 +180,20 @@ class userGroupRoleService extends Service {
 
     const submittedPageIdList = _.uniq(pageIdList.filter(item => typeof item === 'string' && item));
     const submittedResourceIdList = _.uniq(resourceIdList.filter(item => typeof item === 'string' && item));
-    const [ pageList, resourceList, existingResourceRuleList ] = await Promise.all([
+    const [ pageList, resourceList, existingPageRuleList, existingResourceRuleList ] = await Promise.all([
       jianghuKnex('_page').select('pageId'),
       jianghuKnex('_resource').select('pageId', 'actionId'),
+      selectRuleList('_user_group_role_page', 'page', 'allow'),
       selectRuleList('_user_group_role_resource', 'resource', 'allow'),
     ]);
     const validPageIdSet = new Set(pageList.map(item => item.pageId));
     const requiredPermission = this.getRequiredPermission(target);
     this.validateRequiredPermission(requiredPermission, validPageIdSet);
-    const normalizedPageIdList = _.uniq([
+    const explicitPageIdList = _.uniq([
       ...submittedPageIdList,
       ...requiredPermission.pageIdList,
     ]);
-    const normalizedSubmittedResourceIdList = this.normalizeResourcePermissionList([
+    const explicitResourceIdList = this.normalizeResourcePermissionList([
       ...submittedResourceIdList,
       ...requiredPermission.resourceIdList,
     ]);
@@ -188,14 +208,29 @@ class userGroupRoleService extends Service {
     const hiddenExistingResourceIdList = this
       .unpackRuleValueList(existingResourceRuleList, 'resource')
       .filter(resourceId => (
-        !visibleResourceIdSet.has(resourceId)
+        resourceId !== '*'
+        && !visibleResourceIdSet.has(resourceId)
         && !this.isPageResourceWildcard(resourceId, validPageIdSet)
       ));
-    const normalizedResourceIdList = this.normalizeResourcePermissionList([
-      ...normalizedSubmittedResourceIdList,
+    const existingPageWildcard = this.unpackRuleValueList(existingPageRuleList, 'page').includes('*');
+    const existingResourceWildcard = this.unpackRuleValueList(existingResourceRuleList, 'resource').includes('*');
+    let normalizedPageIdList = explicitPageIdList;
+    let normalizedResourceIdList = this.normalizeResourcePermissionList([
+      ...explicitResourceIdList,
       ...hiddenExistingResourceIdList,
     ]);
-    const invalidPageIdList = normalizedPageIdList.filter(pageId => !validPageIdSet.has(pageId));
+    if (appWildcardMode === 'enabled') {
+      normalizedPageIdList = [ '*' ];
+      normalizedResourceIdList = [ '*' ];
+    } else if (appWildcardMode === 'unchanged') {
+      if (existingPageWildcard) {
+        normalizedPageIdList = [ '*' ];
+      }
+      if (existingResourceWildcard) {
+        normalizedResourceIdList = [ '*' ];
+      }
+    }
+    const invalidPageIdList = submittedPageIdList.filter(pageId => !validPageIdSet.has(pageId));
     const invalidResourceIdList = submittedResourceIdList.filter(resourceId => (
       !validResourceIdSet.has(resourceId)
       && !this.isPageResourceWildcard(resourceId, validPageIdSet)
@@ -245,33 +280,30 @@ class userGroupRoleService extends Service {
   }) {
     const { jianghuKnex } = this.app;
     const inheritedPermissionSourceMap = {};
-    const inheritedTargets = [];
-
-    if (this.isPublicTarget(target)) {
+    const inheritedTargets = this.getInheritedPermissionTargetList(target);
+    if (!inheritedTargets.length) {
       return { inheritedNodeIdList: [], inheritedPermissionSourceMap };
-    }
-    if (this.isLoginTarget(target)) {
-      inheritedTargets.push({ key: 'public', target: PUBLIC_TARGET });
-    } else {
-      inheritedTargets.push(
-        { key: 'public', target: PUBLIC_TARGET },
-        { key: 'login', target: LOGIN_TARGET },
-      );
     }
 
     const ruleGroups = await Promise.all(inheritedTargets.map(async ({ key, target: inheritedTarget }) => {
+      const compatibleInheritedTargetList = this.getCompatiblePermissionTargetList(inheritedTarget);
+      const selectInheritedRuleList = async (table, field) => _.flatten(await Promise.all(
+        compatibleInheritedTargetList.map(compatibleTarget => jianghuKnex(table)
+          .where({ ...compatibleTarget, allowOrDeny: 'allow' })
+          .select(field))
+      ));
       const [ pageRuleList, resourceRuleList ] = await Promise.all([
-        jianghuKnex('_user_group_role_page').where({ ...inheritedTarget, allowOrDeny: 'allow' }).select('page'),
-        jianghuKnex('_user_group_role_resource').where({ ...inheritedTarget, allowOrDeny: 'allow' }).select('resource'),
+        selectInheritedRuleList('_user_group_role_page', 'page'),
+        selectInheritedRuleList('_user_group_role_resource', 'resource'),
       ]);
       return {
         key,
         pageIdList: this.expandRuleValueList(pageRuleList, 'page', allPageIdList),
-        resourceIdList: this.unpackRuleValueList(resourceRuleList, 'resource')
-          .filter(resourceId => (
-            visibleResourceIdSet.has(resourceId)
-            || this.isPageResourceWildcard(resourceId, pageIdSet)
-          )),
+        resourceIdList: this.expandResourceRuleValueList(
+          resourceRuleList,
+          visibleResourceIdSet,
+          pageIdSet
+        ),
       };
     }));
 
@@ -290,6 +322,98 @@ class userGroupRoleService extends Service {
     };
   }
 
+  getInheritedPermissionTargetList(target) {
+    if (this.isPublicTarget(target)) {
+      return [];
+    }
+    if (this.isLoginTarget(target)) {
+      return [{ key: 'public', target: PUBLIC_TARGET }];
+    }
+    const inheritedTargets = [
+      { key: 'public', target: PUBLIC_TARGET },
+      { key: 'login', target: LOGIN_TARGET },
+    ];
+    if (this.isGroupRoleTarget(target)) {
+      inheritedTargets.push(
+        {
+          key: 'group',
+          target: { user: '*', group: target.group, role: '*' },
+        },
+        {
+          key: 'role',
+          target: { user: '*', group: 'login', role: target.role },
+        },
+      );
+    }
+    return inheritedTargets;
+  }
+
+  async selectGroupRolePermissionOptionList(groupId) {
+    const { jianghuKnex } = this.app;
+    const [ membershipRoleList, pageRuleList, resourceRuleList, roleList ] = await Promise.all([
+      jianghuKnex('_user_group_role').where({ groupId }).distinct('roleId').select('roleId'),
+      jianghuKnex('_user_group_role_page')
+        .where({ user: '*', group: groupId })
+        .select('role', 'page', 'allowOrDeny'),
+      jianghuKnex('_user_group_role_resource')
+        .where({ user: '*', group: groupId })
+        .select('role', 'resource', 'allowOrDeny'),
+      jianghuKnex('_role').select('roleId', 'roleName'),
+    ]);
+    return this.buildGroupRolePermissionOptionList({
+      membershipRoleList,
+      pageRuleList,
+      resourceRuleList,
+      roleList,
+    });
+  }
+
+  buildGroupRolePermissionOptionList({
+    membershipRoleList = [],
+    pageRuleList = [],
+    resourceRuleList = [],
+    roleList = [],
+  }) {
+    const roleIdSet = new Set();
+    membershipRoleList.forEach(item => {
+      if (typeof item.roleId === 'string' && item.roleId && item.roleId !== '*') {
+        roleIdSet.add(item.roleId);
+      }
+    });
+    [ ...pageRuleList, ...resourceRuleList ].forEach(item => {
+      String(item.role || '').split(',').filter(roleId => roleId && roleId !== '*')
+        .forEach(roleId => roleIdSet.add(roleId));
+    });
+    const roleMap = _.keyBy(roleList, 'roleId');
+    const buildOption = roleId => {
+      const roleName = roleId === '*' ? '全组' : ((roleMap[roleId] || {}).roleName || roleId);
+      const isTargetRole = item => String(item.role || '').split(',').includes(roleId);
+      const isAllowRule = item => isTargetRole(item) && item.allowOrDeny !== 'deny';
+      const isDenyRule = item => isTargetRole(item) && item.allowOrDeny === 'deny';
+      const pagePermissionValueList = this.unpackRuleValueList(pageRuleList.filter(isAllowRule), 'page');
+      const resourcePermissionValueList = this.unpackRuleValueList(resourceRuleList.filter(isAllowRule), 'resource');
+      const pagePermissionCount = pagePermissionValueList.length;
+      const resourcePermissionCount = resourcePermissionValueList.length;
+      const denyPermissionCount = this.unpackRuleValueList(pageRuleList.filter(isDenyRule), 'page').length
+        + this.unpackRuleValueList(resourceRuleList.filter(isDenyRule), 'resource').length;
+      return {
+        value: roleId,
+        text: roleId === '*' ? '全组（角色 *）' : `${roleName}（${roleId}）`,
+        roleId,
+        roleName,
+        pagePermissionCount,
+        resourcePermissionCount,
+        denyPermissionCount,
+        isAppWildcardConfigured: pagePermissionValueList.includes('*') && resourcePermissionValueList.includes('*'),
+        isConfigured: pagePermissionCount > 0 || resourcePermissionCount > 0 || denyPermissionCount > 0,
+      };
+    };
+    const roleOptionList = Array.from(roleIdSet)
+      .map(buildOption)
+      .sort((a, b) => a.text.localeCompare(b.text, 'zh-CN'));
+    return [ buildOption('*'), ...roleOptionList ];
+  }
+
   mergeInheritedSource(sourceMap, nodeId, sourceKey) {
     if (!sourceMap[nodeId]) {
       sourceMap[nodeId] = sourceKey;
@@ -306,6 +430,14 @@ class userGroupRoleService extends Service {
 
   isLoginTarget(target) {
     return target.user === '*' && target.group === 'login' && target.role === '*';
+  }
+
+  isActualGroupTarget(target) {
+    return target.user === '*' && ![ '*', 'public', 'login' ].includes(target.group);
+  }
+
+  isGroupRoleTarget(target) {
+    return this.isActualGroupTarget(target) && target.role !== '*';
   }
 
   getRequiredPermission(target) {
@@ -382,6 +514,20 @@ class userGroupRoleService extends Service {
     return _.uniq(ruleList.flatMap(rule => String(rule[field] || '')
       .split(',')
       .filter(Boolean)));
+  }
+
+  expandResourceRuleValueList(ruleList, visibleResourceIdSet, pageIdSet) {
+    const resourceIdList = this.unpackRuleValueList(ruleList, 'resource');
+    if (resourceIdList.includes('*')) {
+      return [
+        ...Array.from(visibleResourceIdSet),
+        ...Array.from(pageIdSet).map(pageId => `${pageId}.*`),
+      ];
+    }
+    return resourceIdList.filter(resourceId => (
+      visibleResourceIdSet.has(resourceId)
+      || this.isPageResourceWildcard(resourceId, pageIdSet)
+    ));
   }
 
   isPageResourceWildcard(resourceId, pageIdSet) {

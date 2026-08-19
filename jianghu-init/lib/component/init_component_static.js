@@ -33,7 +33,7 @@ module.exports = class InitPagePublic extends CommandBase {
   /**
    * 生成 crud
    */
-  async generateCrud({ type, pageId: defaultPageId, filename, path, queryPageId = true, demo, y }) {
+  async generateCrud({ type, pageId: defaultPageId, filename, path: templatePath, queryPageId = true, demo, y }) {
 
     this.notice('开始生成 CRUD...');
     let pageId = defaultPageId;
@@ -41,26 +41,41 @@ module.exports = class InitPagePublic extends CommandBase {
       pageId = (await inquirer.prompt({
         name: 'pageId',
         type: 'input',
-        message: 'Please input component name',
+        message: 'Please input host pageId (resource will register on this page)',
         default: defaultPageId,
       })).pageId;
     }
     if (!pageId && pageId !== false) {
-      this.info('未输入page，流程结束');
+      this.info('未输入 pageId，流程结束');
       return;
     }
-    this.notice(`开始生成 ${pageId} 的 CRUD`);
+    this.notice(`开始生成 ${filename || pageId} 组件`);
+
+    const v7TemplateDir = path.join(__dirname, '../../page-template-json/template', String(templatePath || '').replace(/\/$/, ''));
+    const v7TemplateFile = path.join(v7TemplateDir, `${filename || pageId}.js`);
+    if (fs.existsSync(v7TemplateFile)) {
+      await this.generateV7Component({
+        pageId,
+        filename: filename || pageId,
+        templatePath,
+        v7TemplateDir,
+        v7TemplateFile,
+        demo,
+        y,
+      });
+      return;
+    }
 
     // 生成 vue
-    if (await this.renderVue(path, type, pageId, filename, { pageId }, y)) {
+    if (await this.renderVue(templatePath, type, pageId, filename, { pageId }, y)) {
       this.success(`生成 ${pageId} 的 vue 文件完成`);
     }
     // 生成 sql
-    if (await this.renderSql(path, { pageId })) {
+    if (await this.renderSql(templatePath, { pageId })) {
       this.success(`生成 ${pageId} 的 sql 文件完成`);
     }
     // 生成 service
-    if (await this.copyTemplateFiles(path)) {
+    if (await this.copyTemplateFiles(templatePath)) {
       this.success(`生成 ${pageId} 的 service 文件完成`);
     }
 
@@ -75,6 +90,57 @@ module.exports = class InitPagePublic extends CommandBase {
         ${demo}
       `);
     }
+  }
+
+  async generateV7Component({ pageId, filename, path, v7TemplateDir, v7TemplateFile, demo, y }) {
+    const InitComponent = require('../json/init_component');
+    const targetInitJsonDir = './app/view/init-json/component';
+    fs.mkdirSync(targetInitJsonDir, { recursive: true });
+    const targetInitJsonPath = path.join(targetInitJsonDir, `${filename}.js`);
+    if (fs.existsSync(targetInitJsonPath) && !y) {
+      const overwrite = await this.readlineMethod(`文件 ${targetInitJsonPath} 已经存在，是否覆盖?(y/N)`, 'n');
+      if (overwrite !== 'y' && overwrite !== 'Y') {
+        this.warning(`跳过 ${targetInitJsonPath} 的生成`);
+        return;
+      }
+    }
+    fs.copyFileSync(v7TemplateFile, targetInitJsonPath);
+    this.success(`生成 init-json 组件配置 ${targetInitJsonPath}`);
+
+    const sqlPath = path.join(v7TemplateDir, 'init.sql');
+    if (fs.existsSync(sqlPath)) {
+      await this.renderSqlFromFile(sqlPath, { pageId });
+      this.success(`生成 ${filename} 的 resource SQL 完成`);
+    }
+
+    const content = fs.readFileSync(targetInitJsonPath, 'utf-8');
+    // eslint-disable-next-line no-eval
+    const jsonConfig = eval(content);
+    await new InitComponent().run(process.cwd(), jsonConfig, { y: true });
+    this.info(`
+      引入方式：
+      { label: "操作记录", type: "component", componentPath: "${filename}", bind: ["table", "id"] }
+
+      ${demo}
+    `);
+  }
+
+  async renderSqlFromFile(filePath, { pageId }) {
+    if (!fs.existsSync(filePath)) return false;
+    let sql = fs.readFileSync(filePath, 'utf-8');
+    if (sql) {
+      sql = sql.replace(/\{\{pageId}}/g, pageId);
+      for (const line of sql.split('\n')) {
+        if (!line || !line.trim()) continue;
+        if (line.startsWith('--')) {
+          this.info(`正在执行 ${line}`);
+        } else {
+          await this.knex.raw(line);
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   /**

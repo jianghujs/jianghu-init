@@ -46,7 +46,10 @@ class userManagementService extends Service {
     const userExistCountResult = await jianghuKnex('_user', this.ctx).where({ userId }).count('*', { as: 'count' });
     const userExistCount = userExistCountResult[0].count;
     if (userExistCount > 0) {
-      throw new BizError(errorInfoEnum.request_user_not_exist);
+      throw new BizError({
+        errorCode: 'request_user_already_exist',
+        errorReason: '用户ID已存在',
+      });
     }
     const insertParams = _.pick(actionData, [ 'username', 'contactNumber', 'gender',
       'birthday', 'signature', 'email', 'userType',

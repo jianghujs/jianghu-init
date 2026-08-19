@@ -15,8 +15,8 @@ const relationDataCreateDrawerBody = /*html*/`
             <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.groupId" :items="groupListFromBackend"></v-select>
           </v-col>
           <v-col cols="12" sm="12" md="4">
-            <span class="jh-input-label">RoleId<span class="red--text text--accent-2 ml-1">*必填</span></span>
-            <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="createRelationDataFormData.roleId" :items="roleListFromBackend"></v-select>
+            <span class="jh-input-label">RoleId</span>
+            <v-select class="jh-v-input" dense filled single-line clearable v-model="createRelationDataFormData.roleId" :items="roleListFromBackend"></v-select>
           </v-col>
         </v-row>
         </v-form>
@@ -35,7 +35,7 @@ const relationDataUpdateDrawerBody = /*html*/`
             <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.groupId" :items="groupListFromBackend"></v-select>
           </v-col>
           <v-col cols="12" sm="12" md="4">
-            <span class="jh-input-label">RoleId<span class="red--text text--accent-2 ml-1">*必填</span></span>
+            <span class="jh-input-label">RoleId</span>
             <v-select class="jh-v-input" dense filled single-line clearable :rules="validationRules.requireRules" v-model="updateRelationDataFormData.roleId" :items="roleListFromBackend"></v-select>
           </v-col>
         </v-row>
@@ -53,31 +53,80 @@ const permissionDrawerBody = /*html*/`
       <div class="d-flex flex-column permission-drawer jh-drawer-body-scroll">
         <div class="ugr-permission-header">
           <v-alert dense text type="info" class="ugr-alert-compact mb-2">
-            页面节点控制是否允许进入页面；展开后的操作节点控制对应 resource 请求权限。“全部操作（含未来新增）”是独立通配权限，不会被批量选择自动勾选。
+            页面控制访问，操作控制 resource 请求；“全部操作”包含未来新增操作。
           </v-alert>
-          <v-alert v-if="inheritedPermissionNodeIdList.length" dense text type="primary" class="ugr-alert-compact mb-2">
-            已有 {{ inheritedPermissionNodeIdList.length }} 项权限由公开/登录规则继承。复选框只表示当前对象的直接授权；可重复勾选继承项，便于后续收回上级权限时继续保留。
-          </v-alert>
-          <v-alert v-if="requiredPermissionNodeIdList.length" dense text type="warning" class="ugr-alert-compact mb-2">
-            标记为“必选”的 {{ requiredPermissionNodeIdList.length }} 项属于系统基础权限，保存时强制保留，不能取消。
-          </v-alert>
-          <v-alert v-if="deniedPermissionNodeIdList.length" dense text type="warning" class="ugr-alert-compact mb-2">
-            当前对象还有 {{ deniedPermissionNodeIdList.length }} 项 deny 规则；deny 优先，且本页面保存时不会修改这些规则。
-          </v-alert>
+          <div
+            v-if="inheritedPermissionNodeIdList.length || requiredPermissionNodeIdList.length || deniedPermissionNodeIdList.length"
+            class="d-flex align-center flex-wrap ugr-permission-status mb-2"
+          >
+            <v-chip v-if="inheritedPermissionNodeIdList.length" x-small outlined color="primary" class="ugr-chip mr-2 mb-1">继承 {{ inheritedPermissionNodeIdList.length }}</v-chip>
+            <v-chip v-if="requiredPermissionNodeIdList.length" x-small outlined color="warning" class="ugr-chip mr-2 mb-1">必选 {{ requiredPermissionNodeIdList.length }}</v-chip>
+            <v-chip v-if="deniedPermissionNodeIdList.length" x-small outlined color="error" class="ugr-chip mr-2 mb-1">deny {{ deniedPermissionNodeIdList.length }}</v-chip>
+            <span class="ugr-muted-text mb-1">复选框表示直接授权，deny 优先。</span>
+          </div>
+          <div v-if="isGroupPermissionScope" class="ugr-permission-scope mb-3">
+            <div class="jh-input-label mb-1">权限范围（已有角色）</div>
+            <div class="d-flex flex-wrap ugr-permission-scope-list">
+              <v-chip
+                v-for="item in permissionRoleOptionList"
+                :key="item.value"
+                small
+                :outlined="permissionScopeRoleId !== item.value"
+                :color="permissionScopeRoleId === item.value ? 'primary' : undefined"
+                :disabled="isPermissionLoading || isPermissionSaving"
+                :title="item.text"
+                class="ugr-permission-scope-chip mr-2 mb-2"
+                @click="permissionScopeRoleId !== item.value && doUiAction('changeGroupPermissionRole', item.value)"
+              >
+                <span>{{ item.roleName }}</span>
+                <span class="ugr-permission-scope-count ml-1">
+                  <template v-if="item.isAppWildcardConfigured">全应用 *</template>
+                  <template v-else-if="item.isConfigured">{{ item.pagePermissionCount }}/{{ item.resourcePermissionCount }}</template>
+                  <template v-else>未配置</template>
+                  <template v-if="item.denyPermissionCount"> · deny {{ item.denyPermissionCount }}</template>
+                </span>
+              </v-chip>
+            </div>
+          </div>
+          <div class="ugr-app-wildcard d-flex align-center mb-3">
+            <v-switch
+              v-model="isAppWildcardPermissionSelected"
+              color="primary"
+              dense hide-details
+              class="ma-0 pa-0"
+              :disabled="!canUpdateTargetPermission || isPermissionLoading || isPermissionSaving"
+              @change="doUiAction('toggleAppWildcardPermission', $event)"
+            >
+              <template v-slot:label>
+                <span class="ugr-app-wildcard-label">全应用权限</span>
+                <span class="ugr-muted-text ml-2">含未来新增页面和操作</span>
+              </template>
+            </v-switch>
+            <v-chip v-if="isAppWildcardPermissionSelected" x-small color="primary" class="ugr-chip ml-auto">page=* / resource=*</v-chip>
+          </div>
+          <div v-if="hasPartialAppWildcardPermission" class="ugr-app-wildcard-warning mb-2">
+            当前仅配置了部分全应用 * 规则；开启后会统一为完整的页面和操作权限。
+          </div>
           <v-text-field
             v-model="permissionSearch"
             dense filled single-line clearable hide-details
             class="jh-v-input"
             prepend-inner-icon="mdi-magnify"
             placeholder="搜索页面、操作名称或 actionId"
+            :disabled="isAppWildcardPermissionSelected"
           ></v-text-field>
           <div class="d-flex align-center mt-3 flex-wrap ugr-permission-toolbar">
-            <v-chip small color="primary" outlined class="ugr-chip mr-2 mb-1">直接页面 {{ selectedPagePermissionCount }}</v-chip>
-            <v-chip small color="primary" outlined class="ugr-chip mr-2 mb-1">直接操作 {{ selectedResourcePermissionCount }}</v-chip>
+            <v-chip v-if="isAppWildcardPermissionSelected" small color="primary" outlined class="ugr-chip mr-2 mb-1">直接权限：全应用 *</v-chip>
+            <template v-else>
+              <v-chip small color="primary" outlined class="ugr-chip mr-2 mb-1">直接页面 {{ selectedPagePermissionCount }}</v-chip>
+              <v-chip small color="primary" outlined class="ugr-chip mr-2 mb-1">直接操作 {{ selectedResourcePermissionCount }}</v-chip>
+            </template>
             <v-chip v-if="inheritedPermissionNodeIdList.length" small color="grey" outlined class="ugr-chip mr-2 mb-1">继承 {{ inheritedPermissionNodeIdList.length }}</v-chip>
             <v-spacer></v-spacer>
-            <v-btn v-permission="'updateTargetPermission'" text small color="primary" class="ugr-text-btn" @click="doUiAction('selectAllPermission')">全部选择</v-btn>
-            <v-btn v-permission="'updateTargetPermission'" text small color="grey darken-1" class="ugr-text-btn" @click="doUiAction('clearAllPermission')">清空直接权限</v-btn>
+            <template v-if="!isAppWildcardPermissionSelected">
+              <v-btn v-permission="'updateTargetPermission'" text small color="primary" class="ugr-text-btn" @click="doUiAction('selectAllPermission')">全部选择</v-btn>
+              <v-btn v-permission="'updateTargetPermission'" text small color="grey darken-1" class="ugr-text-btn" @click="doUiAction('clearAllPermission')">清空直接权限</v-btn>
+            </template>
           </div>
         </div>
         <v-divider></v-divider>
@@ -434,7 +483,7 @@ const content = {
           </span> -->
         </div>
       </v-col>
-      <v-col cols="12" sm="12" md="8" xl="9" class="d-flex justify-end flex-wrap py-0 ugr-header-actions">
+      <v-col cols="12" sm="12" md="8" xl="9" class="d-flex justify-end flex-wrap p-0 ugr-header-actions">
         <v-btn v-permission="'selectTargetPermission'" small outlined color="warning" class="ugr-header-btn" @click="doUiAction('startPublicTargetPermission')">
           <v-icon left size="16">mdi-earth</v-icon>公开权限
         </v-btn>
@@ -531,9 +580,6 @@ const content = {
                   >
                     <v-icon size="15" class="primary--text">mdi-note-edit-outline</v-icon>修改
                   </span>
-                  <span v-permission="'selectTargetPermission'" role="button" class="ugr-table-action primary--text mr-3" @click="doUiAction('startTargetPermission', { targetType: 'groupRole', item })">
-                    <v-icon size="15" class="primary--text">mdi-shield-key-outline</v-icon>组内角色权限
-                  </span>
                   <span
                     v-if="isRelationDeleteEnabled"
                     v-permission="'deleteItem'"
@@ -554,9 +600,6 @@ const content = {
                   <v-list dense>
                     <v-list-item v-if="isRelationEditEnabled" v-permission="'updateItem'" @click="doUiAction('startUpdateRelationDataItem', item)">
                       <v-list-item-title>修改</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item v-permission="'selectTargetPermission'" @click="doUiAction('startTargetPermission', { targetType: 'groupRole', item })">
-                      <v-list-item-title>组内角色权限</v-list-item-title>
                     </v-list-item>
                     <v-list-item v-if="isRelationDeleteEnabled" v-permission="'deleteItem'" @click="doUiAction('deleteRelationDataItem', item)">
                       <v-list-item-title>删除</v-list-item-title>
@@ -727,6 +770,18 @@ const content = {
       permissionTarget: {},
       permissionTargetType: '',
       permissionTargetLabel: '',
+      permissionGroupId: '',
+      permissionGroupLabel: '',
+      permissionScopeRoleId: '*',
+      permissionLoadedRoleId: '*',
+      permissionRoleOptionList: [],
+      loadedSelectedPermissionNodeIdList: [],
+      isAppWildcardPermissionSelected: false,
+      loadedAppWildcardPermissionSelected: false,
+      appWildcardPermissionTouched: false,
+      appWildcardPageSelected: false,
+      appWildcardResourceSelected: false,
+      permissionNodeIdListBeforeAppWildcard: [],
       permissionTree: [],
       selectedPermissionNodeIdList: [],
       requiredPermissionNodeIdList: [],
@@ -789,6 +844,19 @@ const content = {
           groupRole: '组内角色',
         };
         return labelMap[this.permissionTargetType] || '';
+      },
+      isGroupPermissionScope() {
+        return [ 'group', 'groupRole' ].includes(this.permissionTargetType);
+      },
+      isPermissionDirty() {
+        const selectedNodeIdList = [ ...(this.selectedPermissionNodeIdList || []) ].sort();
+        const loadedNodeIdList = [ ...(this.loadedSelectedPermissionNodeIdList || []) ].sort();
+        return !_.isEqual(selectedNodeIdList, loadedNodeIdList)
+          || this.isAppWildcardPermissionSelected !== this.loadedAppWildcardPermissionSelected;
+      },
+      hasPartialAppWildcardPermission() {
+        return !this.isAppWildcardPermissionSelected
+          && this.appWildcardPageSelected !== this.appWildcardResourceSelected;
       },
       currentPageFeature() {
         const key = ['user', 'group', 'role'][this.dataType];
@@ -924,7 +992,7 @@ const content = {
         const selectedLabel = selected ? `${selected.text}（${selected.value}）` : '未选择';
         if (this.dataType === 0) {
           return {
-            description: `用户「${selectedLabel}」的组织与角色。用户级权限在左侧行内「权限」配置；中间行内为组内角色权限。`,
+            description: `用户「${selectedLabel}」的组织与角色。用户级权限在左侧行内「权限」配置。`,
             createLabel: '分配组织与角色',
             emptyText: '无组织/角色，可点击「分配组织与角色」或在左侧配置用户权限。',
             filterLabel: '全部用户归属',
@@ -933,7 +1001,7 @@ const content = {
         if (this.dataType === 1) {
           return {
             title: '组内成员',
-            description: `组织「${selectedLabel}」下成员及角色。组织级权限在左侧行内「权限」；中间行内为组内角色权限。`,
+            description: `组织「${selectedLabel}」下成员及角色。点击左侧「权限」可配置全组及组内角色权限。`,
             createLabel: '添加成员',
             emptyText: '暂无成员，可在左侧配置组织权限。',
             filterLabel: '全部组织成员',
@@ -1043,6 +1111,8 @@ const content = {
       startPublicTargetPermission: [ 'preparePublicPermissionTarget', 'openPermissionDrawer', 'getTargetPermission' ],
       startLoginTargetPermission: [ 'prepareLoginPermissionTarget', 'openPermissionDrawer', 'getTargetPermission' ],
       startTargetPermission: [ 'preparePermissionTarget', 'openPermissionDrawer', 'getTargetPermission' ],
+      changeGroupPermissionRole: [ 'changeGroupPermissionRole' ],
+      toggleAppWildcardPermission: [ 'toggleAppWildcardPermission' ],
       selectAllPermission: [ 'selectAllPermission' ],
       clearAllPermission: [ 'clearAllPermission' ],
       togglePageAllPermission: [ 'togglePageAllPermission' ],
@@ -1191,11 +1261,31 @@ const content = {
         this.permissionTarget = targetConfig.target;
         this.permissionTargetType = targetType;
         this.permissionTargetLabel = targetConfig.label;
+        if ([ 'group', 'groupRole' ].includes(targetType)) {
+          const groupOption = this.groupListFromBackend.find(option => option.value === targetConfig.target.group);
+          this.permissionGroupId = targetConfig.target.group;
+          this.permissionGroupLabel = (groupOption && groupOption.text) || item.groupName || item.groupId;
+          this.permissionScopeRoleId = targetConfig.target.role;
+          this.permissionLoadedRoleId = targetConfig.target.role;
+        } else {
+          this.permissionGroupId = '';
+          this.permissionGroupLabel = '';
+          this.permissionScopeRoleId = '*';
+          this.permissionLoadedRoleId = '*';
+          this.permissionRoleOptionList = [];
+        }
       },
       async openPermissionDrawer() {
         this.permissionSearch = null;
         this.permissionTree = [];
         this.selectedPermissionNodeIdList = [];
+        this.loadedSelectedPermissionNodeIdList = [];
+        this.isAppWildcardPermissionSelected = false;
+        this.loadedAppWildcardPermissionSelected = false;
+        this.appWildcardPermissionTouched = false;
+        this.appWildcardPageSelected = false;
+        this.appWildcardResourceSelected = false;
+        this.permissionNodeIdListBeforeAppWildcard = [];
         this.requiredPermissionNodeIdList = [];
         this.inheritedPermissionNodeIdList = [];
         this.inheritedPermissionSourceMap = {};
@@ -1204,12 +1294,57 @@ const content = {
         this.isPermissionDrawerShown = true;
       },
       getInheritedPermissionLabel(nodeId) {
-        const sourceTextMap = { public: '公开', login: '登录' };
+        const sourceTextMap = { public: '公开', login: '登录', group: '全组', role: '登录角色' };
         return String(this.inheritedPermissionSourceMap[nodeId] || '')
           .split(',')
           .filter(Boolean)
           .map(key => sourceTextMap[key] || key)
           .join(' / ');
+      },
+      async changeGroupPermissionRole(roleId) {
+        const previousRoleId = this.permissionLoadedRoleId || '*';
+        const previousTarget = { ...this.permissionTarget };
+        const previousTargetType = this.permissionTargetType;
+        const previousTargetLabel = this.permissionTargetLabel;
+        if (this.isPermissionDirty) {
+          const isConfirmed = await window.confirmDialog({
+            title: '切换权限范围',
+            content: '当前直接权限尚未保存，切换后将放弃这些修改，是否继续？',
+          });
+          if (isConfirmed === false) {
+            this.permissionScopeRoleId = previousRoleId;
+            return;
+          }
+        }
+        const roleOption = this.permissionRoleOptionList.find(option => option.value === roleId) || {};
+        this.permissionTarget = { user: '*', group: this.permissionGroupId, role: roleId };
+        this.permissionTargetType = roleId === '*' ? 'group' : 'groupRole';
+        this.permissionTargetLabel = roleId === '*'
+          ? `${this.permissionGroupLabel}（${this.permissionGroupId}）`
+          : `${this.permissionGroupLabel}（${this.permissionGroupId}） / ${roleOption.roleName || roleId}（${roleId}）`;
+        try {
+          await this.getTargetPermission();
+        } catch (error) {
+          this.permissionTarget = previousTarget;
+          this.permissionTargetType = previousTargetType;
+          this.permissionTargetLabel = previousTargetLabel;
+          this.permissionScopeRoleId = previousRoleId;
+          throw error;
+        }
+      },
+      async toggleAppWildcardPermission(enabled) {
+        this.appWildcardPermissionTouched = enabled !== this.loadedAppWildcardPermissionSelected;
+        if (enabled) {
+          this.permissionNodeIdListBeforeAppWildcard = [ ...this.selectedPermissionNodeIdList ];
+          this.selectedPermissionNodeIdList = this.getAllPermissionNodeIdList();
+          this.openedPermissionNodeIdList = this.permissionTree.map(item => item.id);
+        } else if (!this.loadedAppWildcardPermissionSelected) {
+          this.selectedPermissionNodeIdList = [ ...this.permissionNodeIdListBeforeAppWildcard ];
+          this.permissionNodeIdListBeforeAppWildcard = [];
+        } else {
+          this.selectedPermissionNodeIdList = this.ensureRequiredPermissionNodeIdList([]);
+        }
+        this.applyPermissionTreeState();
       },
       isDirectPermissionSelected(nodeId) {
         return this.selectedPermissionNodeIdList.includes(nodeId);
@@ -1225,6 +1360,7 @@ const content = {
       },
       handlePermissionSelectionChange(nextNodeIdList) {
         if (!this.canUpdateTargetPermission) return;
+        if (this.isAppWildcardPermissionSelected) return;
         // 勾通配时会禁用具体 action，treeview 可能同步再发一次旧选中态；同步窗口内忽略
         if (this._permissionSelectionSyncing) return;
         const previousNodeIdSet = new Set(this.selectedPermissionNodeIdList || []);
@@ -1306,6 +1442,7 @@ const content = {
       },
       applyPermissionTreeState() {
         const canUpdate = this.canUpdateTargetPermission;
+        const isAppWildcardSelected = this.isAppWildcardPermissionSelected;
         const requiredNodeIdSet = new Set(this.requiredPermissionNodeIdList);
         const setDisabled = (item, disabled) => {
           if (this.$set) {
@@ -1321,11 +1458,12 @@ const content = {
             wildcardItem
             && this.selectedPermissionNodeIdList.includes(wildcardItem.id)
           );
-          setDisabled(pageItem, !canUpdate || requiredNodeIdSet.has(pageItem.id));
+          setDisabled(pageItem, isAppWildcardSelected || !canUpdate || requiredNodeIdSet.has(pageItem.id));
           (pageItem.children || []).forEach(resourceItem => {
             setDisabled(
               resourceItem,
-              !canUpdate
+              isAppWildcardSelected
+                || !canUpdate
                 || requiredNodeIdSet.has(resourceItem.id)
                 || (isDirectWildcardSelected && !resourceItem.isWildcard)
             );
@@ -1358,6 +1496,22 @@ const content = {
           this.inheritedPermissionNodeIdList = resultData.inheritedNodeIdList || [];
           this.inheritedPermissionSourceMap = resultData.inheritedPermissionSourceMap || {};
           this.deniedPermissionNodeIdList = resultData.deniedNodeIdList || [];
+          const appWildcardPermission = resultData.appWildcardPermission || {};
+          this.appWildcardPageSelected = appWildcardPermission.page === true;
+          this.appWildcardResourceSelected = appWildcardPermission.resource === true;
+          this.isAppWildcardPermissionSelected = appWildcardPermission.enabled === true;
+          this.loadedAppWildcardPermissionSelected = this.isAppWildcardPermissionSelected;
+          this.appWildcardPermissionTouched = false;
+          this.permissionNodeIdListBeforeAppWildcard = [];
+          if (this.isAppWildcardPermissionSelected) {
+            this.selectedPermissionNodeIdList = this.getAllPermissionNodeIdList();
+          }
+          this.loadedSelectedPermissionNodeIdList = [ ...this.selectedPermissionNodeIdList ];
+          if (this.isGroupPermissionScope) {
+            this.permissionRoleOptionList = resultData.groupRoleOptionList || [];
+            this.permissionScopeRoleId = this.permissionTarget.role;
+            this.permissionLoadedRoleId = this.permissionTarget.role;
+          }
           this.applyPermissionTreeState();
           const visibleSelectedNodeIdList = this.effectivePermissionNodeIdList;
           this.openedPermissionNodeIdList = this.permissionTree
@@ -1465,6 +1619,9 @@ const content = {
                   target: this.permissionTarget,
                   pageIdList,
                   resourceIdList,
+                  appWildcardMode: this.isAppWildcardPermissionSelected
+                    ? 'enabled'
+                    : (this.appWildcardPermissionTouched ? 'disabled' : 'unchanged'),
                 },
               }
             }
@@ -1918,11 +2075,11 @@ const content = {
     }
 
     .ugr-page-body {
-      padding: 0 16px 0 12px;
+      padding: 0 16px;
     }
 
     .ugr-page-header {
-      padding: 16px 16px 16px 12px;
+      padding: 16px;
     }
 
     .ugr-page-title {
@@ -2017,6 +2174,53 @@ const content = {
     .ugr-alert-compact .v-alert__wrapper {
       padding-top: 8px;
       padding-bottom: 8px;
+    }
+
+    .ugr-permission-scope {
+      padding: 10px 12px;
+      border: 1px solid #e6ebf2;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .ugr-permission-status {
+      min-height: 24px;
+      font-size: 12px;
+    }
+
+    .ugr-permission-scope-list {
+      margin-bottom: -8px;
+    }
+
+    .ugr-permission-scope-chip {
+      max-width: 100%;
+    }
+
+    .ugr-permission-scope-count {
+      font-size: 11px;
+      opacity: 0.72;
+    }
+
+    .ugr-app-wildcard {
+      min-height: 42px;
+      padding: 8px 12px;
+      border: 1px solid #dce6f5;
+      border-radius: 8px;
+      background: #f7faff;
+    }
+
+    .ugr-app-wildcard-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.78);
+    }
+
+    .ugr-app-wildcard-warning {
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #fff8e1;
+      color: #8d6e00;
+      font-size: 12px;
     }
 
     .ugr-left-drawer__prepend {
@@ -2142,11 +2346,11 @@ const content = {
 
     @media (min-width: 600px) {
       .ugr-page-body {
-        padding: 0 24px 0 12px;
+        padding: 0 24px 0 24px;
       }
 
       .ugr-page-header {
-        padding: 16px 16px 16px 12px;
+        padding: 16px 24px;
       }
 
       .v-application .px-sm-8 {
