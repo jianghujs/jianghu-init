@@ -100,11 +100,14 @@ Vue.component('jh-text-btn', {
     },
     btnStyle() {
       const fontSize = typeof this.fontSize === 'number' ? `${this.fontSize}px` : this.fontSize;
+      const isInactive = this.disabled || this.loading;
       return {
         color: this.colorMap[this.color] || this.color,
         fontSize,
         lineHeight: '1rem',
-        borderBottom: this.dashed ? `1px dashed ${this.colorMap[this.color] || this.color}` : 'none'
+        borderBottom: this.dashed && !isInactive ? `1px dashed ${this.colorMap[this.color] || this.color}` : 'none',
+        // 内联保证不被 CodeMirror / 表格等外层 cursor 盖掉；禁用态显式 not-allowed
+        cursor: isInactive ? 'not-allowed' : 'pointer',
       };
     }
   },
@@ -136,13 +139,18 @@ Vue.component('jh-text-btn', {
 
 .jh-text-btn--disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: not-allowed !important;
   border-bottom: none !important;
+}
+
+.jh-text-btn:not(.jh-text-btn--disabled) {
+  cursor: pointer !important;
 }
 
 .jh-text-btn__icon {
   display: inline-flex;
   flex-shrink: 0;
+  cursor: inherit;
 }
 
 .jh-text-btn__icon.icon-right {
@@ -159,5 +167,6 @@ Vue.component('jh-text-btn', {
   display: inline-block;
   flex-shrink: 0;
   white-space: nowrap;
+  cursor: inherit;
 }
 </style>
